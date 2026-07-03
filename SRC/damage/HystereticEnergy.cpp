@@ -244,7 +244,7 @@ HystereticEnergy::setResponse(const char **argv, int argc, OPS_Stream  &info)
     return new DamageResponse( this , 1 , 0.0 );
   
   else if (strcmp(argv[0],"trial") == 0 || strcmp(argv[0],"trialinfo") == 0 )
-    return new DamageResponse( this , 2 , Vector(7) );
+    return new DamageResponse( this , 2 , Vector(8) );
   
   else 
     return 0;
@@ -255,23 +255,21 @@ HystereticEnergy::setResponse(const char **argv, int argc, OPS_Stream  &info)
 int 
 HystereticEnergy::getResponse(int responseID, Information &info)
 {
-	switch (responseID) {
-	case -1:
-		return -1;
-	
-	case 1:
-		return info.setDouble( this->getDamage() );
+  switch (responseID) {
+  case -1:
+    return -1;
+  
+  case 1:
+    return info.setDouble( this->getDamage() );
 
-	case 2:
-		if(info.theVector!=0)
-		{
-			for (int i = 0 ; i < 8 ; i++ ) (*(info.theVector))(i) = TrialInfo[i];
-		}
-		return 0;
-
-	default:
-		return -1;
-	}
+  case 2: {
+    Vector vec(TrialInfo,8);
+    return info.setVector(vec);
+  }
+  default: {
+    return -1;
+  }
+  }
 }
 
 

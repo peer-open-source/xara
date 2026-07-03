@@ -25,22 +25,20 @@
 //#                                                                              #
 //#                                                                              #
 //#                                                                              #
-##
+//#
 //
-#ifndef COSSERATSTRAINTENSOR_CC
-#define COSSERATSTRAINTENSOR_CC
 
 #include "Cosseratstraint.h"
 
 
 Cosseratstraintensor::Cosseratstraintensor (int rank_of_tensor, double initval):
   tensor(rank_of_tensor, Cosserat_def_dim_2, initval)
-    {   }
+{   }
 
 
 Cosseratstraintensor::Cosseratstraintensor ( double *values ):
   tensor( 2, Cosserat_def_dim_2, values)
-    {  }
+{  }
 
 
 Cosseratstraintensor::Cosseratstraintensor ( double initvalue ):
@@ -53,7 +51,7 @@ Cosseratstraintensor::Cosseratstraintensor( const Cosseratstraintensor & x ):
       x.pc_nDarray_rep->n++;  // tell the rval it has another reference
 //      x.reference_count(+1);              // we're adding another reference.
       pc_nDarray_rep = x.pc_nDarray_rep;  // point to the new tensor_rep.
-// add the indices
+      // add the indices
       indices1 = x.indices1;
       indices2 = x.indices2;
     }
@@ -61,11 +59,13 @@ Cosseratstraintensor::Cosseratstraintensor( const Cosseratstraintensor & x ):
 
 
 Cosseratstraintensor::Cosseratstraintensor(const tensor & x):
-  tensor( x ) {  } // copy-initializer
+  tensor( x ) 
+{  } // copy-initializer
 
 
 Cosseratstraintensor::Cosseratstraintensor(const nDarray & x):
-  tensor( x ) {  }  // copy-initializer
+  tensor( x ) 
+{  }  // copy-initializer
 
 
 //#//##############################################################################
@@ -570,7 +570,8 @@ Cosseratstraintensor Cosseratstraintensor::evoleq2strain( double evol, double eq
 
 
 
-void Cosseratstraintensor::report(char * msg) const
+void
+Cosseratstraintensor::report(const char * msg) const
   {
     ::printf("\n****************  strain tensor report ****************\n");
     if ( msg ) ::printf("%s",msg);
@@ -612,19 +613,8 @@ void Cosseratstraintensor::report(char * msg) const
 
 
 
-void Cosseratstraintensor::reportshort(char * msg) const
-  {
-//    ::printf("\n         ****************** short strain tensor report ***\n");
-//    if ( msg ) ::printf("         %s",msg);
-
-    this->print("st"," ");
-
-//    ::printf("ksi = %.8e ,ro = %.8e ,theta = %.8e\n",
-//              ksi(),       ro(),      theta());
-
-//    ::printf("p=%.12e , q=%.12e , theta=%.12e*PI\n",
-//              p_hydrostatic(), q_deviatoric(), thetaPI());
-
-  }
-
-#endif
+void
+Cosseratstraintensor::reportshort(const char * msg) const
+{
+  this->print("st"," ");
+}

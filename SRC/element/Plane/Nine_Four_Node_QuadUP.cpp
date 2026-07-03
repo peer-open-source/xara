@@ -27,73 +27,6 @@
 
 #include <math.h>
 
-#if 0
-void * OPS_ADD_RUNTIME_VPV(OPS_NineFourNodeQuadUP)
-{
-    if (OPS_GetNDM() != 2) {
-    opserr << "WARNING -- model dimensions not compatible with 9-4-NodeQuadUP element\n";
-    return 0;
-    }
-    if (OPS_GetNumRemainingInputArgs() < 16) {
-    opserr << "WARNING insufficient arguments\n";
-    opserr << "Want: element FourNodeQuadUP eleTag? Node1? ... Node9? thk? type? matTag? bulk? rho? perm_x? perm_y? <b1? b2? pressure? dM? dK?>\n";
-    return 0;
-    }
-
-    // NineFourNodeQuadUPId, Node[9]
-    int tags[10];
-    int num = 10;
-    if (OPS_GetIntInput(&num,tags) < 0) {
-    opserr<<"WARNING: invalid integer input\n";
-    return 0;
-    }
-
-    double thk;
-    num = 1;
-    if (OPS_GetDoubleInput(&num,&thk) < 0) {
-    opserr<<"WARNING: invalid double input\n";
-    return 0;
-    }
-
-    int matTag;
-    if (OPS_GetIntInput(&num,&matTag) < 0) {
-    opserr<<"WARNING: invalid integer input\n";
-    return 0;
-    }
-    NDMaterial* mat = OPS_getNDMaterial(matTag);
-    if (mat == 0) {
-    opserr << "WARNING material not found\n";
-    opserr << "material tag: " << matTag;
-    opserr << "\nQuad element: " << tags[0] << endln;
-    }
-
-    // bk, r, perm1, perm2
-    double data[4];
-    num = 4;
-    if (OPS_GetDoubleInput(&num,data) < 0) {
-    opserr<<"WARNING: invalid double input\n";
-    return 0;
-    }
-
-    // b1, b2
-    double opt[2] = {0,0};
-    num = OPS_GetNumRemainingInputArgs();
-    if (num > 2) {
-    num = 2;
-    }
-    if (num > 0) {
-    if (OPS_GetDoubleInput(&num,opt) < 0) {
-        opserr<<"WARNING: invalid double input\n";
-        return 0;
-    }
-    }
-
-    return new NineFourNodeQuadUP(tags[0],tags[1],tags[2],tags[3],tags[4],
-                  tags[5],tags[6],tags[7],tags[8],tags[9],
-                  *mat,"PlaneStrain",thk,data[0],data[1],data[2],data[3],
-                  opt[0],opt[1]);
-}
-#endif
 
 Matrix NineFourNodeQuadUP::K(22,22);
 Vector NineFourNodeQuadUP::P(22);
@@ -108,88 +41,72 @@ double NineFourNodeQuadUP::wp[4];
 double NineFourNodeQuadUP::dvolu[9];
 double NineFourNodeQuadUP::dvolp[4];
 double NineFourNodeQuadUP::dvolq[4];
-const int NineFourNodeQuadUP::nintu=9;
-const int NineFourNodeQuadUP::nintp=4;
-const int NineFourNodeQuadUP::nenu=9;
-const int NineFourNodeQuadUP::nenp=4;
 
 NineFourNodeQuadUP::NineFourNodeQuadUP(int tag,
     int nd1, int nd2, int nd3, int nd4,int nd5, int nd6, int nd7, int nd8,int nd9,
     NDMaterial &m, const char *type, double t, double bulk, double r,
           double p1, double p2, double b1, double b2)
-:Element (tag, ELE_TAG_Nine_Four_Node_QuadUP),
-  theMaterial(0), connectedExternalNodes(9),
- Ki(0), Q(22), applyLoad(0), thickness(t), kc(bulk), rho(r),
- initNodeDispl(0)
+: Element(tag, ELE_TAG_Nine_Four_Node_QuadUP),
+  connectedExternalNodes(9),
+  Ki(nullptr), Q(22), applyLoad(0), thickness(t), kc(bulk), rho(r),
+  initNodeDispl(0)
 {
-    this->shapeFunction(wu, nintu, nenu, 0);
-    this->shapeFunction(wp, nintp, nenp, 1);
-    this->shapeFunction(wp, nintp, nenu, 2);
-    // Body forces
-    b[0] = b1;
-    b[1] = b2;
-    // Permeabilities
-    perm[0] = p1;
-    perm[1] = p2;
+  this->shapeFunction(wu, nintu, nenu, 0);
+  this->shapeFunction(wp, nintp, nenp, 1);
+  this->shapeFunction(wp, nintp, nenu, 2);
+  // Body forces
+  b[0] = b1;
+  b[1] = b2;
+  // Permeabilities
+  perm[0] = p1;
+  perm[1] = p2;
 
-    // Allocate arrays of pointers to NDMaterials
-    theMaterial = new NDMaterial *[nintu];
+  for (int i = 0; i < nintu; i++) {
 
-    if (theMaterial == 0) {
-      opserr << "NineFourNodeQuadUP::NineFourNodeQuadUP - failed allocate material model pointer\n";
+    // Get copies of the material model for each integration point
+    theMaterial[i] = m.getCopy(type);
+
+    // Check allocation
+    if (theMaterial[i] == nullptr) {
+      opserr << "Failed to get a copy of material model\n";
       exit(-1);
     }
+  }
 
-    for (int i = 0; i < nintu; i++) {
-
-      // Get copies of the material model for each integration point
-      theMaterial[i] = m.getCopy(type);
-
-      // Check allocation
-      if (theMaterial[i] == 0) {
-         opserr << "NineFourNodeQuadUP::NineFourNodeQuadUP -- failed to get a copy of material model\n";
-         exit(-1);
-      }
-    }
-
-    // Set connected external node IDs
-    connectedExternalNodes(0) = nd1;
-    connectedExternalNodes(1) = nd2;
-    connectedExternalNodes(2) = nd3;
-    connectedExternalNodes(3) = nd4;
-    connectedExternalNodes(4) = nd5;
-    connectedExternalNodes(5) = nd6;
-    connectedExternalNodes(6) = nd7;
-    connectedExternalNodes(7) = nd8;
-    connectedExternalNodes(8) = nd9;
+  // Set connected external node IDs
+  connectedExternalNodes(0) = nd1;
+  connectedExternalNodes(1) = nd2;
+  connectedExternalNodes(2) = nd3;
+  connectedExternalNodes(3) = nd4;
+  connectedExternalNodes(4) = nd5;
+  connectedExternalNodes(5) = nd6;
+  connectedExternalNodes(6) = nd7;
+  connectedExternalNodes(7) = nd8;
+  connectedExternalNodes(8) = nd9;
 }
 
 NineFourNodeQuadUP::NineFourNodeQuadUP()
-:Element (0,ELE_TAG_Nine_Four_Node_QuadUP),
-  theMaterial(0), connectedExternalNodes(9),
- Ki(0), Q(22), applyLoad(0), thickness(0.0), kc(0.0), rho(0.0),
- initNodeDispl(0)
+: Element (0,ELE_TAG_Nine_Four_Node_QuadUP),
+  connectedExternalNodes(9),
+  Ki(0), Q(22), applyLoad(0), thickness(0.0), kc(0.0), rho(0.0),
+  initNodeDispl(0)
 {
-    this->shapeFunction(wu, nintu, nenu, 0);
-    this->shapeFunction(wp, nintp, nenp, 1);
-    this->shapeFunction(wp, nintp, nenu, 2);
+  this->shapeFunction(wu, nintu, nenu, 0);
+  this->shapeFunction(wp, nintp, nenp, 1);
+  this->shapeFunction(wp, nintp, nenu, 2);
 }
 
 NineFourNodeQuadUP::~NineFourNodeQuadUP()
 {
-    for (int i = 0; i < nintu; i++) {
-      if (theMaterial[i])
-    delete theMaterial[i];
-    }
+  for (int i = 0; i < nintu; i++) {
+    if (theMaterial[i])
+      delete theMaterial[i];
+  }
 
-    // Delete the array of pointers to NDMaterial pointer arrays
-    if (theMaterial)
-        delete [] theMaterial;
+  for (int ii = 0; ii < nenu; ii++) theNodes[ii] = 0 ;
 
-    for (int ii = 0; ii < nenu; ii++) theNodes[ii] = 0 ;
-
-    if (Ki != 0)
-      delete Ki;
+  if (Ki != 0)
+    delete Ki;
 }
 
 int
@@ -323,7 +240,9 @@ NineFourNodeQuadUP::update()
   int ret = 0;
 
   // Determine Jacobian for this integration point
-  this->globalShapeFunction(dvolu, wu, nintu, nenu, 0);
+  if (this->globalShapeFunction(dvolu, wu, nintu, nenu, 0) != 0) {
+    return -1;
+  }
 
   // Loop over the integration points
   for (i = 0; i < nintu; i++) {
@@ -401,7 +320,8 @@ NineFourNodeQuadUP::getTangentStiff()
   return K;
 }
 
-const Matrix &NineFourNodeQuadUP::getInitialStiff ()
+const Matrix &
+NineFourNodeQuadUP::getInitialStiff()
 {
   if (Ki != 0) return *Ki;
 
@@ -423,14 +343,14 @@ const Matrix &NineFourNodeQuadUP::getInitialStiff ()
     const Matrix &D = theMaterial[i]->getInitialTangent();
 
     for (j=0; j<nenu; j++) {
-        j2 = j*2+1;
-        j2m1 = j*2;
-        B(0,j2m1) = shgu[0][j][i];
-        B(0,j2)   = 0.;
-        B(1,j2m1) = 0.;
-        B(1,j2)   = shgu[1][j][i];
-        B(2,j2m1) = shgu[1][j][i];
-        B(2,j2)   = shgu[0][j][i];
+      j2 = j*2+1;
+      j2m1 = j*2;
+      B(0,j2m1) = shgu[0][j][i];
+      B(0,j2)   = 0.;
+      B(1,j2m1) = 0.;
+      B(1,j2)   = shgu[1][j][i];
+      B(2,j2m1) = shgu[1][j][i];
+      B(2,j2)   = shgu[0][j][i];
     }
 
     // Perform numerical integration
@@ -439,28 +359,22 @@ const Matrix &NineFourNodeQuadUP::getInitialStiff ()
   }
 
   for (i = 0; i < nenu; i++) {
-      if (i<nenp) ik = i*3;
-      if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
-      ib = i*2;
+    if (i<nenp) ik = i*3;
+    if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
+    ib = i*2;
 
-      for (j = 0; j < nenu; j++) {
-          if (j<nenp) jk = j*3;
-          if (j>=nenp) jk = nenp*3 + (j-nenp)*2;
-          jb = j*2;
-          K(ik,jk) += BTDB(ib,jb);
-          K(ik+1,jk) += BTDB(ib+1,jb);
-          K(ik,jk+1) += BTDB(ib,jb+1);
-          K(ik+1,jk+1) += BTDB(ib+1,jb+1);
-      }
+    for (j = 0; j < nenu; j++) {
+      if (j<nenp) jk = j*3;
+      if (j>=nenp) jk = nenp*3 + (j-nenp)*2;
+      jb = j*2;
+      K(ik,jk) += BTDB(ib,jb);
+      K(ik+1,jk) += BTDB(ib+1,jb);
+      K(ik,jk+1) += BTDB(ib,jb+1);
+      K(ik+1,jk+1) += BTDB(ib+1,jb+1);
+    }
   }
 
   Ki = new Matrix(K);
-  if (Ki == 0) {
-    opserr << "FATAL NineFourNodeQuadUP::getInitialStiff() -";
-    opserr << "ran out of memory\n";
-    exit(-1);
-  }
-
   return *Ki;
 }
 
@@ -480,20 +394,20 @@ NineFourNodeQuadUP::getDamp()
   int i, j, m, ik, jk;
 
   if (alphaM != 0.0) {
-     this->getMass();
+    this->getMass();
 
-     for (i = 0; i < nenu; i++) {
-         if (i<nenp) ik = i*3;
-         if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
+    for (i = 0; i < nenu; i++) {
+      if (i<nenp) ik = i*3;
+      if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
 
-         for (j = 0; j < nenu; j++) {
-             if (j<nenp) jk = j*3;
-             if (j>=nenp) jk = nenp*3 + (j-nenp)*2;
+      for (j = 0; j < nenu; j++) {
+        if (j<nenp) jk = j*3;
+        if (j>=nenp) jk = nenp*3 + (j-nenp)*2;
 
-             Kdamp(ik,jk) += K(ik,jk)*alphaM;
-             Kdamp(ik+1,jk+1) += K(ik+1,jk+1)*alphaM;
-         }
-     }
+        Kdamp(ik,jk) += K(ik,jk)*alphaM;
+        Kdamp(ik+1,jk+1) += K(ik+1,jk+1)*alphaM;
+      }
+    }
   }
 
   // Determine Jacobian for this integration point
@@ -502,33 +416,33 @@ NineFourNodeQuadUP::getDamp()
 
   // Compute coupling matrix
   for (i = 0; i < nenu; i++) {
-       if (i<nenp) ik = i*3;
-       if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
+    if (i<nenp) ik = i*3;
+    if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
 
-       for (j = 0; j < nenp; j++) {
-           jk = j*3+2;
+    for (j = 0; j < nenp; j++) {
+      jk = j*3+2;
 
-           for (m = 0; m < nintp; m++) {
-               Kdamp(ik,jk) += -dvolq[m]*shgq[0][i][m]*shgp[2][j][m];
-               Kdamp(ik+1,jk) += -dvolq[m]*shgq[1][i][m]*shgp[2][j][m];
-           }
-           Kdamp(jk,ik) = Kdamp(ik,jk);
-           Kdamp(jk,ik+1) = Kdamp(ik+1,jk);
-       }
+      for (m = 0; m < nintp; m++) {
+        Kdamp(ik,jk) += -dvolq[m]*shgq[0][i][m]*shgp[2][j][m];
+        Kdamp(ik+1,jk) += -dvolq[m]*shgq[1][i][m]*shgp[2][j][m];
+      }
+      Kdamp(jk,ik) = Kdamp(ik,jk);
+      Kdamp(jk,ik+1) = Kdamp(ik+1,jk);
+    }
   }
 
   // Compute permeability matrix
   for (i = 0; i < nenp; i++) {
-       ik = i*3+2;
+    ik = i*3+2;
 
-       for (j = 0; j < nenp; j++) {
-           jk = j*3+2;
+    for (j = 0; j < nenp; j++) {
+      jk = j*3+2;
 
-           for (m = 0; m < nintp; m++) {
-               Kdamp(ik,jk) += - dvolp[m]*(perm[0]*shgp[0][i][m]*shgp[0][j][m] +
-                               perm[1]*shgp[1][i][m]*shgp[1][j][m]);
-           }
-       }
+      for (m = 0; m < nintp; m++) {
+        Kdamp(ik,jk) += - dvolp[m]*(perm[0]*shgp[0][i][m]*shgp[0][j][m] +
+                        perm[1]*shgp[1][i][m]*shgp[1][j][m]);
+      }
+    }
   }
 
   K = Kdamp;
@@ -548,19 +462,19 @@ NineFourNodeQuadUP::getMass()
 
   // Compute consistent mass matrix
   for (i = 0; i < nenu; i++) {
-      if (i<nenp) ik = i*3;
-      if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
+    if (i<nenp) ik = i*3;
+    if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
 
-      for (j = 0; j < nenu; j++) {
-          if (j<nenp) jk = j*3;
-          if (j>=nenp) jk = nenp*3 + (j-nenp)*2;
+    for (j = 0; j < nenu; j++) {
+      if (j<nenp) jk = j*3;
+      if (j>=nenp) jk = nenp*3 + (j-nenp)*2;
 
-          for (m = 0; m < nintu; m++) {
-              Nrho = dvolu[m]*mixtureRho(m)*shgu[2][i][m]*shgu[2][j][m];
-              K(ik,jk) += Nrho;
-              K(ik+1,jk+1) += Nrho;
-          }
+      for (m = 0; m < nintu; m++) {
+        Nrho = dvolu[m]*mixtureRho(m)*shgu[2][i][m]*shgu[2][j][m];
+        K(ik,jk) += Nrho;
+        K(ik+1,jk+1) += Nrho;
       }
+    }
   }
 
   // Compute compressibility matrix
@@ -568,12 +482,12 @@ NineFourNodeQuadUP::getMass()
   this->globalShapeFunction(dvolp, wp, nintp, nenp, 1);
 
   for (i = 0; i < nenp; i++) {
-       ik = i*3+2;
+    ik = i*3+2;
 
-       for (j = 0; j < nenp; j++) {
-           jk = j*3+2;
-           for (m = 0; m < nintp; m++) {
-              K(ik,jk) += -dvolp[m]*oneOverKc*shgp[2][i][m]*shgp[2][j][m];
+    for (j = 0; j < nenp; j++) {
+      jk = j*3+2;
+      for (m = 0; m < nintp; m++) {
+        K(ik,jk) += -dvolp[m]*oneOverKc*shgp[2][i][m]*shgp[2][j][m];
       }
     }
   }
@@ -594,19 +508,19 @@ NineFourNodeQuadUP::zeroLoad(void)
 int
 NineFourNodeQuadUP::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-    // Added option for applying body forces in load pattern: C.McGann, U.Washington
-    int type;
-    const Vector &data = theLoad->getData(type, loadFactor);
-    if (type == LOAD_TAG_SelfWeight) {
-        applyLoad = 1;
-        appliedB[0] += loadFactor*data(0)*b[0];
-        appliedB[1] += loadFactor*data(1)*b[1];
-        return 0;
-    } else {
-        opserr << "NineFourNodeQuadUP::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
-        return -1;
-    } 
+  // Added option for applying body forces in load pattern: C.McGann, U.Washington
+  int type;
+  const Vector &data = theLoad->getData(type, loadFactor);
+  if (type == LOAD_TAG_SelfWeight) {
+    applyLoad = 1;
+    appliedB[0] += loadFactor*data(0)*b[0];
+    appliedB[1] += loadFactor*data(1)*b[1];
+    return 0;
+  } else {
+    opserr << "NineFourNodeQuadUP::addLoad - load type unknown for ele with tag: " << this->getTag() << endln;
     return -1;
+  } 
+  return -1;
 }
 
 int
@@ -650,14 +564,13 @@ NineFourNodeQuadUP::getResistingForce()
 {
   P.Zero();
 
-  int i, j, jk;
 
   // Determine Jacobian for this integration point
   this->globalShapeFunction(dvolu, wu, nintu, nenu, 0);
   this->globalShapeFunction(dvolp, wp, nintp, nenp, 1);
 
   // Loop over the integration points
-  for (i = 0; i < nintu; i++) {
+  for (int i = 0; i < nintu; i++) {
 
     // Get material stress response
     const Vector &sigma = theMaterial[i]->getStress();
@@ -665,39 +578,40 @@ NineFourNodeQuadUP::getResistingForce()
     // Perform numerical integration on internal force
     //P = P + (B^ sigma) * intWt(i)*intWt(j) * detJ;
     //P.addMatrixTransposeVector(1.0, B, sigma, intWt(i)*intWt(j)*detJ);
-    for (j = 0; j < nenu; j++) {
-        if (j<nenp) jk = j*3;
-        if (j>=nenp) jk = nenp*3 + (j-nenp)*2;
+    for (int j = 0; j < nenu; j++) {
+      int jk;
+      if (j<nenp) jk = j*3;
+      if (j>=nenp) jk = nenp*3 + (j-nenp)*2;
 
-        P(jk) += dvolu[i]*(shgu[0][j][i]*sigma(0) + shgu[1][j][i]*sigma(2));
-        P(jk+1) += dvolu[i]*(shgu[1][j][i]*sigma(1) + shgu[0][j][i]*sigma(2));
+      P(jk) += dvolu[i]*(shgu[0][j][i]*sigma(0) + shgu[1][j][i]*sigma(2));
+      P(jk+1) += dvolu[i]*(shgu[1][j][i]*sigma(1) + shgu[0][j][i]*sigma(2));
 
-        // Subtract equiv. body forces from the nodes
-        //P = P - (N^ b) * intWt(i)*intWt(j) * detJ;
-        //P.addMatrixTransposeVector(1.0, N, b, -intWt(i)*intWt(j)*detJ);
-        double r = mixtureRho(i);
-        if (applyLoad == 0) {
-            P(jk) -= dvolu[i]*(shgu[2][j][i]*r*b[0]);
-            P(jk+1) -= dvolu[i]*(shgu[2][j][i]*r*b[1]);
-        } else {
-            P(jk) -= dvolu[i]*(shgu[2][j][i]*r*appliedB[0]);
-            P(jk+1) -= dvolu[i]*(shgu[2][j][i]*r*appliedB[1]);
-        }
+      // Subtract equiv. body forces from the nodes
+      //P = P - (N^ b) * intWt(i)*intWt(j) * detJ;
+      //P.addMatrixTransposeVector(1.0, N, b, -intWt(i)*intWt(j)*detJ);
+      double r = mixtureRho(i);
+      if (applyLoad == 0) {
+        P(jk) -= dvolu[i]*(shgu[2][j][i]*r*b[0]);
+        P(jk+1) -= dvolu[i]*(shgu[2][j][i]*r*b[1]);
+      } else {
+        P(jk) -= dvolu[i]*(shgu[2][j][i]*r*appliedB[0]);
+        P(jk+1) -= dvolu[i]*(shgu[2][j][i]*r*appliedB[1]);
+      }
     }
   }
 
   // Subtract fluid body force
-  for (j = 0; j < nenp; j++) {
-     jk = j*3+2;
-     for (i = 0; i < nintp; i++) {
-        if (applyLoad == 0) {
-            P(jk) += dvolp[i]*rho*(perm[0]*b[0]*shgp[0][j][i] +
-                     perm[1]*b[1]*shgp[1][j][i]);
-        } else {
-            P(jk) += dvolp[i]*rho*(perm[0]*appliedB[0]*shgp[0][j][i] +
-                     perm[1]*appliedB[1]*shgp[1][j][i]);
-        }
-     }
+  for (int j = 0; j < nenp; j++) {
+    int jk = j*3+2;
+    for (int i = 0; i < nintp; i++) {
+      if (applyLoad == 0) {
+        P(jk) += dvolp[i]*rho*(perm[0]*b[0]*shgp[0][j][i] +
+                  perm[1]*b[1]*shgp[1][j][i]);
+      } else {
+        P(jk) += dvolp[i]*rho*(perm[0]*appliedB[0]*shgp[0][j][i] +
+                  perm[1]*appliedB[1]*shgp[1][j][i]);
+      }
+    }
   }
 
   // Subtract other external nodal loads ... P_res = P_int - P_ext
@@ -710,10 +624,10 @@ NineFourNodeQuadUP::getResistingForce()
 const Vector&
 NineFourNodeQuadUP::getResistingForceIncInertia()
 {
-  int i, j, ik;
+  int ik;
   static double a[22];
 
-  for (i=0; i<nenu; i++) {
+  for (int i=0; i<nenu; i++) {
     const Vector &accel = theNodes[i]->getTrialAccel();
     if ((i<nenp && 3 != accel.Size()) || (i>=nenp && 2 != accel.Size())) {
       opserr << "NineFourNodeQuadUP::getResistingForceIncInertia matrix and vector sizes are incompatible\n";
@@ -723,8 +637,8 @@ NineFourNodeQuadUP::getResistingForceIncInertia()
     if (i<nenp) ik = i*3;
     if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
     a[ik] = accel(0);
-      a[ik+1] = accel(1);
-      if (i<nenp) a[ik+2] = accel(2);
+    a[ik+1] = accel(1);
+    if (i<nenp) a[ik+2] = accel(2);
   }
 
   // Compute the current resisting force
@@ -733,34 +647,38 @@ NineFourNodeQuadUP::getResistingForceIncInertia()
   // Compute the mass matrix
   this->getMass();
 
-  for (i = 0; i < 22; i++) {
-    for (j = 0; j < 22; j++)
+  for (int i = 0; i < 22; i++) {
+    for (int j = 0; j < 22; j++)
       P(i) += K(i,j)*a[j];
   }
 
-  for (i=0; i<nenu; i++) {
-      const Vector &vel = theNodes[i]->getTrialVel();
-      if ((i<nenp && 3 != vel.Size()) || (i>=nenp && 2 != vel.Size())) {
-         opserr << "NineFourNodeQuadUP::getResistingForceIncInertia matrix and vector sizes are incompatible\n";
-         return P;
-      }
+  for (int i=0; i<nenu; i++) {
+    const Vector &vel = theNodes[i]->getTrialVel();
+    if ((i<nenp && 3 != vel.Size()) || (i>=nenp && 2 != vel.Size())) {
+      opserr << "NineFourNodeQuadUP::getResistingForceIncInertia matrix and vector sizes are incompatible\n";
+      return P;
+    }
 
-      if (i<nenp) ik = i*3;
-      if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
-      a[ik] = vel(0);
-      a[ik+1] = vel(1);
-      if (i<nenp) a[ik+2] = vel(2);
+    if (i<nenp)
+      ik = i*3;
+    if (i>=nenp)
+      ik = nenp*3 + (i-nenp)*2;
+    a[ik] = vel(0);
+    a[ik+1] = vel(1);
+    if (i<nenp)
+      a[ik+2] = vel(2);
   }
 
   this->getDamp();
 
-  for (i = 0; i < 22; i++) {
-    for (j = 0; j < 22; j++) {
+  for (int i = 0; i < 22; i++) {
+    for (int j = 0; j < 22; j++) {
       P(i) += K(i,j)*a[j];
     }
   }
   return P;
 }
+
 
 int
 NineFourNodeQuadUP::sendSelf(int commitTag, Channel &theChannel)
@@ -794,28 +712,31 @@ NineFourNodeQuadUP::sendSelf(int commitTag, Channel &theChannel)
   // Now NineFourNodeQuadUP sends the ids of its materials
   int matDbTag;
   static ID idData(27);
-  int i;
-  for (i = 0; i < 9; i++) {
+
+  for (int i = 0; i < 9; i++) {
     idData(i) = theMaterial[i]->getClassTag();
     matDbTag = theMaterial[i]->getDbTag();
     // NOTE: we do have to ensure that the material has a database
     // tag if we are sending to a database channel.
     if (matDbTag == 0) {
       matDbTag = theChannel.getDbTag();
-            if (matDbTag != 0)
-              theMaterial[i]->setDbTag(matDbTag);
+      if (matDbTag != 0)
+        theMaterial[i]->setDbTag(matDbTag);
     }
     idData(i+9) = matDbTag;
   }
- for( i = 0; i < 9; i++)
-   idData(18+i) = connectedExternalNodes(i);
+
+  for(int i = 0; i < 9; i++)
+    idData(18+i) = connectedExternalNodes(i);
+
   res += theChannel.sendID(dataTag, commitTag, idData);
   if (res < 0) {
     opserr << "WARNING NineFourNodeQuadUP::sendSelf() - " << this->getTag() << " failed to send ID\n";
     return res;
   }
+
   // Finally, NineFourNodeQuadUP asks its material objects to send themselves
-  for (i = 0; i < 9; i++) {
+  for (int i = 0; i < 9; i++) {
     res += theMaterial[i]->sendSelf(commitTag, theChannel);
     if (res < 0) {
       opserr << "WARNING NineFourNodeQuadUP::sendSelf() - " << this->getTag() << " failed to send its Material\n";
@@ -831,6 +752,7 @@ NineFourNodeQuadUP::recvSelf(int commitTag, Channel &theChannel,
 {
   int res = 0;
   int dataTag = this->getDbTag();
+
   // Quad creates a Vector, receives the Vector and then sets the
   // internal data with the data in the Vector
   static Vector data(13);
@@ -859,30 +781,26 @@ NineFourNodeQuadUP::recvSelf(int commitTag, Channel &theChannel,
     opserr << "WARNING NineFourNodeQuadUP::recvSelf() - " << this->getTag() << " failed to receive ID\n";
     return res;
   }
+
   for( int i = 0; i < 9; i++)
     connectedExternalNodes(i) = idData(18+i);
-  if (theMaterial == 0) {
-    // Allocate new materials
-    theMaterial = new NDMaterial *[nintu];
-    if (theMaterial == 0) {
-      opserr << "NineFourNodeQuadUP::recvSelf() - Could not allocate NDMaterial* array\n";
-      return -1;
-    }
+
+  if (theMaterial[0] == nullptr) {
     for (int i = 0; i < 9; i++) {
       int matClassTag = idData(i);
       int matDbTag = idData(i+9);
       // Allocate new material with the sent class tag
       theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
       if (theMaterial[i] == 0) {
-    opserr << "NineFourNodeQuadUP::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
-    return -1;
+        opserr << "NineFourNodeQuadUP::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
+        return -1;
       }
       // Now receive materials into the newly allocated space
       theMaterial[i]->setDbTag(matDbTag);
       res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-opserr << "NineFourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
-    return res;
+        opserr << "NineFourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }
@@ -894,39 +812,25 @@ opserr << "NineFourNodeQuadUP::recvSelf() - material " << i << "failed to recv i
       // Check that material is of the right type; if not,
       // delete it and create a new one of the right type
       if (theMaterial[i]->getClassTag() != matClassTag) {
-    delete theMaterial[i];
-    theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-    if (theMaterial[i] == 0) {
-opserr << "NineFourNodeQuadUP::recvSelf() - material " << i << "failed to create\n";
-      return -1;
-    }
+        delete theMaterial[i];
+        theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
+        if (theMaterial[i] == nullptr) {
+          opserr << "NineFourNodeQuadUP::recvSelf() - material " << i << "failed to create\n";
+          return -1;
+        }
       }
       // Receive the material
       theMaterial[i]->setDbTag(matDbTag);
       res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-opserr << "NineFourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
-    return res;
+        opserr << "NineFourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }
   return res;
 }
 
-void
-NineFourNodeQuadUP::Print(OPS_Stream &s, int flag)
-{
-    s << "\nNineFourNodeQuadUP, element id:  " << this->getTag() << endln;
-    s << "\tConnected external nodes:  " << connectedExternalNodes;
-    s << "\tthickness:  " << thickness << endln;
-    s << "\tmass density:  " << rho << endln;
-    //s << "\tsurface pressure:  " << pressure << endln;
-    s << "\tbody forces:  " << b[0] << ' ' << b[1] << endln;
-    theMaterial[0]->Print(s,flag);
-    s << "\tStress (xx yy xy)" << endln;
-    for (int i = 0; i < 9; i++)
-        s << "\t\tGauss point " << i+1 << ": " << theMaterial[i]->getStress();
-}
 
 
 Response*
@@ -953,15 +857,17 @@ NineFourNodeQuadUP::setResponse(const char **argv, int argc, OPS_Stream &output)
       }
     }
     theResponse = new ElementResponse(this, 1, P);
-  }  else if (strcmp(argv[0],"stiff") == 0 || strcmp(argv[0],"stiffness") == 0) {
+  }
+  else if (strcmp(argv[0],"stiff") == 0 || strcmp(argv[0],"stiffness") == 0) {
     theResponse = new ElementResponse(this, 2, K);
-  } else if (strcmp(argv[0],"mass") == 0) {
+  }
+  else if (strcmp(argv[0],"mass") == 0) {
     theResponse = new ElementResponse(this, 3, K);
-
-  } else if (strcmp(argv[0],"damp") == 0) {
+  }
+  else if (strcmp(argv[0],"damp") == 0) {
     theResponse = new ElementResponse(this, 4, K);
-
-  } else if (strcmp(argv[0],"material") == 0 || strcmp(argv[0],"integrPoint") == 0) {
+  }
+  else if (strcmp(argv[0],"material") == 0 || strcmp(argv[0],"integrPoint") == 0) {
     int pointNum = atoi(argv[1]);
     if (pointNum > 0 && pointNum <= nenu) {
       output.tag("GaussPoint");
@@ -974,27 +880,29 @@ NineFourNodeQuadUP::setResponse(const char **argv, int argc, OPS_Stream &output)
   return theResponse;
 }
 
+
 int
 NineFourNodeQuadUP::getResponse(int responseID, Information &eleInfo)
 {
-    switch (responseID) {
+  switch (responseID) {
+    case 1:
+        return eleInfo.setVector(this->getResistingForce());
 
-        case 1:
-            return eleInfo.setVector(this->getResistingForce());
+    case 2:
+        return eleInfo.setMatrix(this->getTangentStiff());
 
-        case 2:
-            return eleInfo.setMatrix(this->getTangentStiff());
+    case 3:
+        return eleInfo.setMatrix(this->getMass());
 
-        case 3:
-            return eleInfo.setMatrix(this->getMass());
+    case 4:
+        return eleInfo.setMatrix(this->getDamp());
 
-        case 4:
-            return eleInfo.setMatrix(this->getDamp());
-
-        default:
-            return -1;
-    }
+    default:
+        return -1;
+  }
 }
+
+
 int
 NineFourNodeQuadUP::setParameter(const char **argv, int argc, Parameter &param)
 {
@@ -1035,6 +943,8 @@ NineFourNodeQuadUP::setParameter(const char **argv, int argc, Parameter &param)
   }
   return res;
 }
+
+
 int
 NineFourNodeQuadUP::updateParameter(int parameterID, Information &info)
 {
@@ -1057,89 +967,94 @@ NineFourNodeQuadUP::updateParameter(int parameterID, Information &info)
       return -1;
   }
 }
-void NineFourNodeQuadUP::globalShapeFunction(double *dvol, double *w, int nint, int nen, int mode)
+
+
+int
+NineFourNodeQuadUP::globalShapeFunction(double *dvol, double *w, int nint, int nen, int mode)
 {
-  static double coord[2][9], xs[2][2], det, temp;
-  int i, j, k, m;
+  static double coord[2][9], xs[2][2], temp;
 
-  for (i=0; i<3; i++) {
-     for (j=0; j<nen; j++) {
-        for (k=0; k<nint; k++) {
-           if (mode==0) shgu[i][j][k] = shlu[i][j][k];
-           if (mode==1) shgp[i][j][k] = shlp[i][j][k];
-           if (mode==2) shgq[i][j][k] = shlq[i][j][k];
+  for (int i=0; i<3; i++) {
+    for (int j=0; j<nen; j++) {
+      for (int k=0; k<nint; k++) {
+        if (mode==0) shgu[i][j][k] = shlu[i][j][k];
+        if (mode==1) shgp[i][j][k] = shlp[i][j][k];
+        if (mode==2) shgq[i][j][k] = shlq[i][j][k];
+      }
+    }
+  }
+
+  for (int i=0; i<nen; i++) {
+    const Vector &coordRef = theNodes[i]->getCrds();
+    coord[0][i] = coordRef(0);
+    coord[1][i] = coordRef(1);
+  }
+
+  for (int m=0; m<nint; m++) {
+    for (int i=0; i<2; i++) {
+      for (int j=0; j<2; j++) {
+        xs[i][j] = 0.0;
+        for (int k=0; k<nen; k++) {
+          if (mode==0) xs[i][j] += coord[j][k]*shgu[i][k][m];
+          if (mode==1) xs[i][j] += coord[j][k]*shgp[i][k][m];
+          if (mode==2) xs[i][j] += coord[j][k]*shgq[i][k][m];
         }
-     }
-  }
-
-  for (i=0; i<nen; i++) {
-     const Vector &coordRef = theNodes[i]->getCrds();
-     coord[0][i] = coordRef(0);
-     coord[1][i] = coordRef(1);
-  }
-
-  for (m=0; m<nint; m++) {
-      for (i=0; i<2; i++) {
-          for (j=0; j<2; j++) {
-               xs[i][j] = 0.0;
-               for (k=0; k<nen; k++) {
-                    if (mode==0) xs[i][j] += coord[j][k]*shgu[i][k][m];
-                    if (mode==1) xs[i][j] += coord[j][k]*shgp[i][k][m];
-                    if (mode==2) xs[i][j] += coord[j][k]*shgq[i][k][m];
-               }
-          }
       }
+    }
 
-      det = xs[0][0]*xs[1][1] - xs[0][1]*xs[1][0];
+    double det = xs[0][0]*xs[1][1] - xs[0][1]*xs[1][0];
 
-      if (det < 0.0) {
-          opserr << "WARNING NineFourNodeQuadUP: Determinant<=0 in tag "
-                 << this->getTag();
-          exit(-1);
+    if (det < 0.0) {
+      opserr << "WARNING NineFourNodeQuadUP: Determinant<=0 in tag "
+              << this->getTag();
+      return -1;
+    }
+
+    for (int i=0; i<nen; i++) {
+      if (mode==0) {
+        temp = (shgu[0][i][m]*xs[1][1] - shgu[1][i][m]*xs[0][1])/det;
+        shgu[1][i][m] = (-shgu[0][i][m]*xs[1][0] + shgu[1][i][m]*xs[0][0])/det;
+        shgu[0][i][m] = temp;
       }
-
-      for (i=0; i<nen; i++) {
-          if (mode==0) {
-             temp = (shgu[0][i][m]*xs[1][1] - shgu[1][i][m]*xs[0][1])/det;
-             shgu[1][i][m] = (-shgu[0][i][m]*xs[1][0] + shgu[1][i][m]*xs[0][0])/det;
-             shgu[0][i][m] = temp;
-          }
-          if (mode==1) {
-             temp = (shgp[0][i][m]*xs[1][1] - shgp[1][i][m]*xs[0][1])/det;
-             shgp[1][i][m] = (-shgp[0][i][m]*xs[1][0] + shgp[1][i][m]*xs[0][0])/det;
-             shgp[0][i][m] = temp;
-          }
-          if (mode==2) {
-             temp = (shgq[0][i][m]*xs[1][1] - shgq[1][i][m]*xs[0][1])/det;
-             shgq[1][i][m] = (-shgq[0][i][m]*xs[1][0] + shgq[1][i][m]*xs[0][0])/det;
-             shgq[0][i][m] = temp;
-          }
+      if (mode==1) {
+        temp = (shgp[0][i][m]*xs[1][1] - shgp[1][i][m]*xs[0][1])/det;
+        shgp[1][i][m] = (-shgp[0][i][m]*xs[1][0] + shgp[1][i][m]*xs[0][0])/det;
+        shgp[0][i][m] = temp;
       }
+      if (mode==2) {
+        temp = (shgq[0][i][m]*xs[1][1] - shgq[1][i][m]*xs[0][1])/det;
+        shgq[1][i][m] = (-shgq[0][i][m]*xs[1][0] + shgq[1][i][m]*xs[0][0])/det;
+        shgq[0][i][m] = temp;
+      }
+    }
 
-      dvol[m] = w[m]*thickness*det;
+    dvol[m] = w[m]*thickness*det;
 
-  }  //end of m loop
+  } // end of m loop
 
+  return 0;
 }
 
-void NineFourNodeQuadUP::shapeFunction(double *w, int nint, int nen, int mode)
+
+void
+NineFourNodeQuadUP::shapeFunction(double *w, int nint, int nen, int mode)
 {
-  static const double ra[] = {-0.5,0.5,0.5,-0.5,0.,0.5,0.,-0.5,0.};
-  static const double sa[] = {-0.5,-0.5,0.5,0.5,-0.5,0.,0.5,0.,0.};
+  static constexpr double ra[] = {-0.5,0.5,0.5,-0.5,0.,0.5,0.,-0.5,0.};
+  static constexpr double sa[] = {-0.5,-0.5,0.5,0.5,-0.5,0.,0.5,0.,0.};
 
   double g, r, s, shl19, shl29, shl39, tempr, temps;
   int ic, il, is;
 
   g = 0.;
   if (nint == 4) {
-      g=2./sqrt(3.0);
-      w[0] = w[1] = w[2] = w[3] = 1.;
+    g=2./sqrt(3.0);
+    w[0] = w[1] = w[2] = w[3] = 1.;
   }
   if (nint == 9) {
-      g=2.*sqrt(3.0/5.0);
-      w[0] = w[1] = w[2] = w[3] = 25./81.;
-      w[4] = w[5] = w[6] = w[7] = 40./81.;
-      w[8] = 64./81.;
+    g=2.*sqrt(3.0/5.0);
+    w[0] = w[1] = w[2] = w[3] = 25./81.;
+    w[4] = w[5] = w[6] = w[7] = 40./81.;
+    w[8] = 64./81.;
   }
 
   for (int i=0; i<nint; i++) {
@@ -1147,54 +1062,54 @@ void NineFourNodeQuadUP::shapeFunction(double *w, int nint, int nen, int mode)
     s = g*sa[i];
     shl19 = shl29 = shl39 = 0.;
     if (nen > 4) {
-        tempr = 1.-r*r;
-        temps = 1.-s*s;
-        if (nen == 9) {
-            if (mode==0) {
-                 shlu[0][8][i] = -2.*r*temps;
-               shl19 = 0.5*shlu[0][8][i];
-               shlu[1][8][i] = -2.*s*tempr;
-               shl29 = 0.5*shlu[1][8][i];
-               shlu[2][8][i] = temps*tempr;
-               shl39 = 0.5*shlu[2][8][i];
-            }
-            if (mode==2) {
-                 shlq[0][8][i] = -2.*r*temps;
-               shl19 = 0.5*shlq[0][8][i];
-               shlq[1][8][i] = -2.*s*tempr;
-               shl29 = 0.5*shlq[1][8][i];
-               shlq[2][8][i] = temps*tempr;
-               shl39 = 0.5*shlq[2][8][i];
-            }
-        }
+      tempr = 1.-r*r;
+      temps = 1.-s*s;
+      if (nen == 9) {
         if (mode==0) {
-           shlu[0][4][i] = -r*(1.-s) - shl19;
-           shlu[1][4][i] = -0.5*tempr - shl29;
-           shlu[2][4][i] = 0.5*tempr*(1.-s) - shl39;
-           shlu[0][5][i] = 0.5*temps - shl19;
-           shlu[1][5][i] = -s*(1.+r) - shl29;
-           shlu[2][5][i] = 0.5*temps*(1.+r) - shl39;
-           shlu[0][6][i] = -r*(1.+s) - shl19;
-           shlu[1][6][i] = 0.5*tempr - shl29;
-           shlu[2][6][i] = 0.5*tempr*(1.+s) - shl39;
-           shlu[0][7][i] = -0.5*temps - shl19;
-           shlu[1][7][i] = -s*(1.-r) - shl29;
-           shlu[2][7][i] = 0.5*temps*(1.-r) - shl39;
+          shlu[0][8][i] = -2.*r*temps;
+          shl19 = 0.5*shlu[0][8][i];
+          shlu[1][8][i] = -2.*s*tempr;
+          shl29 = 0.5*shlu[1][8][i];
+          shlu[2][8][i] = temps*tempr;
+          shl39 = 0.5*shlu[2][8][i];
         }
         if (mode==2) {
-           shlq[0][4][i] = -r*(1.-s) - shl19;
-           shlq[1][4][i] = -0.5*tempr - shl29;
-           shlq[2][4][i] = 0.5*tempr*(1.-s) - shl39;
-           shlq[0][5][i] = 0.5*temps - shl19;
-           shlq[1][5][i] = -s*(1.+r) - shl29;
-           shlq[2][5][i] = 0.5*temps*(1.+r) - shl39;
-           shlq[0][6][i] = -r*(1.+s) - shl19;
-           shlq[1][6][i] = 0.5*tempr - shl29;
-           shlq[2][6][i] = 0.5*tempr*(1.+s) - shl39;
-           shlq[0][7][i] = -0.5*temps - shl19;
-           shlq[1][7][i] = -s*(1.-r) - shl29;
-           shlq[2][7][i] = 0.5*temps*(1.-r) - shl39;
+          shlq[0][8][i] = -2.*r*temps;
+          shl19 = 0.5*shlq[0][8][i];
+          shlq[1][8][i] = -2.*s*tempr;
+          shl29 = 0.5*shlq[1][8][i];
+          shlq[2][8][i] = temps*tempr;
+          shl39 = 0.5*shlq[2][8][i];
         }
+      }
+      if (mode==0) {
+        shlu[0][4][i] = -r*(1.-s) - shl19;
+        shlu[1][4][i] = -0.5*tempr - shl29;
+        shlu[2][4][i] = 0.5*tempr*(1.-s) - shl39;
+        shlu[0][5][i] = 0.5*temps - shl19;
+        shlu[1][5][i] = -s*(1.+r) - shl29;
+        shlu[2][5][i] = 0.5*temps*(1.+r) - shl39;
+        shlu[0][6][i] = -r*(1.+s) - shl19;
+        shlu[1][6][i] = 0.5*tempr - shl29;
+        shlu[2][6][i] = 0.5*tempr*(1.+s) - shl39;
+        shlu[0][7][i] = -0.5*temps - shl19;
+        shlu[1][7][i] = -s*(1.-r) - shl29;
+        shlu[2][7][i] = 0.5*temps*(1.-r) - shl39;
+      }
+      if (mode==2) {
+        shlq[0][4][i] = -r*(1.-s) - shl19;
+        shlq[1][4][i] = -0.5*tempr - shl29;
+        shlq[2][4][i] = 0.5*tempr*(1.-s) - shl39;
+        shlq[0][5][i] = 0.5*temps - shl19;
+        shlq[1][5][i] = -s*(1.+r) - shl29;
+        shlq[2][5][i] = 0.5*temps*(1.+r) - shl39;
+        shlq[0][6][i] = -r*(1.+s) - shl19;
+        shlq[1][6][i] = 0.5*tempr - shl29;
+        shlq[2][6][i] = 0.5*tempr*(1.+s) - shl39;
+        shlq[0][7][i] = -0.5*temps - shl19;
+        shlq[1][7][i] = -s*(1.-r) - shl29;
+        shlq[2][7][i] = 0.5*temps*(1.-r) - shl39;
+      }
     }
 
     for (int k=0; k<4; k++) {
@@ -1218,38 +1133,82 @@ void NineFourNodeQuadUP::shapeFunction(double *w, int nint, int nen, int mode)
     }
 
     if (nen > 4) {
-        for (int m=4; m<8; m++) {
-            ic = m - 4;
-            il = m - 3;
-            is = 1;
-            if (m==7) {
-                ic = 0;
-                il = 3;
-                is = 3;
-            }
-            for (int j=ic; j<=il; j+=is) {
-                if (mode==0) {
-                   shlu[0][j][i] = shlu[0][j][i] - 0.5*shlu[0][m][i];
-                   shlu[1][j][i] = shlu[1][j][i] - 0.5*shlu[1][m][i];
-                   shlu[2][j][i] = shlu[2][j][i] - 0.5*shlu[2][m][i];
-                }
-                if (mode==2) {
-                   shlq[0][j][i] = shlq[0][j][i] - 0.5*shlq[0][m][i];
-                   shlq[1][j][i] = shlq[1][j][i] - 0.5*shlq[1][m][i];
-                   shlq[2][j][i] = shlq[2][j][i] - 0.5*shlq[2][m][i];
-                }
-            }
-        }  //end of m loop
+      for (int m=4; m<8; m++) {
+        ic = m - 4;
+        il = m - 3;
+        is = 1;
+        if (m==7) {
+            ic = 0;
+            il = 3;
+            is = 3;
+        }
+        for (int j=ic; j<=il; j+=is) {
+          if (mode==0) {
+              shlu[0][j][i] = shlu[0][j][i] - 0.5*shlu[0][m][i];
+              shlu[1][j][i] = shlu[1][j][i] - 0.5*shlu[1][m][i];
+              shlu[2][j][i] = shlu[2][j][i] - 0.5*shlu[2][m][i];
+          }
+          if (mode==2) {
+              shlq[0][j][i] = shlq[0][j][i] - 0.5*shlq[0][m][i];
+              shlq[1][j][i] = shlq[1][j][i] - 0.5*shlq[1][m][i];
+              shlq[2][j][i] = shlq[2][j][i] - 0.5*shlq[2][m][i];
+          }
+        }
+      }  //end of m loop
     }
   }  //end of i loop
 }
 
-double NineFourNodeQuadUP::mixtureRho(int i)
+
+double 
+NineFourNodeQuadUP::mixtureRho(int i)
 {
-  double rhoi, e, n;
-    rhoi= theMaterial[i]->getRho();
-    e = 0.7;  //theMaterial[i]->getVoidRatio();
-  n = e / (1.0 + e);
+  double rhoi= theMaterial[i]->getRho();
+  double e = 0.7;  //theMaterial[i]->getVoidRatio();
+  double n = e / (1.0 + e);
   //return n * rho + (1.0-n) * rhoi;
-    return rhoi;
+  return rhoi;
+}
+
+
+void
+NineFourNodeQuadUP::Print(OPS_Stream &s, int flag)
+{
+  static constexpr int nip = nintu;
+  static constexpr int NEN = nenu;
+  const ID& node_tags = this->getExternalNodes();
+
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+
+    s << "\"nodes\": [";
+    for (int i=0; i < NEN-1; i++)
+        s << node_tags(i) << ", ";
+    s << node_tags(NEN-1) << "]";
+    s << ", ";
+
+    s << "\"thickness\": " << thickness << ", ";
+    s << "\"density\": " << rho << ", ";
+    s << "\"bodyForces\": [" << b[0] << ", " << b[1] << "], ";
+    s << "\"materials\": [";
+    for (int i = 0; i < nip - 1; i++)
+      s << theMaterial[i]->getTag() << ", ";
+    s << theMaterial[nip - 1]->getTag() << "]";
+    s << "}";
+    return;
+  }
+  else {
+    s << "\nNineFourNodeQuadUP, element id:  " << this->getTag() << "\n";
+    s << "\tConnected external nodes:  " << connectedExternalNodes;
+    s << "\tthickness:  " << thickness << "\n";
+    s << "\tmass density:  " << rho << "\n";
+    //s << "\tsurface pressure:  " << pressure << "\n";
+    s << "\tbody forces:  " << b[0] << ' ' << b[1] << "\n";
+    theMaterial[0]->Print(s,flag);
+    s << "\tStress (xx yy xy)" << "\n";
+    for (int i = 0; i < 9; i++)
+        s << "\t\tGauss point " << i+1 << ": " << theMaterial[i]->getStress();
+  }
 }

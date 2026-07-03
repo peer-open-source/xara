@@ -939,12 +939,19 @@ QzSimple2::recvSelf(int cTag, Channel &theChannel,
 void 
 QzSimple2::Print(OPS_Stream &s, int flag)
 {
-    s << "QzSimple2, tag: " << this->getTag() << endln;
-    s << "  QzType: " << QzType << endln;
-    s << "  Qult: " << Qult << endln;
-    s << "  z50: " << z50 << endln;
-    s << "  suction: " << suction << endln;
-	s << "  dashpot: " << dashpot << endln;
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"type\": \"" << this->getClassType() << "\" ";
+		s << "}";
+		return;
+	}
+    s << "QzSimple2, tag: " << this->getTag() << "\n";
+    s << "  QzType: " << QzType << "\n";
+    s << "  Qult: " << Qult << "\n";
+    s << "  z50: " << z50 << "\n";
+    s << "  suction: " << suction << "\n";
+	s << "  dashpot: " << dashpot << "\n";
 }
 
 /////////////////////////////////////////////////////////////////////

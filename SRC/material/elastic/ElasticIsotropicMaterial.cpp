@@ -59,11 +59,6 @@ ElasticIsotropicMaterial::ElasticIsotropicMaterial(int tag, int classTag, double
 
 }
 
-ElasticIsotropicMaterial::ElasticIsotropicMaterial(int tag, double e, double nu, double r)
-  : NDMaterial(tag, ND_TAG_ElasticIsotropic), E(e), v(nu), rho(r), parameterID(0)
-{
-
-}
 
 ElasticIsotropicMaterial::~ElasticIsotropicMaterial()
 {
@@ -126,34 +121,6 @@ ElasticIsotropicMaterial::getCopy(const char *type)
     return NDMaterial::getCopy(type);
 }
 
-int
-ElasticIsotropicMaterial::setTrialStrain(const Vector &v)
-{
-  opserr << "ElasticIsotropicMaterial::setTrialStrain -- subclass responsibility\n";
-  return -1;
-}
-
-int
-ElasticIsotropicMaterial::setTrialStrain(const Vector &v, const Vector &rate)
-{
-  assert(false);
-  return -1;
-}
-
-int
-ElasticIsotropicMaterial::setTrialStrainIncr(const Vector &v)
-{
-  assert(false);
-  return -1;
-}
-
-int
-ElasticIsotropicMaterial::setTrialStrainIncr(const Vector &v, const Vector &rate)
-{
-  opserr << "ElasticIsotropicMaterial::setTrialStrainIncr -- subclass responsibility\n";
-  assert(false);
-  return -1;
-}
 
 const Matrix&
 ElasticIsotropicMaterial::getTangent()
@@ -172,60 +139,7 @@ ElasticIsotropicMaterial::getInitialTangent()
   return this->getTangent();
 }
 
-const Vector&
-ElasticIsotropicMaterial::getStress()
-{
-  opserr << "ElasticIsotropicMaterial::getStress -- subclass responsibility\n";
-  assert(false);
-    
-  // Just to make it compile
-  Vector *ret = new Vector();
-  return *ret;
-}
 
-const Vector&
-ElasticIsotropicMaterial::getStrain()
-{
-  opserr << "ElasticIsotropicMaterial::getStrain -- subclass responsibility\n";
-  exit(-1);
-
-  // Just to make it compile
-  Vector *ret = new Vector();
-  return *ret;
-}
-
-int
-ElasticIsotropicMaterial::commitState()
-{
-  opserr << "ElasticIsotropicMaterial::commitState -- subclass responsibility\n";
-  exit(-1);
-  return -1;
-}
-
-int
-ElasticIsotropicMaterial::revertToLastCommit()
-{
-  opserr << "ElasticIsotropicMaterial::revertToLastCommit -- subclass responsibility\n";
-  exit(-1);
-    
-  return -1;
-}
-
-int
-ElasticIsotropicMaterial::revertToStart()
-{
-  opserr << "ElasticIsotropicMaterial::revertToStart -- subclass responsibility\n";
-  exit(-1);
-  return -1;
-}
-
-NDMaterial*
-ElasticIsotropicMaterial::getCopy()
-{
-  opserr << "ElasticIsotropicMaterial::getCopy -- subclass responsibility\n";
-  exit(-1);
-  return 0;
-}
 
 const char*
 ElasticIsotropicMaterial::getType() const
@@ -235,16 +149,9 @@ ElasticIsotropicMaterial::getType() const
   return 0;
 }
 
-int
-ElasticIsotropicMaterial::getOrder() const
-{
-  opserr << "ElasticIsotropicMaterial::getOrder -- subclass responsibility\n";
-  exit(-1);
-  return -1;
-}
 
 int
-ElasticIsotropicMaterial::sendSelf (int commitTag, Channel &theChannel)
+ElasticIsotropicMaterial::sendSelf(int commitTag, Channel &theChannel)
 {
   int res = 0;
 
@@ -254,15 +161,16 @@ ElasticIsotropicMaterial::sendSelf (int commitTag, Channel &theChannel)
   data(1) = E;
   data(2) = v;
   data(3) = rho;
-  
- res += theChannel.sendVector(this->getDbTag(), commitTag, data);
- if (res < 0) {
-   opserr << "ElasticIsotropicMaterial::sendSelf -- could not send Vector\n";
-   return res;
- }
+
+  res += theChannel.sendVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+    opserr << "ElasticIsotropicMaterial::sendSelf -- could not send Vector\n";
+    return res;
+  }
 
  return res;
 }
+
 
 int
 ElasticIsotropicMaterial::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
@@ -284,6 +192,7 @@ ElasticIsotropicMaterial::recvSelf(int commitTag, Channel &theChannel, FEM_Objec
   return res;
 }
 
+
 void
 ElasticIsotropicMaterial::Print(OPS_Stream &s, int flag)
 {
@@ -295,7 +204,7 @@ ElasticIsotropicMaterial::Print(OPS_Stream &s, int flag)
     return;
   } 
   else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"" << this->getClassType() << "\", ";
     s << "\"E\": "   << E   << ", ";

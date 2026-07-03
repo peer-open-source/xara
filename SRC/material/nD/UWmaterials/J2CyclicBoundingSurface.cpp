@@ -33,12 +33,15 @@
 #include <string.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 
 //parameters
 
 char  unsigned      J2CyclicBoundingSurface::m_ElastFlag = 1;  // --> default visco-elasto -plastic   
 //char  unsigned      J2CyclicBoundingSurface::m_ElastFlag = 2; // default visco-elastic
+
+
+
+#include <elementAPI.h>
 
 void * OPS_ADD_RUNTIME_VPV(OPS_J2CyclicBoundingSurfaceMaterial)
 {

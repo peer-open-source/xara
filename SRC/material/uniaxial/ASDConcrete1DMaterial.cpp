@@ -49,45 +49,6 @@ namespace {
 		EC_Generic = -1,
 		EC_IMPLEX_Error_Control = -10
 	};
-
-	/**
-	Converts a string into a vector of doubles using whitespace as delimiter
-	*/
-	bool string_to_double(const std::string& text, double& num) {
-		num = 0.0;
-		try {
-			num = std::stod(text);
-			return true;
-		}
-		catch (...) {
-			return false;
-		}
-	}
-	bool string_to_list_of_doubles(const std::string& text, char sep, std::vector<double>& out) {
-		if (out.size() > 0) out.clear();
-		std::size_t start = 0, end = 0;
-		double value;
-		while (true) {
-			end = text.find(sep, start);
-			if (end == std::string::npos) {
-				if (start < text.size()) {
-					if (!string_to_double(text.substr(start), value))
-						return false;
-					out.push_back(value);
-				}
-				break;
-			}
-			std::string subs = text.substr(start, end - start);
-			if (subs.size() > 0) {
-				if (!string_to_double(subs, value))
-					return false;
-				out.push_back(value);
-			}
-			start = end + 1;
-		}
-		return true;
-	}
-
 	// Heavyside function
 	inline double Heavyside(double X) { return X > 0.0 ? 1.0 : (X < 0.0 ? 0.0 : 0.5); }
 
@@ -134,6 +95,47 @@ namespace {
 		}
 	};
 
+	bool string_to_double(const std::string& text, double& num) {
+		num = 0.0;
+		try {
+			num = std::stod(text);
+			return true;
+		}
+		catch (...) {
+			return false;
+		}
+	}
+
+#if 0
+	/**
+	Converts a string into a vector of doubles using whitespace as delimiter
+	*/
+	bool string_to_list_of_doubles(const std::string& text, char sep, std::vector<double>& out) {
+		if (out.size() > 0) out.clear();
+		std::size_t start = 0, end = 0;
+		double value;
+		while (true) {
+			end = text.find(sep, start);
+			if (end == std::string::npos) {
+				if (start < text.size()) {
+					if (!string_to_double(text.substr(start), value))
+						return false;
+					out.push_back(value);
+				}
+				break;
+			}
+			std::string subs = text.substr(start, end - start);
+			if (subs.size() > 0) {
+				if (!string_to_double(subs, value))
+					return false;
+				out.push_back(value);
+			}
+			start = end + 1;
+		}
+		return true;
+	}
+
+
 	double bezier3(double xi,
 		double x0, double x1, double x2,
 		double y0, double y1, double y2)
@@ -155,9 +157,10 @@ namespace {
 
 		return (y0 - 2.0 * y1 + y2) * t * t + 2.0 * (y1 - y0) * t + y0;
 	}
-
+#endif
 }
 
+#if 0
 void* OPS_ADD_RUNTIME_VPV(OPS_ASDConcrete1DMaterial)
 {
 	// some kudos
@@ -521,6 +524,7 @@ void* OPS_ADD_RUNTIME_VPV(OPS_ASDConcrete1DMaterial)
 	}
 	return instance;
 }
+#endif
 
 ASDConcrete1DMaterial::HardeningLaw::HardeningLaw(
 	int tag, HardeningLawType type,
@@ -1359,7 +1363,8 @@ int ASDConcrete1DMaterial::setParameter(const char** argv, int argc, Parameter& 
 	return -1;
 }
 
-int ASDConcrete1DMaterial::updateParameter(int parameterID, Information& info)
+int
+ASDConcrete1DMaterial::updateParameter(int parameterID, Information& info)
 {
 	switch (parameterID) {
 		// 1000 - elasticity & mass

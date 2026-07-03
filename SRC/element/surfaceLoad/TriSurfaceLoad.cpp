@@ -33,7 +33,7 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <OPS_Globals.h>
+#include <Logging.h>
 #include <ErrorHandler.h>
 #include <NDMaterial.h>
 #include <ElementalLoad.h>
@@ -50,10 +50,10 @@ Matrix TriSurfaceLoad::damp(SL_NUM_DOF, SL_NUM_DOF);
 Vector TriSurfaceLoad::internalForces(SL_NUM_DOF);
 
 #include <elementAPI.h>
-static int num_TriSurfaceLoad = 0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_TriSurfaceLoad)
 {
+  static int num_TriSurfaceLoad = 0;
   if (num_TriSurfaceLoad == 0) {
     num_TriSurfaceLoad++;
     opslog<<"TriSurfaceLoad element - Written: J. A. Abell (UANDES). Inspired by the makers of SurfaceLoad\n";

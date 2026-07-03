@@ -258,13 +258,11 @@ stressDensity::getResponse (int responseID, Information &matInformation)
         case -1:
             return -1;
 	    case 1:
-		    if (matInformation.theVector != 0) 
-			    *(matInformation.theVector) = getStress();
-		    return 0;
+            return matInformation.setVector(this->getStress());
+
     	case 2:
-		    if (matInformation.theVector != 0) 
-			    *(matInformation.theVector) = getStrain();
-		    return 0;
+            return matInformation.setVector(this->getStrain());
+
 	    default:
 		    return -1;
   }

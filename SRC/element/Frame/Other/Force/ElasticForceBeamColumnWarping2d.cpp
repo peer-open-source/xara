@@ -1105,59 +1105,14 @@ ElasticForceBeamColumnWarping2d::Print(OPS_Stream &s, int flag)
     if (numEleLoads > 0)
       this->computeReactions(p0);
 
-    s << "#END_FORCES " << -P+p0[0] << " " << V+p0[1] << " " << M1 << R1 << Q1 << endln;
-    s << "#END_FORCES " << P << " " << -V+p0[2] << " " << M2 << -R2 << Q2 << endln;
+    s << "#END_FORCES " << -P+p0[0] << " " << V+p0[1] << " " << M1 << R1 << Q1 << "\n";
+    s << "#END_FORCES " << P << " " << -V+p0[2] << " " << M2 << -R2 << Q2 << "\n";
 
     // plastic hinge rotation
     this->getInitialFlexibility(fe);
     vp = crdTransf->getBasicTrialDisp();
     vp.addMatrixVector(1.0, fe, Se, -1.0);
-    s << "#PLASTIC_HINGE_ROTATION " << vp[1] << " " << vp[2] << " " << 0.1*L << " " << 0.1*L << endln;
-/*
-    // allocate array of vectors to store section coordinates and displacements
-    static int maxNumSections = 0;
-    static Vector *coords = 0;
-    static Vector *displs = 0;
-    if (maxNumSections < numSections) {
-      if (coords != 0) 
-	delete [] coords;
-      if (displs != 0)
-	delete [] displs;
-      
-      coords = new Vector [numSections];
-      displs = new Vector [numSections];
-      
-      if (!coords) {
-	opserr << "NLBeamColumn3d::Print() -- failed to allocate coords array";   
-	exit(-1);
-      }
-      
-      int i;
-      for (i = 0; i < numSections; i++)
-	coords[i] = Vector(NDM);
-      
-      if (!displs) {
-	opserr << "NLBeamColumn3d::Print() -- failed to allocate coords array";   
-	exit(-1);
-      }
-      
-      for (i = 0; i < numSections; i++)
-	displs[i] = Vector(NDM);
-      
-      
-      maxNumSections = numSections;
-    }
-    
-    // compute section location & displacements
-    this->compSectionDisplacements(coords, displs);
-    
-    // spit out the section location & invoke print on the scetion
-    for (int i=0; i<numSections; i++) {
-      s << "#SECTION " << (coords[i])(0) << " " << (coords[i])(1);       
-      s << " " << (displs[i])(0) << " " << (displs[i])(1) << endln;
-      sections[i]->Print(s, flag); 
-    }
-    */
+    s << "#PLASTIC_HINGE_ROTATION " << vp[1] << " " << vp[2] << " " << 0.1*L << " " << 0.1*L << "\n";
   }
 
   if (flag == OPS_PRINT_CURRENTSTATE) {
@@ -1165,7 +1120,7 @@ ElasticForceBeamColumnWarping2d::Print(OPS_Stream &s, int flag)
     s << "\nElement: " << this->getTag() << " Type: ElasticForceBeamColumnWarping2d ";
     s << "\tConnected Nodes: " << connectedExternalNodes ;
     s << "\tNumber of Sections: " << numSections;
-    s << "\tMass density: " << rho << endln;
+    s << "\tMass density: " << rho << "\n";
     beamIntegr->Print(s, flag);
     crdTransf->Print(s, flag);
 
@@ -1173,54 +1128,54 @@ ElasticForceBeamColumnWarping2d::Print(OPS_Stream &s, int flag)
     double P  = Se(0);
     double M1 = Se(1);
     double Q1 = Se(2);
-	double M2 = Se(3);
-	double Q2 = Se(4);
+    double M2 = Se(3);
+    double Q2 = Se(4);
     double L  = crdTransf->getInitialLength();
     double V  = (M1+M2)/L;
-	double R1(0), R2(0);
+    double R1(0), R2(0);
 		// compute coeficient w
-	int order      = sections[0]->getOrder();
-	const ID &code = sections[0]->getType();
-	const Matrix &ks0 = sections[0]->getSectionTangent(); 
-	const Matrix &ks1 = sections[numSections-1]->getSectionTangent(); 
+    int order      = sections[0]->getOrder();
+    const ID &code = sections[0]->getType();
+    const Matrix &ks0 = sections[0]->getSectionTangent(); 
+    const Matrix &ks1 = sections[numSections-1]->getSectionTangent(); 
 
-	double EI0(0), GA0(0), GB0(0), GC0(0), EJ0(0);
-	double EI1(0), GA1(0), GB1(0), GC1(0), EJ1(0);
+    double EI0(0), GA0(0), GB0(0), GC0(0), EJ0(0);
+    double EI1(0), GA1(0), GB1(0), GC1(0), EJ1(0);
 
-	for (int k = 0; k < order; k++) {
-		if (code(k) == SECTION_RESPONSE_MZ){
-		EI0 += ks0(k,k);
-		EI1 += ks1(k,k);
-		}
-		if (code(k) == SECTION_RESPONSE_VY){
-		GA0 += ks0(k,k);
-		GB0 += ks0(k,k+1);
-		GA1 += ks1(k,k);
-		GB1 += ks1(k,k+1);
-		}
-		if (code(k) == SECTION_RESPONSE_R){
-		GC0 += ks0(k,k);
-		GC1 += ks1(k,k);
-		}
-		if (code(k) == SECTION_RESPONSE_Q){
-		EJ0 += ks0(k,k);
-		EJ1 += ks1(k,k);
-		}
- }
- 	double w0(0), w1(0);
-	if (GA0 != 0.0 && EJ0!=0)
-	w0 = sqrt((GA0 * GC0 - GB0 *GB0) / EJ0 / GA0);
+    for (int k = 0; k < order; k++) {
+      if (code(k) == SECTION_RESPONSE_MZ){
+        EI0 += ks0(k,k);
+        EI1 += ks1(k,k);
+      }
+      if (code(k) == SECTION_RESPONSE_VY){
+        GA0 += ks0(k,k);
+        GB0 += ks0(k,k+1);
+        GA1 += ks1(k,k);
+        GB1 += ks1(k,k+1);
+      }
+      if (code(k) == SECTION_RESPONSE_R){
+        GC0 += ks0(k,k);
+        GC1 += ks1(k,k);
+      }
+      if (code(k) == SECTION_RESPONSE_Q){
+        EJ0 += ks0(k,k);
+        EJ1 += ks1(k,k);
+      }
+    }
+    double w0(0), w1(0);
+    if (GA0 != 0.0 && EJ0!=0)
+      w0 = sqrt((GA0 * GC0 - GB0 *GB0) / EJ0 / GA0);
 
-	if (GA1 != 0.0 && EJ1!=0)
-	w1 = sqrt((GA1 * GC1 - GB1 *GB1) / EJ1 / GA1);
+    if (GA1 != 0.0 && EJ1!=0)
+      w1 = sqrt((GA1 * GC1 - GB1 *GB1) / EJ1 / GA1);
 
-	R1 = (w0/tanh(w0*L))*Q1 + (w0/sinh(w0*L))*Q2;
-	R2 = w1*(cosh(w1*L)/tanh(w1*L)-sinh(w1*L))*Q1 + (w1/tanh(w1*L))*Q2;
- 
-	theVector(1) = V;
-	theVector(2) = R1;
+    R1 = (w0/tanh(w0*L))*Q1 + (w0/sinh(w0*L))*Q2;
+    R2 = w1*(cosh(w1*L)/tanh(w1*L)-sinh(w1*L))*Q1 + (w1/tanh(w1*L))*Q2;
+
+    theVector(1) = V;
+    theVector(2) = R1;
     theVector(6) = -V;
-	theVector(7) = -R2;
+    theVector(7) = -R2;
     double p0[3]; p0[0] = 0.0; p0[1] = 0.0; p0[2] = 0.0;
     if (numEleLoads > 0)
       this->computeReactions(p0);
@@ -1230,19 +1185,21 @@ ElasticForceBeamColumnWarping2d::Print(OPS_Stream &s, int flag)
     
     if (flag == 1) { 
       for (int i = 0; i < numSections; i++)
-	s << "\numSections "<<i<<" :" << *sections[i];
+        s << "\numSections "<<i<<" :" << *sections[i];
     }
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-	  s << "\t\t\t{";
+	  s << OPS_PRINT_JSON_ELEM_INDENT << "{";
 	  s << "\"name\": " << this->getTag() << ", ";
 	  s << "\"type\": \"ElasticForceBeamColumnWarping2d\", ";
 	  s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
-	  s << "\"sections\": [";
+
+    s << "\"sections\": [";
 	  for (int i = 0; i < numSections - 1; i++)
-		  s << "\"" << sections[i]->getTag() << "\", ";
-	  s << "\"" << sections[numSections - 1]->getTag() << "\"], ";
+		  s << sections[i]->getTag() << ", ";
+	  s << sections[numSections - 1]->getTag() << "], ";
+
 	  s << "\"integration\": ";
 	  beamIntegr->Print(s, flag);
 	  s << ", \"massperlength\": " << rho << ", ";
@@ -1250,11 +1207,6 @@ ElasticForceBeamColumnWarping2d::Print(OPS_Stream &s, int flag)
   }
 }
 
-OPS_Stream &operator<<(OPS_Stream &s, ElasticForceBeamColumnWarping2d &E)
-{
-  E.Print(s);
-  return s;
-}
 
 Response*
 ElasticForceBeamColumnWarping2d::setResponse(const char **argv, int argc, OPS_Stream &output)
@@ -1274,49 +1226,49 @@ ElasticForceBeamColumnWarping2d::setResponse(const char **argv, int argc, OPS_St
     output.tag("ResponseType","Px_1");
     output.tag("ResponseType","Py_1");
     output.tag("ResponseType","Mz_1");
-	output.tag("ResponseType","Q_1");
+    output.tag("ResponseType","Q_1");
     output.tag("ResponseType","Px_2");
     output.tag("ResponseType","Py_2");
     output.tag("ResponseType","Mz_2");
-	output.tag("ResponseType","Q_2");
+    output.tag("ResponseType","Q_2");
 
     theResponse =  new ElementResponse(this, 1, theVector);
   
-  
   // local force -
-  } else if (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0) {
+  }
+  else if (strcmp(argv[0],"localForce") == 0 || strcmp(argv[0],"localForces") == 0) {
 
     output.tag("ResponseType","N_1");
     output.tag("ResponseType","V_1");
     output.tag("ResponseType","M_1");
-	output.tag("ResponseType","Q_1");
+    output.tag("ResponseType","Q_1");
     output.tag("ResponseType","N_2");
     output.tag("ResponseType","V_2");
     output.tag("ResponseType","M_2");
-	output.tag("ResponseType","Q_2");
+    output.tag("ResponseType","Q_2");
 
     theResponse =  new ElementResponse(this, 2, theVector);
   
-
   // basic force -
   } else if (strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0) {
 
     output.tag("ResponseType","N");
     output.tag("ResponseType","M_1");
     output.tag("ResponseType","M_2");
-	output.tag("ResponseType","Q_1");
-	output.tag("ResponseType","Q_2");
+    output.tag("ResponseType","Q_1");
+    output.tag("ResponseType","Q_2");
 
     theResponse =  new ElementResponse(this, 7, Vector(5));
 
   // chord rotation -
-  } else if (strcmp(argv[0],"chordRotation") == 0 || strcmp(argv[0],"chordDeformation") == 0 
+  }
+  else if (strcmp(argv[0],"chordRotation") == 0 || strcmp(argv[0],"chordDeformation") == 0 
 	     || strcmp(argv[0],"basicDeformation") == 0) {
 
     output.tag("ResponseType","eps");
     output.tag("ResponseType","theta_1");
     output.tag("ResponseType","theta_2");
-	output.tag("ResponseType","phi_1");
+    output.tag("ResponseType","phi_1");
     output.tag("ResponseType","phi_2");
 
     theResponse =  new ElementResponse(this, 3, Vector(5));
@@ -1327,21 +1279,23 @@ ElasticForceBeamColumnWarping2d::setResponse(const char **argv, int argc, OPS_St
     output.tag("ResponseType","epsP");
     output.tag("ResponseType","thetaP_1");
     output.tag("ResponseType","thetaP_2");
-	output.tag("ResponseType","phiP_1");
+    output.tag("ResponseType","phiP_1");
     output.tag("ResponseType","phiP_2");
 
 
     theResponse =  new ElementResponse(this, 4, Vector(5));
 
   // point of inflection
-  } else if (strcmp(argv[0],"inflectionPoint") == 0) {
+  }
+  else if (strcmp(argv[0],"inflectionPoint") == 0) {
     
     output.tag("ResponseType","inflectionPoint");
 
     theResponse =  new ElementResponse(this, 5, 0.0);
   
   // tangent drift
-  } else if (strcmp(argv[0],"tangentDrift") == 0) {
+  }
+  else if (strcmp(argv[0],"tangentDrift") == 0) {
     theResponse =  new ElementResponse(this, 6, Vector(2));
 
   // basic forces
@@ -1368,18 +1322,18 @@ ElasticForceBeamColumnWarping2d::setResponse(const char **argv, int argc, OPS_St
       double minDistance = fabs(xi[0]-sectionLoc);
       int sectionNum = 0;
       for (int i = 1; i < numSections; i++) {
-	if (fabs(xi[i]-sectionLoc) < minDistance) {
-	  minDistance = fabs(xi[i]-sectionLoc);
-	  sectionNum = i;
-	}
-	  }
+        if (fabs(xi[i]-sectionLoc) < minDistance) {
+          minDistance = fabs(xi[i]-sectionLoc);
+          sectionNum = i;
+        }
+      }
 
       output.tag("GaussPointOutput");
       output.attr("number",sectionNum+1);
       output.attr("eta",xi[sectionNum]*L);
 
       theResponse = sections[sectionNum]->setResponse(&argv[2], argc-2, output);
-	}
+    }
   }
 
   // section response -
@@ -1387,17 +1341,15 @@ ElasticForceBeamColumnWarping2d::setResponse(const char **argv, int argc, OPS_St
     if (argc > 2) {
       int sectionNum = atoi(argv[1]);
       if (sectionNum > 0 && sectionNum <= numSections) {
+        double xi[maxNumSections];
+        double L = crdTransf->getInitialLength();
+        beamIntegr->getSectionLocations(numSections, L, xi);
 
-	double xi[maxNumSections];
-	double L = crdTransf->getInitialLength();
-	beamIntegr->getSectionLocations(numSections, L, xi);
-
-	output.tag("GaussPointOutput");
-	output.attr("number",sectionNum);
-	output.attr("eta",xi[sectionNum-1]*L);
-	
-	theResponse = sections[sectionNum-1]->setResponse(&argv[2], argc-2, output);
-	
+        output.tag("GaussPointOutput");
+        output.attr("number",sectionNum);
+        output.attr("eta",xi[sectionNum-1]*L);
+        
+        theResponse = sections[sectionNum-1]->setResponse(&argv[2], argc-2, output);
       }
     }
   }
@@ -1422,57 +1374,57 @@ ElasticForceBeamColumnWarping2d::getResponse(int responseID, Information &eleInf
     if (numEleLoads > 0)
       this->computeReactions(p0);
     this->computeBasicForces(Se);
-	double V = (Se(1)+Se(3))/crdTransf->getInitialLength();
-	double R1(0), R2(0);
+    double V = (Se(1)+Se(3))/crdTransf->getInitialLength();
+    double R1(0), R2(0);
 
-			// compute coeficient w
-	double L = crdTransf->getInitialLength();
-	int order      = sections[0]->getOrder();
-	const ID &code = sections[0]->getType();
-	const Matrix &ks0 = sections[0]->getSectionTangent(); 
-	const Matrix &ks1 = sections[numSections-1]->getSectionTangent(); 
+    // compute coeficient w
+    double L = crdTransf->getInitialLength();
+    int order      = sections[0]->getOrder();
+    const ID &code = sections[0]->getType();
+    const Matrix &ks0 = sections[0]->getSectionTangent(); 
+    const Matrix &ks1 = sections[numSections-1]->getSectionTangent(); 
 
-	double EI0(0), GA0(0), GB0(0), GC0(0), EJ0(0);
-	double EI1(0), GA1(0), GB1(0), GC1(0), EJ1(0);
+    double EI0(0), GA0(0), GB0(0), GC0(0), EJ0(0);
+    double EI1(0), GA1(0), GB1(0), GC1(0), EJ1(0);
 
-	for (int k = 0; k < order; k++) {
-		if (code(k) == SECTION_RESPONSE_MZ){
-		EI0 += ks0(k,k);
-		EI1 += ks1(k,k);
-		}
-		if (code(k) == SECTION_RESPONSE_VY){
-		GA0 += ks0(k,k);
-		GB0 += ks0(k,k+1);
-		GA1 += ks1(k,k);
-		GB1 += ks1(k,k+1);
-		}
-		if (code(k) == SECTION_RESPONSE_R){
-		GC0 += ks0(k,k);
-		GC1 += ks1(k,k);
-		}
-		if (code(k) == SECTION_RESPONSE_Q){
-		EJ0 += ks0(k,k);
-		EJ1 += ks1(k,k);
-		}
- }
- 	double w0(0), w1(0);
-	if (GA0 != 0.0 && EJ0!=0)
-	w0 = sqrt((GA0 * GC0 - GB0 *GB0) / EJ0 / GA0);
+    for (int k = 0; k < order; k++) {
+      if (code(k) == SECTION_RESPONSE_MZ){
+      EI0 += ks0(k,k);
+      EI1 += ks1(k,k);
+      }
+      if (code(k) == SECTION_RESPONSE_VY){
+      GA0 += ks0(k,k);
+      GB0 += ks0(k,k+1);
+      GA1 += ks1(k,k);
+      GB1 += ks1(k,k+1);
+      }
+      if (code(k) == SECTION_RESPONSE_R){
+      GC0 += ks0(k,k);
+      GC1 += ks1(k,k);
+      }
+      if (code(k) == SECTION_RESPONSE_Q){
+      EJ0 += ks0(k,k);
+      EJ1 += ks1(k,k);
+      }
+    }
+    double w0(0), w1(0);
+    if (GA0 != 0.0 && EJ0!=0)
+      w0 = sqrt((GA0 * GC0 - GB0 *GB0) / EJ0 / GA0);
 
-	if (GA1 != 0.0 && EJ1!=0)
-	w1 = sqrt((GA1 * GC1 - GB1 *GB1) / EJ1 / GA1);
+    if (GA1 != 0.0 && EJ1!=0)
+      w1 = sqrt((GA1 * GC1 - GB1 *GB1) / EJ1 / GA1);
 
-	R1 = (w0/tanh(w0*L))*Se(2) + (w0/sinh(w0*L))*Se(4);
-	R2 = w1*(cosh(w1*L)/tanh(w1*L)-sinh(w1*L))*Se(2) + (w1/tanh(w1*L))*Se(4);
+    R1 = (w0/tanh(w0*L))*Se(2) + (w0/sinh(w0*L))*Se(4);
+    R2 = w1*(cosh(w1*L)/tanh(w1*L)-sinh(w1*L))*Se(2) + (w1/tanh(w1*L))*Se(4);
 
-	theVector(0) =  -Se(0) + p0[0];
-	theVector(1) = V + p0[1];
-	theVector(2) = R1;
+    theVector(0) =  -Se(0) + p0[0];
+    theVector(1) = V + p0[1];
+    theVector(2) = R1;
     theVector(3) = Se(1);
-	theVector(4) = Se(2);
+    theVector(4) = Se(2);
     theVector(5) = Se(0);
-	theVector(6) = -V + p0[2];
-	theVector(7) = -R2;
+    theVector(6) = -V + p0[2];
+    theVector(7) = -R2;
     theVector(8) = Se(3);
     theVector(9) = Se(4);
     return eleInfo.setVector(theVector);
@@ -1563,12 +1515,11 @@ ElasticForceBeamColumnWarping2d::setParameter(const char **argv, int argc, Param
       double minDistance = fabs(xi[0]-sectionLoc);
       int sectionNum = 0;
       for (int i = 1; i < numSections; i++) {
-	if (fabs(xi[i]-sectionLoc) < minDistance) {
-	  minDistance = fabs(xi[i]-sectionLoc);
-	  sectionNum = i;
-	}
+        if (fabs(xi[i]-sectionLoc) < minDistance) {
+          minDistance = fabs(xi[i]-sectionLoc);
+          sectionNum = i;
+        }
       }
-
       return sections[sectionNum]->setParameter(&argv[2], argc-2, param);
     }
   }

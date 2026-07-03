@@ -18,7 +18,7 @@
 **                                                                    **
 ** ****************************************************************** */
 
-//Modified Ibarra-Medina-Krawinkler with Bilinear hysteretic response
+// Modified Ibarra-Medina-Krawinkler with Bilinear hysteretic response
 
 //**********************************************************************                                                                    
 // Code Developed by: Dimitrios G. Lignos
@@ -47,7 +47,7 @@ class Bilin : public UniaxialMaterial
         double Thetapc_pos,double Thetapc_neg,double K,       double KNeg,      double Thetau_pos,
         double Thetau_neg, double PDPlus,     double PDNeg, double nFactor);  // Updated: Filipe Ribeiro and Andre Barbosa    
 
-     // Updated: Filipe Ribeiro and Andre Barbosa
+  // Updated: Filipe Ribeiro and Andre Barbosa
   Bilin(int tag,                                                                                       
         double Ke0,     double As,         double AsNeg,   double My_pos,    double My_neg,            
         double LamdaS,     double LamdaD, double LamdaA,  double LamdaK,    double Cs,                 
@@ -58,21 +58,21 @@ class Bilin : public UniaxialMaterial
   Bilin();
   ~Bilin();
 
-  const char *getClassType(void) const {return "Bilin";};
-  int setTrialStrain(double strain, double strainRate = 0.0);
-  double getStrain(void);
-  double getStress(void);
-  double getTangent(void);
-  double getInitialTangent(void);
-  int commitState(void);
-  int revertToLastCommit(void);    
-  int revertToStart(void);        
-  UniaxialMaterial *getCopy(void);
-  int sendSelf(int commitTag, Channel &theChannel);  
-  int recvSelf(int commitTag, Channel &theChannel,
-               FEM_ObjectBroker &theBroker);    
+  const char *getClassType(void) const {return "Bilin";}
+  int setTrialStrain(double strain, double strainRate);
+  double getStrain();
+  double getStress();
+  double getTangent();
+  double getInitialTangent();
+
+  int commitState();
+  int revertToLastCommit();    
+  int revertToStart();        
+  UniaxialMaterial *getCopy();
+  int sendSelf(int commitTag, Channel &);  
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
  
-  void Print(OPS_Stream &s, int flag =0);
+  void Print(OPS_Stream &s, int flag);
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
   int getResponse(int responseID, Information &matInformation);
   

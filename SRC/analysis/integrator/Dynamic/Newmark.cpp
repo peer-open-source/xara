@@ -43,6 +43,7 @@
 #include <Parameter.h>
 #include <ParameterIter.h>//Abbas
 
+#include <analysis/damping/ModalDamping.h>
 
 
 Newmark::Newmark(int classTag)
@@ -104,7 +105,7 @@ int Newmark::newStep(double deltaT)
 
     if (deltaT <= 0.0)  {
         opserr << "Newmark::newStep() - error in variable\n";
-        opserr << "dT = " << deltaT << endln;
+        opserr << "dT = " << deltaT << "\n";
         return -2;  
     }
 
@@ -257,44 +258,44 @@ int Newmark::revertToLastStep()
 int
 Newmark::formEleTangent(FE_Element *theEle)
 {
-    if (determiningMass == true)
-        return 0;
+  if (determiningMass == true)
+      return 0;
 
-    theEle->zeroTangent();
-    
-    switch (statusFlag) {
-    case CURRENT_TANGENT:
-        theEle->addKtToTang(c1);
-        theEle->addCtoTang(c2);
-        theEle->addMtoTang(c3);
-        break;
-    case INITIAL_TANGENT:
-        theEle->addKiToTang(c1);
-        theEle->addCtoTang(c2);
-        theEle->addMtoTang(c3);
-        break;
-    case HALL_TANGENT:
-        theEle->addKtToTang(c1*cFactor);
-        theEle->addKiToTang(c1*iFactor);
-        theEle->addCtoTang(c2);
-        theEle->addMtoTang(c3);
-        break;
-    }
-    
-    return 0;
+  theEle->zeroTangent();
+  
+  switch (statusFlag) {
+  case CURRENT_TANGENT:
+      theEle->addKtToTang(c1);
+      theEle->addCtoTang(c2);
+      theEle->addMtoTang(c3);
+      break;
+  case INITIAL_TANGENT:
+      theEle->addKiToTang(c1);
+      theEle->addCtoTang(c2);
+      theEle->addMtoTang(c3);
+      break;
+  case HALL_TANGENT:
+      theEle->addKtToTang(c1*cFactor);
+      theEle->addKiToTang(c1*iFactor);
+      theEle->addCtoTang(c2);
+      theEle->addMtoTang(c3);
+      break;
+  }
+  
+  return 0;
 }
 
 int
 Newmark::formNodTangent(DOF_Group *theDof)
 {
-    if (determiningMass == true)
-        return 0;
-    
-    theDof->zeroTangent();
-    theDof->addCtoTang(c2);      
-    theDof->addMtoTang(c3);
-    
+  if (determiningMass == true)
     return 0;
+  
+  theDof->zeroTangent();
+  theDof->addCtoTang(c2);      
+  theDof->addMtoTang(c3);
+  
+  return 0;
 }    
 
 
@@ -307,34 +308,33 @@ int Newmark::domainChanged()
 
     // create the new Vector objects
     if (Ut == 0 || Ut->Size() != size)  {
-        
-        // delete the old
-        if (Ut != 0)
-            delete Ut;
-        if (Utdot != 0)
-            delete Utdot;
-        if (Utdotdot != 0)
-            delete Utdotdot;
-        if (U != 0)
-            delete U;
-        if (Udot != 0)
-            delete Udot;
-        if (Udotdot != 0)
-            delete Udotdot;
+      // delete the old
+      if (Ut != 0)
+          delete Ut;
+      if (Utdot != 0)
+          delete Utdot;
+      if (Utdotdot != 0)
+          delete Utdotdot;
+      if (U != 0)
+          delete U;
+      if (Udot != 0)
+          delete Udot;
+      if (Udotdot != 0)
+          delete Udotdot;
 
-        // create the new
-        Ut = new Vector(size);
-        Utdot = new Vector(size);
-        Utdotdot = new Vector(size);
-        U = new Vector(size);
-        Udot = new Vector(size);
-        Udotdot = new Vector(size);
-        dUn.resize(size); 
-        dUn.Zero();
-        dVn.resize(size); 
-        dVn.Zero();
-        dAn.resize(size); 
-        dAn.Zero(); 
+      // create the new
+      Ut = new Vector(size);
+      Utdot = new Vector(size);
+      Utdotdot = new Vector(size);
+      U = new Vector(size);
+      Udot = new Vector(size);
+      Udotdot = new Vector(size);
+      dUn.resize(size); 
+      dUn.Zero();
+      dVn.resize(size); 
+      dVn.Zero();
+      dAn.resize(size); 
+      dAn.Zero(); 
     }        
     
     myModel->getState(*U, *Udot, *Udotdot, 0);
@@ -378,100 +378,116 @@ int Newmark::domainChanged()
 }
 
 
-int Newmark::update(const Vector &deltaU)
+int 
+Newmark::update(const Vector &deltaU)
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel == nullptr)  {
-        opserr << "WARNING Newmark::update() - no AnalysisModel set\n";
-        return -1;
+      opserr << "WARNING Newmark::update() - no AnalysisModel set\n";
+      return -1;
     }  
     
     // check domainChanged() has been called, i.e. Ut will not be zero
     if (Ut == nullptr)  {
-        opserr << "WARNING Newmark::update() - domainChange() failed or not called\n";
-        return -2;
+      opserr << "WARNING Newmark::update() - domainChange() failed or not called\n";
+      return -2;
     }  
     
     // check deltaU is of correct size
-    if (deltaU.Size() != U->Size())  {
-        opserr << "WARNING Newmark::update() - Vectors of incompatible size ";
-        opserr << " expecting " << U->Size() << " obtained " << deltaU.Size() << endln;
-        return -3;
+    assert(deltaU.Size() == U->Size());
+
+    ModalDamping *modalDamping = theModel->getModalDamping();
+#if 0
+    const Vector &dX = deltaU;
+#elif 1
+    assert(this->getLinearSOE() != nullptr);
+    const Vector &dX = (modalDamping == nullptr) 
+                     ? deltaU
+                     : modalDamping->updateX(deltaU, *this->getLinearSOE());
+#else
+    Vector dX(deltaU);
+    if (modalDamping != nullptr) {
+      modalDamping->applyTangent(dX);
+      this->getLinearSOE()->setX(dX);
     }
-    
+#endif
     //  determine the response at t+deltaT
     if (unknown == Displacement)  {
-      (*U) += deltaU;
-      Udot->addVector(1.0, deltaU, c2);
-      Udotdot->addVector(1.0, deltaU, c3);
+      (*U) += dX;
+      Udot->addVector(1.0, dX, c2);
+      Udotdot->addVector(1.0, dX, c3);
+
 
     } else if (unknown == Velocity) {
-      U->addVector(1.0, deltaU, c1);
-      (*Udot) += deltaU;
-      Udotdot->addVector(1.0, deltaU, c3);
+      (*Udot) += dX;
 
-    } else  {
-      U->addVector(1.0, deltaU, c1);        
-      Udot->addVector(1.0, deltaU, c2);        
-      (*Udotdot) += deltaU;
+      U->addVector(1.0, dX, c1);
+      Udotdot->addVector(1.0, dX, c3);
+
+    } else {
+      (*Udotdot) += dX;
+
+      U->addVector(1.0, dX, c1);        
+      Udot->addVector(1.0, dX, c2);
     }
 
     // update the response at the DOFs
     theModel->setResponse(*U,*Udot,*Udotdot);
     if (theModel->updateDomain() < 0)  {
-        opserr << "Newmark::update - failed to update the domain\n";
-        return -4;
+      opserr << "Newmark::update - failed to update the domain\n";
+      return -4;
     }
-    
+
     return 0;
 }    
 
 
 int Newmark::sendSelf(int cTag, Channel &theChannel)
 {
-    Vector data(3);
-    data(0) = gamma;
-    data(1) = beta;
-    data(2) = unknown;
+  Vector data(3);
+  data(0) = gamma;
+  data(1) = beta;
+  data(2) = unknown;
 
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING Newmark::sendSelf() - could not send data\n";
-        return -1;
-    }
+  
+  if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
+    opserr << "WARNING Newmark::sendSelf() - could not send data\n";
+    return -1;
+  }
 
-    return 0;
+  return 0;
 }
 
 
-int Newmark::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
+int 
+Newmark::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
-    Vector data(3);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING Newmark::recvSelf() - could not receive data\n";
-        gamma = 0.5;
-        beta = 0.25; 
-        return -1;
-    }
-    
-    gamma  = data(0);
-    beta   = data(1);
-    unknown  = data(2);
+  Vector data(3);
+  if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
+    opserr << "WARNING Newmark::recvSelf() - could not receive data\n";
+    gamma = 0.5;
+    beta = 0.25;
+    return -1;
+  }
 
-    return 0;
+  gamma  = data(0);
+  beta   = data(1);
+  unknown  = data(2);
+
+  return 0;
 }
 
 
 void Newmark::Print(OPS_Stream &s, int flag)
 {
-    AnalysisModel *theModel = this->getAnalysisModel();
-    if (theModel != 0) {
-        double currentTime = theModel->getCurrentDomainTime();
-        s << "\t Newmark - currentTime: " << currentTime;
-        s << "  gamma: " << gamma << "  beta: " << beta << endln;
-        s << "  c1: " << c1 << "  c2: " << c2 << "  c3: " << c3 << endln;
-    } else 
-        s << "\t Newmark - no associated AnalysisModel\n";
+  AnalysisModel *theModel = this->getAnalysisModel();
+  if (theModel != 0) {
+      double currentTime = theModel->getCurrentDomainTime();
+      s << "\t Newmark - currentTime: " << currentTime;
+      s << "  gamma: " << gamma << "  beta: " << beta << endln;
+      s << "  c1: " << c1 << "  c2: " << c2 << "  c3: " << c3 << endln;
+  } else 
+      s << "\t Newmark - no associated AnalysisModel\n";
 }
 
 
@@ -494,12 +510,13 @@ int Newmark::revertToStart()
     return 0;
 }
 
-int Newmark::formEleResidual(FE_Element* theEle)
+int
+Newmark::formEleResidual(FE_Element* theEle)
 {
   if (sensitivityFlag == 0) {  // no sensitivity
-      this->TransientIntegrator::formEleResidual(theEle);
-
-  } else {
+    this->TransientIntegrator::formEleResidual(theEle);
+  }
+  else {
   
       theEle->zeroResidual();
 
@@ -590,10 +607,10 @@ int Newmark::formEleResidual(FE_Element* theEle)
       tmp2.addVector(1.0, dAn, a8);
 
       if (massMatrixMultiplicator == 0)
-          massMatrixMultiplicator = new Vector(tmp1.Size());
+        massMatrixMultiplicator = new Vector(tmp1.Size());
 
       if (dampingMatrixMultiplicator == 0)
-          dampingMatrixMultiplicator = new Vector(tmp2.Size());
+        dampingMatrixMultiplicator = new Vector(tmp2.Size());
 
       (*massMatrixMultiplicator) = tmp1;
       (*dampingMatrixMultiplicator) = tmp2;

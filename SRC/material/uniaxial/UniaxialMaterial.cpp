@@ -135,11 +135,6 @@ return this->getTangent();
 }
 */
 
-double 
-UniaxialMaterial::getRho()
-{
-  return 0.0;
-}
 
 UniaxialMaterial*
 UniaxialMaterial::getCopy(SectionForceDeformation *s)

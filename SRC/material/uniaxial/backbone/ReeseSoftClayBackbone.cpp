@@ -125,17 +125,6 @@ ReeseSoftClayBackbone::Print(OPS_Stream &s, int flag)
   s << "\tn: " << n << endln;
 }
 
-int
-ReeseSoftClayBackbone::setVariable (char *argv)
-{
-  return -1;
-}
-
-int
-ReeseSoftClayBackbone::getVariable (int varID, double &theValue)
-{
-  return -1;
-}
 
 int
 ReeseSoftClayBackbone::sendSelf(int commitTag, Channel &theChannel)

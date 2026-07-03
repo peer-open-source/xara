@@ -43,14 +43,18 @@
 #include "basics.h"
 
 // forward reference
+class Channel;
+
+
+namespace ucsd {}
+
 class BJtensor;
 class BJmatrix;
 class BJvector;
-class Channel;
-
 class stresstensor;
 class straintensor;
 
+// namespace detail {
 
 class nDarray_rep
 {
@@ -82,7 +86,10 @@ private:
                       //      dim[2] = dimension in direction 3  */
   int n;              // reference count
 };
+// } // namespace detail
 
+
+// using namespace detail;
 
 class nDarray
 {
@@ -285,8 +292,14 @@ class nDarray
     void set_reference_count(int );
 
 };
+
 // GLOBAL
 nDarray operator*( const double lval, const nDarray & rval);  // REVIEWER global *
+
+
+// } // namespace ucsd
+
+// using namespace ucsd;
 
 #endif
 

@@ -51,9 +51,9 @@ class HystereticBackbone : public TaggedObject, public MovableObject
   
   virtual HystereticBackbone *getCopy(void) = 0;
   
-  virtual int setVariable(char *argv);
-  virtual int getVariable(int varID, double &theValue);
-  
+  virtual int setVariable(char *argv) {return -1;}
+  virtual int getVariable(int varID, double &theValue) {return -1;}
+
   virtual int setParameter(char **argv, int argc, Parameter &eleInformation);
   virtual int updateParameter(int responseID, Information &eleInformation);	
   

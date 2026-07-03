@@ -47,7 +47,8 @@ class SectionAggregator : public FrameSection
   public:
     SectionAggregator(); 
 
-    SectionAggregator(int tag, FrameSection &theSection,
+    SectionAggregator(int tag,
+                      FrameSection &theSection,
                       int numAdditions, UniaxialMaterial **theAdditions,
                       const ID &code); 
     SectionAggregator(int tag, int numAdditions,

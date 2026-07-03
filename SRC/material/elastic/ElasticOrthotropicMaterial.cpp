@@ -1,0 +1,277 @@
+/* ****************************************************************** **
+**    OpenSees - Open System for Earthquake Engineering Simulation    **
+**          Pacific Earthquake Engineering Research Center            **
+**                                                                    **
+**                                                                    **
+** (C) Copyright 1999, The Regents of the University of California    **
+** All Rights Reserved.                                               **
+**                                                                    **
+** Commercial use of this program without express permission of the   **
+** University of California, Berkeley, is strictly prohibited.  See   **
+** file 'COPYRIGHT'  in main directory for information on usage and   **
+** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
+**                                                                    **
+** Developed by:                                                      **
+**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
+**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
+**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
+**                                                                    **
+** ****************************************************************** */
+//
+// Description: This file contains the class implementation for ElasticOrthotropicMaterial.
+//
+//
+// $Revision: 1.25 $                                                              
+// $Date: 2009-01-29 00:42:03 $       
+// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/ElasticOrthotropicMaterial.cpp,v $
+//                           
+// Written: MHS 
+// Created: Feb 2000
+// Revision: A
+
+#include <string.h>
+
+#include <ElasticOrthotropicMaterial.h>
+#include <ElasticOrthotropicThreeDimensional.h>
+
+#include <Channel.h>
+#include <Information.h>
+#include <Parameter.h>
+
+#include <Logging.h>
+#include <string.h>
+#include <stdlib.h>
+
+
+ElasticOrthotropicMaterial::ElasticOrthotropicMaterial(
+    int tag, int classTag, double ex, double ey, double ez,
+    double nuxy, double nuyz, double nuzx,
+    double gxy, double gyz, double gzx, double r)
+
+ : NDMaterial(tag, classTag), 
+  Ex(ex), Ey(ey), Ez(ez),
+  vxy(nuxy), vyz(nuyz), vzx(nuzx),
+  Gxy(gxy), Gyz(gyz), Gzx(gzx), 
+  rho(r),
+  parameterID(0)
+{
+
+}
+
+
+ElasticOrthotropicMaterial::~ElasticOrthotropicMaterial()
+{
+	
+}
+
+
+double
+ElasticOrthotropicMaterial::getRho() 
+{ 
+  return rho;
+}
+
+
+NDMaterial*
+ElasticOrthotropicMaterial::getCopy(const char *type)
+{
+  if (strcmp(type,"ThreeDimensional") == 0) {
+    return new ElasticOrthotropicThreeDimensional(this->getTag(),
+                                                  Ex, Ey, Ez,
+                                                  vxy, vyz, vzx, Gxy, Gyz, Gzx, rho);
+  }
+
+  // Handle other cases
+  else
+    return NDMaterial::getCopy(type);
+}
+
+
+
+int
+ElasticOrthotropicMaterial::sendSelf(int commitTag, Channel &theChannel)
+{
+  int res = 0;
+
+  static Vector data(11);
+  
+  data(0) = this->getTag();
+  data(1) = Ex;
+  data(2) = Ey;
+  data(3) = Ez;
+  data(4) = vxy;
+  data(5) = vyz;
+  data(6) = vzx;
+  data(7) = Gxy;
+  data(8) = Gyz;
+  data(9) = Gzx;
+  data(10) = rho;
+  
+ res += theChannel.sendVector(this->getDbTag(), commitTag, data);
+ if (res < 0) {
+   opserr << "ElasticOrthotropicMaterial::sendSelf -- could not send Vector\n";
+   return res;
+ }
+
+ return res;
+}
+
+
+int
+ElasticOrthotropicMaterial::recvSelf(int commitTag, Channel &theChannel, 
+				    FEM_ObjectBroker &theBroker)
+{
+  int res = 0;
+  
+  static Vector data(11);
+  
+  res += theChannel.recvVector(this->getDbTag(), commitTag, data);
+  if (res < 0) {
+   opserr << "ElasticOrthotropicMaterial::recvSelf -- could not recv Vector\n";
+   return res;
+  }
+    
+  this->setTag((int)data(0));
+  Ex = data(1);
+  Ey = data(2);
+  Ez = data(3);
+  vxy = data(4);
+  vyz = data(5);
+  vzx = data(6);
+  Gxy = data(7);
+  Gyz = data(8);
+  Gzx = data(9);
+  rho = data(10);
+  
+  return res;
+}
+
+
+void
+ElasticOrthotropicMaterial::Print (OPS_Stream &s, int flag)
+{
+  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
+    s << "Elastic Isotropic Material Model" << "\n";
+    s << "\tEx:  " << Ex << "\n";
+    s << "\tEy:  " << Ey << "\n";
+    s << "\tEz:  " << Ez << "\n";
+    s << "\tvxy:  " << vxy << "\n";
+    s << "\tvyz:  " << vyz << "\n";
+    s << "\tvzx:  " << vzx << "\n";
+    s << "\tGxy:  " << Gxy << "\n";
+    s << "\tGyz:  " << Gyz << "\n";
+    s << "\tGzx:  " << Gzx << "\n";
+    s << "\trho:  " << rho << "\n";
+  }
+
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << "\"type\": \"ElasticOrthotropicMaterial\", ";
+    s << "\"Ex\": " << Ex << ", ";
+    s << "\"Ey\": " << Ey << ", ";
+    s << "\"Ez\": " << Ez << ", ";
+    s << "\"nuxy\": " << vxy << ", ";
+    s << "\"nuyz\": " << vyz << ", ";
+    s << "\"nuzx\": " << vzx << ", ";
+    s << "\"Gxy\": " << Gxy << ", ";
+    s << "\"Gyz\": " << Gyz << ", ";
+    s << "\"Gzx\": " << Gzx << ", ";
+    s << "\"rho\": " << rho << "}";
+  }
+}
+
+
+int
+ElasticOrthotropicMaterial::setParameter(const char **argv, int argc, Parameter &param)
+{
+  if (strcmp(argv[0],"Ex") == 0) {
+    param.setValue(Ex);
+    return param.addObject(1, this);
+  }
+  if (strcmp(argv[0],"Ey") == 0) {
+    param.setValue(Ey);
+    return param.addObject(2, this);
+  }
+  if (strcmp(argv[0],"Ez") == 0) {
+    param.setValue(Ez);
+    return param.addObject(3, this);
+  }
+  if (strcmp(argv[0],"vxy") == 0 || strcmp(argv[0],"vyx") == 0) {
+    param.setValue(vxy);
+    return param.addObject(4, this);
+  }
+  if (strcmp(argv[0],"vyz") == 0 || strcmp(argv[0],"vzy") == 0) {
+    param.setValue(vyz);
+    return param.addObject(5, this);
+  }
+  if (strcmp(argv[0],"vzx") == 0 || strcmp(argv[0],"vxz") == 0) {
+    param.setValue(vzx);
+    return param.addObject(6, this);
+  }
+  if (strcmp(argv[0],"Gxy") == 0 || strcmp(argv[0],"Gyx") == 0) {
+    param.setValue(Gxy);
+    return param.addObject(7, this);
+  }
+  if (strcmp(argv[0],"Gyz") == 0 || strcmp(argv[0],"Gzy") == 0) {
+    param.setValue(Gyz);
+    return param.addObject(8, this);
+  }
+  if (strcmp(argv[0],"Gzx") == 0 || strcmp(argv[0],"Gxz") == 0) {
+    param.setValue(Gzx);
+    return param.addObject(9, this);
+  }
+  if (strcmp(argv[0],"rho") == 0) {
+    param.setValue(rho);
+    return param.addObject(10, this);
+  }
+
+  return -1;
+}
+
+
+int 
+ElasticOrthotropicMaterial::updateParameter(int parameterID, Information &info)
+{ 
+  switch(parameterID) {
+  case 1:
+    Ex = info.theDouble;
+    return 0;
+  case 2:
+    Ey = info.theDouble;
+    return 0;
+  case 3:
+    Ez = info.theDouble;
+    return 0;
+  case 4:
+    vxy = info.theDouble;
+    return 0;
+  case 5:
+    vyz = info.theDouble;
+    return 0;
+  case 6:
+    vzx = info.theDouble;
+    return 0;
+  case 7:
+    Gxy = info.theDouble;
+    return 0;
+  case 8:
+    Gyz = info.theDouble;
+    return 0;
+  case 9:
+    Gzx = info.theDouble;
+    return 0;
+  case 10:
+    rho = info.theDouble;
+    return 0;
+  default:
+    return -1;
+  }
+}
+
+int
+ElasticOrthotropicMaterial::activateParameter(int paramID)
+{
+  parameterID = paramID;
+  return 0;
+}

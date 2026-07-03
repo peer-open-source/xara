@@ -69,11 +69,13 @@
 #include "nDarray.h"
 #include "BJmatrix.h"
 
+// namespace ucsd {
 
 class BJtensor : public nDarray
 {
   friend class stresstensor;
   friend class straintensor;
+
 //  private:
   public:
     const char *indices1;  //  character array of indices
@@ -145,12 +147,11 @@ class BJtensor : public nDarray
     int uncontracted_ind(int *, int *, int);
 };
 
+// } // namespace ucsd
+
 // GLOBAL
 BJtensor operator*( const double lval, const BJtensor & rval);  // REVIEWER global *
 BJtensor operator*( const double lval, BJtensor const & rval);  // REVIEWER global *
 
 #endif
-
-
-
 

@@ -65,7 +65,10 @@ class FariaPlasticDamage3d : public NDMaterial
 
   int sendSelf(int commitTag, Channel &) override;  
   int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    
-  void Print(OPS_Stream &s, int flag) override;       
+  void Print(OPS_Stream &s, int flag) override;
+
+  Response *setResponse(const char **argv, int argc, OPS_Stream &) override;
+  int getResponse(int responseID, Information &) override;
 
 
   private:
@@ -78,6 +81,7 @@ class FariaPlasticDamage3d : public NDMaterial
     double Ap;    // damage parameter
     double An;    // damage parameter
     double Bn;    // damage parameter
+    double density;
 
     // current state variables
     double rp;    // positive damage threshold
@@ -105,7 +109,9 @@ class FariaPlasticDamage3d : public NDMaterial
     OpenSees::MatrixND<6,6> Ce, C, Ccommit; 
     Matrix retTangent, retInitialTangent;
     Vector retStress, retStrain;
+    enum class State {Elastic, Plastic} state[3] = {
+      State::Elastic, State::Elastic, State::Elastic
+    };
 
-    double density;
 };
 

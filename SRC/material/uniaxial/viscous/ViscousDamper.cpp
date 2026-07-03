@@ -63,7 +63,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ViscousDamper)
   }
   
   // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
+  UniaxialMaterial *theMaterial = nullptr;
   
   int    iData[1];
   double dData[8];
@@ -583,7 +583,7 @@ void
 ViscousDamper::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"ViscousDamper\",";
     s << "\"K\": " << K << ", "; 

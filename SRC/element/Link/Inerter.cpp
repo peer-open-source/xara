@@ -881,22 +881,22 @@ void Inerter::Print(OPS_Stream &s, int flag)
 {
     if (flag == OPS_PRINT_CURRENTSTATE) {
         // print everything
-        s << "Element: " << this->getTag() << endln;
-        s << "  type: Inerter" << endln;
+        s << "Element: " << this->getTag() << "\n";
+        s << "  type: Inerter" << "\n";
         s << "  iNode: " << connectedExternalNodes(0)
-            << ", jNode: " << connectedExternalNodes(1) << endln;
-        s << "  ib: " << ib << endln;
-        s << "  Mratio: " << Mratio << endln;
-        s << "  addRayleigh: " << addRayleigh << endln;
+            << ", jNode: " << connectedExternalNodes(1) << "\n";
+        s << "  ib: " << ib << "\n";
+        s << "  Mratio: " << Mratio << "\n";
+        s << "  addRayleigh: " << addRayleigh << "\n";
         if (cb != 0)
-            s << "  cb: " << *cb << endln;
-        s << "  mass: " << mass << endln;
+            s << "  cb: " << *cb << "\n";
+        s << "  mass: " << mass << "\n";
         // determine resisting forces in global system
-        s << "  resisting force: " << this->getResistingForce() << endln;
+        s << "  resisting force: " << this->getResistingForce() << "\n";
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"Inerter\", ";
         s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
@@ -943,7 +943,9 @@ void Inerter::Print(OPS_Stream &s, int flag)
             }
         }
         s << "\"addRayleigh\": " << addRayleigh << ", ";
-        s << "\"mass\": " << mass << "}";
+        s << "\"mass\": " << mass;
+        s << "}";
+        return;
     }
 }
 

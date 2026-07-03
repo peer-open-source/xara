@@ -868,15 +868,15 @@ FourNodeQuadUP::recvSelf(int commitTag, Channel &theChannel,
       // Allocate new material with the sent class tag
       theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
       if (theMaterial[i] == 0) {
-  opserr << "FourNodeQuadUP::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
-  return -1;
+        opserr << "FourNodeQuadUP::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
+        return -1;
       }
       // Now receive materials into the newly allocated space
       theMaterial[i]->setDbTag(matDbTag);
       res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
-  return res;
+        opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }
@@ -889,20 +889,19 @@ opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to recv itsel
       // Check that material is of the right type; if not,
       // delete it and create a new one of the right type
       if (theMaterial[i]->getClassTag() != matClassTag) {
-  delete theMaterial[i];
-  theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-  if (theMaterial[i] == 0) {
-opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to create\n";
-
-    return -1;
-  }
+        delete theMaterial[i];
+        theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
+        if (theMaterial[i] == nullptr) {
+          opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to create\n";
+          return -1;
+        }
       }
       // Receive the material
       theMaterial[i]->setDbTag(matDbTag);
       res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
       if (res < 0) {
-opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
-  return res;
+        opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to recv itself\n";
+        return res;
       }
     }
   }
@@ -913,14 +912,39 @@ opserr << "FourNodeQuadUP::recvSelf() - material " << i << "failed to recv itsel
 void
 FourNodeQuadUP::Print(OPS_Stream &s, int flag)
 {
-  s << "\nFourNodeQuadUP, element id:  " << this->getTag() << endln;
+
+  const ID& node_tags = this->getExternalNodes();
+
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+
+    s << "\"nodes\": [";
+    for (int i=0; i < NEN-1; i++)
+        s << node_tags(i) << ", ";
+    s << node_tags(NEN-1) << "]";
+    s << ", ";
+
+    s << "\"thickness\": " << thickness << ", ";
+    s << "\"surfacePressure\": " << pressure << ", ";
+    s << "\"density\": " << rho << ", ";
+    s << "\"bodyForces\": [" << b[0] << ", " << b[1] << "], ";
+    s << "\"materials\": [";
+    for (int i = 0; i < nip - 1; i++)
+      s << theMaterial[i]->getTag() << ", ";
+    s << theMaterial[nip - 1]->getTag() << "]";
+    s << "}";
+    return;
+  }
+  s << "\nFourNodeQuadUP, element id:  " << this->getTag() << "\n";
   s << "\tConnected external nodes:  " << connectedExternalNodes;
-  s << "\tthickness:  " << thickness << endln;
-  s << "\tmass density:  " << rho << endln;
-  s << "\tsurface pressure:  " << pressure << endln;
-  s << "\tbody forces:  " << b[0] << ' ' << b[1] << endln;
+  s << "\tthickness:  " << thickness << "\n";
+  s << "\tmass density:  " << rho << "\n";
+  s << "\tsurface pressure:  " << pressure << "\n";
+  s << "\tbody forces:  " << b[0] << ' ' << b[1] << "\n";
   theMaterial[0]->Print(s,flag);
-  s << "\tStress (xx yy xy)" << endln;
+  s << "\tStress (xx yy xy)" << "\n";
   for (int i = 0; i < 4; i++)
     s << "\t\tGauss point " << i+1 << ": " << theMaterial[i]->getStress();
 }

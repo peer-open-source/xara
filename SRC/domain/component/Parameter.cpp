@@ -26,7 +26,7 @@ Parameter::Parameter(int passedTag,
 		     MovableObject *parentObject,
 		     const char **argv, int argc)
   :TaggedObject(passedTag), MovableObject(PARAMETER_TAG_Parameter),
-   parameterID(0), theObjects(0), numObjects(0), maxNumObjects(0),
+   parameterID(0), theObjects(nullptr), numObjects(0), maxNumObjects(0),
    theComponents(0), numComponents(0), maxNumComponents(0),
    gradIndex(-1)
 {

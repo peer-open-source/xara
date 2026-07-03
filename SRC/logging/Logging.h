@@ -1,3 +1,9 @@
+
+// Note to developers:
+// opserr should be reserved for user-facing error messages. 
+// Use assert() for internal errors.
+// if it appears on opserr, it means a user did something wrong.
+// 
 #pragma once
 #include <handler/OPS_Stream.h>
 #include <logging/AnsiColors.h>

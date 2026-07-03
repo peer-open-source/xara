@@ -403,10 +403,10 @@ TclCommand_addZeroLengthSection(ClientData clientData, Tcl_Interp *interp,
   }
 
   int secTag;
-  if (Tcl_GetInt(interp, argv[5], &secTag) != TCL_OK) {
-    opserr << "WARNING invalid secTag " << argv[5]
-           << "\n";
-    return TCL_ERROR;
+  bool gotSection = false;
+  // try as positional argument
+  if (Tcl_GetInt(interp, argv[5], &secTag) == TCL_OK) {
+    gotSection = true;
   }
 
   Matrix3D T{};
@@ -490,14 +490,38 @@ TclCommand_addZeroLengthSection(ClientData clientData, Tcl_Interp *interp,
       if (argi < argc)
         if ((Tcl_GetInt(interp, argv[argi], &doRayleighDamping) == TCL_OK))
           argi++;
-    } else
+    }
+    else if (strcmp(argv[argi], "-section") == 0) {
+      argi++;
+      if (argi >= argc) {
+        opserr << OpenSees::PromptValueError 
+               << "no section tag specified after -section flag "
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      if (Tcl_GetInt(interp, argv[argi], &secTag) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+               << "invalid section tag " << argv[argi]
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      gotSection = true;
+      argi++;
+    }
+    else
       argi++;
   }
 
   //
-  // now we create the element and add it to the domain
+  // Parsing complete
   //
-  SectionForceDeformation *theSection = builder->getTypedObject<FrameSection>(secTag);
+  if (!gotSection) {
+    opserr << OpenSees::PromptValueError 
+           << "no section tag specified for element " << eleTag
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+  FrameSection *theSection = builder->getTypedObject<FrameSection>(secTag);
   if (theSection == nullptr)
     return TCL_ERROR;
 

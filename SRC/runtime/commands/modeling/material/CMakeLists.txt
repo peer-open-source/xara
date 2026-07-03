@@ -10,6 +10,7 @@ target_sources(OPS_Runtime PRIVATE
   plastic.cpp
   elastic.cpp
   concrete.cpp
+  concrete_asd.cpp
   isotropy.cpp
   boucwen.cpp
 )

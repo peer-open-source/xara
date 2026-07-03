@@ -40,33 +40,33 @@ class ElasticBilin : public UniaxialMaterial
 {
   public:
     ElasticBilin(int tag, double E1, double E2, double eps2);    
-    ElasticBilin(int tag, double E1P, double E2P, double epsP, double E1N, double E2N, double eps2N);    
+    ElasticBilin(int tag, 
+                 double E1P, double E2P, 
+                 double epsP, double E1N, double E2N, double eps2N);    
     ElasticBilin();    
 
     ~ElasticBilin();
 
-    const char *getClassType(void) const {return "ElasticBilin";};
+    const char *getClassType() const {return "ElasticBilin";}
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
-    double getStrain(void);          
-    double getStress(void);
-    double getTangent(void);
+    double getStrain() override;  
+    double getStress() override;
+    double getTangent() override;
 
-    double getInitialTangent(void) {return E1P;};
+    double getInitialTangent() {return E1P;}
 
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);    
+    int commitState() override;
+    int revertToLastCommit() override;
+    int revertToStart() override;
 
-    UniaxialMaterial *getCopy(void);
+    UniaxialMaterial *getCopy();
     
     int sendSelf(int commitTag, Channel &theChannel);  
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);    
     
-    void Print(OPS_Stream &s, int flag =0);
-    
-  protected:
+    void Print(OPS_Stream &s, int flag);
     
   private:
     double E1P, E1N, E2P, E2N;   // elastic modulus

@@ -21,10 +21,6 @@
 //################################################################################
 //*/
 
-
-#ifndef COSSERATSTRESSTENSOR_CPP
-#define COSSERATSTRESSTENSOR_CPP
-
 #include "Cosseratstresst.h"
 
 #include <iomanip>
@@ -102,11 +98,11 @@ Cosseratstresstensor Cosseratstresstensor::operator=( const Cosseratstresstensor
  // clean up current value;
     if( reference_count(-1) == 0)  // if nobody else is referencing us.
       {
-// DEallocate memory of the actual tensor
         delete [] data();
         delete [] dim();
         delete pc_nDarray_rep;
       }
+
  // connect to new value
     pc_nDarray_rep = rval.pc_nDarray_rep;  // point at the rval tensor_rep
 // Temporary out !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -841,9 +837,8 @@ tensor Cosseratstresstensor::d2thetaoverds2( void ) const
 
 //##############################################################################
 Cosseratstresstensor Cosseratstresstensor::pqtheta2stress( double p, double q, double theta)
-  {
+{
     Cosseratstresstensor ret;
-//    ret.report("ret");
 //    double sqrtJ2D = q/3.0;
 //    double 2osqrt3 = 2.0/sqrt(3.0);
     double temp = q*TWOOVERTHREE;
@@ -865,13 +860,12 @@ Cosseratstresstensor Cosseratstresstensor::pqtheta2stress( double p, double q, d
     ret.val(2,2) = temp*ctm - p;
     ret.val(3,3) = temp*ctp - p;
 
-//    ret.report("ret");
     return ret;
-
-  }
+}
 
 //##############################################################################
-void Cosseratstresstensor::report(char * msg) const
+void 
+Cosseratstresstensor::report(const char * msg) const
   {
     ::printf("****************  stress tensor report ****************\n");
     if ( msg ) ::printf("%s",msg);
@@ -916,7 +910,7 @@ void Cosseratstresstensor::report(char * msg) const
 
 
 //##############################################################################
-void Cosseratstresstensor::reportshort(char * msg) const
+void Cosseratstresstensor::reportshort(const char * msg) const
   {
 //..    ::printf("\n** short stress tensor report ****************\n");
 //    if ( msg ) ::printf("** %s",msg);
@@ -929,7 +923,7 @@ void Cosseratstresstensor::reportshort(char * msg) const
   }
 
 //##############################################################################
-void Cosseratstresstensor::reportshortpqtheta(char * msg) const
+void Cosseratstresstensor::reportshortpqtheta(const char * msg) const
   {
 //..    ::printf("\n** short stress tensor report ****************\n");
     if ( msg ) ::printf("%s",msg);
@@ -944,49 +938,41 @@ void Cosseratstresstensor::reportshortpqtheta(char * msg) const
     ::printf(" p= %+.6e q= %+.6e theta= %+.6e \n", p, q, t);
   }
 //##############################################################################
-void Cosseratstresstensor::reportSHORTpqtheta(char * msg) const
-  {
+void Cosseratstresstensor::reportSHORTpqtheta(const char * msg) const
+{
 //..    ::printf("\n** short stress tensor report ****************\n");
     if ( msg ) ::printf("%s",msg);
 
-//..    this->print("st","Cosseratstresstensor st");
-//..    ::printf("** ksi = %.8e ,  ro = %.8e , theta = %.8e\n",
-//..              ksi(),       ro(),      theta());
 
     double p = p_hydrostatic();
     double q = q_deviatoric();
     double t = theta();
     ::printf(" p= %+.6e q= %+.6e theta= %+.6e ", p, q, t);
-  }
+}
+
 //##############################################################################
-void Cosseratstresstensor::reportSHORTs1s2s3(char * msg) const
-  {
-//..    ::printf("\n** short stress tensor report ****************\n");
-    if ( msg ) ::printf("%s",msg);
+void Cosseratstresstensor::reportSHORTs1s2s3(const char * msg) const
+{
+  if ( msg ) ::printf("%s",msg);
 
-//..    this->print("st","Cosseratstresstensor st");
-//..    ::printf("** ksi = %.8e ,  ro = %.8e , theta = %.8e\n",
-//..              ksi(),       ro(),      theta());
+  this->print("st","");
+}
 
-    this->print("st","");
-  }
 //##############################################################################
-void Cosseratstresstensor::reportKLOTpqtheta(char * msg) const
-  {
-//..    ::printf("\n** short stress tensor report ****************\n");
-    if ( msg ) ::printf("%s",msg);
+void 
+Cosseratstresstensor::reportKLOTpqtheta(const char * msg) const
+{
+  if ( msg ) ::printf("%s",msg);
 
-//..    this->print("st","Cosseratstresstensor st");
-//..    ::printf("** ksi = %.8e ,  ro = %.8e , theta = %.8e\n",
-//..              ksi(),       ro(),      theta());
 
-    double p = p_hydrostatic();
-    double q = q_deviatoric();
-    double t = theta();
-    ::printf(" %+.6e %+.6e %+.6e  ", p, q, t);
-  }
+  double p = p_hydrostatic();
+  double q = q_deviatoric();
+  double t = theta();
+  ::printf(" %+.6e %+.6e %+.6e  ", p, q, t);
+}
+
 //##############################################################################
-void Cosseratstresstensor::reportshortI1J2J3(char * msg) const
+void Cosseratstresstensor::reportshortI1J2J3(const char * msg) const
   {
 //..    ::printf("\n** short stress tensor report ****************\n");
     if ( msg ) ::printf("%s",msg);
@@ -1007,64 +993,33 @@ void Cosseratstresstensor::reportAnim(void) const
               p_hydrostatic(), q_deviatoric(), theta());
   }
 //##############################################################################
-void Cosseratstresstensor::reportTensor(char * msg) const
-  {
-//..    ::printf("\n** short stress tensor report ****************\n");
-    if ( msg ) ::printf("%s",msg);
+void Cosseratstresstensor::reportTensor(const char * msg) const
+{
+  if ( msg ) ::printf("%s",msg);
 
-    ::fprintf(stdout," %+.6e %+.6e %+.6e %+.6e %+.6e %+.6e \n",
-    		      this->cval(1,1),
-    		      this->cval(1,2),
-    		      this->cval(1,3),
-    		      this->cval(2,2),
-    		      this->cval(2,3),
-    		      this->cval(3,3));
-  }
+  ::fprintf(stdout," %+.6e %+.6e %+.6e %+.6e %+.6e %+.6e \n",
+            this->cval(1,1),
+            this->cval(1,2),
+            this->cval(1,3),
+            this->cval(2,2),
+            this->cval(2,3),
+            this->cval(3,3));
+}
 
 
 //##############################################################################
 OPS_Stream& operator<< (OPS_Stream& os, const Cosseratstresstensor & rhs)
-//ostream& operator<< (ostream& os, const Cosseratstresstensor & rhs)
-      {
-        //if ( msg ) ::printf("%s",msg);
+{
+
+  os.precision(4);
+  os.width(10);
     
-	//	os.setf( ios::showpos | ios::scientific);
+  os.width(10);
+  os << " "<< rhs.p_hydrostatic();
+  os.width(10);
+  os << " " << rhs.q_deviatoric();
+  os.width(10);
 
-        os.precision(4);
-        os.width(10);
-
-        //os << "\n"n;
-    	//os << rhs.cval(1,1) << "  ";
-    	//os.width(10);
-    	//os << rhs.cval(1,2) << "  ";
-    	//os.width(10);
-    	//os << rhs.cval(1,3) << "\n"n;
-        //os << rhs.cval(2,1) << "  ";
-    	//os.width(10);
-    	//os << rhs.cval(2,2) << "  ";
-    	//os.width(10);
-    	//os << rhs.cval(2,3) << "\n"n;
-    	//
-        //os << rhs.cval(3,1) << "  ";
-    	//os.width(10);
-    	//os << rhs.cval(3,2) << "  ";
-    	//os.width(10);
-    	//os << rhs.cval(3,3) << "\n"n;
-        
-    	os.width(10);
-    	//os << "p = " << rhs.p_hydrostatic();
-    	os << " "<< rhs.p_hydrostatic();
-    	os.width(10);
-    	//os << " q = " << rhs.q_deviatoric();
-    	os << " " << rhs.q_deviatoric();
-    	os.width(10);
-    	//os << " theta = " << rhs.theta();
-
-	return os;
-     }
-
-
-
-
-#endif
+  return os;
+}
 

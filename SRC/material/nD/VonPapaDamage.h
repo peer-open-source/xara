@@ -32,8 +32,7 @@
 
 class VonPapaDamage : public NDMaterial {
 
-
-public :
+public:
 
   VonPapaDamage( ) ;
 
@@ -61,17 +60,17 @@ public :
                 double  b) ;
 
 
-  ~VonPapaDamage( ) ;
+  ~VonPapaDamage();
 
-  const char *getClassType(void) const {return "VonPapaDamage";}
+  const char *getClassType() const override {return "VonPapaDamage";}
 
-    NDMaterial* getCopy( ) ;
+  NDMaterial* getCopy( ) ;
 
   const char* getType( ) const ;
 
   int getOrder( ) const ;
 
-  //mass per unit volume
+  // mass per unit volume
   double getRho();
 
   //get the strain and integrate plasticity equations
@@ -89,17 +88,16 @@ public :
   const Matrix& getTangent( ) ;
   const Matrix& getInitialTangent( ) ;
 
-  //swap history variables
-  int commitState( ) ;
-  int revertToLastCommit( ) ;
-  int revertToStart( ) ;
+  // swap history variables
+  int commitState();
+  int revertToLastCommit();
+  int revertToStart();
 
-  //sending and receiving
-  int sendSelf(int commitTag, Channel &theChannel) ;
-  int recvSelf(int commitTag, Channel &theChannel,
-               FEM_ObjectBroker &theBroker ) ;
-  //print out material data
-  void Print(OPS_Stream &s, int flag = 0) ;
+  // sending and receiving
+  int sendSelf(int commitTag, Channel &);
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+  // print out material data
+  void Print(OPS_Stream &s, int flag) ;
 
   // Have to implement these
   int setParameter(const char **argv, int argc, Parameter &param);
@@ -110,8 +108,8 @@ public :
   // int getVariable(const char *variable, Information &);
 
 
-  Response *setResponse (const char **argv, int argc, OPS_Stream &output);
-  int getResponse (int responseID, Information &matInformation);
+  Response *setResponse(const char **argv, int argc, OPS_Stream &output);
+  int getResponse(int responseID, Information &matInformation);
 
 
 private :
@@ -129,7 +127,7 @@ private :
   static Vector stress_vec ;     //stress in vector notation
   static Matrix tangent_matrix ; //material tangent in matrix notation
 
-  //Parametros
+  // Parametros
   double E1, E2, nu12, nu21, G12, rho;
   double Xt, Xc, Yt, Yc, S;
   double c1, c2, c3, c4, c5, c6, c7, c8, c9, b;

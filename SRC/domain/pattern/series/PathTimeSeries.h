@@ -75,11 +75,11 @@ class PathTimeSeries : public TimeSeries
     double getDuration ();
     double getPeakFactor ();
     double getTimeIncr (double pseudoTime);
+    double getStartTime() const override { return 0.0; }
 
     // methods for output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     void Print(OPS_Stream &s, int flag);    
 

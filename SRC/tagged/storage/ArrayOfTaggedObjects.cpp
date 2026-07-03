@@ -37,7 +37,7 @@
 #include <TaggedObject.h>
 #include <ArrayOfTaggedObjects.h>
 
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 
 ArrayOfTaggedObjects::ArrayOfTaggedObjects(int size)
 :numComponents(0),sizeComponentArray(0), positionLastEntry(0),

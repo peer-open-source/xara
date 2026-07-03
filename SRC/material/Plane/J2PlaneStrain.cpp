@@ -48,21 +48,21 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <Logging.h>
-//static vectors and matrices
-Vector J2PlaneStrain :: strain_vec(3) ;
-Vector J2PlaneStrain :: stress_vec(3) ;
-Matrix J2PlaneStrain :: tangent_matrix(3,3) ;
+// static vectors and matrices
+Vector J2PlaneStrain::strain_vec(3);
+Vector J2PlaneStrain::stress_vec(3);
+Matrix J2PlaneStrain::tangent_matrix(3,3) ;
 
 
-J2PlaneStrain::J2PlaneStrain( ) : 
-J2Plasticity() 
+J2PlaneStrain::J2PlaneStrain()
+ : J2Plasticity() 
 {
 
 }
 
 
-J2PlaneStrain :: 
-J2PlaneStrain(   int    tag, 
+J2PlaneStrain::J2PlaneStrain(
+                 int    tag, 
                  double K,
                  double G,
                  double yield0,
@@ -70,11 +70,12 @@ J2PlaneStrain(   int    tag,
                  double d,
                  double H,
                  double viscosity,
-		 double rho) : 
-J2Plasticity( tag, ND_TAG_J2PlaneStrain, 
+                 double rho)
+ : J2Plasticity( tag, ND_TAG_J2PlaneStrain, 
 	      K, G, yield0, yield_infty, d, H, viscosity, rho )
-{ 
-
+{
+  this->zero();
+  this->plastic_integrator();
 }
 
 
@@ -88,13 +89,14 @@ J2Plasticity( tag, ND_TAG_J2PlaneStrain, K, G )
 }
 
 
-J2PlaneStrain :: ~J2PlaneStrain( ) 
+J2PlaneStrain::~J2PlaneStrain() 
 { 
 
 } 
 
 
-NDMaterial* J2PlaneStrain :: getCopy( ) 
+NDMaterial* 
+J2PlaneStrain::getCopy() 
 { 
   J2PlaneStrain  *clone;
   clone = new J2PlaneStrain() ;   //new instance of this class
@@ -223,7 +225,7 @@ const Matrix& J2PlaneStrain :: getInitialTangent( )
 } 
 
 int 
-J2PlaneStrain::commitState( ) 
+J2PlaneStrain::commitState() 
 {
   epsilon_p_n = epsilon_p_nplus1;
   xi_n        = xi_nplus1;
@@ -232,18 +234,67 @@ J2PlaneStrain::commitState( )
 }
 
 int 
-J2PlaneStrain::revertToLastCommit( ) {
-
+J2PlaneStrain::revertToLastCommit() 
+{
   return 0;
 }
 
 
 int 
-J2PlaneStrain::revertToStart( ) 
+J2PlaneStrain::revertToStart() 
 {
-  this->zero( ) ;
-
+  this->zero();
   return 0;
+}
+
+
+void
+J2PlaneStrain::index_map(int matrix_index, int& i, int& j) const
+{
+  switch (matrix_index + 1) { // add 1 for standard tensor indices
+
+  case 1:
+    i = 1;
+    j = 1;
+    break;
+
+  case 2:
+    i = 2;
+    j = 2;
+    break;
+
+  case 3:
+    i = 3;
+    j = 3;
+    break;
+
+  case 4:
+    i = 1;
+    j = 2;
+    break;
+
+  case 5:
+    i = 2;
+    j = 3;
+    break;
+
+  case 6:
+    i = 3;
+    j = 1;
+    break;
+
+
+  default:
+    i = 1;
+    j = 1;
+    break;
+
+  } //end switch
+
+  i--; //subtract 1 for C-indexing
+  j--;
+
+  return;
 }
 
 int

@@ -1032,9 +1032,9 @@ ElasticBeam3d::Print(OPS_Stream &s, int flag)
 	}
 	
 	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << "\t\t\t{";
+		s << OPS_PRINT_JSON_ELEM_INDENT << "{";
 		s << "\"name\": " << this->getTag() << ", ";
-		s << "\"type\": \"ElasticBeam3d\", ";
+		s << "\"type\": \"" << this->getClassType() << "\", ";
 		s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
 		s << "\"E\": " << E << ", ";
 		s << "\"G\": " << G << ", ";
@@ -1045,7 +1045,7 @@ ElasticBeam3d::Print(OPS_Stream &s, int flag)
 		s << "\"massperlength\": " << rho << ", ";
 		s << "\"releasez\": "<< releasez << ", ";
 		s << "\"releasey\": "<< releasey << ", ";		
-		s << "\"crdTransformation\": \"" << theCoordTransf->getTag() << "\"}";
+		s << "\"crdTransformation\": " << theCoordTransf->getTag() << "}";
 	}
 }
 

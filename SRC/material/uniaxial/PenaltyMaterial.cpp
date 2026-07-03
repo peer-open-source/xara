@@ -42,7 +42,7 @@
 #include <Information.h>
 #include <Parameter.h>
 
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 
 #include <elementAPI.h>
 #define OPS_Export 
@@ -90,13 +90,10 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_PenaltyMaterial)
   // Parsing was successful, allocate the material
   theMaterial = new PenaltyMaterial(iData[0], *theOtherMaterial, penalty, addStress);
 
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type PenaltyMaterial\n";
-    return 0;
-  }
 
   return theMaterial;
 }
+
 
 PenaltyMaterial::PenaltyMaterial(int tag, UniaxialMaterial &material, double mult, bool addSig)
   :UniaxialMaterial(tag,MAT_TAG_Penalty), theMaterial(0), penalty(mult), addStress(addSig), parameterID(0)

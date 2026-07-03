@@ -63,7 +63,7 @@ class MultipleShearSpring : public Element
   ~MultipleShearSpring();
   
   // method to get class type
-  const char *getClassType() const {return "MultipleShearSpring";};
+  const char *getClassType() const {return "MultipleShearSpring";}
   
   // public methods to obtain information about dof & connectivity    
   int getNumExternalNodes() const;
@@ -93,9 +93,8 @@ class MultipleShearSpring : public Element
   // public methods for element output
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-  int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
 
-  void Print(OPS_Stream &s, int flag = 0);    
+  void Print(OPS_Stream &s, int flag);    
   
   // public methods for element recorder
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);

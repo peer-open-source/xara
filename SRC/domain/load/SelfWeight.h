@@ -34,13 +34,13 @@ class SelfWeight : public ElementalLoad
   public:
     SelfWeight(int tag, double xFact, double yFact, double zFact, int eleTag);
     SelfWeight();    
-    ~SelfWeight();
+    virtual ~SelfWeight();
 
-    const Vector &getData(int &type, double loadFactor);
+    const Vector &getData(int &type, double loadFactor) final;
 
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel,  FEM_ObjectBroker &theBroker);
-    void Print(OPS_Stream &s, int flag =0);       
+    int sendSelf(int commitTag, Channel &) final;  
+    int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &) final;
+    void Print(OPS_Stream &s, int flag) final;       
 
   protected:
 	

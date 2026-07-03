@@ -27,7 +27,7 @@ Matrix ElasticIsotropicPlaneStress2D::D(3,3);
 
 ElasticIsotropicPlaneStress2D::ElasticIsotropicPlaneStress2D
 (int tag, double E, double nu, double rho) :
- ElasticIsotropicMaterial (tag, ND_TAG_ElasticIsotropicPlaneStress2d, E, nu, rho),
+ ElasticIsotropicMaterial(tag, ND_TAG_ElasticIsotropicPlaneStress2d, E, nu, rho),
  epsilon(3), Cepsilon(3)
 {
   epsilon.Zero();
@@ -35,7 +35,7 @@ ElasticIsotropicPlaneStress2D::ElasticIsotropicPlaneStress2D
 }
 
 ElasticIsotropicPlaneStress2D::ElasticIsotropicPlaneStress2D():
- ElasticIsotropicMaterial (0, ND_TAG_ElasticIsotropicPlaneStress2d, 0.0, 0.0),
+ ElasticIsotropicMaterial(0, ND_TAG_ElasticIsotropicPlaneStress2d, 0.0, 0.0, 0.0),
  epsilon(3), Cepsilon(3)
 {
   epsilon.Zero();

@@ -47,13 +47,12 @@ class BandSPDLinSOE : public LinearSOE
   public:
     BandSPDLinSOE(BandSPDLinSolver &theSolver);    
     BandSPDLinSOE(int classTag);    
-    BandSPDLinSOE(BandSPDLinSolver &theSolver, int classTag);    
-    BandSPDLinSOE(int N, int bandwidth, BandSPDLinSolver &theSolver);        
+    BandSPDLinSOE(BandSPDLinSolver &theSolver, int classTag);
 
     virtual ~BandSPDLinSOE();
 
     virtual int getNumEqn() const;
-    virtual int setSize(Graph &theGraph);
+    virtual int setSize(Graph &);
 
     virtual int addA(const Matrix &, const ID &, double fact = 1.0);
     virtual int addColA(const Vector &col, int colIndex, double fact = 1.0);
@@ -63,7 +62,7 @@ class BandSPDLinSOE : public LinearSOE
     
     virtual void zeroA();
     virtual void zeroB();
-    
+
     const Vector &getX() override;
     virtual const Vector &getB();    
     virtual double normRHS();

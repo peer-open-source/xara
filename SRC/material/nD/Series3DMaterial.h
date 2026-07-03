@@ -62,10 +62,10 @@ public:
 	~Series3DMaterial();
 
 	// info
-	const char* getClassType(void) const { return "Series3DMaterial"; };
+	const char* getClassType() const { return "Series3DMaterial"; }
 
 	// density
-	double getRho(void);
+	double getRho();
 
 	// set state
 	int setTrialStrain(const Vector& strain);

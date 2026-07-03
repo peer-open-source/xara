@@ -28,8 +28,6 @@
 //
 // MHS - Modified for "back to back" sections separated by a specified distance
 //
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -53,10 +51,10 @@ public:
   virtual ~DoubleMembranePlateFiberSection();
 
   const char*
-  getClassType(void) const
+  getClassType() const
   {
     return "DoubleMembranePlateFiberSection";
-  };
+  }
 
 
   SectionForceDeformation* getCopy();
@@ -91,32 +89,28 @@ public:
 
   void Print(OPS_Stream& s, int flag);
 
-  int sendSelf(int commitTag, Channel& theChannel);
-  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
+  int sendSelf(int commitTag, Channel& );
+  int recvSelf(int commitTag, Channel& , FEM_ObjectBroker& );
 
   Response* setResponse(const char** argv, int argc, OPS_Stream& s);
   int getResponse(int responseID, Information& info);
 
 private:
-  enum { numFibers = 5 };
+  static constexpr int numFibers = 5;
 
-  //quadrature data
+  // quadrature data
   static const double sg[numFibers];
   static const double wg[numFibers];
 
   double h; //plate thickness
   double d; //distance between plates
 
-  NDMaterial* theFibers[2 * 5]; //pointers to 2*five materials (fibers)
+  NDMaterial* theFibers[2 * 5]; // pointers to 2*five materials (fibers)
 
   static const double root56; // =sqrt(5/6)
 
   Vector strainResultant;
-
   static Vector stressResultant;
-
   static Matrix tangent;
-
-  static ID array;
 
 };

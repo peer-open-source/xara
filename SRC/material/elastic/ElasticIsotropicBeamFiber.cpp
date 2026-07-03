@@ -42,14 +42,14 @@ ElasticIsotropicBeamFiber::ElasticIsotropicBeamFiber
 }
 
 ElasticIsotropicBeamFiber::ElasticIsotropicBeamFiber():
-  ElasticIsotropicMaterial (0, ND_TAG_ElasticIsotropicBeamFiber, 0.0, 0.0),
+  ElasticIsotropicMaterial(0, ND_TAG_ElasticIsotropicBeamFiber, 0.0, 0.0, 0.0),
   Tepsilon(),
   retStrain(Tepsilon)
 {
 
 }
 
-ElasticIsotropicBeamFiber::~ElasticIsotropicBeamFiber ()
+ElasticIsotropicBeamFiber::~ElasticIsotropicBeamFiber()
 {
 
 }

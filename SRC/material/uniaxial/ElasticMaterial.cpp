@@ -232,8 +232,8 @@ ElasticMaterial::Print(OPS_Stream &s, int flag)
         s << "  Epos: " << Epos << " Eneg: " << Eneg << " eta: " << eta << endln;
     } 
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
-        s << "\"name\": \"" << this->getTag() << "\", ";
+        s << OPS_PRINT_JSON_MATE_INDENT << "{";
+        s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"ElasticMaterial\", ";
         s << "\"Epos\": " << Epos << ", ";
         s << "\"Eneg\": " << Eneg << ", ";

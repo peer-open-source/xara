@@ -50,10 +50,7 @@ class ArctangentBackbone : public HystereticBackbone
   
   HystereticBackbone *getCopy(void);
   
-  void Print(OPS_Stream &s, int flag = 0);
-  
-  int setVariable(char *argv);
-  int getVariable(int varID, double &theValue);
+  void Print(OPS_Stream &s, int flag);
   
   int sendSelf(int commitTag, Channel &theChannel);  
   int recvSelf(int commitTag, Channel &theChannel, 

@@ -53,7 +53,6 @@
 //
 
 #include <stdlib.h> 
-#include <math.h> 
 
 #include <Vector.h>
 #include <Matrix.h>
@@ -69,25 +68,22 @@ class J2PlateFiber : public J2Plasticity {
 
   J2PlateFiber( ) ;
 
-  J2PlateFiber(   int    tag, 
-                   double K,
-                   double G,
-                   double yield0,
-                   double yield_infty,
-                   double d,
-                   double H,
+  J2PlateFiber(int    tag, 
+                double K,
+                double G,
+                double yield0,
+                double yield_infty,
+                double d,
+                double H,
 		  double viscosity =0,
 		  double rho =0) ;
 
 
-  //elastic constructor
-  J2PlateFiber( int tag, double K, double G ) ;
-
-  //destructor
+  // destructor
   ~J2PlateFiber( ) ;
 
-  const char *getClassType() const {return "J2PlateFiber";};
-  NDMaterial* getCopy( ) ;
+  const char *getClassType() const {return "J2PlateFiber";}
+  NDMaterial* getCopy( );
   const char* getType( ) const ;
   int getOrder( ) const ;
 
@@ -97,24 +93,26 @@ class J2PlateFiber : public J2Plasticity {
   //unused trial strain functions
   int setTrialStrainIncr( const Vector &v ) ;
 
-  const Vector& getStrain( ) ;
+  const Vector& getStrain();
+  const Vector& getStress();
+  const Matrix& getTangent();
+  const Matrix& getInitialTangent();
 
-  const Vector& getStress( ) ;
-
-  const Matrix& getTangent( ) ;
-  const Matrix& getInitialTangent( ) ;
-
-  //swapping history variables
+  // swapping history variables
   int commitState( ) ; 
   int revertToLastCommit( ) ;
   int revertToStart( ) ;
 
   //sending and receiving
-  int sendSelf(int commitTag, Channel &theChannel) ;  
-  int recvSelf(int commitTag, Channel &theChannel, 
-               FEM_ObjectBroker &theBroker ) ;
-  
-  private : 
+  int sendSelf(int commitTag, Channel &) ;  
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker & ) ;
+
+protected:
+  //index mapping special for plane stress because of 
+  // condensation on tangent
+  void index_map(int matrix_index, int &i, int &j ) const final;
+
+private : 
   
   //static vectors and matrices
   static Vector strain_vec ;     //strain in vector notation
@@ -122,10 +120,6 @@ class J2PlateFiber : public J2Plasticity {
   static Matrix tangent_matrix ; //material tangent in matrix notation
 
   double commitEps22;
-
-  //index mapping special for plane stress because of 
-  // condensation on tangent
-  void index_map( int matrix_index, int &i, int &j ) ;
 
 } ; //end of J2PlateFiber declarations
 

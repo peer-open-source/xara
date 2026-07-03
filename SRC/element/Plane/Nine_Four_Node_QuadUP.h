@@ -13,9 +13,7 @@
 // $Date: 2007-02-02 01:44:56 $
 // $Source: /usr/local/cvs/OpenSees/SRC/element/UP-ucsd/Nine_Four_Node_QuadUP.h,v $
 
-#ifndef NineFourNodeQuadUP_h
-#define NineFourNodeQuadUP_h
-
+#pragma once
 
 #include <Element.h>
 #include <Matrix.h>
@@ -30,7 +28,8 @@ namespace OpenSees {
 class NineFourNodeQuadUP : public Element
 {
   public:
-    NineFourNodeQuadUP(int tag, int nd1, int nd2, int nd3, int nd4,
+    NineFourNodeQuadUP(int tag, 
+      int nd1, int nd2, int nd3, int nd4,
 		  int nd5, int nd6, int nd7, int nd8, int nd9,
 		  NDMaterial &m, const char *type,
 		  double t, double bulk, double rhof, double perm1, double perm2,
@@ -38,31 +37,32 @@ class NineFourNodeQuadUP : public Element
 
     NineFourNodeQuadUP();
     virtual ~NineFourNodeQuadUP();
-    const char *getClassType(void) const {return "NineFourNodeQuadUP";}
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
-
-    int getNumDOF(void);
-    void setDomain(Domain *theDomain);
+  
+    // Basic public methods
+    const char *getClassType() const {return "NineFourNodeQuadUP";}
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
+    int getNumDOF();
+    void setDomain(Domain *);
 
     // public methods to set the state of the element
-    int commitState(void);
-    int revertToLastCommit(void);
-    int revertToStart(void);
-    int update(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
+    int update();
 
     // public methods to obtain stiffness, mass, damping and residual information
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
-    const Matrix &getDamp(void);
-    const Matrix &getMass(void);
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();
+    const Matrix &getDamp();
+    const Matrix &getMass();
 
     void zeroLoad();
-    int addLoad(ElementalLoad *theLoad, double loadFactor);
+    int addLoad(ElementalLoad *, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
-    const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);
+    const Vector &getResistingForce();
+    const Vector &getResistingForceIncInertia();
 
     // public methods for element output
     int sendSelf(int commitTag, Channel &);
@@ -70,7 +70,7 @@ class NineFourNodeQuadUP : public Element
     void Print(OPS_Stream &, int flag) final;
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &eleInformation);
+    int getResponse(int responseID, Information &);
 
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
@@ -81,10 +81,14 @@ class NineFourNodeQuadUP : public Element
     friend class QzLiq1; // Sumeet
 
   private:
+    // private attributes
 
-    // private attributes - a copy for each object of the class
+    static constexpr int nintu = 9;
+    static constexpr int nintp = 4;
+    static constexpr int nenu = 9;
+    static constexpr int nenp = 4;
 
-    NDMaterial **theMaterial; // pointer to the ND material objects
+    NDMaterial *theMaterial[nintu]; // pointer to the ND material objects
 
     ID connectedExternalNodes; // Tags of quad nodes
 
@@ -102,10 +106,6 @@ class NineFourNodeQuadUP : public Element
     double rho;			// Fluid mass per unit volume
     double kc;   // combined bulk modulus
     double perm[2];  // lateral/vertical permeability
-    static const int nintu;
-    static const int nintp;
-    static const int nenu;
-    static const int nenp;
 
     static double shgu[3][9][9];	// Stores shape functions and derivatives (overwritten)
     static double shgp[3][4][4];	// Stores shape functions and derivatives (overwritten)
@@ -113,18 +113,18 @@ class NineFourNodeQuadUP : public Element
     static double shlu[3][9][9];	// Stores shape functions and derivatives
     static double shlp[3][4][4];	// Stores shape functions and derivatives
     static double shlq[3][9][4];	// Stores shape functions and derivatives
-    static double wu[9];		// Stores quadrature weights
-    static double wp[4];		// Stores quadrature weights
-    static double dvolu[9];  // Stores detJacobian (overwritten)
-    static double dvolp[4];  // Stores detJacobian (overwritten)
-    static double dvolq[4];  // Stores detJacobian (overwritten)
+    static double wu[9];		      // Stores quadrature weights
+    static double wp[4];		      // Stores quadrature weights
+    static double dvolu[9];       // Stores detJacobian (overwritten)
+    static double dvolp[4];       // Stores detJacobian (overwritten)
+    static double dvolq[4];       // Stores detJacobian (overwritten)
 
     // private member functions - only objects of this class can call these
     double mixtureRho(int ipt);  // Mixture mass density at integration point i
     void shapeFunction(double *w, int nint, int nen, int mode);
-    void globalShapeFunction(double *dvol, double *w, int nint, int nen, int mode);
+    int globalShapeFunction(double *dvol, double *w, int nint, int nen, int mode);
 
     double *initNodeDispl;
 };
-}
-#endif
+
+} // namespace OpenSees

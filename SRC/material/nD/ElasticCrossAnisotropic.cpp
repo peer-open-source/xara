@@ -28,6 +28,8 @@
 
 
 #include <ElasticCrossAnisotropic.h>
+#include <OPS_Stream.h>
+#include <Logging.h>
 
 Tensor ElasticCrossAnisotropic::Dt(4, def_dim_4, 0.0 );
 stresstensor ElasticCrossAnisotropic::Stress;
@@ -71,7 +73,8 @@ double ElasticCrossAnisotropic::getrho()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-double  ElasticCrossAnisotropic::getMatParameter(int MatParameterID)
+double
+ElasticCrossAnisotropic::getMatParameter(int MatParameterID)
 {
 	switch (MatParameterID) {
 	    case (1):
@@ -94,7 +97,8 @@ double  ElasticCrossAnisotropic::getMatParameter(int MatParameterID)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-NDMaterial* ElasticCrossAnisotropic::getCopy (const char *type)
+NDMaterial* 
+ElasticCrossAnisotropic::getCopy (const char *type)
 {
     if (strcmp(type,"ThreeDimensional") == 0) {
       ElasticCrossAnisotropic *theModel;
@@ -203,7 +207,8 @@ ElasticCrossAnisotropic::getTangentTensor ()
    return Dt;
 }
 
-const stresstensor& ElasticCrossAnisotropic::getStressTensor ()
+const stresstensor& 
+ElasticCrossAnisotropic::getStressTensor()
 {
     Tensor Dt0 = getTangentTensor();
     Stress = Dt0("ijkl") * Strain("kl");
@@ -211,13 +216,14 @@ const stresstensor& ElasticCrossAnisotropic::getStressTensor ()
     return Stress;
 }
 
-const straintensor& ElasticCrossAnisotropic::getStrainTensor ()
+const straintensor& 
+ElasticCrossAnisotropic::getStrainTensor()
 {
 	return Strain;
 }
 
 int
-ElasticCrossAnisotropic::commitState ()
+ElasticCrossAnisotropic::commitState()
 {
 	return 0;
 }
@@ -229,7 +235,7 @@ ElasticCrossAnisotropic::revertToLastCommit ()
 }
 
 int
-ElasticCrossAnisotropic::revertToStart ()
+ElasticCrossAnisotropic::revertToStart()
 {
 	// added: C.McGann, U.Washington for InitialStateAnalysis
 	if (ops_InitialStateAnalysis) {

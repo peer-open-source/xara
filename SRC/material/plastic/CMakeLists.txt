@@ -9,6 +9,7 @@ target_sources(OPS_Material
   PRIVATE
     J2Plasticity.cpp
     J2ThreeDimensional.cpp
+    J2AxiSymm.cpp
     J2BeamFiber2d.cpp
     J2BeamFiber3d.cpp
     J2BeamThread3d.cpp

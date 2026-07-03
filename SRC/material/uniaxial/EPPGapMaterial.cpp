@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.11 $
-// $Date: 2010-06-01 23:35:58 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/EPPGapMaterial.cpp,v $
-
+//
 // Written: krm 
 // Created: 07/2000
 // Revision: A
@@ -41,55 +37,53 @@
 #include <Parameter.h>
 #include <math.h>
 #include <float.h>
-#include <elementAPI.h>
+#include <string.h>
 #include <OPS_Globals.h>
 
+#include <elementAPI.h>
 void * OPS_ADD_RUNTIME_VPV(OPS_EPPGapMaterial)
 {
-    // Pointer to a uniaxial material that will be returned
-    UniaxialMaterial *theMaterial = 0;
+  // Pointer to a uniaxial material that will be returned
+  UniaxialMaterial *theMaterial = 0;
 
-    int numArgs = OPS_GetNumRemainingInputArgs();
-    if (numArgs < 4) {
-	opserr << "Invalid #args,  want: uniaxialMaterial ElasticPPGap tag E Fy gap <eta damage>\n";
-	return 0;
+  int numArgs = OPS_GetNumRemainingInputArgs();
+  if (numArgs < 4) {
+    opserr << "Invalid #args,  want: uniaxialMaterial ElasticPPGap tag E Fy gap <eta damage>\n";
+    return 0;
+  }
+
+  int tag, damage = 0;
+  double dData[4];
+  dData[3] = 0.0; // setting default eta to 0.
+
+  int numData = 1;
+  if (OPS_GetIntInput(&numData, &tag) != 0) {
+    opserr << "WARNING invalid tag for uniaxialMaterial EPPGap" << endln;
+    return 0;
+  }
+
+  numData = OPS_GetNumRemainingInputArgs();
+  if(numData > 4) numData = 4;
+  if (OPS_GetDoubleInput(&numData, dData) != 0) {
+    opserr << "Invalid data for uniaxial EPPGap \n";
+    return 0;	
+  }
+
+  numData = OPS_GetNumRemainingInputArgs();
+  if(numData > 0) {
+    numData = 1;
+    const char* damagestr = OPS_GetString();
+    if (strcmp(damagestr, "damage") == 0 || strcmp(damagestr, "Damage") == 0) {
+      damage = 1;
     }
-  
-    int tag, damage = 0;
-    double dData[4];
-    dData[3] = 0.0; // setting default eta to 0.
+  }
 
-    int numData = 1;
-    if (OPS_GetIntInput(&numData, &tag) != 0) {
-	opserr << "WARNING invalid tag for uniaxialMaterial EPPGap" << endln;
-	return 0;
-    }
+  // Parsing was successful, allocate the material
+  theMaterial = new EPPGapMaterial(tag, dData[0], dData[1], dData[2], dData[3], damage);
 
-    numData = OPS_GetNumRemainingInputArgs();
-    if(numData > 4) numData = 4;
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-	opserr << "Invalid data for uniaxial EPPGap \n";
-	return 0;	
-    }
-
-    numData = OPS_GetNumRemainingInputArgs();
-    if(numData > 0) {
-	numData = 1;
-	const char* damagestr = OPS_GetString();
-	if (strcmp(damagestr, "damage") == 0 || strcmp(damagestr, "Damage") == 0) {
-	    damage = 1;
-	}
-    }
-
-    // Parsing was successful, allocate the material
-    theMaterial = new EPPGapMaterial(tag, dData[0], dData[1], dData[2], dData[3], damage);
-    if (theMaterial == 0) {
-	opserr << "WARNING could not create uniaxialMaterial of type EPPGap\n";
-	return 0;
-    }
-
-    return theMaterial;
+  return theMaterial;
 }
+
 
 EPPGapMaterial::EPPGapMaterial(int tag, double e, double fyl, double gap0, double eta0, int accum)
 :UniaxialMaterial(tag,MAT_TAG_EPPGap),
@@ -106,20 +100,20 @@ EPPGapMaterial::EPPGapMaterial(int tag, double e, double fyl, double gap0, doubl
 	  }
 	}
 
-	if (fy*gap<0) {
-	    opserr << "EPPGapMaterial::EPPGapMaterial -- Alternate signs on fy and gap encountered, continuing anyway\n";
-	}
-        
-    if (eta >= 1.0) {
-        opserr << "EPPGapMaterial::EPPGapMaterial -- value of eta must be < 1, setting eta to 0\n";
-        eta = 0;
-    }
+  if (fy*gap<0) {
+    opserr << "EPPGapMaterial::EPPGapMaterial -- Alternate signs on fy and gap encountered, continuing anyway\n";
+  }
+      
+  if (eta >= 1.0) {
+    opserr << "EPPGapMaterial::EPPGapMaterial -- value of eta must be < 1, setting eta to 0\n";
+    eta = 0;
+  }
 
-    maxElasticYieldStrain = fy / E + gap;
-    //use setTrialStrain method to get trial stress and tangent. Save as committed. Added by ambaker1
-    this->setTrialStrain(trialStrain);
-    commitStress = trialStress;
-    commitTangent = trialTangent;
+  maxElasticYieldStrain = fy / E + gap;
+  //use setTrialStrain method to get trial stress and tangent. Save as committed. Added by ambaker1
+  this->setTrialStrain(trialStrain);
+  commitStress = trialStress;
+  commitTangent = trialTangent;
 }
 
 EPPGapMaterial::EPPGapMaterial()
@@ -167,63 +161,62 @@ EPPGapMaterial::setTrialStrain(double strain, double strainRate)
       trialTangent = E;
     }
   }
-
   return 0;
 }
 
+
 double 
-EPPGapMaterial::getStrain(void)
+EPPGapMaterial::getStrain()
 {
-    return trialStrain;
+  return trialStrain;
 }
 
 double 
-EPPGapMaterial::getStress(void)
+EPPGapMaterial::getStress()
 {
   return trialStress;
-
 }
 
 double 
-EPPGapMaterial::getTangent(void)
+EPPGapMaterial::getTangent()
 {
   return trialTangent;
 }
 
 double 
-EPPGapMaterial::getInitialTangent(void)
+EPPGapMaterial::getInitialTangent()
 {
-    if ((fy >= 0.0 && gap > 0.0) || (fy < 0.0 && gap < 0.0))
-        return 0.0;
-    else 
-        return E;
+  if ((fy >= 0.0 && gap > 0.0) || (fy < 0.0 && gap < 0.0))
+    return 0.0;
+  else 
+    return E;
 }
 
 int 
-EPPGapMaterial::commitState(void)
+EPPGapMaterial::commitState()
 {
-    if (fy >= 0) {
-       if (trialStrain > maxElasticYieldStrain)  {
-           maxElasticYieldStrain = trialStrain;
-           minElasticYieldStrain = trialStrain-trialStress/E;
-       }
-       else if (trialStrain < minElasticYieldStrain && trialStrain > gap
-                && damage == 0 )  {
-           maxElasticYieldStrain = (trialStrain-eta*gap)/(1-eta)+fy/E;
-           minElasticYieldStrain = trialStrain;
-       }
+  if (fy >= 0) {
+    if (trialStrain > maxElasticYieldStrain)  {
+        maxElasticYieldStrain = trialStrain;
+        minElasticYieldStrain = trialStrain-trialStress/E;
     }
-    else {
-       if (trialStrain < maxElasticYieldStrain)  {
-           maxElasticYieldStrain = trialStrain;
-           minElasticYieldStrain = trialStrain-trialStress/E;
-       }
-       else if (trialStrain > minElasticYieldStrain && trialStrain < gap
-                && damage == 0 )  {
-           maxElasticYieldStrain = (trialStrain-eta*gap)/(1-eta)+fy/E;
-           minElasticYieldStrain = trialStrain;
-       }
+    else if (trialStrain < minElasticYieldStrain && trialStrain > gap
+            && damage == 0 )  {
+        maxElasticYieldStrain = (trialStrain-eta*gap)/(1-eta)+fy/E;
+        minElasticYieldStrain = trialStrain;
     }
+  }
+  else {
+    if (trialStrain < maxElasticYieldStrain)  {
+        maxElasticYieldStrain = trialStrain;
+        minElasticYieldStrain = trialStrain-trialStress/E;
+    }
+    else if (trialStrain > minElasticYieldStrain && trialStrain < gap
+            && damage == 0 )  {
+        maxElasticYieldStrain = (trialStrain-eta*gap)/(1-eta)+fy/E;
+        minElasticYieldStrain = trialStrain;
+    }
+  }
 
 	//added by SAJalali for energy recorder
 	EnergyP += 0.5*(commitStress + trialStress)*(trialStrain - commitStrain);
@@ -272,19 +265,19 @@ EPPGapMaterial::revertToStart(void)
 UniaxialMaterial *
 EPPGapMaterial::getCopy(void)
 {
-    EPPGapMaterial *theCopy = new EPPGapMaterial(this->getTag(),E,fy,gap,eta,damage);
-    theCopy->trialStrain = trialStrain;
-    theCopy->trialStress = trialStress;
-    theCopy->trialTangent = trialTangent;
-    theCopy->commitStrain = commitStrain;
-    theCopy->commitStress = commitStress;
-    theCopy->commitTangent = commitTangent;
-    theCopy->maxElasticYieldStrain = maxElasticYieldStrain;
-    theCopy->minElasticYieldStrain = minElasticYieldStrain;
-    theCopy->EnergyP = EnergyP;
-    theCopy->parameterID = parameterID;
+  EPPGapMaterial *theCopy = new EPPGapMaterial(this->getTag(),E,fy,gap,eta,damage);
+  theCopy->trialStrain = trialStrain;
+  theCopy->trialStress = trialStress;
+  theCopy->trialTangent = trialTangent;
+  theCopy->commitStrain = commitStrain;
+  theCopy->commitStress = commitStress;
+  theCopy->commitTangent = commitTangent;
+  theCopy->maxElasticYieldStrain = maxElasticYieldStrain;
+  theCopy->minElasticYieldStrain = minElasticYieldStrain;
+  theCopy->EnergyP = EnergyP;
+  theCopy->parameterID = parameterID;
 
-    return theCopy;
+  return theCopy;
 }
 
 
@@ -355,8 +348,8 @@ EPPGapMaterial::Print(OPS_Stream &s, int flag)
 	}
 	
 	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-		s << "\t\t\t{";
-		s << "\"name\": \"" << this->getTag() << "\", ";
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
 		s << "\"type\": \"EPPGap\", ";
 		s << "\"E\": " << E << ", ";
 		s << "\"eta\": " << eta << ", ";

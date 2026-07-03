@@ -54,17 +54,17 @@
 #include <FEM_ObjectBroker.h>
 
 //parameters
-const double J2PlasticityThermal :: one3   = 1.0 / 3.0 ;
-const double J2PlasticityThermal :: two3   = 2.0 / 3.0 ;
-const double J2PlasticityThermal :: four3  = 4.0 / 3.0 ;
-const double J2PlasticityThermal :: root23 = sqrt( 2.0 / 3.0 ) ;
+const double J2PlasticityThermal::one3   = 1.0 / 3.0 ;
+const double J2PlasticityThermal::two3   = 2.0 / 3.0 ;
+const double J2PlasticityThermal::four3  = 4.0 / 3.0 ;
+const double J2PlasticityThermal::root23 = sqrt( 2.0 / 3.0 ) ;
 
 double J2PlasticityThermal::initialTangent[3][3][3][3] ;   //material tangent
 double J2PlasticityThermal::IIdev[3][3][3][3] ; //rank 4 deviatoric 
 double J2PlasticityThermal::IbunI[3][3][3][3] ; //rank 4 I bun I 
 
 //zero internal variables
-void J2PlasticityThermal :: zero ( ) 
+void J2PlasticityThermal::zero ( ) 
 {
   xi_n = 0.0 ;
   xi_nplus1 = 0.0 ;
@@ -78,7 +78,7 @@ void J2PlasticityThermal :: zero ( )
 
 
 //null constructor
-J2PlasticityThermal ::  J2PlasticityThermal( ) : 
+J2PlasticityThermal::J2PlasticityThermal( ) : 
 NDMaterial( ),
 epsilon_p_n(3,3),
 epsilon_p_nplus1(3,3),
@@ -161,7 +161,7 @@ TempAndElong(2)
 
 
 //full constructor
-J2PlasticityThermal :: J2PlasticityThermal(int    tag,
+J2PlasticityThermal::J2PlasticityThermal(int    tag,
 			     int classTag,
 			     double K,
 			     double G,
@@ -254,7 +254,7 @@ J2PlasticityThermal :: J2PlasticityThermal(int    tag,
 
 
 //elastic constructor
-J2PlasticityThermal :: 
+J2PlasticityThermal::
 J2PlasticityThermal(   int    tag, 
                 int  classTag,
                 double K, 
@@ -338,13 +338,13 @@ TempAndElong(2)
 
 
 //destructor
-J2PlasticityThermal :: ~J2PlasticityThermal( ) 
+J2PlasticityThermal::~J2PlasticityThermal( ) 
 {  } 
 
 
 
 NDMaterial*
-J2PlasticityThermal :: getCopy (const char *type)
+J2PlasticityThermal::getCopy (const char *type)
 {
     if (strcmp(type,"PlaneStress2D") == 0 || strcmp(type,"PlaneStress") == 0)
     {
@@ -377,7 +377,7 @@ J2PlasticityThermal :: getCopy (const char *type)
 }
 
 //print out material data
-void J2PlasticityThermal :: Print( OPS_Stream &s, int flag )
+void J2PlasticityThermal::Print( OPS_Stream &s, int flag )
 {
   s << "\n" ;
   s << "J2-Plasticity : " ; 
@@ -397,7 +397,7 @@ void J2PlasticityThermal :: Print( OPS_Stream &s, int flag )
 //--------------------Plasticity-------------------------------------
 
 //plasticity integration routine
-void J2PlasticityThermal :: plastic_integrator( )
+void J2PlasticityThermal::plastic_integrator( )
 {
   const double tolerance = (1.0e-8)*sigma_y ;
 
@@ -716,7 +716,7 @@ J2PlasticityThermal::setThermalTangentAndElongation(double &tempT, double&ET, do
 
 
 // set up for initial elastic
-void J2PlasticityThermal :: doInitialTangent( )
+void J2PlasticityThermal::doInitialTangent( )
 {
   int ii,jj,i,j,k,l;
 
@@ -746,7 +746,7 @@ void J2PlasticityThermal :: doInitialTangent( )
 
 
 //hardening function
-double J2PlasticityThermal :: q( double xi ) 
+double J2PlasticityThermal::q( double xi ) 
 {
 //  q(xi) = simga_infty + (sigma_y - sigma_infty)*exp(-delta*xi) + H*xi 
 
@@ -757,15 +757,17 @@ double J2PlasticityThermal :: q( double xi )
 
 
 //hardening function derivative
-double J2PlasticityThermal :: qprime( double xi )
+double 
+J2PlasticityThermal::qprime( double xi )
 {
   return  (sigma_y - sigma_infty) * (-delta) * exp(-delta*xi)
          + Hard ;
 }
 
 
-//matrix_index ---> tensor indices i,j
-void J2PlasticityThermal :: index_map( int matrix_index, int &i, int &j )
+// matrix_index ---> tensor indices i,j
+void 
+J2PlasticityThermal::index_map( int matrix_index, int &i, int &j )
 {
   switch ( matrix_index+1 ) { //add 1 for standard tensor indices
 

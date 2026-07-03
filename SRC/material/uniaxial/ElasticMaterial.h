@@ -42,11 +42,11 @@ class ElasticMaterial : public UniaxialMaterial
 {
   public:
     ElasticMaterial(int tag, double E);
-    ElasticMaterial(int tag, double Epos, double eta, double Eneg, double density = 0.0);
+    ElasticMaterial(int tag, double Epos, double eta, double Eneg, double density);
     ElasticMaterial();
     ~ElasticMaterial();
 
-    const char *getClassType() const {return "ElasticMaterial";};
+    const char *getClassType() const {return "ElasticMaterial";}
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
     int setTrial(double strain, double &stress, double &tangent, double strainRate = 0.0); 
@@ -80,8 +80,6 @@ class ElasticMaterial : public UniaxialMaterial
     int commitSensitivity(double strainGradient, int gradIndex, int numGrads);
     // AddingSensitivity:END ///////////////////////////////////////////
 
-  protected:
-    
   private:
     double trialStrain;
     double trialStrainRate;

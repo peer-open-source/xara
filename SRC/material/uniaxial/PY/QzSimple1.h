@@ -66,7 +66,7 @@ class QzSimple1 : public UniaxialMaterial
     QzSimple1();
     ~QzSimple1();
 
-    virtual const char *getClassType(void) const {return "QzSimple1";};
+    virtual const char *getClassType() const {return "QzSimple1";}
 
     int setTrialStrain(double z, double zRate); 
     double getStrain(void);          

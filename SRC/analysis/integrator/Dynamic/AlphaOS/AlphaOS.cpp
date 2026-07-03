@@ -480,7 +480,8 @@ int AlphaOS::sendSelf(int cTag, Channel &theChannel)
 }
 
 
-int AlphaOS::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
+int
+AlphaOS::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
     Vector data(4);
     if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {

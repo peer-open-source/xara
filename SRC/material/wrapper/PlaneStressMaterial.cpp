@@ -470,7 +470,7 @@ void
 PlaneStressMaterial::Print( OPS_Stream &s, int flag )
 {
   if (flag ==  OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"PlaneStressMaterial\", ";
     s << "\"material\": \"" << theMaterial->getTag() << "\"";

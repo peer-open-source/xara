@@ -28,11 +28,7 @@
 // Written by Zhaohui Yang	(March 2004)                                     //
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
-
-// $Revision: 1.7 $
-// $Date: 2009-11-02 21:22:22 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/UP-ucsd/BrickUP.cpp,v $
-
+//
 // by Zhaohui Yang (Modified based on Ed "C++" Love's Brick element)
 //
 // Eight node BrickUP element

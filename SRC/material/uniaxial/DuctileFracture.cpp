@@ -88,19 +88,19 @@ void * OPS_ADD_RUNTIME_VPV(OPS_DuctileFracture)
 				return 0;
 			}
 		}
-		else if (strcmp(type, "-c_mono") == 0) {
+		else if ((strcmp(type, "-c_mono") == 0) || (strcmp(type, "-c-mono") == 0)) {
 			if (OPS_GetDouble(&numdata, &c_mono) < 0) {
 				opserr << "WARNING invalid double inputs\n";
 				return 0;
 			}
 		}
-		else if (strcmp(type, "-c_cycl") == 0) {
+		else if ((strcmp(type, "-c_cycl") == 0) || (strcmp(type, "-c-cycl") == 0)) {
 			if (OPS_GetDouble(&numdata, &c_cycl) < 0) {
 				opserr << "WARNING invalid double inputs\n";
 				return 0;
 			}
 		}
-		else if (strcmp(type, "-c_symm") == 0) {
+		else if ((strcmp(type, "-c_symm") == 0) || (strcmp(type, "-c-symm") == 0)) {
 			if (OPS_GetDouble(&numdata, &c_symm) < 0) {
 				opserr << "WARNING invalid double inputs\n";
 				return 0;

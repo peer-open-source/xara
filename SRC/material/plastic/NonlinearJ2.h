@@ -29,24 +29,26 @@ class FEM_ObjectBroker;
 class OPS_Stream;
 //
 namespace OpenSees {
+
 class NonlinearJ2 : public NDMaterial
 {
 public:
   NonlinearJ2(int tag,
-            double E, double nu, 
-            double fy, double density,
-            double Hiso,
-            double a, double DInf,     // iso: reduction branch
-            double b, double QInf,     // iso: cyclic hardening branch
-            const std::vector<double> &Ck,        // kin: magnitudes
-            const std::vector<double> &gammak,    // kin: saturation rates
-            double YFtol = 1e-16,
-            int    MaxIter = 15);
+              double E, double nu, 
+              double fy, double density,
+              double Hiso,
+              double a, double DInf,     // iso: reduction branch
+              double b, double QInf,     // iso: cyclic hardening branch
+              const std::vector<double> &Ck,        // kin: magnitudes
+              const std::vector<double> &gammak,    // kin: saturation rates
+              double YFtol = 1e-16,
+              int    MaxIter = 15);
 
   ~NonlinearJ2();
 
   const char *getClassType() const override {return "NonlinearJ2";}
   const char *getType() const override {return "ThreeDimensional";}
+
   int getOrder() const override { return 6; }
   double getRho() override { return density_; }
 
@@ -77,7 +79,7 @@ public:
 
 private:
   // Parameters
-  double E, nu, fy;
+  double E, nu, fy, G;
   // Isotropic hardening
   double a_, DInf_, b_, QInf_, Hiso_;
   // Kinematic hardening
@@ -91,16 +93,16 @@ private:
   // Tangent tensors
   OpenSees::MatrixND<6,6> Ce, C;
 
-  // Trial/total strain & wrappers for OpenSees API returns
-  OpenSees::VectorND<6>   eps;   // current total strain (Voigt)
+  // Trial/total strain & wrappers for OpenSees API
+  OpenSees::VectorND<6>   eps;   // current total strain
   Matrix                  retInitialTangent, retTangent;
   Vector                  retStress, retStrain;
 
   // History (past/present)
   struct State {
-    OpenSees::VectorND<6> sig;     // Cauchy stress (Voigt)
-    OpenSees::VectorND<6> eps;     // total strain (Voigt) at commit
-    OpenSees::VectorND<6> eps_p;   // plastic strain (Voigt)
+    OpenSees::VectorND<6> sig;     // Cauchy stress
+    OpenSees::VectorND<6> eps;     // total strain at commit
+    OpenSees::VectorND<6> eps_p;   // plastic strain
     std::vector<OpenSees::VectorND<9>> sig_b; // back-stress components (deviatoric, 9x1 each)
     double gamma;                  // iso hardening scalar
     double Estr;                   // strain energy
@@ -109,7 +111,7 @@ private:
   std::vector<double> wk_;
 
 private:
-  // Core update (return mapping + Ct)
+  // Core update
   int updateState();
 
 
@@ -143,7 +145,7 @@ private:
   } bs_integration = BackStressIntegration::BackwardEuler;
 
 
-  static inline double metric(const VectorND<9>& v) {
+  static inline double metric(const VectorND<9>& v) noexcept {
     return v.norm()*phi_n;
   }
 
@@ -154,10 +156,12 @@ private:
                             double& g, 
                             double& Dg,
                             double& phi_a) const noexcept {
-    const double G  = E/2./(1. +    nu);
+    // const double G  = E/2./(1. +    nu);
     double mises_strain = (flow_rate*lambda)*phi_n*mises_scale;
     // Modified relative stress, Z
-    m = s_tr - Kinematic::A(*this, past, mises_strain);
+    m = s_tr;
+    m -= Kinematic::A(*this, past, mises_strain);
+
     phi_a  = metric(m); // phi(a)
     m    *= phi_m/phi_a; // m = a * phi(m)/phi(a)
     g = phi_a - 2.0*G*mises_strain*(phi_n/mises_scale)
@@ -176,7 +180,7 @@ private:
   struct Kinematic {
     static inline VectorND<9> A(const NonlinearJ2 &m,
                                 const NonlinearJ2::State &past,
-                                double lamda) {
+                                double lamda) noexcept {
       // Return the *partial* back-stress x_phi = sum phi_k x_k
       // to form the partial stress q = s^tr - x_phi
       VectorND<9> x_phi{};
@@ -202,7 +206,7 @@ private:
 
     static double H(const NonlinearJ2& m, 
                     const NonlinearJ2::State &past,
-                    double mises_strain) {
+                    double mises_strain) noexcept {
       double H = 0.0;
       const size_t nc = m.Ck_.size();
       for (size_t i=0;i<nc;i++) {
@@ -226,9 +230,10 @@ private:
       }
       return H;
     }
+
     static inline double dH(const NonlinearJ2& m,
-                           const NonlinearJ2::State &s,
-                           double lamda) {
+                            const NonlinearJ2::State &s,
+                            double lamda) noexcept {
       double dH = 0.0;
       const size_t nc = m.Ck_.size();
       for (size_t i=0;i<nc;i++) {
@@ -257,7 +262,7 @@ private:
     static inline double dX(const NonlinearJ2 &m,
                             const NonlinearJ2::State &past,
                             double lamda,
-                            const VectorND<9>& n) {
+                            const VectorND<9>& n) noexcept {
       // Return |x|' = n . x'
       double dX = 0.0;
       // const double gamma = past.gamma + SQRT23*lamda;
@@ -280,12 +285,13 @@ private:
       return dX;
     }
 
+
     static inline void addTangent(const NonlinearJ2 &m,
                                   const NonlinearJ2::State &past,
                                   double lamda,
                                   const VectorND<9>& n,
                                   double theta,
-                                  MatrixND<6,6,double> &C) {
+                                  MatrixND<6,6,double> &C) noexcept {
       const size_t nc = past.sig_b.size();
       const VectorND<6> Pn = P * n;
       for (size_t i=0;i<nc;i++) {
@@ -313,7 +319,7 @@ private:
                               double lamda,
                               const VectorND<9>& n,
                               NonlinearJ2::State &pres
-                            ) {
+                            ) noexcept {
       const size_t nc = past.sig_b.size();
       for (size_t i=0;i<nc;i++) {
         if (m.Ck_[i] == 0.0 || m.gammak_[i] == 0.0)
@@ -340,7 +346,7 @@ private:
   struct Isotropic {
     static inline double H(const NonlinearJ2& m,
                     const NonlinearJ2::State &s,
-                    double lamda) {
+                    double lamda) noexcept {
       double gamma = s.gamma + lamda;
       double H = m.Hiso_;
       if (m.DInf_ != 0.0 && m.a_ != 0.0)
@@ -349,9 +355,10 @@ private:
         H += m.QInf_*m.b_*std::exp(-m.b_*gamma);
       return H;
     }
+
     static inline double Y(const NonlinearJ2& m,
                     const NonlinearJ2::State &s,
-                    double lamda) {
+                    double lamda) noexcept {
       double gamma = s.gamma + lamda;
       double Fy = m.fy + m.Hiso_*gamma;
       if (m.QInf_ != 0.0 && m.b_ != 0.0)
@@ -364,9 +371,10 @@ private:
     static inline void update(const NonlinearJ2& m,
                               const NonlinearJ2::State &past,
                               double lamda,
-                              NonlinearJ2::State &pres) {
+                              NonlinearJ2::State &pres) noexcept {
       pres.gamma = past.gamma + lamda;
-    };
+    }
   };
 };
+
 } // namespace OpenSees

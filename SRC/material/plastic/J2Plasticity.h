@@ -45,7 +45,6 @@
 //
 //  set eta := 0 for rate independent case
 //
-#include <math.h>
 #include <assert.h>
 #include <Vector.h>
 #include <Matrix.h>
@@ -72,12 +71,12 @@ public:
                double density);
 
   J2Plasticity(int tag, int classTag, double K, double G);
+  virtual ~J2Plasticity();
   bool threadSafe() const override {return true;}
 
-  virtual ~J2Plasticity();
 
-  NDMaterial* getCopy(const char* type) override;
-  NDMaterial* getCopy() override;
+  NDMaterial* getCopy(const char* type) final;
+  NDMaterial* getCopy() override =0;
   const char* getType() const override;
   int getOrder() const override;
 
@@ -90,7 +89,6 @@ public:
     return -1;
   }
 
-
   double
   getRho()
   {
@@ -102,8 +100,8 @@ public:
   virtual int activateParameter(int paramID);
 
   // MovableObject
-  virtual const char*
-  getClassType() const
+  const char*
+  getClassType() const override
   {
     return "J2Plasticity";
   }
@@ -114,17 +112,18 @@ public:
   virtual void Print(OPS_Stream& s, int flag) final;
 
 protected:
+  // matrix index to tensor index mapping
+  virtual void index_map(int matrix_index, int& i, int& j) const=0;
+
   // zero internal variables
   void zero();
-  int plastic_integrator();
+  int  plastic_integrator();
   void doInitialTangent();
 
   // hardening function and derivative
   double q(double xi);
   double qprime(double xi);
 
-  // matrix index to tensor index mapping
-  virtual void index_map(int matrix_index, int& i, int& j);
 
   // material parameters
   double bulk;        // bulk modulus
@@ -149,7 +148,6 @@ protected:
   double tangent[3][3][3][3];               // material tangent
   static double initialTangent[3][3][3][3]; // material tangent
 
-  // material input
 
   // parameters
   int parameterID;
@@ -157,7 +155,7 @@ protected:
   // static const double one3 ;
   static constexpr double two3 = 2.0 / 3.0;
   static constexpr double four3 = 4.0 / 3.0;
-  static const double root23;
+  static constexpr double root23 = 0.816496580927726; // sqrt(2.0 / 3.0);
 };
 }
 #endif

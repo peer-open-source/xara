@@ -13,6 +13,7 @@
 
 #include "routines/xblas.h"
 #include "routines/cmx.h"
+#include <routines/small_solve.hpp>
 
 
 //  NOTE: Currently MATRIX_BRANCHING is NECCESSARY to avoid undefined behavior
@@ -27,7 +28,7 @@ MatrixND(const T (&)[nc][nr])->MatrixND<nr, nc, T>;
 
 
 template <index_t nr, index_t nc, typename T>
-inline constexpr void
+constexpr void
 MatrixND<nr, nc, T>::zero() noexcept
 {
   values.fill(0.0);
@@ -53,15 +54,16 @@ constexpr double
 MatrixND<nr, nc, T>::determinant() const
 {
   static_assert(nr == nc, "Matrix must be square");
-  static_assert(nr > 1 && nr < 3, "Matrix must be 2x2");
+  static_assert(nr > 1 && nr < 4, "Matrix must be 2x2 or 3x3");
   if constexpr (nr == 2) {
     return (*this)(0,0) * (*this)(1,1) - (*this)(0,1) * (*this)(1,0);
   }
-  // if constexpr (nr == 3) {
-  //   return values[0][0] * (values[1][1] * values[2][2] - values[1][2] * values[2][1]) -
-  //          values[0][1] * (values[1][0] * values[2][2] - values[1][2] * values[2][0]) +
-  //          values[0][2] * (values[1][0] * values[2][1] - values[1][1] * values[2][0]);
-  // }
+  else if constexpr (nr == 3) {
+    const double t0 = (*this)(1,1)*(*this)(2,2) - (*this)(1,2)*(*this)(2,1);
+    const double t1 = (*this)(1,0)*(*this)(2,2) - (*this)(1,2)*(*this)(2,0);
+    const double t2 = (*this)(1,0)*(*this)(2,1) - (*this)(1,1)*(*this)(2,0);
+    return (*this)(0,0)*t0 - (*this)(0,1)*t1 + (*this)(0,2)*t2;
+  }
 }
 
 
@@ -281,6 +283,40 @@ MatrixND<nr,nc,T>::invert(MatrixND<nr,nc,T> &M) const
 
 template <index_t NR, index_t NC, typename T>
 int
+MatrixND<NR,NC,T>::rsolve(const VectorND<NR> &V, VectorND<NR> &res) const noexcept
+{
+  static_assert(std::is_same_v<T,double>, "Only double storage is supported");
+  static_assert(NR == NC);
+  static_assert(NR <= 8, "rsolve only supports matrices of size 6 or smaller");
+
+  if constexpr (NR == 1) {
+    return small_solve<1>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 2) {
+    return small_solve<2>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 3) {
+    return small_solve<3>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 4) {
+    return small_solve<4>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 5) {
+    return small_solve<5>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 6) {
+    return small_solve<6>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 7) {
+    return small_solve<7>(&(*this)(0,0), V.values, res.values);
+  }
+  else if constexpr (NR == 8) {
+    return small_solve<8>(&(*this)(0,0), V.values, res.values);
+  }
+}
+
+template <index_t NR, index_t NC, typename T>
+int
 MatrixND<NR,NC,T>::solve(const VectorND<NR> &V, VectorND<NR> &res) const noexcept
 {
   static_assert(std::is_same_v<T,double>, "Only double storage is supported");
@@ -295,16 +331,17 @@ MatrixND<NR,NC,T>::solve(const VectorND<NR> &V, VectorND<NR> &res) const noexcep
     res = Ainv * V;
     return 0;
   }
-
-  MatrixND<NR,NC> work = *this;
-  int pivot_ind[NR];
-  int nrhs = 1;
-  int nr = NR;
-  int nc = NC;
-  int info = 0;
-  res = V; // X will be overwritten with the solution
-  DGESV(&nr, &nrhs, &work(0,0), &nr, pivot_ind, res.values, &nc, &info);
-  return -abs(info);
+  else {
+    MatrixND<NR,NC> work = *this;
+    int pivot_ind[NR];
+    int nrhs = 1;
+    int nr = NR;
+    int nc = NC;
+    int info = 0;
+    res = V; // X will be overwritten with the solution
+    DGESV(&nr, &nrhs, &work(0,0), &nr, pivot_ind, res.values, &nc, &info);
+    return -abs(info);
+  }
 }
 
 
@@ -360,6 +397,7 @@ MatrixND<nr, nc, T>::addDiagonal(const double diag) noexcept
 template <index_t nr, index_t nc, typename T>
 template <class MatT> inline
 void MatrixND<nr, nc, T>::addMatrix(const MatT& A, const double scale)
+  noexcept
 {
   for (int i=0; i<nr; i++)
     for (int j=0; j<nc; j++)
@@ -367,8 +405,9 @@ void MatrixND<nr, nc, T>::addMatrix(const MatT& A, const double scale)
 }
 
 template <index_t nr, index_t nc, typename T>
-inline void
+void
 MatrixND<nr, nc, T>::addTranspose(const MatrixND<nc,nr>& A, const double scale)
+  noexcept
 {
   for (int i=0; i<nr; i++)
     for (int j=0; j<nc; j++)
@@ -378,7 +417,7 @@ MatrixND<nr, nc, T>::addTranspose(const MatrixND<nc,nr>& A, const double scale)
 
 template <index_t nr, index_t nc, typename T>
 template <class VecA, class VecB>
-constexpr inline
+constexpr
 MatrixND<nr, nc, T>&
 MatrixND<nr, nc, T>::addTensorProduct(const VecA& a, const VecB& b, const double scale) noexcept
 {
@@ -467,15 +506,29 @@ template <index_t nr, index_t nc, typename T>
 template <class MatT, int nk> inline
 void
 MatrixND<nr, nc, T>::addMatrixProduct(const MatrixND<nr, nk, T>& A, 
-                                      const MatT& B, double scale) noexcept
+                                      const MatT& B, 
+                                      double scale) noexcept
 {
   if constexpr (nr*nc < BlasSize) {
-    Repeat<nr> ([&](auto i_) {
-      constexpr int i = i_.value;
-      Repeat<nc> ([&](auto j_) {
-        constexpr int j = j_.value;
-        for (int k=0; k < nk; k++)
-          (*this)(i,j) += scale*A(i,k)*B(k,j);
+    // Repeat<nr> ([&](auto i_) {
+    //   constexpr int i = i_.value;
+    //   Repeat<nc> ([&](auto j_) {
+    //     constexpr int j = j_.value;
+    //     for (int k=0; k < nk; k++)
+    //       (*this)(i,j) += scale*A(i,k)*B(k,j);
+    //   });
+    // });
+    Repeat<nc>([&](auto j_) {
+      constexpr int j = j_.value;
+      double* RESTRICT cj = &(*this)(0, j);    // column j of C, contiguous
+      Repeat<nk>([&](auto k_) {
+        constexpr int k = k_.value;
+        const double* RESTRICT ak = &A(0, k);   // column k of A, contiguous
+        const double bkj = scale * B(k, j); 
+        Repeat<nr>([&](auto i_) {
+          constexpr int i = i_.value;
+          cj[i] += bkj * ak[i];
+        });
       });
     });
   }
@@ -495,25 +548,59 @@ MatrixND<nr, nc, T>::addMatrixProduct(const MatrixND<nr, nk, T>& A,
 }
 
 
-#if 1
+
 template <index_t nr, index_t nc, typename T> 
 template <class MatT, int nk> inline
 void
 MatrixND<nr, nc, T>::addMatrixProduct(double scale_this, 
                                       const MatrixND<nr, nk, T>& A, 
-                                      const MatT& B, double scale) noexcept
+                                      const MatT& B, 
+                                      double scale) noexcept
 {
-  static_assert(std::is_same_v<T,double>, "Only double storage is supported");
+  if constexpr (nr*nc < BlasSize) {
+    static constexpr int nrnc = nr*nc;
+    if (scale_this == 0.0)
+      this->zero();
+    else if (scale_this != 1.0)
+      for (int i=0; i<nrnc; i++)
+        values[i] *= scale_this;
 
-  int m = nr,
-      n = nc,
-      k = nk;
-  DGEMM("N", "N", &m, &n, &k, &scale, 
-                              const_cast<double*>(&A(0,0)), &m,
-                              const_cast<double*>(&B(0,0)), &k,
-                              &scale_this,   &(*this)(0,0), &m);
+    Repeat<nc>([&](auto j_) {
+      constexpr int j = j_.value;
+      double* RESTRICT cj = &(*this)(0, j);    // column j of C, contiguous
+      Repeat<nk>([&](auto k_) {
+        constexpr int k = k_.value;
+        const double* RESTRICT ak = &A(0, k);   // column k of A, contiguous
+        const double bkj = scale * B(k, j);          // scale folded in once per (k,j)
+        Repeat<nr>([&](auto i_) {
+          constexpr int i = i_.value;
+          cj[i] += bkj * ak[i];                       // pure FMA, stride-1
+        });
+      });
+    });
+    // Repeat<nr> ([&](auto i_) {
+    //   constexpr int i = i_.value;
+    //   Repeat<nc> ([&](auto j_) {
+    //     constexpr int j = j_.value;
+    //     for (int k=0; k < nk; k++)
+    //       (*this)(i,j) += scale*A(i,k)*B(k,j);
+    //   });
+    // });
+  }
+  else
+  {
+    static_assert(std::is_same_v<T,double>, "Only double storage is supported");
+
+    int m = nr,
+        n = nc,
+        k = nk;
+    DGEMM("N", "N", &m, &n, &k, &scale, 
+                                const_cast<double*>(&A(0,0)), &m,
+                                const_cast<double*>(&B(0,0)), &k,
+                                &scale_this,   &(*this)(0,0), &m);
+  }
 }
-#endif
+
 
 
 // A  = a*B'*C + b*A

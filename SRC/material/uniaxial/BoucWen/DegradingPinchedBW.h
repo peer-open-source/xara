@@ -34,25 +34,27 @@ class DegradingPinchedBW : public UniaxialMaterial
 	
     ~DegradingPinchedBW();
 
-    const char *getClassType(void) const {return "BoucWenMaterial";};
+    const char *getClassType() const {return "BoucWenMaterial";}
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
-    double getStrain(void);          
-    double getStress(void);
-    double getTangent(void);
-    double signum(double);
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    double getStrain();          
+    double getStress();
+    double getTangent();
+    double getInitialTangent();
+
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();
+     
     UniaxialMaterial *getCopy(void);
     int sendSelf(int commitTag, Channel &theChannel);  
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);    
     void Print(OPS_Stream &s, int flag =0);
-    
-    double getInitialTangent(void);
+
 
   private:
+    double signum(double);
 
     // Material parameters
 	double m;

@@ -13,15 +13,23 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Description: This file contains the class implementation of MixedFrameSection.
-// MixedFrameSection provides the abstraction of a 3D beam section discretized by fibers.
 //
 // Warp types:
 // - UT: enhanced, based on uniform torsion assumption
 // - U02: warping based on uniform torsion assumption, a la Simo and Gruttmann
 //
-// Written: cmp
+//
+// Written: Claudio M. Perez, 
+//          Filip C. Filippou
+//          University of California, Berkeley
+//
 // Created: Jan. 2026
+//
+// References:
+//
+// [1] Perez, Claudio M. 
+//   "Nonlinear Modeling of Frame Members for Rapid Infrastructure Assessment."
+//   Ph.D., University of California, Berkeley, 2026.
 //
 #include <stdlib.h>
 #include <string.h>
@@ -55,7 +63,13 @@ using namespace OpenSees;
 
 ID MixedFrameSection::code(nsr);
 
-MixedFrameSection::MixedFrameSection(int tag, int num, MixedType type, bool wagner)
+MixedFrameSection::MixedFrameSection(
+  int tag, 
+  int num, 
+  MixedType type, 
+  bool wagner,
+  concurrency_t num_threads
+)
   : FrameSection(tag, SEC_TAG_MixedFrameSection)
   , s{}, e{}
   , e_wrap(e)
@@ -72,8 +86,8 @@ MixedFrameSection::MixedFrameSection(int tag, int num, MixedType type, bool wagn
   , fiber_state(FiberState::Clean)
   , wagner(wagner || (getenv("Wagner") != nullptr))
 #ifdef N_FIBER_THREADS
-  , num_threads(N_FIBER_THREADS)
-  , pool((void*)new OpenSees::thread_pool{N_FIBER_THREADS})
+  , num_threads(num_threads)
+  , pool(std::shared_ptr<thread_pool>(new thread_pool{this->num_threads}))
 #endif
 {
   code(inx) = FrameStress::N;
@@ -408,7 +422,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
   int iter = 0;
   bool converged = false;
-  auto& thread_pool = *(OpenSees::thread_pool*)pool;
+  auto& thread_pool = *pool;
 
   Vector3D eta_u = eta_past;
   // if (eta_u.norm() < 1e-14 && (mixed_type == MixedType::Equilibrium)) {
@@ -425,13 +439,15 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
   do {
 
     // 1. Zero for integration
-    for (auto& thread : thread_data) {
-      thread.Knn.zero();
-      thread.Kav.zero();
-      thread.Kae.zero();
-      thread.Kaw.zero();
-      thread.r_mixed.zero();
+    // for (auto& thread : thread_data) {
+    for (unsigned int i = 0; i < num_threads; i++) {
+      thread_data[i].Knn.zero();
+      thread_data[i].Kav.zero();
+      thread_data[i].Kae.zero();
+      thread_data[i].Kaw.zero();
+      thread_data[i].r_mixed.zero();
     }
+
     //
     // 2. Loop over fibers to form Knn, Kne, and s_trial
     //
@@ -516,7 +532,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
     MatrixND<3,6> Kae{};
     Matrix3D Kav{}, Kaw{};
     VectorND<3> r_mixed{};
-    for (int t = 0; t < num_threads; t++) {
+    for (concurrency_t t = 0; t < num_threads; t++) {
       Knn.addMatrix(thread_data[t].Knn, 1.0);
       Kae.addMatrix(thread_data[t].Kae, 1.0);
       Kav.addMatrix(thread_data[t].Kav, 1.0);
@@ -583,7 +599,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
     eta_u -= Knn_inv*r_mixed;
 
-  } while (++iter < 25); //&& converged == false);
+  } while (++iter < 25 && converged == false);
 
 
   if (!converged) {
@@ -645,15 +661,16 @@ MixedFrameSection::stateDetermination(Tangent& Ks,
   //
   const int nf = fibers->size();
 
-  auto& thread_pool = *(OpenSees::thread_pool*)pool;
+  auto& thread_pool = *pool;
   struct ThreadData {
     Tangent K;
     VectorND<nsr> s_trial;
   };
   static std::array<ThreadData, MaxThreads> thread_data;
-  for (auto& thread : thread_data) {
-    thread.K.zero();
-    thread.s_trial.zero();
+
+  for (unsigned int i = 0; i < num_threads; i++) {
+    thread_data[i].K.zero();
+    thread_data[i].s_trial.zero();
   }
 
 
@@ -762,7 +779,7 @@ MixedFrameSection::stateDetermination(Tangent& Ks,
   }).wait();
 
   // Assemble final Ke an s
-  for (int t = 0; t < num_threads; t++) {
+  for (concurrency_t t = 0; t < num_threads; t++) {
     Ks.se.addMatrix(thread_data[t].K.se, 1.0);
     Ks.sw.addMatrix(thread_data[t].K.sw, 1.0);
     Ks.sv.addMatrix(thread_data[t].K.sv, 1.0);
@@ -1016,9 +1033,9 @@ MixedFrameSection::setResponse(const char **argv, int argc,
 
 
 int 
-MixedFrameSection::getResponse(int responseID, Information &sectInfo)
+MixedFrameSection::getResponse(int responseID, Information &info)
 {
-  return FrameSection::getResponse(responseID, sectInfo);
+  return FrameSection::getResponse(responseID, info);
 }
 
 
@@ -1055,7 +1072,7 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
     }
     int fiberID = atoi(argv[1]);
     if (fiberID < 0 || fiberID >= fibers->size()) {
-      opserr << "MixedFrameSection::setParameter - fiberID " << fiberID << " out of range\n";
+      opserr << "fiber ID " << fiberID << " out of range\n";
       return -1;
     }
 
@@ -1067,7 +1084,7 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
     else if (strcmp(argv[2], "area") == 0)
       field = Param::FiberArea;
     else {
-      opserr << "MixedFrameSection::setParameter - invalid fiber field: " << argv[2] << "\n";
+      opserr << "invalid fiber field: " << argv[2] << "\n";
       return -1;
     }
 
@@ -1496,7 +1513,7 @@ MixedFrameSection::solveMixedSensitivity(int gradIndex,
   return 0;
 }
 
- int
+int
 MixedFrameSection::WarpShapeGrad(const FiberData& fiber,
               Matrix3D& diow, Matrix3D& diodw,
               int i) const noexcept

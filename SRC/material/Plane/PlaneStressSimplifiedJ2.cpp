@@ -302,30 +302,22 @@ PlaneStressSimplifiedJ2::getResponse(int responseID, Information &matInfo)
 		case -1:
 			return -1;
 		case 1:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) =stress;
-			return 0;
+			return matInfo.setVector(this->getStress());
+
 
 		case 2:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = strain;
-			return 0;
+			return matInfo.setVector(this->getStrain());
+
 
 		case 3:
-			if (matInfo.theMatrix != 0)
-				*(matInfo.theMatrix) = theTangent;
-			return 0;
+			return matInfo.setMatrix(this->getTangent());
+
 
 	 	case 4:
 		  //if (matInfo.theDouble != 0)
 			    matInfo.setDouble (savedStrain33);
 			return 0;
-
-
-
-		}
-		
- 
+	}
 
 	return 0;
 }

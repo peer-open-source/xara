@@ -44,11 +44,10 @@
 
 
 #include "CreepMaterial.h"
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 #include <float.h>
 #include <Channel.h>
 #include <Information.h>
-#include <elementAPI.h>
 #include <Domain.h>
 #include <MaterialResponse.h>
 #include <Vector.h>
@@ -58,14 +57,15 @@
 #include <Concrete02IS.h>
 #include <ElasticMaterial.h>
 
-static int numCreepMaterial = 0;
 
+#include <elementAPI.h>
 void *
 OPS_ADD_RUNTIME_VPV(OPS_CreepMaterial)
 {
+  static int numCreepMaterial = 0;
   // Print description of material model:
   if (numCreepMaterial == 0) {
-    //opserr << "Time-Dependent Concrete Material Model - Written by Adam Knaack, University of Notre Dame, 2012 \n";
+    opslog << "Time-Dependent Concrete Material Model - Written by Adam Knaack, University of Notre Dame, 2012 \n";
     numCreepMaterial = 1;
   }
   
@@ -869,10 +869,21 @@ CreepMaterial::recvSelf(int commitTag, Channel &theChannel,
   return res;
 }
 
+
 void 
 CreepMaterial::Print(OPS_Stream &s, int flag)
 {
-  s << "CreepMaterial:(strain, stress, tangent) " << eps << " " << sig << " " << e << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+    s << "\"material\": \"" << wrappedMaterial->getTag() << "\"}";
+    return;
+  }
+  else {
+    s << "CreepMaterial:(strain, stress, tangent) " 
+      << eps << " " << sig << " " << e << "\n";
+  }
 }
 
 

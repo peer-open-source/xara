@@ -241,14 +241,12 @@ ElasticMembranePlateSection::getInitialTangent()
   tangent(2, 2) = G;
 
 
-  G *=
-      (five6 *
-       (Ep /
-        Em)); //multiply by product of shear correction factor and ratio of bending to membrane moduli
+  // multiply by product of shear correction factor and ratio of bending to membrane moduli
+  G *= (five6 * (Ep / Em));
 
   double D = Ep * (h * h * h) / 12.0 / (1.0 - nu * nu); //bending modulus
 
-  //bending tangent terms
+  // bending tangent terms
 
   tangent(3, 3) = -D;
   tangent(4, 4) = -D;
@@ -279,7 +277,7 @@ ElasticMembranePlateSection::Print(OPS_Stream& s, int flag)
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"ElasticMembranePlateSection\", ";
     s << "\"Em\": " << Em << ", ";

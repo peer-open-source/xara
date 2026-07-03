@@ -55,23 +55,24 @@ class BoucWenMaterial : public UniaxialMaterial
     BoucWenMaterial();
     ~BoucWenMaterial();
 
-    const char *getClassType(void) const {return "BoucWenMaterial";};
+    const char *getClassType() const {return "BoucWenMaterial";}
 
     int setTrialStrain(double strain, double strainRate = 0.0); 
-    double getStrain(void);          
-    double getStress(void);
-    double getTangent(void);
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
-    UniaxialMaterial *getCopy(void);
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
-    void Print(OPS_Stream &s, int flag =0);
+    double getStrain();          
+    double getStress();
+    double getTangent();
+
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();
+        
+    UniaxialMaterial *getCopy();
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
+    void Print(OPS_Stream &s, int flag);
     
 	// Reliability and sensitivity stuff
-    double getInitialTangent        (void);
+    double getInitialTangent();
     int setParameter (const char **argv, int argc, Parameter &param);
     int    updateParameter          (int parameterID, Information &info);
 	int    activateParameter        (int parameterID);
@@ -109,8 +110,6 @@ class BoucWenMaterial : public UniaxialMaterial
 	// Sensitivit stuff
     int parameterID;
 	Matrix *SHVs;
-
-
 };
 
 

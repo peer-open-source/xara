@@ -152,19 +152,16 @@ HystereticBackbone *ReeseStiffClayAboveWS::getCopy(void) {
   return theCopy;
 }
 
-void ReeseStiffClayAboveWS::Print(OPS_Stream &s, int flag) {
+void
+ReeseStiffClayAboveWS::Print(OPS_Stream &s, int flag) {
   s << "ReeseStiffClayAboveWS, tag: " << this->getTag() << endln;
   s << "\tpu: " << pu << endln;
   s << "\ty50: " << y50 << endln;
 }
 
-int ReeseStiffClayAboveWS::setVariable(char *argv) { return -1; }
 
-int ReeseStiffClayAboveWS::getVariable(int varID, double &theValue) {
-  return -1;
-}
-
-int ReeseStiffClayAboveWS::sendSelf(int commitTag, Channel &theChannel) {
+int
+ReeseStiffClayAboveWS::sendSelf(int commitTag, Channel &theChannel) {
   int res = 0;
 
   static Vector data(3);

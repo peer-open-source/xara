@@ -31,10 +31,6 @@
 #include <MaterialResponse.h>
 
 #include <elementAPI.h>
-
-#include <fstream>            // Quan Gu   2013 March   HK
-using std::ofstream;          // Quan Gu   2013 March   HK
-using std::ios;               // Quan Gu   2013 March   HK
   
 
 Vector CapPlasticity::tempVector(6);
@@ -409,24 +405,16 @@ int CapPlasticity::getResponse (int responseID, Information &matInfo)  {
   case -1:
     return -1;
   case 1:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) =stress;
-    return 0;
+    return matInfo.setVector(stress);
     
   case 2:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = strain;
-    return 0;
+    return matInfo.setVector(strain);
     
   case 3:
-    if (matInfo.theMatrix != 0)
-      *(matInfo.theMatrix) = theTangent;
-    return 0;
+    return matInfo.setMatrix(theTangent);
     
   case 4:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = plastStrain;
-    return 0;
+    return matInfo.setVector(plastStrain);
     
   case 5:
     matInfo.setDouble(this->hardening_k);
@@ -437,16 +425,22 @@ int CapPlasticity::getResponse (int responseID, Information &matInfo)  {
     for (int i=0; i<6; i++)
       dummy(i) = stress(i);
     dummy(6) = this->hardening_k;
-    *(matInfo.theVector) = dummy;
-    return 0;
+    return matInfo.setVector(dummy);
   }
   
   return NDMaterial::getResponse(responseID, matInfo);
 }
 
-void CapPlasticity::Print(OPS_Stream &s, int flag)
+
+void
+CapPlasticity::Print(OPS_Stream &s, int flag)
 {
-  return;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\"";
+    s << "}";
+  }
 }
 
 

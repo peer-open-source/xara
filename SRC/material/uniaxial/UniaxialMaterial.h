@@ -63,7 +63,7 @@ class UniaxialMaterial :  public TaggedObject, public MovableObject
     virtual double getTangent() = 0;
     virtual double getInitialTangent() = 0;
     virtual double getDampTangent();
-    virtual double getRho();
+    virtual double getRho() { return 0.0; }
     
     virtual int commitState() = 0;
     virtual int revertToLastCommit() = 0;    
@@ -94,8 +94,6 @@ class UniaxialMaterial :  public TaggedObject, public MovableObject
 	  // by SAJalali
     virtual double getEnergy() { return 0; }
 
- protected:
-    
  private:
 };
 

@@ -10,12 +10,7 @@ target_sources(OPS_Material
     LinearCap.cpp
     FSAM.cpp
     AcousticMedium.cpp
-#   ElasticPlaneStress.cpp
     VonPapaDamage.cpp
-    ElasticOrthotropicMaterial.cpp
-    ElasticOrthotropicPlaneStress.cpp
-
-    J2AxiSymm.cpp
 
     CycLiqCP.cpp
     CycLiqCP3D.cpp
@@ -32,7 +27,6 @@ target_sources(OPS_Material
     DruckerPrager3DThermal.cpp
     DruckerPragerThermal.cpp
     J2PlasticityThermal.cpp
-    OrthotropicMaterial.cpp
     Series3DMaterial.cpp
     Parallel3DMaterial.cpp
     PressureDependentElastic3D.cpp
@@ -42,13 +36,8 @@ target_sources(OPS_Material
     LinearCap.h
     FSAM.h
     AcousticMedium.h
-    ElasticOrthotropicMaterial.h
-    ElasticOrthotropicPlaneStress.h
-#   ElasticPlaneStress.h
     VonPapaDamage.h
     PressureDependentElastic3D.h
-
-    J2AxiSymm.h
 
     CycLiqCP.h
     CycLiqCP3D.h
@@ -65,7 +54,6 @@ target_sources(OPS_Material
     DruckerPrager3DThermal.h
     DruckerPragerThermal.h
     J2PlasticityThermal.h
-    OrthotropicMaterial.h
     Series3DMaterial.h
     Parallel3DMaterial.h
 )

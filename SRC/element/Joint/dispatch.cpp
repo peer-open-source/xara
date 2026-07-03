@@ -70,25 +70,10 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
 
+
+
     int id, nd1, nd2, nd3, nd4, matId1, matId2, matId3, matId4, matId5, matId6,
         matId7, matId8, matId9, matId10;
-    int matId11, matId12, matId13;
-    double hgtfac, wdtfac;
-
-    UniaxialMaterial *theMaterial1 = 0;
-    UniaxialMaterial *theMaterial2 = 0;
-    UniaxialMaterial *theMaterial3 = 0;
-    UniaxialMaterial *theMaterial4 = 0;
-    UniaxialMaterial *theMaterial5 = 0;
-    UniaxialMaterial *theMaterial6 = 0;
-    UniaxialMaterial *theMaterial7 = 0;
-    UniaxialMaterial *theMaterial8 = 0;
-    UniaxialMaterial *theMaterial9 = 0;
-    UniaxialMaterial *theMaterial10 = 0;
-    UniaxialMaterial *theMaterial11 = 0;
-    UniaxialMaterial *theMaterial12 = 0;
-    UniaxialMaterial *theMaterial13 = 0;
-
     if (Tcl_GetInt(interp, argv[1 + eleArgStart], &id) != TCL_OK) {
       opserr << "WARNING invalid beamColumnJoint eleTag" << endln;
       return TCL_ERROR;
@@ -109,6 +94,9 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING invalid Node 4" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
+
+    int matId11, matId12, matId13;
+    double hgtfac, wdtfac;
     if (Tcl_GetInt(interp, argv[6 + eleArgStart], &matId1) != TCL_OK) {
       opserr << "WARNING invalid Material Tag 1" << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
@@ -173,13 +161,25 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
       }
     }
 
+    UniaxialMaterial *theMaterial1 = 0;
+    UniaxialMaterial *theMaterial2 = 0;
+    UniaxialMaterial *theMaterial3 = 0;
+    UniaxialMaterial *theMaterial4 = 0;
+    UniaxialMaterial *theMaterial5 = 0;
+    UniaxialMaterial *theMaterial6 = 0;
+    UniaxialMaterial *theMaterial7 = 0;
+    UniaxialMaterial *theMaterial8 = 0;
+    UniaxialMaterial *theMaterial9 = 0;
+    UniaxialMaterial *theMaterial10 = 0;
+    UniaxialMaterial *theMaterial11 = 0;
+    UniaxialMaterial *theMaterial12 = 0;
+    UniaxialMaterial *theMaterial13 = 0;
     if (matId1 != 0) {
       theMaterial1 = builder->getTypedObject<UniaxialMaterial>(matId1);
       if (theMaterial1 == nullptr) {
         return TCL_ERROR;
       }
-    } else
-      theMaterial1 = 0;
+    }
 
     if (matId2 != 0) {
       theMaterial2 = builder->getTypedObject<UniaxialMaterial>(matId2);
@@ -188,18 +188,15 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
         opserr << "WARNING material not found\n";
         return TCL_ERROR;
       }
-    } else
-      theMaterial2 = 0;
+    }
 
     if (matId3 != 0) {
       theMaterial3 = builder->getTypedObject<UniaxialMaterial>(matId3);
-
       if (theMaterial3 == 0) {
         opserr << "WARNING material not found\n";
         return TCL_ERROR;
       }
-    } else
-      theMaterial3 = 0;
+    }
 
     if (matId4 != 0) {
       theMaterial4 = builder->getTypedObject<UniaxialMaterial>(matId4);
@@ -208,8 +205,7 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
         opserr << "WARNING material not found\n";
         return TCL_ERROR;
       }
-    } else
-      theMaterial4 = 0;
+    }
 
     if (matId5 != 0) {
       theMaterial5 = builder->getTypedObject<UniaxialMaterial>(matId5);
@@ -218,24 +214,21 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
         opserr << "WARNING material not found\n";
         return TCL_ERROR;
       }
-    } else
-      theMaterial5 = 0;
+    }
 
     if (matId6 != 0) {
       theMaterial6 = builder->getTypedObject<UniaxialMaterial>(matId6);
       if (theMaterial6 == 0) {
         return TCL_ERROR;
       }
-    } else
-      theMaterial6 = 0;
+    }
 
     if (matId7 != 0) {
       theMaterial7 = builder->getTypedObject<UniaxialMaterial>(matId7);
       if (theMaterial7 == 0) {
         return TCL_ERROR;
       }
-    } else
-      theMaterial7 = 0;
+    }
 
     if (matId8 != 0) {
       theMaterial8 = builder->getTypedObject<UniaxialMaterial>(matId8);

@@ -22,8 +22,6 @@
 #include <elementAPI.h>
 #include <classTags.h>
 //
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <tgmath.h>
 #include <assert.h>
@@ -67,17 +65,12 @@
 #include <Response.h>
 #include <packages.h>
 //
-// Global variables
-//
-class ModelBuilder;
-ModelBuilder          *theBuilder         = nullptr;
-//
 // Forward declarations
 //
 const char *getInterpPWD(Tcl_Interp *interp);
-extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
-                                       Tcl_Interp *interp, int cArg, int mArg,
-                                       TCL_Char ** const argv, Domain *domain);
+extern "C" int OPS_ResetInputNoBuilder(ClientData,
+                                       Tcl_Interp *, int cArg, int mArg,
+                                       TCL_Char ** const argv, Domain *);
 
 Tcl_CmdProc TclCommand_record;
 Tcl_CmdProc TclCommand_setLoadConst;
@@ -129,6 +122,8 @@ static struct {
   {"setNodeDisp",         &setNodeDisp},
   {"setNodeAccel",        &setNodeAccel},
   {"setNodeCoord",        &setNodeCoord},
+  {"setNodePressure",     &setNodePressure},
+
   {"nodeRotation",        &nodeRotation},
   {"getNodeTags",         &getNodeTags},
 
@@ -163,15 +158,12 @@ static struct {
 };
 }
 
-// TODO: reimplement defaultUnits and setParameter
-// int defaultUnits(ClientData, Tcl_Interp *, int, TCL_Char ** const argv);
-// int setParameter(ClientData, Tcl_Interp *, int, TCL_Char **);
+
 int
 G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 {
 
   ClientData domain = (ClientData)the_domain;
-
 
   {
     using namespace OpenSees::DomainCommands;
@@ -252,7 +244,8 @@ getLoadFactor(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   LoadPattern *the_pattern = domain->getLoadPattern(tag);
   if (the_pattern == nullptr) {
-    opserr << OpenSees::PromptValueError << "load pattern with tag " << tag
+    opserr << OpenSees::PromptValueError 
+           << "load pattern with tag " << tag
            << " not found in domain\n";
     return TCL_ERROR;
   }
@@ -290,7 +283,7 @@ InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   }
 
   if (strcmp(argv[1], "on") == 0) {
-    opserr << "InitialStateAnalysis ON" << "\n";
+    opslog << "InitialStateAnalysis ON" << "\n";
 
     // set global variable to true
     // FMK changes for parallel:
@@ -301,9 +294,9 @@ InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     delete theP;
 
     return TCL_OK;
-
-  } else if (strcmp(argv[1], "off") == 0) {
-    opserr << "InitialStateAnalysis OFF" << "\n";
+  }
+  else if (strcmp(argv[1], "off") == 0) {
+    opslog << "InitialStateAnalysis OFF" << "\n";
 
     // call revert to start to zero the displacements
     the_domain->revertToStart();
@@ -407,29 +400,35 @@ getEleLoadClassTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     int arg_pattern = 1;
     if (argc == 3) {
       if (strcmp(argv[1], "-pattern") != 0) {
-        opserr << OpenSees::PromptValueError << "unexpected argument " << argv[1] << "\n";
+        opserr << OpenSees::PromptValueError 
+               << "Unexpected argument " 
+               << argv[1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       arg_pattern = 2;
     }
 
     if (Tcl_GetInt(interp, argv[arg_pattern], &patternTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "failed to read patternTag\n";
+      opserr << OpenSees::PromptValueError 
+             << "Failed to read patternTag"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
     LoadPattern *thePattern = the_domain->getLoadPattern(patternTag);
     if (thePattern == nullptr) {
       opserr << OpenSees::PromptValueError 
-             << "load pattern with tag " << patternTag
-             << " not found in domain"
+             << "Failed to find load pattern with tag " 
+             << patternTag
              << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
       opserr << OpenSees::PromptValueError 
-             << "load pattern with tag " << patternTag
-             << " is not a StaticPattern\n";
+             << "Load pattern with tag " << patternTag
+             << " is not a StaticPattern"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
@@ -480,18 +479,22 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     int patternTag;
 
     if (Tcl_GetInt(interp, argv[1], &patternTag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "failed to read patternTag \n";
+      opserr << OpenSees::PromptValueError 
+             << "failed to read patternTag"
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
     LoadPattern *thePattern = the_domain->getLoadPattern(patternTag);
     if (thePattern == nullptr) {
-      opserr << OpenSees::PromptValueError << "load pattern with tag " << patternTag
+      opserr << OpenSees::PromptValueError 
+             << "Load pattern with tag " << patternTag
              << " not found in domain\n";
       return TCL_ERROR;
     }
     if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
-      opserr << OpenSees::PromptValueError << "load pattern with tag " << patternTag
+      opserr << OpenSees::PromptValueError 
+             << "Load pattern with tag " << patternTag
              << " is not a StaticPattern\n";
       return TCL_ERROR;
     }
@@ -506,7 +509,7 @@ getEleLoadTags(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     }
   }
   else {
-    opserr << OpenSees::PromptValueError << "unexpectd arguments\n" << "\n";
+    opserr << OpenSees::PromptValueError << "unexpected arguments\n" << "\n";
     return TCL_ERROR;
   }
 
@@ -561,13 +564,13 @@ getEleLoadData(ClientData clientData,
     LoadPattern *thePattern = the_domain->getLoadPattern(patternTag);
     if (thePattern == nullptr) {
       opserr << OpenSees::PromptValueError 
-             << "load pattern with tag " << patternTag
+             << "Load pattern with tag " << patternTag
              << " not found in domain\n";
       return TCL_ERROR;
     }
     if (thePattern->getClassTag() != LoadPattern::PATTERN_TAG_StaticPattern) {
       opserr << OpenSees::PromptValueError 
-             << "load pattern with tag " << patternTag
+             << "Load pattern with tag " << patternTag
              << " is not a StaticPattern\n";
       return TCL_ERROR;
     }
@@ -578,7 +581,6 @@ getEleLoadData(ClientData clientData,
 
     int typeEL;
     char buffer[40];
-
     while ((theLoad = theEleLoads()) != nullptr) {
       const Vector &eleLoadData = theLoad->getData(typeEL, 1.0);
 
@@ -597,3 +599,4 @@ getEleLoadData(ClientData clientData,
 
   return TCL_OK;
 }
+

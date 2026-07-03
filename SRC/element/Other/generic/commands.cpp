@@ -13,6 +13,7 @@
 #include <Logging.h>
 #include <stdlib.h>
 #include <string.h>
+#include <cassert>
 #include <Domain.h>
 
 #include <ModelRegistry.h>
@@ -23,15 +24,13 @@ int
 TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
                                  int argc, TCL_Char ** const argv)
 {
+  assert(clientData != nullptr);
+
   const int eleArgStart = 1;
 
   ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
-  if (builder == 0 || clientData == 0) {
-    opserr << "WARNING builder has been destroyed - genericClient\n";
-    return TCL_ERROR;
-  }
 
   // check the number of arguments is correct
   if ((argc - eleArgStart) < 8) {
@@ -42,7 +41,6 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  Element *theElement = nullptr;
 
   // get the id and end nodes
   int tag, node, dof, ipPort;
@@ -70,6 +68,7 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
     opserr << "WARNING no nodes specified\n";
     return TCL_ERROR;
   }
+
   // create the ID arrays to hold the nodes and dofs
   ID nodes(numNodes);
   ID *dofs = new ID[numNodes];
@@ -143,11 +142,13 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
         }
       }
     }
-  } else {
+  }
+  else {
     opserr << "WARNING expecting -server string but got ";
     opserr << argv[argi] << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
+
   for (int i = argi; i < argc; ++i) {
     if (strcmp(argv[i], "-doRayleigh") == 0) {
       doRayleigh = 1;
@@ -157,11 +158,11 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
   }
 
   // now create the GenericClient
-  theElement = new GenericClient(tag, nodes, dofs, ipPort, ipAddr, ssl, udp,
+  Element* theElement = new GenericClient(tag, nodes, dofs, ipPort, ipAddr, ssl, udp,
                                  dataSize, doRayleigh);
 
   // cleanup dynamic memory
-  if (dofs != 0)
+  if (dofs != nullptr)
     delete[] dofs;
 
 
@@ -174,6 +175,7 @@ TclBasicBuilder_addGenericClient(ClientData clientData, Tcl_Interp *interp,
 
   return TCL_OK;
 }
+
 
 int
 TclBasicBuilder_addGenericCopy(ClientData clientData, Tcl_Interp *interp, int argc,

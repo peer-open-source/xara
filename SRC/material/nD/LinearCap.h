@@ -18,7 +18,6 @@
 class LinearCap : public NDMaterial {
 public :
 
- 
   LinearCap(int tag,
             double G,
             double K,
@@ -28,10 +27,10 @@ public :
             double T, 
             int ndm,
             double pTol_k
-			     ) ;
+			     );
   LinearCap( const LinearCap & a);
 
-  ~LinearCap( ) ;
+  ~LinearCap();
 
   double getRho();
   int setTrialStrain(const Vector &v);
@@ -56,16 +55,15 @@ public :
   const char *getType() const;
   int getOrder() const ;
   
-  int sendSelf(int commitTag, Channel &theChannel) ;
-  int recvSelf(int commitTag, Channel &theChannel,
-          FEM_ObjectBroker &theBroker ) ;
+  int sendSelf(int commitTag, Channel &) ;
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) ;
 
-  Response *setResponse (const char **argv, int argc, OPS_Stream &output);
-  int getResponse (int responseID, Information &matInformation);
+  Response *setResponse (const char **argv, int argc, OPS_Stream &);
+  int getResponse (int responseID, Information &);
 
-  void Print(OPS_Stream &s, int flag = 0) ;	
+  void Print(OPS_Stream &s, int flag) ;	
 
-  private:
+private:
  
 	  double CapBoundL(double k);
 	  double CapBoundX(double k); 
@@ -75,12 +73,11 @@ public :
 
 	  int    findMode(double normS, double I1);
 
-// ----------------------------  for consistent tangent modulus ---------------
+  //  for consistent tangent modulus
 
-	  int computeConsistentTangent(double gammar1, double gammar2, double gammar3, int mode);
+  int computeConsistentTangent(double gammar1, double gammar2, double gammar3, int mode);
 
-
-  private:
+private:
 
 
   //int    tag;

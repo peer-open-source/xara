@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
 #include <tcl.h>
 #include <Parsing.h>
 #include <Logging.h>
@@ -980,4 +978,3 @@ int Tcl_Peri(ClientData cd, Tcl_Interp *interp,
     }
     return TCL_OK;
 }
-#pragma clang diagnostic pop

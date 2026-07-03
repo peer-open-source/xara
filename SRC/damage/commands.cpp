@@ -27,7 +27,8 @@
 
 int
 TclCommand_addDamageModel(ClientData clientData, Tcl_Interp *interp, 
-                          Tcl_Size argc, TCL_Char ** const argv)
+                          Tcl_Size argc,
+                          TCL_Char ** const argv)
 				   
 {
   
@@ -58,13 +59,11 @@ TclCommand_addDamageModel(ClientData clientData, Tcl_Interp *interp,
     double alpha,beta,gamma,ultimatePosDisp, ultimateNegDisp, abstol, reltol, posmodifier,negmodifier;
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
       opserr << "WARNING invalid tag\n";
-      opserr << "Damage model Mehanny " << "\n";
       return TCL_ERROR;		
     }
     
     if (Tcl_GetDouble(interp, argv[3], &alpha) != TCL_OK) {
       opserr << "WARNING invalid Alpha\n";
-      opserr << "Damage model Mehanny : " << tag << "\n";
       return TCL_ERROR;	
     }
     
@@ -88,42 +87,35 @@ TclCommand_addDamageModel(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
     
-    if ( argc > 8 )
-      {
-	if (Tcl_GetDouble(interp, argv[8], &abstol) != TCL_OK) {
-	  opserr << "WARNING invalid AbsTol\n";
-	  return TCL_ERROR;	
-	}
-	
-	if (Tcl_GetDouble(interp,argv[9], &reltol) != TCL_OK) {
-	  opserr << "WARNING invalid RelTol\n";
-	  return TCL_ERROR;
-	}
-	
-	
-	if ( argc == 12 )
-	  {
-	    
-	    if (Tcl_GetDouble(interp,argv[10], &posmodifier) != TCL_OK) {
-	      opserr << "WARNING invalid posmodifier\n";
-	      opserr << "Damage Mehanny : " << tag << "\n";
-	      return TCL_ERROR;
-	    }
-	    
-	    if (Tcl_GetDouble(interp,argv[11], &negmodifier) != TCL_OK) {
-	      opserr << "WARNING invalid negmodifier\n";
-	      opserr << "Damage Mehanny : " << tag << "\n";
-	      return TCL_ERROR;
-	    }
-	  }	else
-	    {
-	      posmodifier = negmodifier = 1.0;
-	    }
-      } else
-	{
-	  abstol = reltol = 0.0;
-	  posmodifier = negmodifier = 1.0;		
-	}
+    if ( argc > 8 )  {
+      if (Tcl_GetDouble(interp, argv[8], &abstol) != TCL_OK) {
+        opserr << "WARNING invalid AbsTol\n";
+        return TCL_ERROR;	
+      }
+      
+      if (Tcl_GetDouble(interp,argv[9], &reltol) != TCL_OK) {
+        opserr << "WARNING invalid RelTol\n";
+        return TCL_ERROR;
+      }
+
+      if ( argc == 12 )  {
+        if (Tcl_GetDouble(interp,argv[10], &posmodifier) != TCL_OK) {
+          opserr << "WARNING invalid posmodifier\n";
+          return TCL_ERROR;
+        }
+        if (Tcl_GetDouble(interp,argv[11], &negmodifier) != TCL_OK) {
+          opserr << "WARNING invalid negmodifier\n";
+          return TCL_ERROR;
+        }
+      }	
+      else {
+        posmodifier = negmodifier = 1.0;
+      }
+    }
+    else {
+      abstol = reltol = 0.0;
+      posmodifier = negmodifier = 1.0;		
+    }
     
     // Parsing was successful, allocate the damage model
     theDamage = new Mehanny(tag, alpha , beta, gamma , ultimatePosDisp, ultimateNegDisp, abstol, reltol, posmodifier, negmodifier);
@@ -153,7 +145,6 @@ TclCommand_addDamageModel(ClientData clientData, Tcl_Interp *interp,
     
     if (Tcl_GetDouble(interp,argv[4], &ultimateNegDisp) != TCL_OK) {
       opserr << "WARNING invalid ultimateNegDisp\n";
-      opserr << "Damage Kratzig : " << tag << "\n";
       return TCL_ERROR;
     }
     
@@ -176,19 +167,16 @@ TclCommand_addDamageModel(ClientData clientData, Tcl_Interp *interp,
     
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
       opserr << "WARNING invalid tag\n";
-      opserr << "Damage model NormalizedPeak " << "\n";
       return TCL_ERROR;		
     }
     
     if (Tcl_GetDouble(interp, argv[3], &maxVal) != TCL_OK) {
       opserr << "WARNING invalid maxVal\n";
-      opserr << "Damage model NormalizedPeak : " << tag << "\n";
       return TCL_ERROR;	
     }
     
     if (Tcl_GetDouble(interp, argv[4], &minVal) != TCL_OK) {
-      opserr << "WARNING invalid Beta\n";
-      opserr << "Damage NormalizedPeak : " << tag << "\n";
+      opserr << "WARNING invalid minVal\n";
       return TCL_ERROR;	
     }
     
@@ -214,19 +202,16 @@ TclCommand_addDamageModel(ClientData clientData, Tcl_Interp *interp,
     
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
       opserr << "WARNING invalid tag\n";
-      opserr << "Damage model HystereticEnergy " << "\n";
       return TCL_ERROR;		
     }
     
     if (Tcl_GetDouble(interp, argv[3], &Etot) != TCL_OK) {
       opserr << "WARNING invalid Total energy\n";
-      opserr << "Damage model HystereticEnergy : " << tag << "\n";
       return TCL_ERROR;	
     }
     
     if (Tcl_GetDouble(interp, argv[4], &Cpow) != TCL_OK) {
       opserr << "WARNING invalid Constant exponent\n";
-      opserr << "Damage HystereticEnergy : " << tag << "\n";
       return TCL_ERROR;	
     }
     

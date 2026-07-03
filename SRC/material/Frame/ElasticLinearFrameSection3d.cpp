@@ -186,7 +186,7 @@ ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(int tag,
 
 
 ElasticLinearFrameSection3d::ElasticLinearFrameSection3d(ElasticLinearFrameSection3d& other)
-: FrameSection(0, SEC_TAG_ElasticLinearFrame3d, 0, false),
+: FrameSection(other.getTag(), SEC_TAG_ElasticLinearFrame3d),
   shape_data(other.shape_data),
   Ks(other.Ks),
   Ksen(nullptr),

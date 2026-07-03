@@ -63,7 +63,7 @@ PatternRecorder::PatternRecorder(int pattern,
   theFile.open(fileName, ios::out);
   if (theFile.bad()) {
     opserr << "WARNING - PatternRecorder::PatternRecorder()";
-    opserr << " - could not open file " << fileName << endln;
+    opserr << " - could not open file " << fileName << "\n";
   }
   //theFile << setiosflags(ios::scientific) << setprecision(15);
 }
@@ -103,7 +103,7 @@ PatternRecorder::record(int commitTag, double timeStamp)
   
   theFile << value << " ";
   
-  theFile << endln;
+  theFile << "\n";
   theFile.flush();
   
   return 0;
@@ -123,10 +123,10 @@ PatternRecorder::playback(int commitTag)
   inputFile.open(fileName, ios::in);
   if (inputFile.bad()) {
     opserr << "WARNING - PatternRecorder::playback() - could not open file ";
-    opserr << fileName << endln;
+    opserr << fileName << "\n";
     return -1;
   }   
-  
+
   double data;
   // read file up until line we want
   for (int i=0; i<(commitTag-1); i++)
@@ -142,7 +142,7 @@ PatternRecorder::playback(int commitTag)
     opserr << data << " ";
     inputFile >> data;
     opserr << data << " ";
-    opserr << endln;
+    opserr << "\n";
   }
   inputFile.close();
   
@@ -150,7 +150,7 @@ PatternRecorder::playback(int commitTag)
   theFile.open(fileName, ios::app);
   if (theFile.bad()) {
     opserr << "WARNING - PatternRecorder::playback() - could not open file ";
-    opserr << fileName << endln;
+    opserr << fileName << "\n";
     return -1;
   }    
   
@@ -159,18 +159,20 @@ PatternRecorder::playback(int commitTag)
 }
 
 int
-PatternRecorder::restart(void)
+PatternRecorder::restart()
 {
   theFile.close();
   theFile.open(fileName, ios::out);
   if (theFile.bad()) {
     opserr << "WARNING - PatternRecorder::restart() - could not open file ";
-    opserr << fileName << endln;
+    opserr << fileName << "\n";
   }
   return 0;
 }
 
-int PatternRecorder::flush(void) {
+int 
+PatternRecorder::flush() 
+{
   if (theFile.is_open() && theFile.good()) {
     theFile.flush();
   }

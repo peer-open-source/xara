@@ -20,18 +20,16 @@
                        
 #ifndef ElasticIsotropicMaterial_h
 #define ElasticIsotropicMaterial_h
-
-// Written: MHS
-// Created: Feb 2000
-// Revision: A
 //
 // Description: This file contains the class definition for ElasticIsotropicMaterialModel.
 // ElasticIsotropicMaterialModel is an abstract base class and thus no objects of it's type
 // can be instantiated. It has pure virtual functions which must be
 // implemented in it's derived classes. 
 //
-// What: "@(#) ElasticIsotropicMaterial.h, revA"
-
+// Written: MHS
+// Created: Feb 2000
+// Revision: A
+//
 #include <NDMaterial.h>
 
 #include <Matrix.h>
@@ -43,36 +41,21 @@ class ElasticIsotropicMaterial : public NDMaterial
 {
   public:
     // Only called by subclasses to pass their tags to NDMaterialModel
-    ElasticIsotropicMaterial (int tag, int classTag, double E, double nu, double rho = 0.0);
+    ElasticIsotropicMaterial(int tag, int classTag, double E, double nu, double rho);
 
-    // Called by clients
-    ElasticIsotropicMaterial (int tag, double E, double nu, double rho = 0.0);
-
-    // For parallel processing
-    ElasticIsotropicMaterial (void);
 
     virtual ~ElasticIsotropicMaterial();
 
     virtual const char *getClassType() const {return "ElasticIsotropicMaterial";}
 
-    virtual double getRho( ) ;
+    double getRho() override;
 
-    virtual int setTrialStrain (const Vector &v);
-    virtual int setTrialStrain (const Vector &v, const Vector &r);
-    virtual int setTrialStrainIncr (const Vector &v);
-    virtual int setTrialStrainIncr (const Vector &v, const Vector &r);
-    virtual const Matrix &getTangent(void);
-    virtual const Matrix &getInitialTangent(void);
-    virtual const Vector &getStress();
-    virtual const Vector &getStrain();
-
-    virtual int commitState(void);
-    virtual int revertToLastCommit (void);
-    virtual int revertToStart();
+    virtual const Matrix &getTangent();
+    virtual const Matrix &getInitialTangent();
     
     // Create a copy of material parameters AND state variables
     // Called by GenericSectionXD
-    NDMaterial *getCopy() override;
+    NDMaterial *getCopy() override=0;
 
     // Create a copy of just the material parameters
     // Called by the continuum elements
@@ -81,12 +64,12 @@ class ElasticIsotropicMaterial : public NDMaterial
     // Return a string indicating the type of material model
     virtual const char *getType() const;
 
-    virtual int getOrder() const;
+    int getOrder() const override=0;
     
     virtual int sendSelf(int commitTag, Channel &);  
     virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
-    
-    void Print(OPS_Stream &s, int flag = 0);
+
+    void Print(OPS_Stream &s, int flag) override;
 
     virtual int setParameter(const char **argv, int argc, Parameter &);
     virtual int updateParameter(int parameterID, Information &);

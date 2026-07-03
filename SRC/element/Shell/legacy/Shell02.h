@@ -17,7 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+#pragma once
 // $Revision: 1.10 $
 // $Date: 2007/04/23 19:19:37 $
 // $Source: /usr/local/cvs/OpenSees/SRC/element/shell/Shell02.h,v $
@@ -26,8 +26,6 @@
 //
 // B-bar four node shell element with membrane and drill
 //
-
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -52,63 +50,49 @@ class Shell02 : public Element {
 	       int node2,
 	       int node3,
 	       int node4,
-	       SectionForceDeformation &theMaterial ) ;
+	       SectionForceDeformation &theMaterial );
     
     //destructor 
-    virtual ~Shell02( ) ;
+    virtual ~Shell02();
     
     //set domain because frank is a dumb ass 
-    void setDomain( Domain *theDomain ) ;
-    
-    //get the number of external nodes
-    int getNumExternalNodes( ) const ;
+    void setDomain( Domain * ) ;
+
     
     //return connected external nodes
-    const ID &getExternalNodes( ) ;
+    int getNumExternalNodes( ) const ;
+    const ID &getExternalNodes();
     Node **getNodePtrs();
+    int getNumDOF();
 
-    //return number of dofs
-    int getNumDOF( ) ;
+    // commit state
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
 
-    //commit state
-    int commitState( ) ;
-    
-    //revert to last commit 
-    int revertToLastCommit( ) ;
-    
-    //revert to start 
-    int revertToStart( ) ;
-
-    //print out element data
-    void Print( OPS_Stream &s, int flag ) ;
 	
-    //return stiffness matrix 
-    const Matrix &getTangentStiff( ) ;
+    // return stiffness matrix 
+    const Matrix &getTangentStiff();
     const Matrix &getInitialStiff();
     const Matrix &getMass();
 
     // methods for applying loads
-    void zeroLoad(void);	
+    void zeroLoad();	
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
-    //get residual
-    const Vector &getResistingForce( ) ;
-    
-    //get residual with inertia terms
+    // get residual
+    const Vector &getResistingForce( );
     const Vector &getResistingForceIncInertia( ) ;
 
     // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker 
-		  &theBroker);
+    int sendSelf (int commitTag, Channel &);
+    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker  &);
 
+    void Print( OPS_Stream &s, int flag ) ;
 
     Response* setResponse(const char **argv, int argc, OPS_Stream &output);
-    int getResponse(int responseID, Information &eleInfo);
-      
-    //plotting 
-    int displaySelf(Renderer &theViewer, int displayMode, float fact);
+    int getResponse(int responseID, Information &);
 
   private : 
 
@@ -189,27 +173,18 @@ class Shell02 : public Element {
     const Matrix&  computeBbarShear( int node, double L1, double L2,
 				     const Matrix& Jinv ) ;
   
-			     
-    //compute the gamma's
     void  computeGamma( const double xl[2][4], const Matrix &J ) ;
 
-    //Matrix transpose
-    Matrix transpose( int dim1, int dim2, const Matrix &M ) ;
 
     //shape function routine for four node quads
     void shape2d( double ss, double tt, 
 		  const double x[2][4], 
 		  double shp[3][4], 
-		  double &xsj ) ;
+		  double &xsj );
 
     // vector for applying loads
     Vector *load;
     Matrix *Ki;
-} ; 
-
-
-
-
-
+}; 
 
 

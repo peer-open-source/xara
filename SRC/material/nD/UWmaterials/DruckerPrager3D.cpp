@@ -27,12 +27,14 @@
 
 
 //null constructor
-DruckerPrager3D ::  DruckerPrager3D( ) : 
+DruckerPrager3D::DruckerPrager3D() : 
 DruckerPrager( )
-{  }
+{
+
+}
 
 
-//full constructor
+// full constructor
 DruckerPrager3D::DruckerPrager3D(int tag, double bulk, double shear, double s_y,
 							 double r, double r_bar, double Kinfinity, double Kinit, 
 							 double d1, double d2, double H, double t, double mDen, double atm) : 
@@ -43,11 +45,11 @@ DruckerPrager(tag, ND_TAG_DruckerPrager3D, bulk, shear, s_y, r, r_bar, Kinfinity
 
    
 //destructor
-DruckerPrager3D :: ~DruckerPrager3D( ) 
+DruckerPrager3D::~DruckerPrager3D( ) 
 {} 
 
 
-NDMaterial* DruckerPrager3D :: getCopy( ) 
+NDMaterial* DruckerPrager3D::getCopy( ) 
 { 
   DruckerPrager3D  *clone;
   clone = new DruckerPrager3D( ) ;   //new instance of this class
@@ -57,20 +59,22 @@ NDMaterial* DruckerPrager3D :: getCopy( )
 
 
 //send back type of material
-const char* DruckerPrager3D :: getType( ) const 
+const char* DruckerPrager3D::getType( ) const 
 {
   return "ThreeDimensional" ;
 }
 
 
-int DruckerPrager3D :: getOrder( ) const 
+int
+DruckerPrager3D::getOrder( ) const 
 { 
   return 6 ; 
 } 
 
 
 //get the strain and integrate plasticity equations
-int DruckerPrager3D :: setTrialStrain( const Vector &strain_from_element) 
+int
+DruckerPrager3D::setTrialStrain( const Vector &strain_from_element) 
 {
 	mEpsilon = strain_from_element;
 	this->plastic_integrator( ) ;
@@ -86,23 +90,23 @@ int DruckerPrager3D::setTrialStrain (const Vector &v, const Vector &r)
 }
 
 
-const Vector& DruckerPrager3D :: getStrain( ) 
+const Vector& DruckerPrager3D::getStrain( ) 
 {
   return mEpsilon ;
 } 
 
 
-const Vector& DruckerPrager3D :: getStress( ) 
+const Vector& DruckerPrager3D::getStress( ) 
 {
   return mSigma ;
 }
 
-const Matrix& DruckerPrager3D :: getTangent( ) 
+const Matrix& DruckerPrager3D::getTangent( ) 
 {
   return mCep ;
 } 
 
-const Matrix& DruckerPrager3D :: getInitialTangent( ) 
+const Matrix& DruckerPrager3D::getInitialTangent( ) 
 {
   return mCe ;
 } 

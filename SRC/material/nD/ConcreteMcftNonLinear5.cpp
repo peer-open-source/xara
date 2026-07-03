@@ -682,43 +682,22 @@ ConcreteMcftNonLinear5::getType (void) const
 }
 
 int 
-ConcreteMcftNonLinear5::getOrder(void) const
+ConcreteMcftNonLinear5::getOrder() const
 {
-	
-  //opserr << " check17 " << endln;
   return 2;
-  
-
 }
 
-
-void
-ConcreteMcftNonLinear5::Print (OPS_Stream &s, int flag)
-{
-	
-	//opserr << " check18 " << endln;
-	return;
-	
-}
 
 int
 ConcreteMcftNonLinear5::sendSelf(int commitTag, Channel &theChannel)
 {
-	
-	//opserr << " check19 " << endln;
-	return 0;
-	
-
+	return -1;
 }
 
 int
 ConcreteMcftNonLinear5::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
-	
-	//opserr << " check20 " << endln;
-	return 0;
-	
-
+	return -1;
 }
 
 

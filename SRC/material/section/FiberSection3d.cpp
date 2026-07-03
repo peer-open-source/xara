@@ -95,9 +95,9 @@ FiberSection3d::FiberSection3d():
 // 
 //   s->Zero();
 //   ks->Zero();
-    eData.zero();
-    sData.zero();
-    ks.Zero();
+  eData.zero();
+  sData.zero();
+  ks.Zero();
 
   code(0) = SECTION_RESPONSE_P;
   code(1) = SECTION_RESPONSE_MZ;
@@ -105,18 +105,19 @@ FiberSection3d::FiberSection3d():
   code(3) = SECTION_RESPONSE_T;
 }
 
+
 // destructor:
 FiberSection3d::~FiberSection3d()
 {
-  if (theMaterials != 0) {
+  if (theMaterials != nullptr) {
     for (int i = 0; i < numFibers; i++)
-      if (theMaterials[i] != 0)
+      if (theMaterials[i] != nullptr)
       delete theMaterials[i];
 
     delete [] theMaterials;
   }
 
-  if (theTorsion != 0)
+  if (theTorsion != nullptr)
     delete theTorsion;
 }
 

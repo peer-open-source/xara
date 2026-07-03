@@ -146,9 +146,6 @@ void VuggyLimestone::Print(OPS_Stream &s, int flag) {
   s << "\tsu: " << shearStrength << endln;
 }
 
-int VuggyLimestone::setVariable(char *argv) { return -1; }
-
-int VuggyLimestone::getVariable(int varID, double &theValue) { return -1; }
 
 int VuggyLimestone::sendSelf(int commitTag, Channel &theChannel) {
   int res = 0;

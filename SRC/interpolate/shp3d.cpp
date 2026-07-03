@@ -37,18 +37,18 @@ shp3d(const double xn[3],
 
   // Compute shape functions and their natural coord. derivatives
 
-  double ap1 = 1.0 + xn[0];
-  double am1 = 1.0 - xn[0];
-  double ap2 = 1.0 + xn[1];
-  double am2 = 1.0 - xn[1];
-  double ap3 = 1.0 + xn[2];
-  double am3 = 1.0 - xn[2];
+  const double ap1 = 1.0 + xn[0];
+  const double am1 = 1.0 - xn[0];
+  const double ap2 = 1.0 + xn[1];
+  const double am2 = 1.0 - xn[1];
+  const double ap3 = 1.0 + xn[2];
+  const double am3 = 1.0 - xn[2];
 
   // Compute for ( - , - ) values
   {
-    double c1 = 0.125*am1*am2 ;
-    double c2 = 0.125*am2*am3 ;
-    double c3 = 0.125*am1*am3 ;
+    const double c1 = 0.125*am1*am2 ;
+    const double c2 = 0.125*am2*am3 ;
+    const double c3 = 0.125*am1*am3 ;
     shp[0][0] = -c2 ;
     shp[0][1] =  c2 ;
     shp[1][0] = -c3 ;
@@ -145,7 +145,7 @@ shp3d(const double xn[3],
   // Compute determinant of jacobian
 
   xsj  = xs[0][0]*ad[0][0] + xs[0][1]*ad[1][0] + xs[0][2]*ad[2][0] ;
-  double rxsj = 1.0/xsj ;
+  const double rxsj = 1.0/xsj;
 
   // Compute jacobian inverse
 
@@ -159,9 +159,9 @@ shp3d(const double xn[3],
 
   for (int k=0; k<8; k++) {
 
-    double c1 = shp[0][k]*xs[0][0] + shp[1][k]*xs[1][0] + shp[2][k]*xs[2][0] ;
-    double c2 = shp[0][k]*xs[0][1] + shp[1][k]*xs[1][1] + shp[2][k]*xs[2][1] ;
-    double c3 = shp[0][k]*xs[0][2] + shp[1][k]*xs[1][2] + shp[2][k]*xs[2][2] ;
+    const double c1 = shp[0][k]*xs[0][0] + shp[1][k]*xs[1][0] + shp[2][k]*xs[2][0] ;
+    const double c2 = shp[0][k]*xs[0][1] + shp[1][k]*xs[1][1] + shp[2][k]*xs[2][1] ;
+    const double c3 = shp[0][k]*xs[0][2] + shp[1][k]*xs[1][2] + shp[2][k]*xs[2][2] ;
 
     shp[0][k] = c1 ;
     shp[1][k] = c2 ;

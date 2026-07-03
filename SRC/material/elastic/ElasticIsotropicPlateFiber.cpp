@@ -30,20 +30,20 @@ Matrix ElasticIsotropicPlateFiber::D(5,5);
 
 ElasticIsotropicPlateFiber::ElasticIsotropicPlateFiber
 (int tag, double E, double nu, double rho) :
- ElasticIsotropicMaterial (tag, ND_TAG_ElasticIsotropicPlateFiber, E, nu, rho),
+ ElasticIsotropicMaterial(tag, ND_TAG_ElasticIsotropicPlateFiber, E, nu, rho),
  epsilon(5)
 {
 
 }
 
 ElasticIsotropicPlateFiber::ElasticIsotropicPlateFiber():
- ElasticIsotropicMaterial (0, ND_TAG_ElasticIsotropicPlateFiber, 0.0, 0.0),
+ ElasticIsotropicMaterial(0, ND_TAG_ElasticIsotropicPlateFiber, 0.0, 0.0, 0.0),
  epsilon(5)
 {
 
 }
 
-ElasticIsotropicPlateFiber::~ElasticIsotropicPlateFiber ()
+ElasticIsotropicPlateFiber::~ElasticIsotropicPlateFiber()
 {
 
 }

@@ -52,7 +52,7 @@ class ShellNL : public Element
 	     int node8,
 	     int node9,
 	     SectionForceDeformation &theMaterial ) ;
-    //destructor 
+    // destructor 
     virtual ~ShellNL( ) ;
 
     //get the number of external nodes
@@ -167,9 +167,7 @@ class ShellNL : public Element
     
     //compute standard Bshear matrix
     const Matrix&  computeBshear( int node, const double shp[3][9] ) ;
-    
-    //Matrix transpose
-    Matrix transpose( int dim1, int dim2, const Matrix &M ) ;
+
 
     //shape function routine for four node quads
     void shape2d( double ss, double tt, 

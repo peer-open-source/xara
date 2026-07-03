@@ -590,11 +590,18 @@ TzSimple2::recvSelf(int cTag, Channel &theChannel,
 void 
 TzSimple2::Print(OPS_Stream &s, int flag)
 {
-    s << "TzSimple2, tag: " << this->getTag() << endln;
-    s << "  tzType: " << tzType << endln;
-    s << "  tult: " << tult << endln;
-    s << "  z50: " << z50 << endln;
-    s << "  dashpot: " << dashpot << endln;
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"type\": \"" << this->getClassType() << "\" ";
+		s << "}";
+		return;
+	}
+    s << "TzSimple2, tag: " << this->getTag() << "\n";
+    s << "  tzType: " << tzType << "\n";
+    s << "  tult: " << tult << "\n";
+    s << "  z50: " << z50 << "\n";
+    s << "  dashpot: " << dashpot << "\n";
 }
 
 /////////////////////////////////////////////////////////////////////

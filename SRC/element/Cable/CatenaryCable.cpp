@@ -923,7 +923,7 @@ void
 CatenaryCable::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"CatenaryCable\", ";
     s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
@@ -932,7 +932,8 @@ CatenaryCable::Print(OPS_Stream &s, int flag)
     s << "\"L0\": " << L0 << ", ";
     s << "\"alpha\": " << alpha << ", ";
     s << "\"deltaT\": " << temperature_change << ", ";
-    s << "\"massperlength\": " << rho << "\"}";
+    s << "\"massperlength\": " << rho;
+    s << "}";
   }
 }
 

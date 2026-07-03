@@ -157,8 +157,8 @@ ElasticIsotropic<ndim,type>::Print(OPS_Stream& s, int flag)
         s << "\trho:  " << rho << "\n";
 
     } else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
-        s << "\"name\": \"" << this->getTag() << "\", ";
+        s << OPS_PRINT_JSON_MATE_INDENT << "{";
+        s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"" << this->getClassType() << "\", ";
         s << "\"E\": "   << E   << ", ";
         s << "\"nu\": "  << nu  << ", ";

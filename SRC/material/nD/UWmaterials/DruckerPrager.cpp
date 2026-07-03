@@ -691,23 +691,20 @@ DruckerPrager::setResponse (const char **argv, int argc, OPS_Stream &output)
 		return 0;
 }
 
-int DruckerPrager::getResponse (int responseID, Information &matInfo)
+int DruckerPrager::getResponse(int responseID, Information &matInfo)
 {
 	switch (responseID) {
 		case -1:
 			return -1;
 		case 1:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = getStress();
-			return 0;
+		    return matInfo.setVector(this->getStress());
+
 		case 2:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = getStrain();
-			return 0;
+			return matInfo.setVector(this->getStrain());
+
 		case 3:
-			if (matInfo.theVector != 0)
-				*(matInfo.theVector) = getState();
-			return 0;
+			return matInfo.setVector(this->getState());
+
 		default:
 			return -1;
 	}

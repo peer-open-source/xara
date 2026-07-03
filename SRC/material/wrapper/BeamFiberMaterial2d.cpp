@@ -537,10 +537,20 @@ BeamFiberMaterial2d::getInitialTangent()
 void  
 BeamFiberMaterial2d::Print(OPS_Stream &s, int flag)
 {
-  s << "BeamFiberMaterial2d, tag: " << this->getTag() << endln;
-  s << "\tWrapped material: "<< theMaterial->getTag() << endln;
 
-  theMaterial->Print(s, flag);
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+    s << "\"material\": " << theMaterial->getTag() << "}";
+    return;
+  }
+  else {
+    s << "BeamFiberMaterial2d, tag: " << this->getTag() << "\n";
+    s << "\tWrapped material: "<< theMaterial->getTag() << "\n";
+
+    theMaterial->Print(s, flag);
+  }
 }
 
 int 

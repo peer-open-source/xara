@@ -56,9 +56,8 @@
 
 extern double ops_Dt;
 
-const double J2Plasticity ::root23 = sqrt(2.0 / 3.0);
 
-double J2Plasticity::initialTangent[3][3][3][3]; //material tangent
+double J2Plasticity::initialTangent[3][3][3][3]; // material tangent
 
 using namespace OpenSees;
 
@@ -79,8 +78,8 @@ J2Plasticity::J2Plasticity()
   eta         = 0.0;
   rho         = 0.0;
 
-  this->zero();
-  plastic_integrator();
+  // this->zero();
+  // plastic_integrator();
 }
 
 
@@ -110,9 +109,8 @@ J2Plasticity::J2Plasticity(int tag,
   eta         = viscosity;
   rho         = density;
 
-  this->zero();
-
-  plastic_integrator();
+  // this->zero();
+  // plastic_integrator();
 }
 
 
@@ -146,16 +144,14 @@ NDMaterial*
 J2Plasticity::getCopy(const char* type)
 {
   if (strcmp(type, "PlaneStress2D") == 0 || strcmp(type, "PlaneStress") == 0) {
-    J2PlaneStress* clone;
-    clone =
+    return
         new J2PlaneStress(this->getTag(), bulk, shear, sigma_0, sigma_infty, delta, Hard, eta, rho);
-    return clone;
-  } else if (strcmp(type, "PlaneStrain2D") == 0 || strcmp(type, "PlaneStrain") == 0) {
-    J2PlaneStrain* clone;
-    clone =
+  }
+  else if (strcmp(type, "PlaneStrain2D") == 0 || strcmp(type, "PlaneStrain") == 0) {
+    return
         new J2PlaneStrain(this->getTag(), bulk, shear, sigma_0, sigma_infty, delta, Hard, eta, rho);
-    return clone;
-  } else if (strcmp(type, "AxiSymmetric2D") == 0 || strcmp(type, "AxiSymmetric") == 0) {
+  }
+  else if (strcmp(type, "AxiSymmetric2D") == 0 || strcmp(type, "AxiSymmetric") == 0) {
     J2AxiSymm* clone;
     clone = new J2AxiSymm(this->getTag(), bulk, shear, sigma_0, sigma_infty, delta, Hard, eta, rho);
     return clone;
@@ -233,23 +229,16 @@ J2Plasticity::zero()
 int
 J2Plasticity::plastic_integrator()
 {
-  double dt = ops_Dt;
-  const double tolerance = 1.0e-10 * sigma_0;
+  const double dt = ops_Dt;
+  const double tolerance = 1.0e-8 * sigma_0;
   const double G = shear;
-
-  thread_local Matrix3D dev_stress{}; // deviatoric stress
-
-  thread_local Matrix3D normal{}; // normal to yield surface
-
-  double NbunN; // normal bun normal
-  double inv_norm_tau = 0.0;
 
 
   constexpr static int max_iterations = 25;
 
   // compute the deviatoric strains
 
-  double trace = strain(0, 0) + strain(1, 1) + strain(2, 2);
+  const double trace = strain(0, 0) + strain(1, 1) + strain(2, 2);
 
   thread_local Matrix3D dev_strain{};
   dev_strain = strain;
@@ -257,7 +246,7 @@ J2Plasticity::plastic_integrator()
     dev_strain(i, i) -= 1. / 3. * trace;
 
   // compute the trial deviatoric stresses
-
+  thread_local Matrix3D dev_stress{};
   // dev_stress = (2.0*G) * ( dev_strain - epsilon_p_n ) ;
   dev_stress = dev_strain;
   dev_stress -= epsilon_p_n;
@@ -271,12 +260,14 @@ J2Plasticity::plastic_integrator()
   }
   norm_tau = std::sqrt(norm_tau);
 
+  thread_local Matrix3D normal{}; // normal to yield surface
+  double inv_norm_tau = 0.0;
   if (norm_tau > tolerance) {
     inv_norm_tau = 1.0 / norm_tau;
     normal       = inv_norm_tau * dev_stress;
-  } else {
-    normal.Zero();
-    inv_norm_tau = 0.0;
+  }
+  else {
+    normal.zero();
   }
 
   // compute trial value of yield function
@@ -307,7 +298,7 @@ J2Plasticity::plastic_integrator()
 
       iteration_counter++;
 
-      if (iteration_counter > max_iterations) {
+      if (iteration_counter > max_iterations) [[unlikely]] {
         opserr << "More than " << max_iterations;
         opserr << " iterations in J2-plasticity. "
                << "residual is " << std::fabs(g) << " > " << tolerance << "\n";
@@ -320,12 +311,16 @@ J2Plasticity::plastic_integrator()
 
     // update plastic internal variables
 
-    epsilon_p_nplus1 = epsilon_p_n + Dlam*normal;
+    epsilon_p_nplus1 = epsilon_p_n; // + Dlam*normal;
+    epsilon_p_nplus1.addMatrix(normal, Dlam);
     xi_nplus1        = xi_n + root23*Dlam;
 
     // recompute deviatoric stresses
 
-    dev_stress = (2.0*G) * (dev_strain - epsilon_p_nplus1);
+    // dev_stress = (2.0*G) * (dev_strain - epsilon_p_nplus1);
+    dev_stress = dev_strain;
+    dev_stress -= epsilon_p_nplus1;
+    dev_stress *= 2.0*G;
 
     // compute the terms for plastic part of tangent
 
@@ -372,7 +367,7 @@ J2Plasticity::plastic_integrator()
       this->index_map(ii, i, j);
       this->index_map(jj, k, l);
 
-      NbunN = normal(i, j) * normal(k, l);
+      const double NbunN = normal(i, j) * normal(k, l);
 
       // elastic terms
       tangent[i][j][k][l] = bulk * IbunI[i][j][k][l];
@@ -437,8 +432,9 @@ J2Plasticity::qprime(double xi)
 
 
 // matrix_index ---> tensor indices i,j
+#if 0
 void
-J2Plasticity ::index_map(int matrix_index, int& i, int& j)
+J2Plasticity::index_map(int matrix_index, int& i, int& j)
 {
   switch (matrix_index + 1) { // add 1 for standard tensor indices
 
@@ -486,7 +482,6 @@ J2Plasticity ::index_map(int matrix_index, int& i, int& j)
   return;
 }
 
-
 NDMaterial*
 J2Plasticity::getCopy()
 {
@@ -495,6 +490,9 @@ J2Plasticity::getCopy()
   opserr << "J2Plasticity::getCopy -- subclass responsibility\n";
   return nullptr;
 }
+#endif
+
+
 
 const char*
 J2Plasticity::getType() const

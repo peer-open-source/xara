@@ -28,7 +28,7 @@
 #include <unordered_map>
 #include <TaggedObject.h>
 #include <HashMapOfTaggedObjects.h>
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 
 // some typedefs that will be useful
 typedef std::unordered_map<int, TaggedObject *> MAP_TAGGED;
@@ -38,7 +38,7 @@ typedef MAP_TAGGED::iterator          MAP_TAGGED_ITERATOR;
 HashMapOfTaggedObjects::HashMapOfTaggedObjects()
 :myIter(*this)
 {
-    // creates the iter with this as the argument
+  // creates the iter with this as the argument
 }
 
 HashMapOfTaggedObjects::~HashMapOfTaggedObjects()

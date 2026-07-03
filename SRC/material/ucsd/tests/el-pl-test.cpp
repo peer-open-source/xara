@@ -28,12 +28,11 @@
 #include "straint.h"
 #include "BJvector.h"
 #include "BJmatrix.h"
-//#include "iostream"
 
 #include <Tensor.h>
 
 
-int main(void)
+int main()
 {
 ::printf("\n\n-------------  MACHINE (CPU) DEPENDENT THINGS  --------------\n\n");
 

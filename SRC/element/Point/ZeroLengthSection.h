@@ -17,7 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+//
 // Written: MHS
 // Created: Sept 2000
 //
@@ -36,7 +36,7 @@
 
 class Node;
 class Channel;
-class SectionForceDeformation;
+class FrameSection;
 class Response;
 
 namespace OpenSees {
@@ -48,10 +48,8 @@ class ZeroLengthSection : public Element
     ZeroLengthSection(int tag,                               
                       int dimension,
                       int Nd1, int Nd2, 
-                      // const Vector& x,
-                      // const Vector& yprime,
                       const Matrix3D& T,
-                      SectionForceDeformation& theSection,
+                      FrameSection& theSection,
                       int doRayleighDamping = 0);
 
     ZeroLengthSection();
@@ -101,6 +99,13 @@ class ZeroLengthSection : public Element
 // AddingSensitivity:END ///////////////////////////////////////////
 
   private:
+    enum class Type: int {
+      Truss   = 0,
+      Euler2D = 1,
+      Euler3D = 2,
+      Shear2D = 3,
+      Shear3D = 4,
+    } type = Type::Truss;
 
     // private methods
     // void setUp (int Nd1, int Nd2, const Vector& x, const Vector& y);
@@ -122,7 +127,7 @@ class ZeroLengthSection : public Element
     
     Node *theNodes[2];
     
-    SectionForceDeformation *theSection;        // Pointer to section object
+    FrameSection *theSection;        // Pointer to section object
     int order;                // Order of the section model
     
     // Class wide matrices for return

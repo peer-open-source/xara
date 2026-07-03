@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.16 $
-// $Date: 2010-02-04 01:17:47 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/zeroLength/ZeroLengthSection.cpp,v $
-                                                                        
+//
 // Written: MHS
 // Created: Sept 2000
 //
@@ -36,7 +32,7 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <SectionForceDeformation.h>
+#include <FrameSection.h>
 #include <ElementResponse.h>
 
 #include <math.h>
@@ -53,8 +49,7 @@ Vector ZeroLengthSection::P12(12);
 
 ZeroLengthSection::ZeroLengthSection(int tag, int dim, int Nd1, int Nd2, 
                                      const Matrix3D& T,
-                                    //  const Vector& x, const Vector& yprime, 
-                                     SectionForceDeformation& sec,
+                                     FrameSection& sec,
                                      int doRayleigh) 
   : Element(tag, ELE_TAG_ZeroLengthSection)
   , connectedExternalNodes(2)
@@ -67,7 +62,15 @@ ZeroLengthSection::ZeroLengthSection(int tag, int dim, int Nd1, int Nd2,
   , order(0)
 {
   // Obtain copy of section model
-  theSection = sec.getCopy();
+  FrameStressLayout layout = {
+    FrameStress::N,
+    FrameStress::Vy,
+    FrameStress::Vz,
+    FrameStress::T,
+    FrameStress::My,
+    FrameStress::Mz
+  };
+  theSection = sec.getFrameCopy(layout);
 
   // Get the section order
   order = theSection->getOrder();
@@ -77,8 +80,6 @@ ZeroLengthSection::ZeroLengthSection(int tag, int dim, int Nd1, int Nd2,
 
   for (int i=0; i<2; i++)
     theNodes[i] = nullptr;
-  // Set up the transformation matrix of direction cosines
-  // this->setUp(Nd1, Nd2, x, yprime);
 }
 
 ZeroLengthSection::ZeroLengthSection() : 
@@ -113,7 +114,7 @@ ZeroLengthSection::getNumExternalNodes() const
 const ID &
 ZeroLengthSection::getExternalNodes() 
 {
-    return connectedExternalNodes;
+  return connectedExternalNodes;
 }
 
 Node **
@@ -138,9 +139,9 @@ void
 ZeroLengthSection::setDomain(Domain *theDomain)
 {
   // check Domain is not null - invoked when object removed from a domain
-  if (theDomain == 0) {
-    theNodes[0] = 0;
-    theNodes[1] = 0;
+  if (theDomain == nullptr) {
+    theNodes[0] = nullptr;
+    theNodes[1] = nullptr;
     return;
   }
 
@@ -151,26 +152,23 @@ ZeroLengthSection::setDomain(Domain *theDomain)
   theNodes[1] = theDomain->getNode(Nd2);        
 
   // if can't find both - send a warning message
-  if (theNodes[0] == 0 || theNodes[1] == 0) {
-    if (theNodes[0] == 0) 
-      opserr << "ZeroLengthSection::setDomain() -- Nd2: " << Nd2 << " does not exist in ";
+  if (theNodes[0] == nullptr || theNodes[1] == nullptr) {
+    if (theNodes[0] == nullptr) 
+      opserr << "Node 1: " << Nd1 << " does not exist " << OpenSees::SignalMessageEnd;
     else
-      opserr << "ZeroLengthSection::setDomain() -- Nd2: " << Nd2 << " does not exist in ";
-              
-    opserr << "model for ZeroLengthSection with id " << this->getTag() << endln;
-              
+      opserr << "Node 2: " << Nd2 << " does not exist " << OpenSees::SignalMessageEnd;
     return;
   }
 
   // now determine the number of dof and the dimension    
   int dofNd1 = theNodes[0]->getNumberDOF();
-  int dofNd2 = theNodes[1]->getNumberDOF();        
 
   // if differing dof at the ends - print a warning message
-  if (dofNd1 != dofNd2) {
-    opserr << "ZeroLengthSection::setDomain() -- nodes " 
+  if (dofNd1 != theNodes[1]->getNumberDOF()) {
+    opserr << "nodes " 
             << Nd1 << " and " << Nd2 << "have differing dof at ends for ZeroLengthSection " 
-            << this->getTag() << "\n";
+            << this->getTag()
+            << OpenSees::SignalMessageEnd;
     return;
   }        
 
@@ -196,9 +194,7 @@ ZeroLengthSection::setDomain(Domain *theDomain)
   double L  = diff.Norm();
   double v1 = end1Crd.Norm();
   double v2 = end2Crd.Norm();
-  double vm;
-  
-  vm = (v1<v2) ? v2 : v1;
+  double vm = (v1<v2) ? v2 : v1;
   
   if (L > ZeroLength::MaxLength*vm)
     opserr << "Element " 
@@ -214,6 +210,7 @@ ZeroLengthSection::setDomain(Domain *theDomain)
   this->setTransformation();
 }   
 
+
 int
 ZeroLengthSection::update() // MSN: added to allow error identification in setTrialSectionDeformation()
 {
@@ -222,12 +219,14 @@ ZeroLengthSection::update() // MSN: added to allow error identification in setTr
 
   // Set trial section deformation
   if (theSection->setTrialSectionDeformation(*v) < 0) {
-    opserr << "WARNING! ZeroLengthSection::update() - element: " << this->getTag() << " failed in setTrialSectionDeformation\n";
+    opserr << "WARNING! ZeroLengthSection::update() - element: "
+           << this->getTag() << " failed in setTrialSectionDeformation\n";
     return -1;
   }
 
   return 0;
 }
+
 
 int
 ZeroLengthSection::commitState()
@@ -296,13 +295,13 @@ ZeroLengthSection::getInitialStiff()
 void 
 ZeroLengthSection::zeroLoad()
 {
-        // does nothing now
+  // does nothing now
 }
 
 int 
 ZeroLengthSection::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-  opserr << "ZeroLengthSection::addLoad - load type unknown for truss with tag: " << this->getTag() << endln;
+  opserr << "Unsupported load type in element with tag: " << this->getTag() << "\n";
   return -1;
 }
 
@@ -375,8 +374,7 @@ ZeroLengthSection::sendSelf(int commitTag, Channel &theChannel)
   res += theChannel.sendID(dataTag, commitTag, idData);
   if (res < 0) {
     opserr << "ZeroLengthSection::sendSelf -- failed to send ID data\n";
-                  
-          return res;
+    return res;
   }
 
   // Send the 3x3 direction cosine matrix, have to send it since it is only set
@@ -384,7 +382,7 @@ ZeroLengthSection::sendSelf(int commitTag, Channel &theChannel)
   // TODO(cmp): send Matrix3D
   // res += theChannel.sendMatrix(dataTag, commitTag, transformation);
   if (res < 0) {
-    opserr << "ZeroLengthSection::sendSelf -- failed to send transformation Matrix\n";
+    opserr << "failed to send transformation Matrix\n";
     return res;
   }
 
@@ -432,42 +430,41 @@ ZeroLengthSection::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
 
   // Check that there is correct number of materials, reallocate if needed
   if (order != idData(3)) {
+      order = idData(3);
 
-          order = idData(3);
+      // Allocate transformation matrix
+      if (A != 0)
+              delete A;
 
-          // Allocate transformation matrix
-          if (A != 0)
-                  delete A;
-
-          A = new Matrix(order, numDOF);
+      A = new Matrix(order, numDOF);
 
 
-          // Allocate section deformation vector
-          if (v != 0)
-                  delete v;
+      // Allocate section deformation vector
+      if (v != 0)
+        delete v;
 
-          v = new Vector(order);
+      v = new Vector(order);
 
-          if (numDOF == 6) {
-                  P = &P6;
-                  K = &K6;
-          }
-          else {
-                  P = &P12;
-                  K = &K12;
-          }
+      if (numDOF == 6) {
+        P = &P6;
+        K = &K6;
+      }
+      else {
+        P = &P12;
+        K = &K12;
+      }
   }
 
   int secClassTag = idData(6);
 
   // If null, get a new one from the broker
   if (theSection == 0)
-          theSection = theBroker.getNewSection(secClassTag);
+    theSection = nullptr; // TODO theBroker.getNewSection(secClassTag);
 
   // If wrong type, get a new one from the broker
   if (theSection->getClassTag() != secClassTag) {
     delete theSection;
-    theSection = theBroker.getNewSection(secClassTag);
+    theSection = nullptr; // TODO theBroker.getNewSection(secClassTag);
   }
 
 
@@ -494,21 +491,21 @@ ZeroLengthSection::Print(OPS_Stream &s, int flag)
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"ZeroLengthSection\", ";
         s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
         s << "\"section\": \"" << theSection->getTag() << "\", ";
         s << "\"transMatrix\": [[";
         for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (j < 2)
-                    s << transformation(i, j) << ", ";
-                else if (j == 2 && i < 2)
-                    s << transformation(i, j) << "], [";
-                else if (j == 2 && i == 2)
-                    s << transformation(i, j) << "]]}";
-            }
+          for (int j = 0; j < 3; j++) {
+            if (j < 2)
+                s << transformation(i, j) << ", ";
+            else if (j == 2 && i < 2)
+                s << transformation(i, j) << "], [";
+            else if (j == 2 && i == 2)
+                s << transformation(i, j) << "]]}";
+          }
         }
     }
 }
@@ -516,56 +513,71 @@ ZeroLengthSection::Print(OPS_Stream &s, int flag)
 Response*
 ZeroLengthSection::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
-    Response *theResponse = 0;
+  Response *theResponse = 0;
 
-    output.tag("ElementOutput");
-    output.attr("eleType","ZeroLengthSection");
-    output.attr("eleTag",this->getTag());
-    output.attr("node1",connectedExternalNodes[0]);
-    output.attr("node2",connectedExternalNodes[1]);
+  output.tag("ElementOutput");
+  output.attr("eleType","ZeroLengthSection");
+  output.attr("eleTag",this->getTag());
+  output.attr("node1",connectedExternalNodes[0]);
+  output.attr("node2",connectedExternalNodes[1]);
 
-    char outputData[24];
-    // element forces
-    if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0)
-        || (strcmp(argv[0],"globalForces") == 0) || (strcmp(argv[0],"globalforces") == 0)) {
+  char outputData[24];
+  // element forces
+  if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0)
+      || (strcmp(argv[0],"globalForces") == 0) || 
+          (strcmp(argv[0],"globalforces") == 0)) {
 
-            for (int i=0; i<P->Size(); i++) {
-                sprintf(outputData,"P%d",i+1);
-                output.tag("ResponseType",outputData);
-            }
-            theResponse = new ElementResponse(this, 1, *P);
-
-    } else if ((strcmp(argv[0],"basicForce") == 0) || (strcmp(argv[0],"basicForces") == 0) ||
-               (strcmp(argv[0],"localForce") == 0) || (strcmp(argv[0],"localForces") == 0)) {
-
-        for (int i=0; i<order; i++) {
-            sprintf(outputData,"P%d",i+1);
-            output.tag("ResponseType",outputData);
-        }
-        theResponse = new ElementResponse(this, 2, Vector(order));
-
-    } else if (strcmp(argv[0],"basicStiffness") == 0) {
-
-      theResponse = new ElementResponse(this, 13, Matrix(order,order));
-
-
-    } else if (strcmp(argv[0],"defo") == 0 || strcmp(argv[0],"deformations") == 0 ||
-        strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"basicDeformation") == 0) {
-
-            for (int i=0; i<order; i++) {
-                sprintf(outputData,"e%d",i+1);
-                output.tag("ResponseType",outputData);
-            }
-            theResponse = new ElementResponse(this, 3, Vector(order));
-
-    // a section quantity
-    } else if (strcmp(argv[0],"section") == 0) {
-        theResponse = theSection->setResponse(&argv[1], argc-1, output);
+    for (int i=0; i<P->Size(); i++) {
+        sprintf(outputData,"P%d",i+1);
+        output.tag("ResponseType",outputData);
     }
+    theResponse = new ElementResponse(this, 1, *P);
 
-    output.endTag();
-    return theResponse;
+  } else if ((strcmp(argv[0],"basicForce") == 0) || (strcmp(argv[0],"basicForces") == 0) ||
+              (strcmp(argv[0],"localForce") == 0) || (strcmp(argv[0],"localForces") == 0)) {
 
+      for (int i=0; i<order; i++) {
+          sprintf(outputData,"P%d",i+1);
+          output.tag("ResponseType",outputData);
+      }
+      theResponse = new ElementResponse(this, 2, Vector(order));
+
+  } else if (strcmp(argv[0],"basicStiffness") == 0) {
+
+    theResponse = new ElementResponse(this, 13, Matrix(order,order));
+
+
+  } else if (strcmp(argv[0],"defo") == 0 || strcmp(argv[0],"deformations") == 0 ||
+      strcmp(argv[0],"deformation") == 0 || strcmp(argv[0],"basicDeformation") == 0) {
+
+      for (int i=0; i<order; i++) {
+          sprintf(outputData,"e%d",i+1);
+          output.tag("ResponseType",outputData);
+      }
+      theResponse = new ElementResponse(this, 3, Vector(order));
+
+  // a section quantity
+  }
+  else if (strcmp(argv[0],"section") == 0) {
+    if (argc > 1) {
+      int offset = 1;
+      bool is_valid = true;
+      if (argc > 2) {
+        int section_tag = std::atoi(argv[1]);
+        if (section_tag == 1) {
+          offset = 2;
+        } else if (section_tag > 1) {
+          is_valid = false;
+        }
+      }
+      if (is_valid) {
+        theResponse = theSection->setResponse(&argv[offset], argc-offset, output);
+      }
+    }
+  }
+
+  output.endTag();
+  return theResponse;
 }
 
 int 
@@ -578,7 +590,7 @@ ZeroLengthSection::getResponse(int responseID, Information &eleInfo)
     case 1:
         return eleInfo.setVector(this->getResistingForce());
 
-    case 2:
+    case 2: // basic/localForce
         // Get section stress resultants, the element basic forces
         q = theSection->getStressResultant();
         return eleInfo.setVector(q);
@@ -597,57 +609,6 @@ ZeroLengthSection::getResponse(int responseID, Information &eleInfo)
     }
 }
 
-#if 0
-// Private methods
-
-// Establish the external nodes and set up the transformation matrix
-// for orientation
-void
-ZeroLengthSection::setUp(int Nd1, int Nd2, const Vector &x, const Vector &yp)
-{ 
-    
-    connectedExternalNodes(0) = Nd1;
-    connectedExternalNodes(1) = Nd2;
-
-    for (int i=0; i<2; i++)
-      theNodes[i] = nullptr;
-
-    // check that vectors for orientation are correct size
-    if ( x.Size() != 3 || yp.Size() != 3 )
-      opserr << "ZeroLengthSection::setUp -- incorrect dimension of orientation vectors\n";
-                        
-
-    // establish orientation of element for the transformation matrix
-    // z = x cross yp
-    static Vector z(3);
-    z(0) = x(1)*yp(2) - x(2)*yp(1);
-    z(1) = x(2)*yp(0) - x(0)*yp(2);
-    z(2) = x(0)*yp(1) - x(1)*yp(0);
-
-    // y = z cross x
-    static Vector y(3);
-    y(0) = z(1)*x(2) - z(2)*x(1);
-    y(1) = z(2)*x(0) - z(0)*x(2);
-    y(2) = z(0)*x(1) - z(1)*x(0);
-
-    // compute length(norm) of vectors
-    double xn = x.Norm();
-    double yn = y.Norm();
-    double zn = z.Norm();
-
-    // check valid x and y vectors, i.e. not parallel and of zero length
-    if (xn == 0 || yn == 0 || zn == 0)
-      opserr << "ZeroLengthSection::setUp -- invalid vectors to constructor\n";
-
-
-    // create transformation matrix of direction cosines
-    for (int i = 0; i < 3; i++) {
-                transformation(0,i) = x(i)/xn;
-                transformation(1,i) = y(i)/yn;
-                transformation(2,i) = z(i)/zn;
-        }
-}
-#endif
 
 // Set basic deformation-displacement transformation matrix for section
 void 
@@ -677,50 +638,50 @@ ZeroLengthSection::setTransformation()
   for (int i = 0; i < order; i++) {
 
     // Fill in row i of A based on section code
-    switch(code(i)) {
+    switch (code(i)) {
 
     // The in-plane transformations
     case SECTION_RESPONSE_MZ:
       if (numDOF == 6) {
-              tran(i,3) = 0.0;
-              tran(i,4) = 0.0;
-              tran(i,5) = transformation(2,2);
+        tran(i,3) = 0.0;
+        tran(i,4) = 0.0;
+        tran(i,5) = transformation(2,2);
       }
       else if (numDOF == 12) {
-              tran(i,9)  = transformation(2,0);
-              tran(i,10) = transformation(2,1);
-              tran(i,11) = transformation(2,2);
+        tran(i,9)  = transformation(2,0);
+        tran(i,10) = transformation(2,1);
+        tran(i,11) = transformation(2,2);
       }
       break;
     case SECTION_RESPONSE_P:
       if (numDOF == 6) {
-              tran(i,3) = transformation(0,0);
-              tran(i,4) = transformation(0,1);
-              tran(i,5) = 0.0;
+        tran(i,3) = transformation(0,0);
+        tran(i,4) = transformation(0,1);
+        tran(i,5) = 0.0;
       }
       else if (numDOF == 12) {
-              tran(i,6) = transformation(0,0);
-              tran(i,7) = transformation(0,1);
-              tran(i,8) = transformation(0,2);
+        tran(i,6) = transformation(0,0);
+        tran(i,7) = transformation(0,1);
+        tran(i,8) = transformation(0,2);
       }
       break;
     case SECTION_RESPONSE_VY:
       if (numDOF == 6) {
-              tran(i,3) = transformation(1,0);
-              tran(i,4) = transformation(1,1);
-              tran(i,5) = 0.0;
+        tran(i,3) = transformation(1,0);
+        tran(i,4) = transformation(1,1);
+        tran(i,5) = 0.0;
       }
       else if (numDOF == 12) {
-              tran(i,6) = transformation(1,0);
-              tran(i,7) = transformation(1,1);
-              tran(i,8) = transformation(1,2);
+        tran(i,6) = transformation(1,0);
+        tran(i,7) = transformation(1,1);
+        tran(i,8) = transformation(1,2);
       }
       break;
 
     // The out-of-plane transformations
     case SECTION_RESPONSE_MY:
       if (numDOF == 12) {
-        tran(i,9) = transformation(1,0);
+        tran(i, 9) = transformation(1,0);
         tran(i,10) = transformation(1,1);
         tran(i,11) = transformation(1,2);
       }
@@ -735,14 +696,14 @@ ZeroLengthSection::setTransformation()
       break;
 
     case SECTION_RESPONSE_T:
-            if (numDOF == 12) {
-                    tran(i,9) = transformation(0,0);
-                    tran(i,10) = transformation(0,1);
-                    tran(i,11) = transformation(0,2);
-            }
-            break;
+      if (numDOF == 12) {
+        tran(i, 9) = transformation(0,0);
+        tran(i,10) = transformation(0,1);
+        tran(i,11) = transformation(0,2);
+      }
+      break;
     default:
-            break;
+      break;
     }
 
     // Fill in first half of transformation matrix with negative sign

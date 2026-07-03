@@ -12,13 +12,6 @@
 ** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.7 $
-// $Date: 2008-10-20 22:23:03 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/J2ThreeDimensional.h,v $
-
-// Written: Ed "C++" Love
-
 //
 // J2ThreeDimensional isotropic hardening material class
 //
@@ -52,7 +45,9 @@
 //
 //  set eta := 0 for rate independent case
 //
-
+//
+// Written: Ed "C++" Love
+//
 #include <stdlib.h>
 #include <math.h>
 
@@ -63,9 +58,6 @@
 using namespace OpenSees;
 
 class J2ThreeDimensional : public J2Plasticity {
-
-  //-------------------Declarations-------------------------------
-
 public:
   J2ThreeDimensional();
   J2ThreeDimensional(int tag,
@@ -78,7 +70,6 @@ public:
                      double viscosity = 0,
                      double rho       = 0);
 
-  J2ThreeDimensional(int tag, double K, double G);
 
   ~J2ThreeDimensional();
 
@@ -91,18 +82,19 @@ public:
 
   int getOrder() const;
 
-  //get the strain and integrate plasticity equations
+  // get the strain and integrate plasticity equations
   int setTrialStrain(const Vector& strain_from_element);
 
   // unused trial strain functions
   int setTrialStrainIncr(const Vector& v);
 
   const Vector& getStrain();
-
   const Vector& getStress();
-
   const Matrix& getTangent();
   const Matrix& getInitialTangent();
+
+protected:
+  void index_map(int matrix_index, int& i, int& j) const final;
 
 private:
   //static vectors and matrices

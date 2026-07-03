@@ -72,7 +72,7 @@ DamageResponse::~DamageResponse()
 }
 
 int
-DamageResponse::getResponse(void)
+DamageResponse::getResponse()
 {
   return theDamage->getResponse(responseID, myInfo);
 }

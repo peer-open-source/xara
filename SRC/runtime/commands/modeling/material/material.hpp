@@ -63,22 +63,26 @@
 #include <runtimeAPI.h>
 #include <NDMaterial.h>
 
-extern Tcl_CmdProc TclCommand_addPlaneWrapper;
+extern Tcl_CmdProc TclCommand_newElasticMaterial;
+extern Tcl_CmdProc TclCommand_newElasticOrthotropic;
+// 
 extern Tcl_CmdProc TclCommand_newJ2Material;
 extern Tcl_CmdProc TclCommand_newPlasticMaterial;
 extern Tcl_CmdProc TclCommand_newConcreteMaterial;
-extern Tcl_CmdProc TclCommand_newElasticMaterial;
+// concrete_asd.cpp
+extern Tcl_CmdProc TclCommand_addASDConcrete1D;
+extern Tcl_CmdProc TclCommand_addASDConcrete3D;
+// wrapper.cpp
 extern Tcl_CmdProc TclCommand_addWrappingMaterial;
+extern Tcl_CmdProc TclCommand_addParallel3DMaterial;
 extern Tcl_CmdProc TclCommand_newPlateRebar;
 extern Tcl_CmdProc TclCommand_newPlateFiber;
+extern Tcl_CmdProc TclCommand_addPlaneWrapper;
+extern Tcl_CmdProc TclCommand_addOrthotropicWrapper;
 
 extern OPS_Routine OPS_ElasticOrthotropicPlaneStress;
-extern OPS_Routine OPS_OrthotropicMaterial;
 extern OPS_Routine OPS_Series3DMaterial;
-extern OPS_Routine OPS_Parallel3DMaterial;
-extern OPS_Routine OPS_J2PlateFibreMaterial;
 extern OPS_Routine OPS_J2CyclicBoundingSurfaceMaterial;
-extern OPS_Routine OPS_ASDConcrete3DMaterial;
 extern OPS_Routine OPS_ReinforcedConcretePlaneStressMaterial;
 extern OPS_Routine OPS_FAReinforcedConcretePlaneStressMaterial;
 extern OPS_Routine OPS_FAFourSteelRCPlaneStressMaterial;
@@ -92,7 +96,6 @@ extern OPS_Routine OPS_RAFourSteelPCPlaneStressMaterial;
 extern OPS_Routine OPS_NewPlasticDamageConcretePlaneStress;
 extern OPS_Routine OPS_ElasticIsotropicMaterial;
 extern OPS_Routine OPS_IncrementalElasticIsotropicThreeDimensional;
-extern OPS_Routine OPS_ElasticOrthotropicMaterial;
 extern OPS_Routine OPS_BoundingCamClayMaterial;
 extern OPS_Routine OPS_ContactMaterial2DMaterial;
 extern OPS_Routine OPS_ContactMaterial3DMaterial;
@@ -180,7 +183,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
   {"ElasticIsotropic",                 dispatch<TclCommand_newElasticMaterial>},
   {"ElasticIsotropic3DThermal",        dispatch<OPS_ElasticIsotropicMaterialThermal>},
 // Orthotropic
-  {"ElasticOrthotropic",               dispatch<OPS_ElasticOrthotropicMaterial>},
+  {"ElasticOrthotropic",               dispatch<TclCommand_newElasticOrthotropic>},
   {"ElasticOrthotropicPlaneStress",    dispatch<OPS_ElasticOrthotropicPlaneStress>},
 //
 // Plasticity
@@ -188,6 +191,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
   {"J2",                               dispatch<TclCommand_newPlasticMaterial>},
   {"J2Plasticity",                     dispatch<TclCommand_newPlasticMaterial>},
   {"GeneralizedJ2",                    dispatch<TclCommand_newPlasticMaterial>},
+  {"NonlinearJ2",                      dispatch<TclCommand_newPlasticMaterial>},
   {"J2N",                              dispatch<TclCommand_newPlasticMaterial>},
   {"J2L",                              dispatch<TclCommand_newPlasticMaterial>},
   {"J2Thermal",                        dispatch<TclCommand_newPlasticMaterial>},
@@ -204,12 +208,12 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
 
   {"UVCplanestress",                   dispatch<OPS_UVCplanestress       > },
   {"UVCmultiaxial",                    dispatch<OPS_UVCmultiaxial        > },
-  {"J2PlateFibre",                     dispatch<OPS_J2PlateFibreMaterial >},
+  {"J2PlateFibre",                     dispatch<TclCommand_newPlasticMaterial >},
 //
   {"ManzariDafalias",                  dispatch<OPS_ManzariDafaliasMaterial>},
   {"ManzariDafaliasRO",                dispatch<OPS_ManzariDafaliasMaterialRO>},
 
-
+//
   {"DruckerPragerThermal",             dispatch<OPS_DruckerPragerMaterialThermal> },
   {"TruncatedDP",                      dispatch<OPS_LinearCap     > },
   {"FSAM",                             dispatch<OPS_FSAMMaterial  > },
@@ -224,10 +228,10 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
   {"InitStrain",                       dispatch<TclCommand_addWrappingMaterial>},
   {"InitialStrain",                    dispatch<TclCommand_addWrappingMaterial>},
   {"InitStressMaterial",               dispatch<OPS_InitStressNDMaterial>},
-  {"OrthotropicMaterial",              dispatch<OPS_OrthotropicMaterial>},
+  {"Orthotropic",                      dispatch<TclCommand_addOrthotropicWrapper>},
   {"Series3DMaterial",                 dispatch<OPS_Series3DMaterial>},
-  {"Parallel3DMaterial",               dispatch<OPS_Parallel3DMaterial>},
-  {"Parallel3D",                       dispatch<OPS_Parallel3DMaterial>},
+  {"Parallel3DMaterial",               dispatch<TclCommand_addParallel3DMaterial>},
+  {"Parallel3D",                       dispatch<TclCommand_addParallel3DMaterial>},
 // Beam fiber (             22, 33, and 23 == 0)
   {"BeamFiber",                        dispatch<TclCommand_newPlateFiber>},
   {"BeamFiber2d",                      dispatch<TclCommand_newPlateFiber>},
@@ -248,7 +252,7 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
 //
   {"ReinforcedConcretePlaneStress",    dispatch<OPS_ReinforcedConcretePlaneStressMaterial>},
   {"PlaneStressLayeredMaterial",       dispatch<OPS_PlaneStressLayeredMaterial>},
-  {"ASDConcrete3D",                    dispatch<OPS_ASDConcrete3DMaterial>},
+  {"ASDConcrete3D",                    dispatch<TclCommand_addASDConcrete3D>},
   {"PlasticDamageConcrete",            dispatch<TclCommand_newConcreteMaterial>},
   {"FariaPlasticDamage",               dispatch<TclCommand_newConcreteMaterial>},
   {"PlasticDamageConcretePlaneStress", dispatch<OPS_NewPlasticDamageConcretePlaneStress>},

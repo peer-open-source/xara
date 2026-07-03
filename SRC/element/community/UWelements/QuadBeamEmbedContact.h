@@ -49,50 +49,47 @@ class QuadBeamEmbedContact : public Element
     QuadBeamEmbedContact();
     ~QuadBeamEmbedContact();
 
-    const char *getClassType(void) const {return "QuadBeamEmbedContact";};
-    static constexpr const char* class_name = "QuadBeamEmbedContact";
+    const char *getClassType(void) const {return "QuadBeamEmbedContact";}
 
     int getNumExternalNodes(void) const;
     const ID &getExternalNodes(void);
     Node **getNodePtrs(void);
 
-    int getNumDOF(void);
+    int getNumDOF();
     void setDomain(Domain *theDomain);
 
     // public methods to set the state of the element    
-    int commitState(void);
+    int commitState();
     int revertToLastCommit(void);
     int revertToStart(void);
     int update(void);
 
     // public methods to obtain stiffness, mass, damping and residual information    
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);    
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();    
 
-    const Vector &getResistingForce(void);            
+    const Vector &getResistingForce();            
 
     // public methods for element output
     int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker 
-		  &theBroker);
+    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
     int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
-    Response *setResponse(const char **argv, int argc, 
-			  OPS_Stream &s);
+    Response *setResponse(const char **argv, int argc,  OPS_Stream &);
 
-    int getResponse(int responseID, Information &eleInformation);
+    int getResponse(int responseID, Information &);
 
     int setParameter(const char **argv, int argc, Parameter &param);
     int updateParameter(int parameterID, Information &info);
-	
+
   private:
     // private attributes - a copy for each object of the class
 
     ID externalNodes; // Tags of quad and beam nodes
 
     Node *theNodes[6];
-	
+
 	static Vector		m_ContactForces;	// force vector
 	static Matrix		m_ContactStiffness;	// stiffness matrix
 	static const double m_Pi;
@@ -166,8 +163,8 @@ class QuadBeamEmbedContact : public Element
 	int		updateShapeFuncs(Vector xi, double eta);
 	int		updateBase(double eta);
 	int		project(Vector& xi, Vector& x_n1);
-	void	computeB(void);
-	double	getIntJacobian(void);
+	void	computeB();
+	double	getIntJacobian();
 
 };
 

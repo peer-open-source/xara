@@ -42,12 +42,12 @@ public:
     
     ~SimpsonTimeSeriesIntegrator();
     
-    TimeSeries* integrate(TimeSeries *theTimeSeries, double delta);
+    TimeSeries* integrate(TimeSeries *, double delta);
+    TimeSeries* differentiate(TimeSeries *, double delta);
     
     // methods for output    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel,
-        FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &);
     
     void Print(OPS_Stream &s, int flag = 0);
     

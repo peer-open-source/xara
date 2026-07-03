@@ -14,7 +14,7 @@ namespace py = pybind11;
 
 #include <G3_Runtime.h>
 #include <elementAPI.h> // G3_getRuntime/SafeBuilder
-#include <runtime/runtime/BasicModelBuilder.h>
+#include <runtime/runtime/ModelRegistry.h>
 
 #include <Domain.h>
 #include <Vector.h>
@@ -24,21 +24,7 @@ namespace py = pybind11;
 #include <SectionForceDeformation.h>
 #include <UniaxialMaterial.h>
 #include <NDMaterial.h>
-#include <HystereticBackbone.h>
-#include <ManderBackbone.h>
 
-// 
-// ANALYSIS
-//
-
-#include <LoadPattern.h>
-#include <EarthquakePattern.h>
-#include <UniformExcitation.h>
-#include <TimeSeries.h>
-#include <PathTimeSeries.h>
-#include <PathSeries.h>
-#include <LinearSeries.h>
-#include <GroundMotion.h>
 
 #define ARRAY_FLAGS py::array::c_style|py::array::forcecast
 
@@ -53,7 +39,7 @@ getRuntime(py::object interpaddr) {
 #endif
 
 
-std::unique_ptr<BasicModelBuilder, py::nodelete> 
+std::unique_ptr<ModelRegistry, py::nodelete> 
 get_builder(py::object interpaddr) {
     void *interp_addr;
     interp_addr = PyLong_AsVoidPtr(interpaddr.ptr());
@@ -70,11 +56,12 @@ get_builder(py::object interpaddr) {
     }
 
 //    void *builder_addr = G3_getSafeBuilder(G3_getRuntime((Tcl_Interp*)interp_addr));
-    return std::unique_ptr<BasicModelBuilder, py::nodelete>((BasicModelBuilder*)builder_addr);
+    return std::unique_ptr<ModelRegistry, py::nodelete>((ModelRegistry*)builder_addr);
 } // , py::return_value_policy::reference
 
 class Channel;
 class FEM_ObjectBroker;
+
 class PyUniaxialMaterial : public UniaxialMaterial {
 public:
   ~PyUniaxialMaterial()
@@ -82,21 +69,23 @@ public:
 
   }
   PyUniaxialMaterial(const UniaxialMaterial& m) :
-    m_object(py::cast(this)),
+    // m_object(py::cast(this)),
     UniaxialMaterial(m.getTag(), 11) 
   {
 
   }
   PyUniaxialMaterial(const py::object &obj, int tag) :
-    m_object(obj), 
+    // m_object(obj), 
     UniaxialMaterial(tag,10)
   { 
 
   }
-  void Print(OPS_Stream &s, int flag =0) {
+
+  void Print(OPS_Stream &s, int flag) {
     // TODO:
     s << "" << "\n";
   }
+
   /* Trampoline (need one for each virtual function) */
   double getStress() override {
       PYBIND11_OVERRIDE_PURE(
@@ -105,20 +94,15 @@ public:
           getStress,
       );
   }
-  int sendSelf(int commitTag, Channel &theChannel) override {
-    return 0;
-  }
-  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker& broker) override {
-    return 0;
-  }
+
   double getStrain() override {
-      PYBIND11_OVERRIDE_PURE(double, UniaxialMaterial, getStrain);
+    PYBIND11_OVERRIDE_PURE(double, UniaxialMaterial, getStrain);
   }
   double getTangent() override {
-      PYBIND11_OVERRIDE_PURE(double,UniaxialMaterial, getTangent);
+    PYBIND11_OVERRIDE_PURE(double, UniaxialMaterial, getTangent);
   }
   double getInitialTangent() override {
-      PYBIND11_OVERRIDE_PURE(double, UniaxialMaterial, getInitialTangent);
+    PYBIND11_OVERRIDE_PURE(double, UniaxialMaterial, getInitialTangent);
   }
   int commitState() override {
       PYBIND11_OVERRIDE_PURE(
@@ -164,25 +148,10 @@ public:
       );
   }
 
-private:
-  const py::object &m_object;
+// private:
+//   const py::object m_object;
 };
 
-class PyHystereticBackbone : public HystereticBackbone {
-public:
-    /* Inherit the constructors */
-    using HystereticBackbone::HystereticBackbone;
-
-    /* Trampoline (need one for each virtual function) */
-    double getStress(double strain) override {
-        PYBIND11_OVERRIDE_PURE(
-            double,                 /* Return type */
-            HystereticBackbone,     /* Parent class */
-            getStress,              /* Name of function in C++ (must match Python name) */
-            strain                  /* Argument(s) */
-        );
-    }
-};
 
 
 static py::array_t<double>
@@ -216,57 +185,6 @@ copy_matrix(Matrix matrix)
   return array;
 }
 
-
-GroundMotion*
-quake2sees_motion(
-    py::array_t<double,ARRAY_FLAGS> quake_array, 
-    double time_step, 
-    double time_start = 0.0, 
-    double cfactor = 1.0,
-    int tag = 110
-)
-{
-    Vector *accel;
-    TimeSeries *accelSeries;
-    GroundMotion *groundMotion;
-    // quake -> {Vector}
-    py::buffer_info info = quake_array.request();
-    double* accel_array = static_cast<double*>(info.ptr);
-    int array_size = static_cast<int>(info.shape[0]);
-    accel = new Vector(accel_array,array_size);
-
-    // {Vector} -> {TimeSeries:PathTimeSeries}
-    accelSeries = new PathSeries(tag, *accel, time_step, cfactor, false, time_start);
-
-    groundMotion = new GroundMotion(0, 0, accelSeries, 0);
-    return groundMotion;
-    // TimeSeries -> Pattern:UniformExcitation
-}
-
-GroundMotion*
-ground_motion(
-    double* accel_array, 
-    int array_size,
-    double time_step, 
-    double time_start = 0.0, 
-    double cfactor = 1.0,
-    int tag = 110
-)
-{
-    Vector *accel;
-    TimeSeries *accelSeries;
-    GroundMotion *groundMotion;
-    /* quake -> {Vector} */
-    accel = new Vector(accel_array,array_size);
-
-    /* {Vector} -> {TimeSeries:PathTimeSeries} */
-    accelSeries = new PathSeries(tag, *accel, time_step, cfactor, false, time_start);
-
-    groundMotion = new GroundMotion(0, 0, accelSeries, 0);
-    return groundMotion;
-    /* TimeSeries -> Pattern:UniformExcitation */
-
-}
 
 void
 init_obj_module(py::module &m)
@@ -306,6 +224,7 @@ init_obj_module(py::module &m)
         return Vector(static_cast<double*>(info.ptr), static_cast<int>(info.shape[0]));
       }))
   ;
+
   py::class_<Matrix, std::unique_ptr<Matrix, py::nodelete>>(m, "Matrix", py::buffer_protocol())
     .def (py::init([](
         py::array_t<double, ARRAY_FLAGS> array,
@@ -329,7 +248,8 @@ init_obj_module(py::module &m)
         static_cast<int>(info.shape[1])
       );
     }))
-  ; 
+  ;
+
   py::class_<Node,    std::unique_ptr<Node,py::nodelete>>(m, "_Node")
   ;
   py::class_<Element, std::unique_ptr<Element,py::nodelete>>(m, "_Element")
@@ -398,95 +318,47 @@ init_obj_module(py::module &m)
     .def ("revertToLastCommit",    &UniaxialMaterial::revertToLastCommit)
   ;
 
-  py::class_<HystereticBackbone,   PyHystereticBackbone>(m, "HystereticBackbone")
-    .def("getStress", &HystereticBackbone::getStress);
-  ;
+  // py::class_<HystereticBackbone,   PyHystereticBackbone>(m, "HystereticBackbone")
+  //   .def("getStress", &HystereticBackbone::getStress);
+  // ;
 
-  py::class_<ManderBackbone, HystereticBackbone>(m, "PopovicsBackbone")
-    .def(py::init<int, double, double, double>(),
-         py::arg("tag"), py::arg("f"), py::arg("e"), py::arg("E")
-    )
-    .def("getStress", &ManderBackbone::getStress)
-  ;
+  // py::class_<ManderBackbone, HystereticBackbone>(m, "PopovicsBackbone")
+  //   .def(py::init<int, double, double, double>(),
+  //        py::arg("tag"), py::arg("f"), py::arg("e"), py::arg("E")
+  //   )
+  //   .def("getStress", &ManderBackbone::getStress)
+  // ;
 
-  //
-  // Loading
-  //
-  py::class_<TimeSeries, std::unique_ptr<TimeSeries, py::nodelete> >(m, "TimeSeries");
-  py::class_<PathTimeSeries>(m, "PathTimeSeries");
-  py::class_<LinearSeries, TimeSeries, std::unique_ptr<LinearSeries, py::nodelete> >(m, "LinearSeries")
-    .def (py::init())
-    .def ("getFactor",     &LinearSeries::getFactor)
-  ;
 
-  py::class_<LoadPattern, std::unique_ptr<LoadPattern, py::nodelete> >(m, "LoadPattern",
-     "The `LoadPattern` class is a concrete base class. A `LoadPattern "
-     "is a container class for `Load` and `SP_Constraint objects."
-     )
-    .def (py::init<int>())
-    .def ("setTimeSeries", &LoadPattern::setTimeSeries)
-  ;
-
-  py::class_<EarthquakePattern, LoadPattern>(m, "EarthquakePattern");
-  py::class_<UniformExcitation, EarthquakePattern>(m, "UniformExcitation")
-    .def (py::init< \
-            GroundMotion&,
-            int,
-            int,
-            double,
-            double>(),
-          py::arg("motion"),
-          py::arg("dof"),
-          py::arg("tag"),
-          py::arg("vel") = 0.0,
-          py::arg("factor") = 1.0
-    )
-    .def (py::init([](
-         int tag,
-         int dof,
-         py::array_t<double,py::array::c_style|py::array::forcecast> motion,
-         double time_step,
-         double vel=0.0,
-         double factor=1.0
-    ) -> UniformExcitation {
-         printf("called\n\n\n");
-         GroundMotion *ground_motion = quake2sees_motion(motion, time_step);
-         return UniformExcitation(*ground_motion, dof, tag, vel, factor);
-    }), 
-         py::arg("tag"), py::arg("dof"), py::arg("accel"), py::arg("time_step"),
-         py::arg("init_veloc")=0.0, py::arg("factor")=1.0
-    )
-  ;
-
-  py::class_<BasicModelBuilder, std::unique_ptr<BasicModelBuilder, py::nodelete> >(m, "TclBasicModelBuilder")
-    .def (py::init([](py::object interpaddr)->std::unique_ptr<BasicModelBuilder, py::nodelete>{
+  py::class_<ModelRegistry, std::unique_ptr<ModelRegistry, py::nodelete> >(m, "TclModelRegistry")
+    .def (py::init([](py::object interpaddr)->std::unique_ptr<ModelRegistry, py::nodelete>{
         void *interp_addr;
         interp_addr = (void*)PyLong_AsVoidPtr(interpaddr.ptr());
-        void *builder_addr = Tcl_GetAssocData((Tcl_Interp*)interp_addr, "OPS::theBasicModelBuilder", NULL);
-        return std::unique_ptr<BasicModelBuilder, py::nodelete>((BasicModelBuilder*)builder_addr);
+        void *builder_addr = Tcl_GetAssocData((Tcl_Interp*)interp_addr, "OPS::theModelRegistry", NULL);
+        return std::unique_ptr<ModelRegistry, py::nodelete>((ModelRegistry*)builder_addr);
       }) // , py::return_value_policy::reference
     )
-    .def ("getSection", [](BasicModelBuilder& builder, int id){
+    .def ("getSection", [](ModelRegistry& builder, int id){
         return builder.getTypedObject<SectionForceDeformation>(id);
     })
 
-    .def ("getNDMaterial", [](BasicModelBuilder& builder, int tag){
+    .def ("getNDMaterial", [](ModelRegistry& builder, int tag){
         return builder.getTypedObject<NDMaterial>(tag);
     })
     /*
-    .def ("getUniaxialMaterial", [](BasicModelBuilder& builder, py::str tag){
+    .def ("getUniaxialMaterial", [](ModelRegistry& builder, py::str tag){
         return builder.getTypedObject<UniaxialMaterial>(tag);
     })
     */
-    .def ("getUniaxialMaterial", [](BasicModelBuilder& builder, int tag){
+    .def ("getUniaxialMaterial", [](ModelRegistry& builder, int tag){
         return builder.getTypedObject<UniaxialMaterial>(tag);
     })
-    .def ("addPythonObject", [](BasicModelBuilder& builder, int tag, PyUniaxialMaterial& material){
+    .def ("addPythonObject", [](ModelRegistry& builder, int tag, PyUniaxialMaterial& material){
         return builder.addTypedObject<UniaxialMaterial>(tag, &material);
     })
-    .def ("getHystereticBackbone", [](BasicModelBuilder& builder, int tag){
-        return std::unique_ptr<HystereticBackbone, py::nodelete>(builder.getTypedObject<HystereticBackbone>(tag));
-    })
+    // .def ("getHystereticBackbone", [](ModelRegistry& builder, int tag){
+    //     return std::unique_ptr<HystereticBackbone, py::nodelete>(builder.getTypedObject<HystereticBackbone>(tag));
+    // })
   ;
 
   py::class_<Domain>(m, "_Domain")
@@ -504,22 +376,6 @@ init_obj_module(py::module &m)
   
   py::class_<G3_Runtime>(m, "_Runtime")
   ;
-#if 0
-  py::class_<StaticAnalysis>(m, "_StaticAnalysis")
-    .def (py::init([](G3_Runtime *runtime, G3_Config  conf) {
-      return *((StaticAnalysis*)runtime->newStaticAnalysis(conf));
-    }))
-    .def ("analyze", &StaticAnalysis::analyze)
-  ;
-
-  py::class_<DirectIntegrationAnalysis//, TransientAnalysis
-                                      >(m, "_DirectIntegrationAnalysis")
-    .def (py::init([](G3_Runtime *runtime, G3_Config  conf) {
-      return *((DirectIntegrationAnalysis*)runtime->newTransientAnalysis(conf));
-   }))
-    .def ("analyze", &DirectIntegrationAnalysis::analyze)
-  ;
-#endif
 
   //
   // Module-Level Functions

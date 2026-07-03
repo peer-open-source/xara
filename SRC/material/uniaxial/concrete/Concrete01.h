@@ -17,14 +17,11 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+#pragma once
 // $Revision: 1.13 $
 // $Date: 2008-08-26 16:23:47 $
 // $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/Concrete01.h,v $
-                                                                        
-                                                                        
-#ifndef Concrete01_h
-#define Concrete01_h
+
 
 // Written: MHS 
 // Created: 06/99
@@ -44,30 +41,32 @@
 class Concrete01 : public UniaxialMaterial
 {
  public:
-  Concrete01 (int tag, double fpc, double eco, double fpcu, double ecu);
-  Concrete01 ();
+  Concrete01(int tag, double fpc, double eco, double fpcu, double ecu, double rho);
+  Concrete01();
   ~Concrete01();
 
-  const char *getClassType(void) const {return "Concrete01";};
+  const char *getClassType() const {return "Concrete01";}
+
+  double getRho() override { return density; }
   
   int setTrialStrain(double strain, double strainRate = 0.0); 
   int setTrial (double strain, double &stress, double &tangent, double strainRate = 0.0);
-  double getStrain(void);      
-  double getStress(void);
-  double getTangent(void);
-  double getInitialTangent(void) {return 2.0*fpc/epsc0;}
+  
+  double getStrain();
+  double getStress();
+  double getTangent();
+  double getInitialTangent() {return 2.0*fpc/epsc0;}
 
-  int commitState(void);
-  int revertToLastCommit(void);    
-  int revertToStart(void);        
+  int commitState();
+  int revertToLastCommit();    
+  int revertToStart();
   
-  UniaxialMaterial *getCopy(void);
+  UniaxialMaterial *getCopy();
   
-  int sendSelf(int commitTag, Channel &theChannel);  
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);    
+  int sendSelf(int commitTag, Channel &);  
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
   
-  void Print(OPS_Stream &s, int flag =0);
+  void Print(OPS_Stream &s, int flag);
   
   // AddingSensitivity:BEGIN //////////////////////////////////////////
   int    setParameter             (const char **argv, int argc, Parameter &param);
@@ -82,11 +81,19 @@ class Concrete01 : public UniaxialMaterial
   double getEnergy() { return EnergyP; }
 
  private:
+
+  void determineTrialState(double dStrain);
+  
+  void reload();
+  void unload();
+  void envelope();
+
   /*** Material Properties ***/
   double fpc;    // Compressive strength
   double epsc0;  // Strain at compressive strength
   double fpcu;   // Crushing strength
   double epscu;  // Strain at crushing strength
+  double density;
   
   /*** CONVERGED History Variables ***/
   double CminStrain;   // Smallest previous concrete strain (compression)
@@ -108,13 +115,8 @@ class Concrete01 : public UniaxialMaterial
   double Tstrain;
   double Tstress;
   double Ttangent; // Not really a state variable, but declared here
-  // for convenience
-  
-  void determineTrialState (double dStrain);
-  
-  void reload();
-  void unload();
-  void envelope();
+
+
   
   // AddingSensitivity:BEGIN //////////////////////////////////////////
   int parameterID;
@@ -124,8 +126,3 @@ class Concrete01 : public UniaxialMaterial
   //by SAJalali
   double EnergyP;
 };
-
-
-#endif
-
-

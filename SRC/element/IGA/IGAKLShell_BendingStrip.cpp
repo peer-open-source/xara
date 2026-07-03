@@ -48,7 +48,6 @@
 
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 
 #include <quadrature/GaussNURBS.h>
 #include <map>
@@ -92,7 +91,7 @@ IGAKLShell_BendingStrip::IGAKLShell_BendingStrip( ) :
 
 
 //*********************************************************************
-//full constructor
+// full constructor
 IGAKLShell_BendingStrip::IGAKLShell_BendingStrip( int tag,
                         IGASurfacePatch *myPatch_,
                         const ID& nodes,

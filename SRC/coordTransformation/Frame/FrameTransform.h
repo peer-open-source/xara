@@ -76,6 +76,8 @@ public:
 
   virtual FrameTransform<nn,ndf> *getCopy() const =0;
 
+  virtual const char *getClassType() const =0;
+
 
   virtual Vector3D  getNodePosition(int tag) =0;
   virtual Vector3D  getNodeRotationLogarithm(int tag) =0;

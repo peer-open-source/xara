@@ -47,7 +47,7 @@ public:
 
   ~PDeltaFrameTransf();
   
-  const char *getClassType() const {return "PDeltaFrameTransf";}
+  const char *getClassType() const override {return "PDeltaFrameTransf";}
   
   double getInitialLength()  final;
   double getDeformedLength() final;

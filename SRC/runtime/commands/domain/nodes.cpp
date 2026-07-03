@@ -76,7 +76,7 @@ findID(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
   int tag;
 
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << "WARNING eleForce eleTag? dof? - could not read nodeTag? \n";
+    opserr << "WARNING findNodesWithID eleTag? dof? - could not read nodeTag? \n";
     return TCL_ERROR;
   }
 
@@ -296,7 +296,8 @@ nodeMass(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** c
            << "dof " << dof << " not in range [1, " << numDOF << "]"
            << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
-  } else {
+  }
+  else {
     const Matrix &mass = theNode->getMass();
     sprintf(buffer, "%35.20f", mass(dof - 1, dof - 1));
     Tcl_AppendResult(interp, buffer, NULL);
@@ -429,6 +430,8 @@ setNodeVel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char **
   return TCL_OK;
 }
 
+
+#if 0
 int
 setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
             TCL_Char ** const argv)
@@ -445,6 +448,7 @@ setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   int dof = -1;
   double value = 0.0;
   bool commit = false;
+  bool increment = false;
 
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
     opserr << "WARNING setNodeDisp nodeTag? dof? value?- could not read "
@@ -474,6 +478,8 @@ setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   }
   if (argc > 4 && strcmp(argv[4], "-commit") == 0)
     commit = true;
+  if (argc > 4 && strcmp(argv[4], "-increment") == 0)
+    increment = true;
 
   dof--;
 
@@ -483,7 +489,10 @@ setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     Vector vel(numDOF);
     vel = theNode->getDisp();
     vel(dof) = value;
-    theNode->setTrialDisp(vel);
+    if (increment)
+      theNode->incrTrialDisp(vel);
+    else
+      theNode->setTrialDisp(vel);
   }
   if (commit)
     theNode->commitState();
@@ -491,6 +500,131 @@ setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   return TCL_OK;
 }
 
+#else 
+int
+setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+            TCL_Char ** const argv)
+{
+  assert(clientData != nullptr);
+  Domain *the_domain = static_cast<Domain*>(clientData);
+
+  bool commit    = false;
+  bool increment = false;
+
+  // First pass: separate optional flags from positional arguments.
+  // Flags are permitted anywhere after the command name.
+  constexpr int MAX_POS = 8;
+  Tcl_Size pos[MAX_POS];
+  int npos = 0;
+  for (Tcl_Size i = 1; i < argc; ++i) {
+    if (strcmp(argv[i], "-commit") == 0) {
+      commit = true;
+    } else if (strcmp(argv[i], "-increment") == 0) {
+      increment = true;
+    } else {
+      if (npos >= MAX_POS) {
+        opserr << "WARNING setNodeDisp - too many arguments\n";
+        return TCL_ERROR;
+      }
+      pos[npos++] = i;
+    }
+  }
+
+  if (npos != 2 && npos != 3) {
+    opserr << "WARNING want - setNodeDisp nodeTag? nodeValues? <-commit> <-increment>\n"
+           << "       or   - setNodeDisp nodeTag? dof? value? <-commit> <-increment>\n";
+    return TCL_ERROR;
+  }
+
+  int tag;
+  if (Tcl_GetInt(interp, argv[pos[0]], &tag) != TCL_OK) {
+    opserr << "WARNING setNodeDisp - could not read nodeTag\n";
+    return TCL_ERROR;
+  }
+
+  Node *theNode = the_domain->getNode(tag);
+  if (theNode == nullptr) {
+    opserr << OpenSees::PromptValueError
+           << "node with tag " << tag << " not found"
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  int numDOF = theNode->getNumberDOF();
+
+  if (npos == 2) {
+    // List form:  setNodeDisp nodeTag {v1 v2 ... vN}
+    Tcl_Size listLen;
+    TCL_Char **listArgv;
+    if (Tcl_SplitList(interp, argv[pos[1]], &listLen, &listArgv) != TCL_OK) {
+      opserr << OpenSees::PromptValueError
+             << "could not parse nodeValues list"
+             << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
+    }
+    if ((int)listLen != numDOF) {
+      opserr << OpenSees::PromptValueError
+             << "nodeValues has " << (int)listLen
+             << " entries, expected " << numDOF
+             << OpenSees::SignalMessageEnd;
+      Tcl_Free((char*)listArgv);
+      return TCL_ERROR;
+    }
+
+    Vector vel(numDOF);
+    for (Tcl_Size i = 0; i < listLen; ++i) {
+      double v;
+      if (Tcl_GetDouble(interp, listArgv[i], &v) != TCL_OK) {
+        opserr << OpenSees::PromptValueError
+               << "invalid value '" << listArgv[i] << "' in nodeValues"
+               << OpenSees::SignalMessageEnd;
+        Tcl_Free((char*)listArgv);
+        return TCL_ERROR;
+      }
+      vel((int)i) = v;
+    }
+    Tcl_Free((char*)listArgv);
+
+    if (increment)
+      theNode->incrTrialDisp(vel);
+    else
+      theNode->setTrialDisp(vel);
+
+  } else {
+    // Single-DOF form:  setNodeDisp nodeTag dof value
+    int    dof;
+    double value;
+    if (Tcl_GetInt(interp, argv[pos[1]], &dof) != TCL_OK) {
+      opserr << OpenSees::PromptValueError
+             << "Invalid dof " << argv[pos[1]]
+             << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
+    }
+    if (Tcl_GetDouble(interp, argv[pos[2]], &value) != TCL_OK) {
+      opserr << OpenSees::PromptValueError
+             << "Invalid value " << argv[pos[2]]
+             << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
+    }
+    dof--;
+
+    if (dof >= 0 && dof < numDOF) {
+      Vector vel(numDOF);
+      vel = theNode->getDisp();
+      vel(dof) = value;
+      if (increment)
+        theNode->incrTrialDisp(vel);
+      else
+        theNode->setTrialDisp(vel);
+    }
+  }
+
+  if (commit)
+    theNode->commitState();
+
+  return TCL_OK;
+}
+#endif 
 
 int
 setNodeAccel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
@@ -556,6 +690,46 @@ setNodeAccel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   return TCL_OK;
 }
 
+int 
+setNodePressure(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+              TCL_Char ** const argv)
+{
+  assert(clientData != nullptr);
+  Domain *the_domain = static_cast<Domain*>(clientData);
+
+  if (argc < 3) {
+    opserr << "WARNING want - setNodePressure nodeTag? value?\n";
+    return TCL_ERROR;
+  }
+
+  int tag;
+  double value;
+
+  if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
+    opserr << OpenSees::PromptValueError
+           << "Invalid tag " << argv[1] 
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+  if (Tcl_GetDouble(interp, argv[2], &value) != TCL_OK) {
+    opserr << OpenSees::PromptValueError
+           << "Invalid value " << argv[2] 
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  Pressure_Constraint *thePC = the_domain->getPressure_Constraint(tag);
+  if (thePC == nullptr) {
+    opserr << OpenSees::PromptValueError
+           << "Pressure constraint with tag " << tag << " not found"
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  thePC->setPressure(value);
+
+  return TCL_OK;
+}
 
 
 int
@@ -583,7 +757,7 @@ nodeRotation(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   if (theNode == nullptr)
     return TCL_ERROR;
 
-  Versor rotation = theNode->getTrialRotation();
+  const Versor rotation = theNode->getCommitRotation();
 
   Tcl_Obj* list = Tcl_NewListObj(4, nullptr);
   for (int i = 0; i < 3; ++i)

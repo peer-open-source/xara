@@ -89,8 +89,6 @@ WrapperNDMaterial::WrapperNDMaterial()
 WrapperNDMaterial::~WrapperNDMaterial()
 {
 
-  /*opserr << "WrapperNDMaterial::~WrapperNDMaterial()\n";*/
-
   if (funcName != 0)
     delete [] funcName;
 

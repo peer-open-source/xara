@@ -8,16 +8,17 @@
 ** Commercial use of this program without express permission of the   **
 ** Authors is strictly prohibited.                                    **
 **                                                                    **
-** Developed by:                                                      **
-**   Quan Gu (quangu@xmu.edu.cn)                                      **
-**                                                                    **
-** reference: Hofstetter, G., J.C. Simo and R.L. Taylor, \A modified  **
-** cap-model: Closest point solution algorithms\, Computers &         **
-** Structures, 46 (1993),203-214.                                     **
-**                                                                    **
 ** ****************************************************************** */
 
-
+//
+// Developed by:                                                    
+//   Quan Gu (quangu@xmu.edu.cn)                                    
+//
+// reference: Hofstetter, G., J.C. Simo and R.L. Taylor, \A modified
+//
+// cap-model: Closest point solution algorithms, 
+//            Computers & Structures, 46 (1993),203-214.                                   
+//
 
 #ifndef CapPlasticity_h
 #define CapPlasticity_h
@@ -31,28 +32,24 @@
 
 
 class CapPlasticity : public NDMaterial {
-  
-  //-------------------Declarations-------------------------------
-  
  public :
-  
-  
-  CapPlasticity( int    tag,
-		 double G,
-		 double K,
-		 double rho,
-		 double X,
-		 double D,
-		 double W,
-		 double R,
-		 double lambda,
-		 double theta,
-		 double beta,
-		 double alpha,
-		 double T, 
-		 int ndm,
-		 double pTol_k
-		 );
+  CapPlasticity(int    tag,
+                double G,
+                double K,
+                double rho,
+                double X,
+                double D,
+                double W,
+                double R,
+                double lambda,
+                double theta,
+                double beta,
+                double alpha,
+                double T, 
+                int ndm,
+                double pTol_k
+                );
+
   CapPlasticity( const CapPlasticity & a);
   
   ~CapPlasticity( );
@@ -62,21 +59,21 @@ class CapPlasticity : public NDMaterial {
   int setTrialStrain(const Vector &v, const Vector &r);
   int setTrialStrainIncr(const Vector &v);
   int setTrialStrainIncr(const Vector &v, const Vector &r);
-  const Matrix &getTangent(void);
-  const Matrix &getInitialTangent(void) ;
+  const Matrix &getTangent();
+  const Matrix &getInitialTangent();
   
-  const Vector &getStress(void);
-  const Vector &getStrain(void);
+  const Vector &getStress();
+  const Vector &getStrain();
   
-  int commitState(void) ;
-  int revertToLastCommit(void) ;
-  int revertToStart(void) ;
+  int commitState();
+  int revertToLastCommit();
+  int revertToStart();
   
-  NDMaterial *getCopy(void);
+  NDMaterial *getCopy();
   NDMaterial *getCopy(const char *code) ;
   
-  const char *getType(void) const;
-  int getOrder(void) const ;
+  const char *getType() const;
+  int getOrder() const;
   
   int sendSelf(int commitTag, Channel &theChannel) ;
   int recvSelf(int commitTag, Channel &theChannel,
@@ -102,7 +99,7 @@ class CapPlasticity : public NDMaterial {
   
   int    findMode(double normS, double I1, double k);
   
-  // ----------------------------  for consistent tangent modulus ---------------
+  //  for consistent tangent modulus ---------------
   Matrix & dF2dSigma ( int mode);
   Vector & dFdSigma (int mode);
   double dFdk (int OrderOfDerivative);  // order one or two, depending on OrderOfDerivative
@@ -113,7 +110,7 @@ class CapPlasticity : public NDMaterial {
   int computeConsistentTangent(double gammar1, double gammar2, double gammar3, int mode);
   double tripleTensorProduct (Vector &A, Matrix &B, Vector &C);  // result = A:B:C
   
- private:
+private:
   
   
   //int    tag;
@@ -180,15 +177,14 @@ public:
   const Vector & getStressSensitivity     (int gradNumber, bool conditional);
   //	int            commitSensitivity        (Vector & strainGradient, int gradNumber, int numGrads);
   //    const Matrix & getInitialTangentSensitivity(int gradNum);
-  
-  
+
+
 private:
 
 	Matrix *SHVs;
 	int parameterID;
 	bool isKAdjusted; // 6-14-2013    0: not adjusted; 1: adjusted
-	
 
-} ; 
+}; 
 
 #endif

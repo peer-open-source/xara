@@ -19,7 +19,7 @@
 ** ****************************************************************** */
                                                                         
 // Written: Leopoldo Tesser, Diego Talledo
-// 9-node lagrandian shell element with membrane and drill
+// 9-node lagrangian shell element with membrane and drill
 
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -41,10 +41,11 @@
 
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
 #define min(a,b) ( (a)<(b) ? (a):(b) )
 
+#define ELE_TAG_ShellNL 10044
 
+#include <elementAPI.h>
 void *
 OPS_NewShellNL()
 {
@@ -328,7 +329,7 @@ int  ShellNL::revertToLastCommit( )
 }
     
 
-//revert to start 
+// revert to start 
 int  ShellNL::revertToStart( ) 
 {
   int i ;
@@ -552,18 +553,20 @@ ShellNL::getResponse(int responseID, Information &eleInfo)
 
 
 //return stiffness matrix 
-const Matrix&  ShellNL::getTangentStiff( ) 
+const Matrix&
+ShellNL::getTangentStiff( ) 
 {
   int tang_flag = 1 ; //get the tangent 
 
-  //do tangent and residual here
+  // do tangent and residual here
   formResidAndTangent( tang_flag ) ;  
 
   return stiff ;
 }    
 
 //return secant matrix 
-const Matrix&  ShellNL::getInitialStiff( ) 
+const Matrix&
+ShellNL::getInitialStiff( ) 
 {
   if (Ki != 0)
     return *Ki;
@@ -682,30 +685,30 @@ const Matrix&  ShellNL::getInitialStiff( )
 
       //extract BJ
       for (p=0; p<nstress; p++) {
-	    for (q=0; q<ndf; q++ )
-	      BJ(p,q) = saveB[p][q][j]   ;
+        for (q=0; q<ndf; q++ )
+          BJ(p,q) = saveB[p][q][j]   ;
       }//end for p
 
       //multiply bending terms by (-1.0) for correct statement
       // of equilibrium  
       for ( p = 3; p < 6; p++ ) {
-	    for ( q = 3; q < 6; q++ ) 
-	      BJ(p,q) *= (-1.0) ;
+        for ( q = 3; q < 6; q++ ) 
+          BJ(p,q) *= (-1.0) ;
       } //end for p
 
 
       //transpose 
       //BJtran = transpose( 8, ndf, BJ ) ;
       for (p=0; p<ndf; p++) {
-	    for (q=0; q<nstress; q++) 
-	      BJtran(p,q) = BJ(q,p) ;
+        for (q=0; q<nstress; q++) 
+          BJtran(p,q) = BJ(q,p) ;
       }//end for p
 
       //drilling B matrix
       drillPointer = computeBdrill( j, shp ) ;
       for (p=0; p<ndf; p++ ) {
-	    BdrillJ[p] = *drillPointer ;
-	    drillPointer++ ;
+        BdrillJ[p] = *drillPointer ;
+        drillPointer++ ;
       }//end for p
 
       //BJtranD = BJtran * dd ;
@@ -985,11 +988,8 @@ ShellNL::formResidAndTangent( int tang_flag )
   //
 
   static const int ndf = 6 ; //two membrane plus three bending plus one drill
-
   static const int nstress = 8 ; //three membrane, three moment, two shear
-
   static const int ngauss = 9 ;
-
   static const int numnodes = 9 ;
 
   int i,  j,  k, p, q ;
@@ -1066,7 +1066,7 @@ ShellNL::formResidAndTangent( int tang_flag )
 
     //volume element to also be saved
     dvol[i] = wg[i] * xsj ;
-	volume += dvol[i] ;
+    volume += dvol[i] ;
 
     //zero the strains
     strain.Zero( ) ;
@@ -1081,36 +1081,36 @@ ShellNL::formResidAndTangent( int tang_flag )
 
       Bbend = computeBbend( j, shp ) ;
 
-	  Bshear = computeBshear( j, shp ) ;
+      Bshear = computeBshear( j, shp ) ;
 	  
       BJ = assembleB( Bmembrane, Bbend, Bshear ) ;
 
-	  //save the B-matrix
-	  for (p=0; p<nstress; p++) {
-		for (q=0; q<ndf; q++ ) {
-		  saveB[p][q][j] = BJ(p,q) ;
-		}//end for q
-	  }//end for p
+      //save the B-matrix
+      for (p=0; p<nstress; p++) {
+        for (q=0; q<ndf; q++ ) {
+          saveB[p][q][j] = BJ(p,q) ;
+        }//end for q
+      }//end for p
 
-      //nodal "displacements" 
+      // nodal "displacements" 
       const Vector &ul = nodePointers[j]->getTrialDisp( ) ;
 
       //compute the strain
       //strain += (BJ*ul) ; 
       strain.addMatrixVector(1.0, BJ,ul,1.0 ) ;
 
-      //drilling B matrix
+      // drilling B matrix
       drillPointer = computeBdrill( j, shp ) ;
       for (p=0; p<ndf; p++ ) {
-	    //BdrillJ[p] = *drillPointer++ ;
-	    BdrillJ[p] = *drillPointer ; //set p-th component
-	    drillPointer++ ;             //pointer arithmetic
+        //BdrillJ[p] = *drillPointer++ ;
+        BdrillJ[p] = *drillPointer ; //set p-th component
+        drillPointer++ ;             //pointer arithmetic
       }//end for p
 
       //drilling "strain" 
       for ( p = 0; p < ndf; p++ )
-	    epsDrill +=  BdrillJ[p]*ul(p) ;
-	} // end for j
+        epsDrill +=  BdrillJ[p]*ul(p) ;
+    } // end for j
   
 
     //send the strain to the material 
@@ -1145,15 +1145,15 @@ ShellNL::formResidAndTangent( int tang_flag )
       //multiply bending terms by (-1.0) for correct statement
       // of equilibrium  
       for ( p = 3; p < 6; p++ ) {
-	    for ( q = 3; q < 6; q++ ) 
-	      BJ(p,q) *= (-1.0) ;
+        for ( q = 3; q < 6; q++ ) 
+          BJ(p,q) *= (-1.0) ;
       } //end for p
 
       //transpose 
       //BJtran = transpose( 8, ndf, BJ ) ;
       for (p=0; p<ndf; p++) {
-	    for (q=0; q<nstress; q++) 
-	      BJtran(p,q) = BJ(q,p) ;
+        for (q=0; q<nstress; q++) 
+          BJtran(p,q) = BJ(q,p) ;
       }//end for p
 
       //residJ = BJtran * stress ;
@@ -1162,8 +1162,8 @@ ShellNL::formResidAndTangent( int tang_flag )
       //drilling B matrix
       drillPointer = computeBdrill( j, shp ) ;
       for (p=0; p<ndf; p++ ) {
-	    BdrillJ[p] = *drillPointer ;
-	    drillPointer++ ;
+        BdrillJ[p] = *drillPointer ;
+        drillPointer++ ;
       }//end for p
 
       //residual including drill
@@ -1172,43 +1172,42 @@ ShellNL::formResidAndTangent( int tang_flag )
 
       if ( tang_flag == 1 ) {
 
-        //BJtranD = BJtran * dd ;
-	    BJtranD.addMatrixProduct(0.0, BJtran,dd,1.0 ) ;
-        
-	    for (p=0; p<ndf; p++) {
-	      BdrillJ[p] *= ( Ktt*dvol[i] ) ;
+          //BJtranD = BJtran * dd ;
+        BJtranD.addMatrixProduct(0.0, BJtran,dd,1.0 ) ;
+          
+        for (p=0; p<ndf; p++) {
+          BdrillJ[p] *= ( Ktt*dvol[i] ) ;
         }//end for p
 
         kk = 0 ;
         for ( k = 0; k < numnodes; k++ ) {
           //extract BK
-	      for (p=0; p<nstress; p++) {
-	        for (q=0; q<ndf; q++ ){
-	          BK(p,q) = saveB[p][q][k];
-              
-			}//end for q
-		  }//end for p
-	  
-    	  //drilling B matrix
-	      drillPointer = computeBdrill( k, shp ) ;
-	      for (p=0; p<ndf; p++ ) {
-	        BdrillK[p] = *drillPointer ;
-	        drillPointer++ ;
-		  }//end for p
-  
-          //stiffJK = BJtranD * BK  ;
-	      // +  transpose( 1,ndf,BdrillJ ) * BdrillK ; 
-	      stiffJK.addMatrixProduct(0.0, BJtranD,BK,1.0 ) ;
+          for (p=0; p<nstress; p++) {
+            for (q=0; q<ndf; q++ ){
+              BK(p,q) = saveB[p][q][k];
+            }//end for q
+          }//end for p
+      
+          //drilling B matrix
+          drillPointer = computeBdrill( k, shp ) ;
+          for (p=0; p<ndf; p++ ) {
+            BdrillK[p] = *drillPointer ;
+            drillPointer++ ;
+          }//end for p
+    
+            //stiffJK = BJtranD * BK  ;
+          // +  transpose( 1,ndf,BdrillJ ) * BdrillK ; 
+          stiffJK.addMatrixProduct(0.0, BJtranD,BK,1.0 ) ;
 
           for ( p = 0; p < ndf; p++ )  {
-	        for ( q = 0; q < ndf; q++ ) {
-	           stiff( jj+p, kk+q ) += stiffJK(p,q)
-		                 + ( BdrillJ[p]*BdrillK[q] ) ;
-			}//end for q
-		  }//end for p
+            for ( q = 0; q < ndf; q++ ) {
+              stiff( jj+p, kk+q ) += stiffJK(p,q)
+                                  + ( BdrillJ[p]*BdrillK[q] ) ;
+            }//end for q
+          }//end for p
           kk += ndf ;
-		} // end for k loop
-	  } // end if tang_flag 
+        } // end for k loop
+      } // end if tang_flag 
       jj += ndf ;
     } // end for j loop
   } //end for i gauss loop
@@ -1220,7 +1219,7 @@ ShellNL::formResidAndTangent( int tang_flag )
 //************************************************************************
 //compute local coordinates and basis
 void   
-ShellNL::computeBasis( ) 
+ShellNL::computeBasis() 
 {
   //could compute derivatives \frac{ \partial {\bf x} }{ \partial L_1 } 
   //                     and  \frac{ \partial {\bf x} }{ \partial L_2 }
@@ -1281,19 +1280,18 @@ ShellNL::computeBasis( )
   
   //local nodal coordinates in plane of shell
 
-  int i ;
-  for ( i = 0; i < 9; i++ ) {
+  for (int i = 0; i < 9; i++ ) {
        const Vector &coorI = nodePointers[i]->getCrds( ) ;
        xl[0][i] = coorI^v1 ;  
        xl[1][i] = coorI^v2 ;
   }  //end for i 
 
   //basis vectors stored as array of doubles
-  for ( i = 0; i < 3; i++ ) {
+  for (int i = 0; i < 3; i++ ) {
       g1[i] = v1(i) ;
       g2[i] = v2(i) ;
       g3[i] = v3(i) ;
-  }  //end for i
+  }
 }
 
 //*************************************************************************
@@ -1583,21 +1581,7 @@ ShellNL::shape2d( double ss, double tt,const double x[2][9],
   
   return ;
 }
-	   
-//**********************************************************************
-Matrix  
-ShellNL::transpose( int dim1,int dim2,const Matrix &M ) 
-{
-  int i ;
-  int j ;
-  Matrix Mtran( dim2, dim1 ) ;
 
-  for ( i = 0; i < dim1; i++ ) {
-     for ( j = 0; j < dim2; j++ ) 
-         Mtran(j,i) = M(i,j) ;
-  } // end for i
-  return Mtran ;
-}
 
 //**********************************************************************
 int  ShellNL::sendSelf (int commitTag,Channel &theChannel)

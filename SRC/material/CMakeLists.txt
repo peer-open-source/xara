@@ -10,6 +10,10 @@ target_link_libraries(OPS_Material
   PUBLIC OPS_Recorder
 )
 
+target_sources(OPS_Material
+  PRIVATE
+    MaterialBuilder.cpp
+)
 
 target_include_directories(OPS_Material
   PUBLIC

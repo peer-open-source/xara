@@ -17,8 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                       
-                                                                       
+//
 #ifndef PileToe3D_h
 #define PileToe3D_h
 
@@ -33,7 +32,6 @@
 #include <Matrix.h>
 
 #include <ID.h>
-// #include <myDebugInfo.h>
 
 class CrdTransf;
 

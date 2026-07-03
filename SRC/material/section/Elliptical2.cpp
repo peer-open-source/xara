@@ -595,10 +595,8 @@ int
 Elliptical2::getResponse(int responseID, Information &eleInformation)
 {
   if (responseID == 123) {
-    Vector &theVec = *(eleInformation.theVector);
-    theVec(0) = eP_n[0];
-    theVec(1) = eP_n[1];
-    return eleInformation.setVector(theVec);
+    double data[2] = {eP_n[0], eP_n[1]};
+    return eleInformation.setVector(Vector(data, 2));
   }
   else
     return SectionForceDeformation::getResponse(responseID, eleInformation);

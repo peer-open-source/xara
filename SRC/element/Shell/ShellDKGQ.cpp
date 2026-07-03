@@ -1149,10 +1149,9 @@ void ShellDKGQ::computeBasis()
   //cross product for v3
   v3 = LovelyCrossProduct(v1, v2);
 
-  //local nodal coordinates in plane of shell
+  // local nodal coordinates in plane of shell
 
-  int i;
-  for (i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
 
     const Vector &coorI = nodePointers[i]->getCrds();
     xl[0][i]            = coorI ^ v1;
@@ -1161,7 +1160,7 @@ void ShellDKGQ::computeBasis()
   }
 
   // basis vectors stored as array of doubles
-  for (i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++) {
     g1[i] = v1(i);
     g2[i] = v2(i);
     g3[i] = v3(i);

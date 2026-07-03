@@ -21,9 +21,10 @@
 //    1........2 |-> x
 //
 // Reference:
-// Kristijan Kolozvari, Carlos N. L�pez, Leonardo M. Massone (2023), �Efficient Three-dimensional Shear-flexure Interaction Model for Reinforced Concrete Walls�, Engineering Structures
+//   Kristijan Kolozvari, Carlos N. L�pez, Leonardo M. Massone (2023), 
+//     "Efficient Three-dimensional Shear-flexure Interaction Model for Reinforced Concrete Walls", 
+//     Engineering Structures
 //
-// Source: /usr/local/cvs/OpenSees/SRC/element/mvlem/E_SFI_MVLEM_3D.cpp
 //
 // Rev: 1.0
 

@@ -215,7 +215,7 @@ NDMaterial* createASDPlasticMaterial(int instance_tag,
     {
         populate_ASDPlasticMaterial(instance);
         cout << "\n\nPrinting material info\n";
-        instance->Print(opserr);
+        instance->Print(opserr, 0);
         cout << "\n\nDone creating ASDPlasticMaterial \n\n\n";
         instance_pointers.push_back(static_cast<NDMaterial*>(instance));
         return static_cast<NDMaterial*>(instance);

@@ -1,6 +1,7 @@
 
 target_sources(OPS_Material
   PRIVATE
+    ShellFiberSection.cpp
     LayeredShellFiberSection.cpp
     DoubleMembranePlateFiberSection.cpp
     ElasticMembranePlateSection.cpp
@@ -18,4 +19,5 @@ target_sources(OPS_Material
     thermal/LayeredShellFiberSectionThermal.h
     thermal/MembranePlateFiberSectionThermal.h
 )
+
 target_include_directories(OPS_Material PUBLIC ${CMAKE_CURRENT_LIST_DIR})

@@ -51,13 +51,13 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticPPMaterial)
 
   int numData = 1;
   if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid tag for uniaxialMaterial ElasticPP" << endln;
+    opserr << "WARNING invalid tag for uniaxialMaterial ElasticPP" << "\n";
     return 0;
   }
 
   numData = numArgs-1;
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "Invalid data for uniaxial ElasticPP " << iData[0] << endln;
+    opserr << "Invalid data for uniaxial ElasticPP " << iData[0] << "\n";
     return 0;      
   }
 
@@ -81,8 +81,8 @@ ElasticPPMaterial::ElasticPPMaterial(int tag, double e, double eyp)
  trialStrain(0.0), trialStress(0.0), trialTangent(E),
  commitStrain(0.0), commitStress(0.0), commitTangent(E)
 {
-      EnergyP = 0;      //by SAJalali
-      fyp = E*eyp;
+  EnergyP = 0;      //by SAJalali
+  fyp = E*eyp;
   fyn = -fyp;
 }
 
@@ -313,20 +313,20 @@ void
 ElasticPPMaterial::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-        s << "ElasticPPMaterial tag: " << this->getTag() << endln;
-        s << "  E: " << E << endln;
-        s << "  ep: " << ep << endln;
-        s << "  stress: " << trialStress << " tangent: " << trialTangent << endln;
+    s << "ElasticPPMaterial tag: " << this->getTag() << endln;
+    s << "  E: " << E << endln;
+    s << "  ep: " << ep << endln;
+    s << "  stress: " << trialStress << " tangent: " << trialTangent << endln;
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": \"" << this->getTag() << "\", ";
-        s << "\"type\": \"ElasticPPMaterial\", ";
-        s << "\"E\": " << E << ", ";
-        s << "\"epsyp\": " << fyp/E << ", ";
-        s << "\"epsyn\": " << fyn/E << ", ";
-        s << "\"eps0\": " << ezero << "}";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"ElasticPPMaterial\", ";
+    s << "\"E\": " << E << ", ";
+    s << "\"epsyp\": " << fyp/E << ", ";
+    s << "\"epsyn\": " << fyn/E << ", ";
+    s << "\"eps0\": " << ezero << "}";
   }
 }
 

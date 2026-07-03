@@ -36,14 +36,14 @@ ElasticIsotropicThreeDimensional::ElasticIsotropicThreeDimensional(int tag, doub
 }
 
 ElasticIsotropicThreeDimensional::ElasticIsotropicThreeDimensional():
- ElasticIsotropicMaterial (0, ND_TAG_ElasticIsotropicThreeDimensional, 0.0, 0.0),
+ ElasticIsotropicMaterial(0, ND_TAG_ElasticIsotropicThreeDimensional, 0.0, 0.0, 0.0),
  epsilon(6), Cepsilon(6)
 {
   epsilon.Zero();
   Cepsilon.Zero();
 }
 
-ElasticIsotropicThreeDimensional::~ElasticIsotropicThreeDimensional ()
+ElasticIsotropicThreeDimensional::~ElasticIsotropicThreeDimensional()
 {
 
 }

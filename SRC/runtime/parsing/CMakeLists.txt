@@ -5,5 +5,7 @@
 #
 #==============================================================================
 
-target_sources(OPS_Runtime PRIVATE InterpreterAPI.cpp)
+target_sources(OPS_Runtime PRIVATE
+  InterpreterAPI.cpp
+)
 

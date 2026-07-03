@@ -36,6 +36,8 @@
 #include <Logging.h>
 #include <Parsing.h> // For TCL_OK/ERROR
 
+#include <InterpreterResponse.h>
+
 using OpenSees::LoadCase;
 
 ModelRegistry::ModelRegistry(Domain &domain,
@@ -58,6 +60,9 @@ ModelRegistry::~ModelRegistry()
     for (auto& [tag, obj] : val)
       delete obj;
   }
+
+  for (InterpreterResponse* response : m_responses)
+    delete response;
 
   // set the pointers to 0
   theDomain = nullptr;

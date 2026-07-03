@@ -59,15 +59,15 @@ int
 FORMStorage::setVariable(const char *variable, Information &theInfo)
 {
     if (strcmp(variable,"alphaFORM") == 0) {
-        alpha = new Vector(*(theInfo.theVector));
+        alpha = new Vector(theInfo.theVector);
     }
     
     else if (strcmp(variable,"gradientUFORM") == 0) {
-        gradientU = new Vector(*(theInfo.theVector));
+        gradientU = new Vector(theInfo.theVector);
     }
     
     else if (strcmp(variable,"gradientXFORM") == 0) {
-        gradientX = new Vector(*(theInfo.theVector));
+        gradientX = new Vector(theInfo.theVector);
     }
     
     else if (strcmp(variable,"betaFORM") == 0) {

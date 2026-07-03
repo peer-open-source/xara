@@ -24,7 +24,7 @@
 
 int PressureDependMultiYield03::matCount=0;
 int* PressureDependMultiYield03::loadStagex = 0;  //=0 if elastic; =1 if plastic
-int* PressureDependMultiYield03::ndmx=0;  //num of dimensions (2 or 3)
+int*    PressureDependMultiYield03::ndmx=0;  //num of dimensions (2 or 3)
 double* PressureDependMultiYield03::rhox=0;
 double* PressureDependMultiYield03::refShearModulusx=0;
 double* PressureDependMultiYield03::refBulkModulusx=0;
@@ -145,23 +145,23 @@ void * OPS_ADD_RUNTIME_VPV(OPS_PressureDependMultiYield03)
 
     if (gredu != 0) {
         for (int i = in + int(2 * param[numParam]); i < argc; i++) {
-            if (OPS_GetDoubleInput(&numdata, &param[i - 3 - int(2 * param[numParam])]) < 0) {
-                opserr << "WARNING invalid "
-                       << arg[i - 3 - int(2 * param[numParam])]
-                       << "\n";
-                opserr << "nDMaterial PressureDependMultiYield03: " << tag << "\n";
-                return 0;
-            }
+          if (OPS_GetDoubleInput(&numdata, &param[i - 3 - int(2 * param[numParam])]) < 0) {
+              opserr << "WARNING invalid "
+                      << arg[i - 3 - int(2 * param[numParam])]
+                      << "\n";
+              opserr << "nDMaterial PressureDependMultiYield03: " << tag << "\n";
+              return 0;
+          }
         }
     } else {
         for (int i = in; i < argc; i++) {
-            if (OPS_GetDoubleInput(&numdata, &param[i - 3]) < 0) {
-                opserr << "WARNING invalid "
-                       << arg[i - 3 - int(2 * param[numParam])]
-                       << "\n";
-                opserr << "nDMaterial PressureDependMultiYield03: " << tag << "\n";
-                return 0;
-            }
+          if (OPS_GetDoubleInput(&numdata, &param[i - 3]) < 0) {
+            opserr << "WARNING invalid "
+                    << arg[i - 3 - int(2 * param[numParam])]
+                    << "\n";
+            opserr << "nDMaterial PressureDependMultiYield03: " << tag << "\n";
+            return 0;
+          }
         }
     }
 
@@ -191,15 +191,15 @@ PressureDependMultiYield03::PressureDependMultiYield03 (int tag, int nd,
 						    double peakShearStra, double refPress,
 						    double pressDependCoe,
 						    double phaseTransformAng,
-							int mType,
-							double ca,
-							double cb,
-							double cc,
-							double cd,
-							double ce,
-							double da,
-							double db,
-							double dc,
+                int mType,
+                double ca,
+                double cb,
+                double cc,
+                double cd,
+                double ce,
+                double da,
+                double db,
+                double dc,
 					        int   numberOfYieldSurf,
 						    double * gredu,
 					        double liquefactionParam1,
@@ -339,27 +339,27 @@ PressureDependMultiYield03::PressureDependMultiYield03 (int tag, int nd,
 
 	 stressRatioPTx = new double[matCount + 20];
 
-     einitx = new double[matCount+20];    //initial void ratio
-     volLimit1x = new double[matCount+20];
-     volLimit2x = new double[matCount+20];
-     volLimit3x = new double[matCount+20];
+    einitx = new double[matCount+20];    //initial void ratio
+    volLimit1x = new double[matCount+20];
+    volLimit2x = new double[matCount+20];
+    volLimit3x = new double[matCount+20];
 	 Hvx = new double[matCount+20];
 	 Pvx = new double[matCount+20];
 	 
 	 for (int i=0; i<matCount; i++) {
-         loadStagex[i] = temp1[i];
-		 ndmx[i] = temp2[i];
-         rhox[i] = temp3[i];
-	     refShearModulusx[i] = temp4[i];
-         refBulkModulusx[i] = temp5[i];
-         frictionAnglex[i] = temp6[i];
-         peakShearStrainx[i] = temp7[i];
-         refPressurex[i] = temp8[i];
-         cohesionx[i] = temp9[i];
-         pressDependCoeffx[i] = temp10[i];
-         numOfSurfacesx[i] = temp11[i];
-         residualPressx[i] = temp12[i];
-         phaseTransfAnglex[i] = temp13[i];
+    loadStagex[i] = temp1[i];
+    ndmx[i] = temp2[i];
+    rhox[i] = temp3[i];
+    refShearModulusx[i] = temp4[i];
+    refBulkModulusx[i] = temp5[i];
+    frictionAnglex[i] = temp6[i];
+    peakShearStrainx[i] = temp7[i];
+    refPressurex[i] = temp8[i];
+    cohesionx[i] = temp9[i];
+    pressDependCoeffx[i] = temp10[i];
+    numOfSurfacesx[i] = temp11[i];
+    residualPressx[i] = temp12[i];
+    phaseTransfAnglex[i] = temp13[i];
 
 		 mTypex[i] = temp14[i];
 		 contractParam1x[i] = temp15[i];
@@ -368,8 +368,8 @@ PressureDependMultiYield03::PressureDependMultiYield03 (int tag, int nd,
 		 contractParam4x[i] = temp18[i];
 		 contractParam5x[i] = temp19[i];
 
-         dilateParam1x[i] = temp20[i];
-         dilateParam2x[i] = temp21[i];
+    dilateParam1x[i] = temp20[i];
+    dilateParam2x[i] = temp21[i];
 		 dilateParam3x[i] = temp22[i];
 
 		 liquefyParam1x[i] = temp23[i];
@@ -465,7 +465,7 @@ PressureDependMultiYield03::PressureDependMultiYield03 (int tag, int nd,
 
 PressureDependMultiYield03::PressureDependMultiYield03 ()
  : NDMaterial(0,ND_TAG_PressureDependMultiYield03),
-   currentStress(), trialStress(), currentStrain(),
+  currentStress(), trialStress(), currentStrain(),
   strainRate(), PPZPivot(), PPZCenter(), PivotStrainRate(6), PivotStrainRateCommitted(6),
   PPZPivotCommitted(), PPZCenterCommitted(), theSurfaces(0), committedSurfaces(0)
 {
@@ -561,7 +561,8 @@ void PressureDependMultiYield03::elast2Plast(void)
 }
 
 
-int PressureDependMultiYield03::setTrialStrain (const Vector &strain)
+int
+PressureDependMultiYield03::setTrialStrain(const Vector &strain)
 {
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 2;
@@ -578,7 +579,7 @@ int PressureDependMultiYield03::setTrialStrain (const Vector &strain)
   }
   else {
     opserr << "Fatal:PressureDependMultiYield03:: Material dimension is: " << ndm << endln;
-    opserr << "But strain vector size is: " << strain.Size() << endln;
+    opserr << "But strain vector size is: " << strain.Size() << "\n";
    exit(-1);
   }
 
@@ -590,13 +591,15 @@ int PressureDependMultiYield03::setTrialStrain (const Vector &strain)
 }
 
 
-int PressureDependMultiYield03::setTrialStrain (const Vector &strain, const Vector &rate)
+int
+PressureDependMultiYield03::setTrialStrain (const Vector &strain, const Vector &rate)
 {
   return setTrialStrain (strain);
 }
 
 
-int PressureDependMultiYield03::setTrialStrainIncr (const Vector &strain)
+int
+PressureDependMultiYield03::setTrialStrainIncr (const Vector &strain)
 {
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 2;
@@ -612,9 +615,9 @@ int PressureDependMultiYield03::setTrialStrainIncr (const Vector &strain)
     workV6[5] = 0.0;
   }
   else {
-    opserr << "Fatal:PressureDependMultiYield03:: Material dimension is: " << ndm << endln;
-    opserr << "But strain vector size is: " << strain.Size() << endln;
-   exit(-1);
+    opserr << "Fatal:PressureDependMultiYield03:: Material dimension is: " << ndm << "\n";
+    opserr << "But strain vector size is: " << strain.Size() << "\n";
+    exit(-1);
   }
 
   strainRate.setData(workV6,1);
@@ -1576,42 +1579,31 @@ int PressureDependMultiYield03::getResponse (int responseID, Information &matInf
   case -1:
     return -1;
   case 1:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getCommittedStress();
-    return 0;
+    return matInfo.setVector(this->getCommittedStress());
+
   case 2:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getCommittedStrain();
-    return 0;
+    return matInfo.setVector(this->getCommittedStrain());
   case 3:
-    if (matInfo.theMatrix != 0)
-      *(matInfo.theMatrix) = getTangent();
-    return 0;
+    return matInfo.setMatrix(this->getTangent());
   case 4:
     if (matInfo.theMatrix != 0)
       getBackbone(*(matInfo.theMatrix));
     return 0;
 	// begin change by Alborz Ghofrani UW --- get 6 components of stress
   case 5:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getStressToRecord(3);
-    return 0;
+    return matInfo.setVector(this->getStressToRecord(3));
+
   case 6:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getStressToRecord(4);
-    return 0;
+    return matInfo.setVector(this->getStressToRecord(4));
+
   case 7:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getStressToRecord(5);
-    return 0;
+    return matInfo.setVector(this->getStressToRecord(5));
+
   case 8:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getStressToRecord(6);
-    return 0;
+    return matInfo.setVector(this->getStressToRecord(6));
+
   case 9:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = getStressToRecord(7);
-    return 0;
+    return matInfo.setVector(this->getStressToRecord(7));
 	// end change by Alborz Ghofrani UW
   default:
     return -1;
@@ -1619,13 +1611,15 @@ int PressureDependMultiYield03::getResponse (int responseID, Information &matInf
 }
 
 
-void PressureDependMultiYield03::Print(OPS_Stream &s, int flag )
+void 
+PressureDependMultiYield03::Print(OPS_Stream &s, int flag )
 {
-  s << "PressureDependMultiYield03" << endln;
+  s << "PressureDependMultiYield03" << "\n";
 }
 
 
-const Vector & PressureDependMultiYield03::getCommittedStress (void)
+const Vector & 
+PressureDependMultiYield03::getCommittedStress()
 {
 	int ndm = ndmx[matN];
     if (ndmx[matN] == 0) ndm = 2;

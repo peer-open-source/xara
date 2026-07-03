@@ -40,52 +40,16 @@
 #include <Parameter.h>
 #include <ParameterIter.h>
 #include <EquiSolnAlgo.h>
-#include <elementAPI.h>
 #include <iostream>
 
 #ifdef _PARALLEL_PROCESSING
 #include <mpi.h>
 #endif
 
-// static double doubleone = 1.0;
-// static Matrix one(&doubleone,1,1);
-// static ID dofid(1);
 
 #define SEQUENTIAL_SECTION_BEGIN  for (int proc = 0; proc < nproc; ++proc){ if (rank == proc) {
 #define SEQUENTIAL_SECTION_END } MPI_Barrier(MPI_COMM_WORLD);}
 
-
-void *
-OPS_ADD_RUNTIME_VPV(OPS_StagedLoadControlIntegrator)
-{
-    if (OPS_GetNumRemainingInputArgs() < 1) {
-        opserr << "insufficient arguments\n";
-        return 0;
-    }
-
-    double lambda;
-    int numData = 1;
-    if (OPS_GetDoubleInput(&numData, &lambda) < 0) {
-        opserr << "WARNING failed to read double lambda\n";
-        return 0;
-    }
-
-    int numIter = 1;
-    double mLambda[2] = {lambda, lambda};
-    if (OPS_GetNumRemainingInputArgs() > 2) {
-        if (OPS_GetIntInput(&numData, &numIter) < 0) {
-            opserr << "WARNING failed to read int numIter\n";
-            return 0;
-        }
-        numData = 2;
-        if (OPS_GetDoubleInput(&numData, &mLambda[0]) < 0) {
-            opserr << "WARNING failed to read double min and max\n";
-            return 0;
-        }
-    }
-
-    return new StagedLoadControl(lambda, numIter, mLambda[0], mLambda[1]);
-}
 
 
 StagedLoadControl::StagedLoadControl()

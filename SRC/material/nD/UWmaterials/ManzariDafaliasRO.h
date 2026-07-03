@@ -44,7 +44,6 @@
 
 #include "ManzariDafalias.h"
 
-#include <elementAPI.h>
 
 class ManzariDafaliasRO : public ManzariDafalias
 {

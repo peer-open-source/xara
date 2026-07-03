@@ -14,11 +14,10 @@
 #else
 #  include <strings.h>
 #endif
-#define strcmp strcasecmp
 
 static Element *TclDispatch_SSPbrick(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 static Element *TclDispatch_SSPbrickUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
-static int      TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
+// static int      TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 static Element *TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 
 int
@@ -30,10 +29,11 @@ TclCommand_SSP_Element(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
   ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
-  if (strcasecmp(argv[1], "SSPquad")==0) {
-    return TclCommand_addSSPquad(clientData, interp, argc, argv);
-  }
-  else if (strcasecmp(argv[1], "SSPquadUP")==0) {
+  // if (strcasecmp(argv[1], "SSPquad")==0) {
+  //   return TclCommand_addSSPquad(clientData, interp, argc, argv);
+  // }
+  // else 
+  if (strcasecmp(argv[1], "SSPquadUP")==0) {
     theEle = TclDispatch_SSPquadUP(clientData, interp, argc, argv);
   }
   else if (strcasecmp(argv[1], "SSPbrick")==0) {
@@ -181,17 +181,12 @@ TclDispatch_SSPbrickUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
       iData[7], iData[8], *theMaterial, dData[0], dData[1], dData[2], dData[3],
       dData[4], dData[5], dData[6], dData[7], dData[8], dData[9]);
 
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type SSPbrickUP\n";
-    return 0;
-  }
-
   return theElement;
 }
 
 
 
-
+#if 0
 #include <element/community/UWelements/SSPquad.h>
 static int
 TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
@@ -274,12 +269,10 @@ TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
   if (argi < argc-1) {
     if (Tcl_GetDouble(interp, argv[++argi], &b1) != TCL_OK) {
       opserr << "WARNING invalid b1\n";
-      opserr << "SSPquad element: " << tag << endln;
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[++argi], &b2) != TCL_OK) {
       opserr << "WARNING invalid b2\n";
-      opserr << "SSPquad element: " << tag << endln;
       return TCL_ERROR;
     }
   }
@@ -301,6 +294,7 @@ TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
 
   return TCL_OK;
 }
+#endif
 
 static Element*
 TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
@@ -379,11 +373,6 @@ TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
       dData[1], dData[2], dData[3], dData[4], dData[5], dData[6], dData[7],
       dData[8], dData[9], dData[10], dData[11], dData[12]);
   // LM change
-
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type SSPquadUP\n";
-    return 0;
-  }
 
   return theElement;
 }
@@ -538,15 +527,16 @@ TclDispatch_BeamContact2Dp(ClientData clientData, Tcl_Interp* interp, int argc, 
   return theElement;
 }
 
+#endif
 
-
-
+#if 0
 #include <element/community/UWelements/BeamContact3D.h>
 static Element*
 TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
+  static int num_BeamContact3D = 0;
 
   if (num_BeamContact3D == 0) {
     num_BeamContact3D++;
@@ -599,7 +589,7 @@ TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, T
   }
 
   int transfTag = iData[5];
-  CrdTransf *theTransf = G3_getSafeBuilder(rt)->getTypedObject<CrdTransf>(transfTag);
+  CrdTransf *theTransf = builder->getTypedObject<CrdTransf>(transfTag);
   if (theTransf == 0) {
     opserr << "WARNING element BeamContact3D " << iData[0] << endln;
     opserr << " coordTransf: " << transfTag << "not found\n";
@@ -630,16 +620,13 @@ TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, T
                                  iData[4], dData[0], *theTransf, *theMaterial,
                                  dData[1], dData[2], icSwitch);
 
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type BeamContact3DElement\n";
-    return 0;
-  }
-
   return theElement;
 }
 
+#endif
 
 
+#if 0
 
 #include <element/community/UWelements/BeamContact3Dp.h>
 static Element*

@@ -41,7 +41,7 @@ public:
     static constexpr const char* NAME = "RoundedMohrCoulomb_YF";
 
 
-    RoundedMohrCoulomb_YF( ):
+    RoundedMohrCoulomb_YF():
         YieldFunctionBase<RoundedMohrCoulomb_YF<EtaHardeningType>>::YieldFunctionBase() 
         {}
 

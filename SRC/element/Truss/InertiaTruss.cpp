@@ -62,7 +62,6 @@ Vector InertiaTruss::trussV12(12);
 
 #define OPS_Export
 
-static int numMyTruss = 0;
 
 
 //  responsible for allocating the necessary space needed by each object
@@ -71,19 +70,19 @@ static int numMyTruss = 0;
 
 OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_InertiaTrussElement)
 {
+
+  static int numMyTruss = 0;
   // print out a message about who wrote this element & any copyright info wanted
   if (numMyTruss == 0) {
     opserr << " \n";
-	opserr << "                          InertiaTruss element v1.0\n";
-	opserr << "                    by Xiaodong Ji, Yuhao Cheng, Yue Yu\n";
-	opserr << "                           Tsinghua University\n";
-	opserr << "Please contact jixd@mail.tsinghua.edu.cn, yuhao_cheng@126.com if anything goes wrong\n";
-	opserr << " \n";
-	numMyTruss++;
-
+    opserr << "                          InertiaTruss element v1.0\n";
+    opserr << "                    by Xiaodong Ji, Yuhao Cheng, Yue Yu\n";
+    opserr << "                           Tsinghua University\n";
+    opserr << "Please contact jixd@mail.tsinghua.edu.cn, yuhao_cheng@126.com if anything goes wrong\n";
+    opserr << " \n";
+    numMyTruss++;
   }
 	
-  Element *theElement = 0;
 
   int numRemainingArgs = OPS_GetNumRemainingInputArgs();
 
@@ -110,12 +109,8 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_InertiaTrussElement)
   }
 
   // now create the InertiaTruss
+  Element *theElement = 0;
   theElement = new InertiaTruss(iData[0], ndm, iData[1], iData[2], mr);
-
-  if (theElement == 0) {
-    opserr << "WARNING: out of memory: element InertiaTruss " << iData[0] << 
-      " $iNode $jNode $mr\n";
-  }
 
   return theElement;
 }

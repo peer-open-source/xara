@@ -31,12 +31,12 @@
 
 
 #include "NDMaterial.h"
-// #include <G3Globals.h>
 #include <iostream>
 #include <Channel.h>
 #include <Information.h>
 #include <MaterialResponse.h>
-
+#include <OPS_Stream.h>
+#include <Logging.h>
 #include "ASDPlasticMaterialTraits.h"
 
 #include "ASDPlasticMaterialGlobals.h"
@@ -92,7 +92,6 @@ C++ "Rule of 5"
 
 
 * ElasticityType must additionally provide
-
 
 
 * PlasticFlowType must additionally provide
@@ -224,19 +223,17 @@ public:
     //==================================================================================================
     //  Class type function
     //==================================================================================================
-    const char *getClassType(void) const
+    const char *getClassType() const
     {
-        std::string name("ASDPlasticMaterial");
+        return "ASDPlasticMaterial";
+    }
 
-        return name.c_str();
-    };
-
-    double getRho(void)
+    double getRho()
     {
         return parameters_storage.template get<MassDensity>().value;
     }
 
-    double getPressure(void)
+    double getPressure()
     {
         using namespace ASDPlasticMaterialGlobals;
         return -CommitStress.trace() / 3;
@@ -296,15 +293,12 @@ public:
         double max_component = 0.0;
         for (int i = 0; i < 6; ++i)
             if (max_component < abs(strain_increment(i)))
-            {
                 max_component = abs(strain_increment(i));
-            }
         // ==========================================
         // We do not use below(eps_norm) because 1E-8 will go to 1E-16. --> False return.
         // double eps_norm = strain_increment(i, j) * strain_increment(i, j);
         // ==========================================
-        if (max_component == 0)
-        {
+        if (max_component == 0) {
             exitflag = 0;
             return exitflag;
         }
@@ -561,17 +555,8 @@ public:
         CommitStrain = TrialStrain;
         CommitPlastic_Strain = TrialPlastic_Strain;
 
-        // cout <<  "CommitStress = " << CommitStress.transpose() << endl;
-        // cout <<  "CommitStrain = " << CommitStrain.transpose() << endl;
-        // cout <<  "TrialStress = " << TrialStress.transpose() << endl;
-        // cout <<  "TrialStrain = " << TrialStrain.transpose() << endl;
-
 
         iv_storage.commit_all();
-
-        // cout << "Internal model info:";
-        // Print(cout);
-        // cout << "\n" << endl;
 
         if (first_step)
         {
@@ -676,12 +661,9 @@ public:
     }
 
 
-    int getResponse (int responseID, Information & matInformation)
+    int
+    getResponse(int responseID, Information & matInformation)
     {
-
-
-        if (matInformation.theVector == 0)
-            return 0;
 
         if (responseID == -1)
         {
@@ -689,65 +671,60 @@ public:
         }
         else if (responseID == 1)
         {
-            *(matInformation.theVector) = getStress();
+            return matInformation.setVector(this->getStress());
         }
         else if (responseID == 2)
-            *(matInformation.theVector) = getStrain();
+            return matInformation.setVector(this->getStrain());
         else if (responseID == 3)
-            *(matInformation.theVector) = getPstrain();
+            return matInformation.setVector(this->getPstrain());
         else if (responseID >= 1000)
         {
             int pos = responseID - 1000;
-            *(matInformation.theVector) = getInternalVariableByPos(pos);
+            return matInformation.setVector(this->getInternalVariableByPos(pos));
         }
 
         return 0;
     }
 
     // NDMaterial *getCopy(const char *code);
-    const char *getType(void) const {return "ThreeDimensional";}
+    const char *getType() const {return "ThreeDimensional";}
 
     int sendSelf(int commitTag, Channel & theChannel)
     {
         cerr << "ASDPlasticMaterial::sendSelf - not implemented!!!\n" ;
-
-
-        return 0;
+        return -1;
     }
 
     int recvSelf(int commitTag, Channel & theChannel, FEM_ObjectBroker & theBroker)
     {
         cerr << "ASDPlasticMaterial::recvSelf - not implemented!!!\n" ;
-
-
-        return 0;
+        return -1;
     }
 
-    void Print(OPS_Stream & s, int flag = 0) {
-        s << "ASDPlasticMaterial" << endln;
-        s << "  Yield Function          : " << yf.NAME << endln;
-        s << "  Plastic flow direction  : " << pf.NAME << endln;
-        s << "  Elasticity              : " << et.NAME << endln;
-        s << "  # of Internal variables : " << (int) iv_storage.size() <<  endln;
-        iv_storage.print_components();
-        s << "  # of Parameters         : " << (int) parameters_storage.size() <<  endln;
-        parameters_storage.print_components();
-    }
+    // void Print(OPS_Stream & s, int flag = 0) {
+    //     s << "ASDPlasticMaterial" << endln;
+    //     s << "  Yield Function          : " << yf.NAME << endln;
+    //     s << "  Plastic flow direction  : " << pf.NAME << endln;
+    //     s << "  Elasticity              : " << et.NAME << endln;
+    //     s << "  # of Internal variables : " << (int) iv_storage.size() <<  endln;
+    //     iv_storage.print_components();
+    //     s << "  # of Parameters         : " << (int) parameters_storage.size() <<  endln;
+    //     parameters_storage.print_components();
+    // }
 
-    void Print(ostream & s, int flag = 0)
-    {
-        using namespace ASDPlasticMaterialGlobals;
+    // void Print(ostream & s, int flag = 0)
+    // {
+    //     using namespace ASDPlasticMaterialGlobals;
 
-        s << "ASDPlasticMaterial" << endl;
-        s << "  Yield Function          : " << yf.NAME << endl;
-        s << "  Plastic flow direction  : " << pf.NAME << endl;
-        s << "  Elasticity              : " << et.NAME << endl;
-        s << "  # of Internal variables : " << iv_storage.size() <<  endl;
-        iv_storage.print_components();
-        s << "  # of Parameters         : " << parameters_storage.size() <<  endl;
-        parameters_storage.print_components();
-
-    }
+    //     s << "ASDPlasticMaterial" << endl;
+    //     s << "  Yield Function          : " << yf.NAME << endl;
+    //     s << "  Plastic flow direction  : " << pf.NAME << endl;
+    //     s << "  Elasticity              : " << et.NAME << endl;
+    //     s << "  # of Internal variables : " << iv_storage.size() <<  endl;
+    //     iv_storage.print_components();
+    //     s << "  # of Parameters         : " << parameters_storage.size() <<  endl;
+    //     parameters_storage.print_components();
+    // }
 
     int getObjectSize()
     {

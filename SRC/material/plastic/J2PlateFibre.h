@@ -47,23 +47,25 @@ class J2PlateFibre : public NDMaterial
   J2PlateFibre ();
   ~J2PlateFibre ();
 
+  const char *getClassType() const override {return "J2PlateFibre";}
+
   int setTrialStrain (const Vector &v);
   int setTrialStrain (const Vector &v, const Vector &r);
   int setTrialStrainIncr (const Vector &v);
   int setTrialStrainIncr (const Vector &v, const Vector &r);
-  const Matrix &getTangent (void);
-  const Matrix &getInitialTangent (void);
-  const Vector &getStress (void);
-  const Vector &getStrain (void);
+  const Matrix &getTangent();
+  const Matrix &getInitialTangent();
+  const Vector &getStress();
+  const Vector &getStrain();
   
-  int commitState (void);
-  int revertToLastCommit (void);
-  int revertToStart (void);
+  int commitState();
+  int revertToLastCommit();
+  int revertToStart();
   
-  NDMaterial *getCopy (void);
+  NDMaterial *getCopy();
   NDMaterial *getCopy (const char *type);
-  const char *getType (void) const;
-  int getOrder (void) const;
+  const char *getType() const;
+  int getOrder() const;
   
   int sendSelf(int commitTag, Channel &theChannel);  
   int recvSelf(int commitTag, Channel &theChannel, 
@@ -71,12 +73,11 @@ class J2PlateFibre : public NDMaterial
     
   void Print(OPS_Stream &s, int flag = 0);
 
-  int setParameter(const char **argv, int argc, Parameter &param);
-  int updateParameter(int parameterID, Information &info);
+  int setParameter(const char **argv, int argc, Parameter &);
+  int updateParameter(int parameterID, Information &);
   int activateParameter(int paramID);
 
-  const Vector& getStressSensitivity(int gradIndex,
-				     bool conditional);
+  const Vector& getStressSensitivity(int gradIndex, bool conditional);
   int commitSensitivity(const Vector &depsdh, int gradIndex, int numGrads);
   
  private:

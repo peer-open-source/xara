@@ -25,7 +25,7 @@
 // Sensitivity:
 //
 //   Scott, Michael H., Paolo Franchin, Gregory L. Fenves, and Filip C. Filippou. 
-//     “Response Sensitivity for Nonlinear Beam–Column Elements.” 
+//     "Response Sensitivity for Nonlinear Beam–Column Elements." 
 //     Journal of Structural Engineering 130, no. 9 (2004): 1281–88. 
 //     https://doi.org/10.1061/(asce)0733-9445(2004)130:9(1281).
 //
@@ -50,9 +50,10 @@
 
 
 
-Concrete01::Concrete01(int tag, double FPC, double EPSC0, double FPCU, double EPSCU)
+Concrete01::Concrete01(int tag, double FPC, double EPSC0, double FPCU, double EPSCU, double rho)
   : UniaxialMaterial(tag, MAT_TAG_Concrete01),
     fpc(FPC), epsc0(EPSC0), fpcu(FPCU), epscu(EPSCU), 
+    density(rho),
     CminStrain(0.0), CendStrain(0.0),
     Cstrain(0.0), Cstress(0.0) 
 {
@@ -105,7 +106,26 @@ Concrete01::~Concrete01()
 }
 
 
-int Concrete01::setTrialStrain(double strain, double strainRate)
+UniaxialMaterial* Concrete01::getCopy()
+{
+  Concrete01* theCopy = new Concrete01(this->getTag(),
+                                  fpc, epsc0, fpcu, epscu, density);
+
+  // Converged history variables
+  theCopy->CminStrain = CminStrain;
+  theCopy->CunloadSlope = CunloadSlope;
+  theCopy->CendStrain = CendStrain;
+
+  // Converged state variables
+  theCopy->Cstrain = Cstrain;
+  theCopy->Cstress = Cstress;
+  theCopy->Ctangent = Ctangent;
+
+  return theCopy;
+}
+
+int
+Concrete01::setTrialStrain(double strain, double strainRate)
 {
   // Reset trial history variables to last committed state
   TminStrain = CminStrain;
@@ -237,7 +257,8 @@ Concrete01::setTrial(double strain, double &stress, double &tangent, double stra
   return 0;
 }
 
-void Concrete01::determineTrialState (double dStrain)
+void
+Concrete01::determineTrialState(double dStrain)
 {  
   TminStrain = CminStrain;
   TendStrain = CendStrain;
@@ -270,7 +291,8 @@ void Concrete01::determineTrialState (double dStrain)
   
 }
 
-void Concrete01::reload()
+void
+Concrete01::reload()
 {
   if (Tstrain <= TminStrain) {
     
@@ -346,53 +368,57 @@ Concrete01::unload()
   }
 }
 
-double Concrete01::getStress()
+double 
+Concrete01::getStress()
 {
   return Tstress;
 }
 
-double Concrete01::getStrain()
+double 
+Concrete01::getStrain()
 {
   return Tstrain;
 }
 
-double Concrete01::getTangent()
+double 
+Concrete01::getTangent()
 {
   return Ttangent;
 }
 
-int Concrete01::commitState()
+int 
+Concrete01::commitState()
 {
-   // History variables
-   CminStrain = TminStrain;
-   CunloadSlope = TunloadSlope;
-   CendStrain = TendStrain;
+  // History variables
+  CminStrain = TminStrain;
+  CunloadSlope = TunloadSlope;
+  CendStrain = TendStrain;
 
-   //added by SAJalali
-   EnergyP += 0.5*(Cstress + Tstress)*(Tstrain - Cstrain);
+  //added by SAJalali
+  EnergyP += 0.5*(Cstress + Tstress)*(Tstrain - Cstrain);
 
-   // State variables
-   Cstrain = Tstrain;
-   Cstress = Tstress;
-   Ctangent = Ttangent;
+  // State variables
+  Cstrain = Tstrain;
+  Cstress = Tstress;
+  Ctangent = Ttangent;
 
-   return 0;
+  return 0;
 }
 
 int
 Concrete01::revertToLastCommit()
 {
-   // Reset trial history variables to last committed state
-   TminStrain = CminStrain;
-   TendStrain = CendStrain;
-   TunloadSlope = CunloadSlope;
+  // Reset trial history variables to last committed state
+  TminStrain = CminStrain;
+  TendStrain = CendStrain;
+  TunloadSlope = CunloadSlope;
 
-   // Recompute trial stress and tangent
-   Tstrain = Cstrain;
-   Tstress = Cstress;
-   Ttangent = Ctangent;
+  // Recompute trial stress and tangent
+  Tstrain = Cstrain;
+  Tstress = Cstress;
+  Ttangent = Ctangent;
 
-   return 0;
+  return 0;
 }
 
 int
@@ -420,25 +446,8 @@ Concrete01::revertToStart()
   return 0;
 }
 
-UniaxialMaterial* Concrete01::getCopy ()
-{
-   Concrete01* theCopy = new Concrete01(this->getTag(),
-                                    fpc, epsc0, fpcu, epscu);
 
-   // Converged history variables
-   theCopy->CminStrain = CminStrain;
-   theCopy->CunloadSlope = CunloadSlope;
-   theCopy->CendStrain = CendStrain;
-
-   // Converged state variables
-   theCopy->Cstrain = Cstrain;
-   theCopy->Cstress = Cstress;
-   theCopy->Ctangent = Ctangent;
-
-   return theCopy;
-}
-
-int Concrete01::sendSelf (int commitTag, Channel& theChannel)
+int Concrete01::sendSelf(int commitTag, Channel& theChannel)
 {
    int res = 0;
    static Vector data(11);
@@ -509,30 +518,6 @@ int Concrete01::recvSelf (int commitTag, Channel& theChannel,
    return res;
 }
 
-void Concrete01::Print(OPS_Stream& s, int flag)
-{
-  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {      
-    s << "Concrete01, tag: " << this->getTag() << endln;
-    s << "  fpc: " << fpc << endln;
-    s << "  epsc0: " << epsc0 << endln;
-    s << "  fpcu: " << fpcu << endln;
-    s << "  epscu: " << epscu << endln;
-    return;
-  }
-  
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_MATE_INDENT << "{";
-    s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"Concrete01\", ";
-    s << "\"Ec\": " << 2.0*fpc/epsc0 << ", ";
-    s << "\"fc\": " << fpc << ", ";
-    s << "\"epsc\": " << epsc0 << ", ";
-    s << "\"fcu\": " << fpcu << ", ";
-    s << "\"epscu\": " << epscu;
-    s << "}";
-    return;
-  }
-}
 
 
 
@@ -1061,4 +1046,31 @@ Concrete01::getVariable(const char *varName, Information &theInfo)
     return 0;
   } else
     return -1;
+}
+
+
+void
+Concrete01::Print(OPS_Stream& s, int flag)
+{
+  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {      
+    s << "Concrete01, tag: " << this->getTag() << endln;
+    s << "  fpc: " << fpc << endln;
+    s << "  epsc0: " << epsc0 << endln;
+    s << "  fpcu: " << fpcu << endln;
+    s << "  epscu: " << epscu << endln;
+    return;
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"Concrete01\", ";
+    s << "\"Ec\": " << 2.0*fpc/epsc0 << ", ";
+    s << "\"fc\": " << fpc << ", ";
+    s << "\"epsc\": " << epsc0 << ", ";
+    s << "\"fcu\": " << fpcu << ", ";
+    s << "\"epscu\": " << epscu;
+    s << "}";
+    return;
+  }
 }

@@ -44,7 +44,7 @@ FullGenLinSOE::FullGenLinSOE(FullGenLinSolver &theSolvr)
  matA(nullptr),
  factored(false)
 {
-    theSolvr.setLinearSOE(*this);
+  theSolvr.setLinearSOE(*this);
 }
 
 
@@ -209,6 +209,7 @@ FullGenLinSOE::addB(const Vector &v, const ID &id, double fact)
 {
   // check for a quick return 
   if (fact == 0.0)  return 0;
+  double *b = &B(0);
 
   int idSize = id.Size();    
   // check that m and id are of similar size
@@ -216,23 +217,23 @@ FullGenLinSOE::addB(const Vector &v, const ID &id, double fact)
 
   if (fact == 1.0) { // do not need to multiply if fact == 1.0
     for (int i=0; i<idSize; i++) {
-        int pos = id(i);
-        if (pos <size && pos >= 0)
-      B[pos] += v(i);
+      int pos = id(i);
+      if (pos <size && pos >= 0)
+        b[pos] += v(i);
     }
   } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
     for (int i=0; i<idSize; i++) {
-        int pos = id(i);
-        if (pos <size && pos >= 0)
-      B[pos] -= v(i);
+      int pos = id(i);
+      if (pos <size && pos >= 0)
+        b[pos] -= v(i);
     }
   } else {
     for (int i=0; i<idSize; i++) {
-        int pos = id(i);
-        if (pos <size && pos >= 0)
-      B[pos] += v(i) * fact;
+      int pos = id(i);
+      if (pos <size && pos >= 0)
+        b[pos] += v(i) * fact;
     }
-  }	
+  }
   return 0;
 }
 
@@ -242,6 +243,7 @@ int
 FullGenLinSOE::setB(const Vector &v, double fact)
 {
   assert (v.Size() == size);
+  double *b = &B(0);
 
   // check for a quick return 
   if (fact == 0.0)
@@ -249,15 +251,15 @@ FullGenLinSOE::setB(const Vector &v, double fact)
 
   if (fact == 1.0) { // do not need to multiply if fact == 1.0
     for (int i=0; i<size; i++) {
-      B[i] = v(i);
+      b[i] = v(i);
     }
   } else if (fact == -1.0) {
     for (int i=0; i<size; i++) {
-      B[i] = -v(i);
+      b[i] = -v(i);
     }
   } else {
     for (int i=0; i<size; i++) {
-      B[i] = v(i) * fact;
+      b[i] = v(i) * fact;
     }
   }	
   return 0;
@@ -309,7 +311,7 @@ FullGenLinSOE::setX(int loc, double value)
 void 
 FullGenLinSOE::setX(const Vector &x)
 {
-  if (x.Size() == size)
+  if (x.Size() == size) [[likely]]
     X = x;
 }
 

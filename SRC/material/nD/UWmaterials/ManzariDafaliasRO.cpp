@@ -17,10 +17,10 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+//
 // Written: Alborz Ghofrani, Pedro Arduino
 //			Nov 2014, University of Washington
-                                                                      
+//
 // Description: This file contains the implementation for the ManzariDafaliasRO class.
 
 #include <ManzariDafaliasRO.h>
@@ -36,10 +36,12 @@
 #define fmin std::min
 #endif
 
-static int numManzariDafaliasMaterials = 0;
 
+#include <elementAPI.h>
 void * OPS_ADD_RUNTIME_VPV(OPS_ManzariDafaliasMaterialRO)
 {
+  static int numManzariDafaliasMaterials = 0;
+
   if (numManzariDafaliasMaterials == 0) {
     numManzariDafaliasMaterials++;
     opslog << "ManzariDafaliasRO nDmaterial - Written: A.Ghofrani, P.Arduino, U.Washington\n";
@@ -52,7 +54,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ManzariDafaliasMaterialRO)
   if (numArgs < 22) {
     opserr << "Want: nDMaterial ManzariDafaliasRO tag? G0? nu? B? a1? gamma1? e_init? Mc? c? lambda_c? e0? ksi?" <<
 		" P_atm? m? h0? Ch? nb? A0? nd? z_max? cz? Rho? <kappa? IntScheme? TanType? JacoType? TolF? TolR?>" << endln;
-    return 0;	
+    return 0;
   }
   
   int tag;

@@ -19,12 +19,11 @@ Written by: Quan Gu_1,  Yongdou Liu_1, Wei Guo_23, Weiquan Li_1, Zhiwu Yu_23, Li
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <OPS_Globals.h>
+#include <logging/Logging.h>
 #include <OPS_Stream.h>
 
 #include <cmath>
 
-// #include <elementAPI.h>
 
 //--------------------
 #include <Matrix.h>

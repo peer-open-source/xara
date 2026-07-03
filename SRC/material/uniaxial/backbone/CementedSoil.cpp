@@ -207,11 +207,9 @@ void CementedSoil::Print(OPS_Stream &s, int flag) {
   s << "\tb: " << diameter << endln;
 }
 
-int CementedSoil::setVariable(char *argv) { return -1; }
-
-int CementedSoil::getVariable(int varID, double &theValue) { return -1; }
-
-int CementedSoil::sendSelf(int commitTag, Channel &theChannel) {
+int
+CementedSoil::sendSelf(int commitTag, Channel &theChannel)
+{
   int res = 0;
 
   static Vector data(6);

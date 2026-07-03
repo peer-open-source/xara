@@ -57,7 +57,10 @@ PlateFiberMaterial::PlateFiberMaterial(int tag, NDMaterial& the3DMaterial)
 
 
 //destructor
-PlateFiberMaterial::~PlateFiberMaterial() { delete theMaterial; }
+PlateFiberMaterial::~PlateFiberMaterial()
+{
+  delete theMaterial;
+}
 
 
 NDMaterial*
@@ -94,7 +97,7 @@ PlateFiberMaterial::getType() const
 }
 
 
-//swap history variables
+// swap history variables
 int
 PlateFiberMaterial::commitState()
 {
@@ -131,7 +134,7 @@ PlateFiberMaterial::getRho()
 }
 
 
-//receive the strain
+// receive the strain
 int
 PlateFiberMaterial::setTrialStrain(const Vector& strainFromElement)
 {
@@ -155,7 +158,6 @@ PlateFiberMaterial::setTrialStrain(const Vector& strainFromElement)
 
   // newton loop to solve for out-of-plane strains
   do {
-
     // set three dimensional strain
     threeDstrain(0) = this->strain(0); // xx
     threeDstrain(1) = this->strain(1); // yy
@@ -391,19 +393,20 @@ void
 PlateFiberMaterial::Print(OPS_Stream& s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
-    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"PlateFiberMaterial\", ";
     s << "\"material\": " << theMaterial->getTag();
     s << "}";
     return;
   }
-  s << "General Plate Fiber Material \n";
-  s << " Tag: " << this->getTag() << "\n";
-  s << "using the 3D material : \n";
+  else {
+    s << "General Plate Fiber Material \n";
+    s << " Tag: " << this->getTag() << "\n";
+    s << "using the 3D material : \n";
 
-  theMaterial->Print(s, flag);
-
+    theMaterial->Print(s, flag);
+  }
   return;
 }
 

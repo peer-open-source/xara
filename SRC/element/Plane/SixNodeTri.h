@@ -25,8 +25,7 @@
 //
 // based on FourNodeQuad by MHS
 //
-#ifndef SixNodeTri_h
-#define SixNodeTri_h
+#pragma once
 
 #include <array>
 #include <Element.h>
@@ -51,6 +50,7 @@ public:
              double b1, double b2,
              Element::MassSource mass_source
             );
+
   SixNodeTri();
   ~SixNodeTri();
 
@@ -87,11 +87,11 @@ public:
 
   void Print(OPS_Stream &s, int flag);
 
-  Response *setResponse(const char **argv, int argc, OPS_Stream &s);
+  Response *setResponse(const char **argv, int argc, OPS_Stream &);
 
   int getResponse(int responseID, Information &);
 
-  int setParameter(const char **argv, int argc, Parameter &param);
+  int setParameter(const char **argv, int argc, Parameter &);
   int updateParameter(int parameterID, Information &);
 
   // RWB; PyLiq1 & TzLiq1 need to see the excess pore pressure and initial
@@ -145,4 +145,3 @@ private:
 
 } // namespace OpenSees
 
-#endif

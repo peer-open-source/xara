@@ -284,7 +284,7 @@ CorotCrdTransf3d::initialize(Node *nodeIPointer, Node *nodeJPointer)
 }
 
 int
-CorotCrdTransf3d::update(void)
+CorotCrdTransf3d::update()
 {
   int i, j, k;
 

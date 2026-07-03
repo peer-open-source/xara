@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.10 $
-// $Date: 2008-08-26 16:30:55 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/HookGap.cpp,v $
-                                                                        
-                                                                        
+//
 // Written: fmk 
 // Created: 07/98
 // Revision: A
@@ -218,9 +213,9 @@ HookGap::recvSelf(int cTag, Channel &theChannel,
   res = theChannel.recvVector(this->getDbTag(), cTag, data);
   
   if (res < 0) {
-      opserr << "HookGap::recvSelf() - failed to receive data\n";
-      E = 0; 
-      this->setTag(0);      
+    opserr << "HookGap::recvSelf() - failed to receive data\n";
+    E = 0; 
+    this->setTag(0);      
   }
   else {
     this->setTag(int(data(0)));
@@ -235,19 +230,19 @@ HookGap::recvSelf(int cTag, Channel &theChannel,
 void 
 HookGap::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-        s << "HookGap tag: " << this->getTag() << endln;
-        s << "  E: " << E << " gapN: " << gapN << " gapP: " << gapP << endln;
-    }
-    
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": \"" << this->getTag() << "\", ";
-        s << "\"type\": \"HookGap\", ";
-        s << "\"E\": " << E << ", ";
-        s << "\"gapN\": " << gapN << ", ";
-        s << "\"gapP\": " << gapP << "}";
-    }
+  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
+      s << "HookGap tag: " << this->getTag() << endln;
+      s << "  E: " << E << " gapN: " << gapN << " gapP: " << gapP << endln;
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+      s << OPS_PRINT_JSON_MATE_INDENT << "{";
+      s << "\"name\": " << this->getTag() << ", ";
+      s << "\"type\": \"HookGap\", ";
+      s << "\"E\": " << E << ", ";
+      s << "\"gapN\": " << gapN << ", ";
+      s << "\"gapP\": " << gapP << "}";
+  }
 }
 
 int

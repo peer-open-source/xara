@@ -37,26 +37,27 @@ Matrix ElasticIsotropicBeamFiber2d::D(2,2);
 
 ElasticIsotropicBeamFiber2d::ElasticIsotropicBeamFiber2d
 (int tag, double E, double nu, double rho):
-  ElasticIsotropicMaterial (tag, ND_TAG_ElasticIsotropicBeamFiber2d, E, nu, rho),
+  ElasticIsotropicMaterial(tag, ND_TAG_ElasticIsotropicBeamFiber2d, E, nu, rho),
   Tepsilon(2)
 {
 
 }
 
 ElasticIsotropicBeamFiber2d::ElasticIsotropicBeamFiber2d():
-  ElasticIsotropicMaterial (0, ND_TAG_ElasticIsotropicBeamFiber2d, 0.0, 0.0),
+  ElasticIsotropicMaterial(0, ND_TAG_ElasticIsotropicBeamFiber2d, 0.0, 0.0, 0.0),
   Tepsilon(2)
 {
 
 }
 
-ElasticIsotropicBeamFiber2d::~ElasticIsotropicBeamFiber2d ()
+
+ElasticIsotropicBeamFiber2d::~ElasticIsotropicBeamFiber2d()
 {
 
 }
 
 int
-ElasticIsotropicBeamFiber2d::setTrialStrain (const Vector &strain)
+ElasticIsotropicBeamFiber2d::setTrialStrain(const Vector &strain)
 {
   Tepsilon = strain;
 

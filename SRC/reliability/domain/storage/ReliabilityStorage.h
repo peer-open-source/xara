@@ -32,14 +32,13 @@ class ReliabilityStorage
     ReliabilityStorage();    
     virtual ~ReliabilityStorage();
 
-    virtual const char *getClassType(void) const;
+    virtual const char *getClassType() const;
 
-    virtual int setVariable(const char *variable, Information &);
-    virtual int getVariable(const char *variable, Information &);
+    virtual int setVariable(const char *variable, Information &) {return -1;}
+    virtual int getVariable(const char *variable, Information &) {return -1;}
     
   private:
-
-    
+  
 };
 
 #endif

@@ -844,6 +844,8 @@ OOHystereticMaterial::getVariable(int varID, Information &info)
 int
 OOHystereticMaterial::sendSelf(int commitTag, Channel &theChannel)
 {
+#if 0 // cmp: disabling to remove inheritance of MovableObject in HystereticBackbone,
+      // which shadows MovableObject::get/setVariable 
   int dbTag = this->getDbTag();
 
   ID idata(1 + 2*8 + 6);
@@ -986,7 +988,7 @@ OOHystereticMaterial::sendSelf(int commitTag, Channel &theChannel)
     opserr << "OOHystereticMaterial::sendSelf() - failed to send data" << endln;
     return -1;
   }
-  
+#endif
   return 0;
 }
 
@@ -994,6 +996,7 @@ int
 OOHystereticMaterial::recvSelf(int commitTag, Channel &theChannel, 
 			       FEM_ObjectBroker &theBroker)
 {
+#if 0
   int res = 0;
   int dbTag = this->getDbTag();
 
@@ -1173,7 +1176,7 @@ OOHystereticMaterial::recvSelf(int commitTag, Channel &theChannel,
   Cstrain = data(16);
   
   this->revertToLastCommit();
-  
+#endif
   return 0;
 }
     

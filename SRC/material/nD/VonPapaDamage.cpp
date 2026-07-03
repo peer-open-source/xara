@@ -1218,32 +1218,23 @@ int
 VonPapaDamage::getResponse(int responseID, Information &matInfo)
 {
 
-  // opserr << "VonPapaDamage::getResponse called" << endln;
-
   switch (responseID) {
   case -1:
     return -1;
   case RESPONSE_STRESS:
-    if (matInfo.theVector != 0)
-      // *(matInfo.theVector) = getStress();
-      return matInfo.setVector(this->getStress());
+    return matInfo.setVector(this->getStress());
     // return 0;
   case RESPONSE_STRAIN:
-    if (matInfo.theVector != 0)
-      // *(matInfo.theVector) = getStrain();
-      return matInfo.setVector(this->getStrain());
+    return matInfo.setVector(this->getStrain());
     // return 0;
   case RESPONSE_DAMAGESTATE:
-    if (matInfo.theVector != 0)
-      // *(matInfo.theVector) = getStrain();
-      return matInfo.setVector(this->getDamageState());
+    return matInfo.setVector(this->getDamageState());
     // return 0;
   case RESPONSE_NJUMP:
-    if (matInfo.theVector != 0)
+    if (matInfo.theID != nullptr)
       // *(matInfo.theID) = getNJUMP();
       *(matInfo.theID) = NJUMP_local;
       // return matInfo.setID(NJUMP_local);
-    // opserr << "NJUMP_local = "<< NJUMP_local << endln;
       return 0;
 
   default:

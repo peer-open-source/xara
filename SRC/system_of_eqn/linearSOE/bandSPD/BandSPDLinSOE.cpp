@@ -67,36 +67,6 @@ BandSPDLinSOE::BandSPDLinSOE(int classTag)
 
 }
 
-
-BandSPDLinSOE::BandSPDLinSOE(int N, int numSuper,
-                             BandSPDLinSolver &the_Solver)
-:LinearSOE(the_Solver, LinSOE_TAGS_BandSPDLinSOE),
- size(0), half_band(0), A(nullptr), B(N), X(N),
- Asize(0),
- factored(false)
-{
-    size = N;
-    half_band = numSuper+1;
-
-    A = new double[half_band*size];
-
-    // zero the matrix
-    Asize = half_band*size;
-    for (int j=0; j<Asize; j++)
-        A[j] = 0;
-
-    B.Zero();
-    X.Zero(); 
-
-    the_Solver.setLinearSOE(*this);    
-    
-    int solverOK = the_Solver.setSize();
-    if (solverOK < 0) {
-        // opserr << "FATAL:BandSPDLinSOE::BandSPDLinSOE :";
-        // opserr << " solver failed setSize() in constructor\n";
-    }
-}
-
     
 BandSPDLinSOE::~BandSPDLinSOE()
 {
@@ -115,7 +85,6 @@ int
 BandSPDLinSOE::setSize(Graph &theGraph)
 {
     int result = 0;
-    int oldSize = size;
     size = theGraph.getNumVertex();
     half_band = 0;
     
@@ -164,6 +133,7 @@ BandSPDLinSOE::setSize(Graph &theGraph)
 
     return result;    
 }
+
 
 int 
 BandSPDLinSOE::addA(const Matrix &m, const ID &id, double fact)
@@ -291,6 +261,7 @@ int
 BandSPDLinSOE::setB(const Vector &v, double fact)
 {
     assert(v.Size() == size);
+    double *b = &B(0);
 
     // check for a quick return 
     if (fact == 0.0)
@@ -298,15 +269,15 @@ BandSPDLinSOE::setB(const Vector &v, double fact)
 
     if (fact == 1.0) { // do not need to multiply if fact == 1.0
         for (int i=0; i<size; i++) {
-            B[i] = v(i);
+            b[i] = v(i);
         }
     } else if (fact == -1.0) {
         for (int i=0; i<size; i++) {
-            B[i] = -v(i);
+            b[i] = -v(i);
         }
     } else {
         for (int i=0; i<size; i++) {
-            B[i] = v(i) * fact;
+            b[i] = v(i) * fact;
         }
     }        
     return 0;

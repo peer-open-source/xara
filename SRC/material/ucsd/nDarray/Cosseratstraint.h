@@ -92,8 +92,8 @@ class Cosseratstraintensor : public tensor
     Cosseratstraintensor pqtheta2strain( double, double, double );
     Cosseratstraintensor evoleq2strain( double, double );
 
-    void report(char *) const;
-    void reportshort(char *) const;
+    void report(const char *) const;
+    void reportshort(const char *) const;
 
 //..// polinomial root solver friend functions definitions
 //..public:

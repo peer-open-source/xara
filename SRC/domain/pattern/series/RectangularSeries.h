@@ -50,20 +50,21 @@ class RectangularSeries : public TimeSeries
     // destructor
     ~RectangularSeries();
 
-    TimeSeries *getCopy(void);
+    TimeSeries *getCopy();
     
     // method to get load factor
     double getFactor(double pseudoTime);
     double getDuration () {return (tFinish - tStart);}
     double getPeakFactor () {return cFactor;}
     double getTimeIncr (double pseudoTime) {return (tFinish - tStart);}
+    double getStartTime() const override { return tStart; }
     
     // methods for output    
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, 
 		 FEM_ObjectBroker &theBroker);
 
-    void Print(OPS_Stream &s, int flag =0);    
+    void Print(OPS_Stream &s, int flag);    
     
   protected:
 	

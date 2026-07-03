@@ -869,38 +869,40 @@ ReinforcingSteel::recvSelf(int cTag, Channel &theChannel,
 void 
 ReinforcingSteel::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-        s << "ReinforcingSteel, tag: " << this->getTag() << endln;
-        s << "  N2p: " << CFatDamage << endln;
-        //s << "  sigmaY: " << sigmaY << endln;
-        //s << "  Hiso: " << Hiso << endln;
-        //s << "  Hkin: " << Hkin << endln;
-        //s << "  eta: " << eta << endln;
-    }
-    
-    if (flag == 3) {
-        s << CStrain << "  " << CStress << "  " << CTangent << endln;
-    }
-    
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": \"" << this->getTag() << "\", ";
-        s << "\"type\": \"ReinforcingSteel\", ";
-        s << "\"E\": " << Es << ", ";
-        s << "\"Eh\": " << Esh << ", ";
-        s << "\"fy\": " << fy << ", ";
-        s << "\"fu\": " << fsu << ", ";
-        s << "\"epsh\": " << esh << ", ";
-        s << "\"epsu\": " << esu << "}";
-    }
+  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
+    s << "ReinforcingSteel, tag: " << this->getTag() << "\n";
+    s << "  N2p: " << CFatDamage << "\n";
+    //s << "  sigmaY: " << sigmaY << "\n";
+    //s << "  Hiso: " << Hiso << "\n";
+    //s << "  Hkin: " << Hkin << "\n";
+    //s << "  eta: " << eta << "\n";
+  }
+  
+  if (flag == 3) {
+    s << CStrain << "  " << CStress << "  " << CTangent << "\n";
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"ReinforcingSteel\", ";
+    s << "\"E\": " << Es << ", ";
+    s << "\"Eh\": " << Esh << ", ";
+    s << "\"fy\": " << fy << ", ";
+    s << "\"fu\": " << fsu << ", ";
+    s << "\"epsh\": " << esh << ", ";
+    s << "\"epsu\": " << esu << "}";
+    return;
+  }
 }
 
 int
-ReinforcingSteel::Sign(double x) {
+ReinforcingSteel::Sign(double x)
+{
   if(x<0.0)
-	return -1;
+    return -1;
   else
-	return 1;
+    return 1;
 }
 
 /*****************************************************************************************/
@@ -922,131 +924,133 @@ ReinforcingSteel::MPfunc(double a)
 int
 ReinforcingSteel::SetMP()
 {
-    double Rmin;
-    double a = 0.01;
-    double ao, ao_last;
-    double da;
-    int numIter;
-    int maxIter = 50;
-    bool converged;
+  double Rmin;
+  double a = 0.01;
+  double ao, ao_last;
+  double da;
+  int numIter;
+  int maxIter = 50;
+  bool converged;
 
-    if (TEb - TEsec == 0.0) {
-        TQ = 1.0;
-        Tfch = Tfb;
-    }
-    else {
-        if (TEsec != TEa) {
-            Rmin = (TEb - TEsec) / (TEsec - TEa);
-            if (Rmin < 0.0) {
-                opserr << "R is negative in ReinforcingSteel::SetMP()\n";
-                Rmin = 0.0;
-            }
-            if (TR <= Rmin)
-                TR = Rmin + 0.01;
-            
-            numIter = 0;
-            converged = false;
-            while (converged == false && numIter < maxIter) {
-                numIter++;
-                if (a > DBL_EPSILON) {
-                    if (MPfunc(a)*MPfunc(1.0 - a) > 0.0)
-                        a = a / 2.0;
-                    else
-                        converged = true;
-                }
-                else
-                    converged = true;
-            }
-            if (numIter >= maxIter) {
-                opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding a\n";
-                return -1;
-            }
+  if (TEb - TEsec == 0.0) {
+      TQ = 1.0;
+      Tfch = Tfb;
+  }
+  else {
+      if (TEsec != TEa) {
+          Rmin = (TEb - TEsec) / (TEsec - TEa);
+          if (Rmin < 0.0) {
+              opserr << "R is negative in ReinforcingSteel::SetMP()\n";
+              Rmin = 0.0;
+          }
+          if (TR <= Rmin)
+              TR = Rmin + 0.01;
+          
+          numIter = 0;
+          converged = false;
+          while (converged == false && numIter < maxIter) {
+              numIter++;
+              if (a > DBL_EPSILON) {
+                  if (MPfunc(a)*MPfunc(1.0 - a) > 0.0)
+                      a = a / 2.0;
+                  else
+                      converged = true;
+              }
+              else
+                  converged = true;
+          }
+          if (numIter >= maxIter) {
+              opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding a\n";
+              return -1;
+          }
 
-            ao = Rmin / TR;
-            if (ao >= 1.0)
-                ao = 0.999999;
+          ao = Rmin / TR;
+          if (ao >= 1.0)
+              ao = 0.999999;
 
-            numIter = 0;
-            converged = false;
-            while (converged == false && numIter < maxIter) {
-                numIter++;
-                if (a > DBL_EPSILON) {
-                    if (MPfunc(ao)*MPfunc(1.0 - a) < 0.0)
-                        ao = sqrt(ao);
-                    else
-                        converged = true;
-                }
-                else
-                    converged = true;
+          numIter = 0;
+          converged = false;
+          while (converged == false && numIter < maxIter) {
+              numIter++;
+              if (a > DBL_EPSILON) {
+                  if (MPfunc(ao)*MPfunc(1.0 - a) < 0.0)
+                      ao = sqrt(ao);
+                  else
+                      converged = true;
+              }
+              else
+                  converged = true;
 
-                if (ao > 0.999999)
-                    converged = true;
-            }
-            if (numIter >= maxIter) {
-                opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding ao\n";
-                return -2;
-            }
-            if (ao >= 1.0)
-                ao = 0.999999;
+              if (ao > 0.999999)
+                  converged = true;
+          }
+          if (numIter >= maxIter) {
+              opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding ao\n";
+              return -2;
+          }
+          if (ao >= 1.0)
+              ao = 0.999999;
 
-            numIter = 0;
-            converged = false;
-            while (converged == false && numIter < maxIter) {
-                numIter++;
-                ao_last = ao;
+          numIter = 0;
+          converged = false;
+          while (converged == false && numIter < maxIter) {
+              numIter++;
+              ao_last = ao;
 
-                da = 0.49*(1 - ao);
-                if (da > ao / 10.0)
-                    da = ao / 10.0;
-                if (ao + da >= 1.0)
-                    da = (1.0 - ao) / 10.0;
+              da = 0.49*(1 - ao);
+              if (da > ao / 10.0)
+                  da = ao / 10.0;
+              if (ao + da >= 1.0)
+                  da = (1.0 - ao) / 10.0;
 
-                double tempdenom = MPfunc(ao + da) - MPfunc(ao - da);
-                if (tempdenom != 0.0) {
-                    ao = ao - 2 * MPfunc(ao)*da / tempdenom;
-                    if (ao > 0.99999999999)
-                        ao = 0.99999999999;
-                    if (ao < 0.0) {
-                        ao = 0.0;
-                        converged = true;
-                    }
-                }
-                if (fabs(ao_last - ao) < 1.0E-4)
-                    converged = true;
-            }
-            if (numIter >= maxIter) {
-                opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding da and ao\n";
-                da = da / 100.0;
-                ao = ao_last;
-                ao = ao - 2 * MPfunc(ao)*da / (MPfunc(ao + da) - MPfunc(ao - da));
-                return -3;
-            }
-            if (ao > 0.99999999)
-                ao = 0.99999999;
-        }
-        else
-            ao = 0.99999999;
+              double tempdenom = MPfunc(ao + da) - MPfunc(ao - da);
+              if (tempdenom != 0.0) {
+                  ao = ao - 2 * MPfunc(ao)*da / tempdenom;
+                  if (ao > 0.99999999999)
+                      ao = 0.99999999999;
+                  if (ao < 0.0) {
+                      ao = 0.0;
+                      converged = true;
+                  }
+              }
+              if (fabs(ao_last - ao) < 1.0E-4)
+                  converged = true;
+          }
+          if (numIter >= maxIter) {
+              opserr << "WARNING: ReinforcingSteel::SetMP() - did not converge finding da and ao\n";
+              da = da / 100.0;
+              ao = ao_last;
+              ao = ao - 2 * MPfunc(ao)*da / (MPfunc(ao + da) - MPfunc(ao - da));
+              return -3;
+          }
+          if (ao > 0.99999999)
+              ao = 0.99999999;
+      }
+      else
+          ao = 0.99999999;
 
-        TQ = (TEsec / TEa - ao) / (1 - ao);
-        double temp1 = pow(ao, TR);
-        double temp2 = pow(1.0 - temp1, 1.0 / TR);
-        double b = temp2 / ao;
-        Tfch = Tfa + TEa / b*(Teb - Tea);
-    }
+      TQ = (TEsec / TEa - ao) / (1 - ao);
+      double temp1 = pow(ao, TR);
+      double temp2 = pow(1.0 - temp1, 1.0 / TR);
+      double b = temp2 / ao;
+      Tfch = Tfa + TEa / b*(Teb - Tea);
+  }
 
-    if (fabs(Teb - Tea) < 1.0E-7)
-        TQ = 1.0;
+  if (fabs(Teb - Tea) < 1.0E-7)
+    TQ = 1.0;
 
-    return 0;
+  return 0;
 }
 
 double
-ReinforcingSteel::MP_f(double e) {
+ReinforcingSteel::MP_f(double e)
+{
   return Tfa+TEa*(e-Tea)*(TQ-(TQ-1.0)/pow(pow(fabs(TEa*(e-Tea)/(Tfch-Tfa)),TR)+1.0,1/TR));
 }
 
 double
-ReinforcingSteel::MP_E(double e) {
+ReinforcingSteel::MP_E(double e)
+{
   if(TR>100.0 || e==Tea) {
     return TEa;
   } else {
@@ -1055,26 +1059,28 @@ ReinforcingSteel::MP_E(double e) {
   }
 }
 
-void 
-ReinforcingSteel::SetTRp(void)
+double
+ReinforcingSteel::SetTRp()
 {
-  TR=pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Teb-Tea));
+  TR = pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Teb-Tea));
+  return TR;
+}
+
+double
+ReinforcingSteel::SetTRn()
+{
+  TR = pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Tea-Teb));
+  return TR;
+}
+
+void 
+ReinforcingSteel::SetTRp1()
+{
+  TR = pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Teb-Tea));
 }
 
 void
-ReinforcingSteel::SetTRn(void)
-{
-  TR=pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Tea-Teb));
-}
-
-void 
-ReinforcingSteel::SetTRp1(void)
-{
-  TR=pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Teb-Tea));
-}
-
-void
-ReinforcingSteel::SetTRn1(void)
+ReinforcingSteel::SetTRn1()
 {
   TR=pow(fyp/Esp,RC1)*RC2*(1.0-RC3*(Tea-Teb));
 }
@@ -1325,7 +1331,8 @@ ReinforcingSteel::Rule1(int res)
 	    T_ePlastic[2]=0.0;
 	    TBranchNum=3;
 	    Rule3(res);	  
-	  } else if (strain - eyp > -ZeroTol) {
+	  }
+    else if (strain - eyp > -ZeroTol) {
 	    double emin;
 	    // Reversal from Yield Plateau
 	    Tea=CStrain;
@@ -1385,85 +1392,89 @@ ReinforcingSteel::Rule2(int res)
  
   // check for load reversal
   if (TStrain-CStrain>0.0) {
-	if (strain+eshp< ZeroTol) {
-	  double emax;
-	  // reversal from strain hardening range
-	  Tea=CStrain;
-	  Temin=Tea-Teo_n;
-	  if (CStrain < TeAbsMin) TeAbsMin = CStrain;
-	  
-	  if(Temax<eshp) 
-		emax=eshp+1.0E-14;
-	  else
-		emax=Temax;
+    if (strain+eshp < ZeroTol) {
+      // reversal from strain hardening range
+      Tea = CStrain;
+      Temin = Tea - Teo_n;
+      if (CStrain < TeAbsMin) TeAbsMin = CStrain;
+      
+      double emax;
+      {
+        if (Temax<eshp) 
+          emax = eshp + 1.0E-14;
+        else
+          emax = Temax;
+      }
 
-	  double ea   = Teo_n - eshp + fshp/Esp;
-	  double eb   = Teo_n + Temin - CStress/Esp;
-	  double krev = exp(Temin/(5000*eyp*eyp));
-	  double eop=ea*krev+eb*(1.0-krev);
-    if (eop<Teo_p) {
-      emax+=(Teo_p-eop);
-      Teo_p=eop;
+      double ea   = Teo_n - eshp + fshp/Esp;
+      double eb   = Teo_n + Temin - CStress/Esp;
+      double krev = exp(Temin/(5000*eyp*eyp));
+      double eop=ea*krev+eb*(1.0-krev);
+      if (eop<Teo_p) {
+        emax+=(Teo_p-eop);
+        Teo_p=eop;
+      }
+        Teb=Teo_p+emax;
+      
+      // set stress dependent curve parameters 
+      Tfa=CStress;
+      Cfa[1]=CStress;
+      TEa=ReturnSlope(Temax + Teo_p -Tea);
+
+      updateHardeningLoaction(TeCumPlastic+emax-Tea-(Backbone_f(emax)-Tfa)/Esp);
+      Tfb= Backbone_f(emax);
+      TEb= Backbone_E(emax);
+      
+      SetTRp();
+      TEsec = (Tfb-Tfa)/(Teb-Tea);
+      res += SetMP();
+      
+      T_ePlastic[2]=0.0;
+      TBranchNum=4;
+      Rule4(res);
+
     }
+    else if (strain+eyp < ZeroTol) {
+      double emax;
+      // reversal form yield plateau
+      Tea=CStrain;
+      Temin=Tea-Teo_n;
+      if (CStrain < TeAbsMin) TeAbsMin = CStrain;
+
+      Tfa=CStress;
+      Cfa[1]=CStress;
+      TEa=ReturnSlope(Temax + Teo_p -Tea);
+
+      double pr=(Temin+eyp)/(eyp-eshp);
+      emax=eyp+pr*(eshp-eyp);
+      Teo_p=Tea-Tfa/Esp;
       Teb=Teo_p+emax;
-	  
-	  // set stress dependent curve parameters 
-	  Tfa=CStress;
-    Cfa[1]=CStress;
-	  TEa=ReturnSlope(Temax + Teo_p -Tea);
+      
+      // stress dependent curve parameters
+      updateHardeningLoaction(TeCumPlastic+emax-Tea-(Backbone_f(emax)-Tfa)/Esp);
+      Tfb= Backbone_f(emax);
+      TEb=1.0/(1.0/Esp+pr*(1.0/Eshp - 1.0/Esp));
+      
+      SetTRp();
+      TEsec = (Tfb-Tfa)/(Teb-Tea);
+      if (TEsec<TEb) TEb=TEsec*0.999;
+      if (TEsec>TEa) TEa=TEsec*1.001;
+      res += SetMP();
+      
+      T_ePlastic[2]=0.0;
+      TBranchNum=4;
+      Rule4(res);
 
-    updateHardeningLoaction(TeCumPlastic+emax-Tea-(Backbone_f(emax)-Tfa)/Esp);
-	  Tfb= Backbone_f(emax);
-	  TEb= Backbone_E(emax);
-	  
-	  SetTRp();
-	  TEsec = (Tfb-Tfa)/(Teb-Tea);
-	  res += SetMP();
-		
-	  T_ePlastic[2]=0.0;
-	  TBranchNum=4;
-	  Rule4(res);
-
-	} else if (strain+eyp < ZeroTol) {
-	  double emax;
-	  // reversal form yield plateau
-	  Tea=CStrain;
-	  Temin=Tea-Teo_n;
-	  if (CStrain < TeAbsMin) TeAbsMin = CStrain;
-
-	  Tfa=CStress;
-    Cfa[1]=CStress;
-	  TEa=ReturnSlope(Temax + Teo_p -Tea);
-
-	  double pr=(Temin+eyp)/(eyp-eshp);
-	  emax=eyp+pr*(eshp-eyp);
-	  Teo_p=Tea-Tfa/Esp;
-	  Teb=Teo_p+emax;
-	  
-	  // stress dependent curve parameters
-    updateHardeningLoaction(TeCumPlastic+emax-Tea-(Backbone_f(emax)-Tfa)/Esp);
-	  Tfb= Backbone_f(emax);
-	  TEb=1.0/(1.0/Esp+pr*(1.0/Eshp - 1.0/Esp));
-	  
-	  SetTRp();
-	  TEsec = (Tfb-Tfa)/(Teb-Tea);
-	  if (TEsec<TEb) TEb=TEsec*0.999;
-	  if (TEsec>TEa) TEa=TEsec*1.001;
-	  res += SetMP();
-	  
-	  T_ePlastic[2]=0.0;
-	  TBranchNum=4;
-	  Rule4(res);
-
-	} else if (strain<ZeroTol) {
-	  //if(Temin>strain) Temin=strain;
-	  TStress  = Backbone_f(strain);
-	  TTangent = Backbone_E(strain);
-	} else {
-	  TBranchNum=1;
-	  Rule1(res);
-	}
-  } else {
+    } else if (strain<ZeroTol) {
+      //if(Temin>strain) Temin=strain;
+      TStress  = Backbone_f(strain);
+      TTangent = Backbone_E(strain);
+    } else {
+      TBranchNum=1;
+      Rule1(res);
+    }
+  }
+  else {
     TStress  = Backbone_f(strain);
     TTangent = Backbone_E(strain);
 	  //if(Temax>0.0) {
@@ -1486,14 +1497,14 @@ ReinforcingSteel::Rule3(int res)
 
 	Tea=CStrain;
 	double dere = Cea[2]-Tea-fyp/(1.2*Esp);
-    if (dere<0.0)
-	  dere=0.0;
+  if (dere<0.0)
+    dere=0.0;
 	else if (dere>fyp/3/Esp)
 	  dere=fyp/3/Esp;
-	Teb=Teo_p+Temax+dere;
+	Teb = Teo_p+Temax+dere;
 
-	Tfa=CStress;
-	TEa=ReturnSlope(Cea[2]-CStrain);
+	Tfa = CStress;
+	TEa = ReturnSlope(Cea[2]-CStrain);
 
   updateHardeningLoaction(TeCumPlastic+Teb-Tea-(Backbone_f(Teb-Teo_p)-Tfa)/Esp);
 	Tfb= Backbone_f(Teb-Teo_p);
@@ -1513,7 +1524,8 @@ ReinforcingSteel::Rule3(int res)
 	T_ePlastic[3]=0.0;
 	TBranchNum=5;
 	Rule5(res);
-  } else {
+  }
+  else {
 	  if (TStrain - Teb <= ZeroTol) {
 	    T_ePlastic[1]=T_ePlastic[2];
 	    TBranchNum=2;
@@ -1536,33 +1548,34 @@ int
 ReinforcingSteel::Rule4(int res)
 {
   if (TStrain-CStrain < 0.0) {
-	if(Temax<CStrain-Teo_p) Temax=CStrain-Teo_p;
+    if(Temax<CStrain-Teo_p) Temax=CStrain-Teo_p;
 
-	Tea=CStrain;
-	double dere = Cea[2]-Tea+fyp/(1.2*Esp);
-    if (dere>0.0)
-	  dere=0.0;
-	else if (dere<-fyp/3/Esp)
-	  dere=-fyp/3/Esp;
-	Teb=Teo_n+Temin+dere;
+    Tea=CStrain;
+    double dere = Cea[2]-Tea+fyp/(1.2*Esp);
+      if (dere>0.0)
+      dere=0.0;
+    else if (dere<-fyp/3/Esp)
+      dere=-fyp/3/Esp;
+    Teb=Teo_n+Temin+dere;
 
-	Tfa=CStress;
-	TEa=ReturnSlope(CStrain-Cea[2]); 
+    Tfa=CStress;
+    TEa=ReturnSlope(CStrain-Cea[2]); 
 
-  updateHardeningLoaction(TeCumPlastic+Tea-Teb-(Tfa-Backbone_f(Teb-Teo_n))/Esp);
-	Tfb= Backbone_f(Teb-Teo_n);
-	TEb= Backbone_E(Teb-Teo_n);
-	
-	SetTRn();
-	TEsec = (Tfb-Tfa)/(Teb-Tea); 
-	if (TEsec<TEb) TEb=TEsec*0.999;
-	if (TEsec>TEa) TEa=TEsec*1.001;
-	res += SetMP();
-	
-	T_ePlastic[3]=0.0;
-	TBranchNum=6;
-	Rule6(res);
-  } else {
+    updateHardeningLoaction(TeCumPlastic+Tea-Teb-(Tfa-Backbone_f(Teb-Teo_n))/Esp);
+    Tfb= Backbone_f(Teb-Teo_n);
+    TEb= Backbone_E(Teb-Teo_n);
+    
+    SetTRn();
+    TEsec = (Tfb-Tfa)/(Teb-Tea); 
+    if (TEsec<TEb) TEb=TEsec*0.999;
+    if (TEsec>TEa) TEa=TEsec*1.001;
+    res += SetMP();
+    
+    T_ePlastic[3]=0.0;
+    TBranchNum=6;
+    Rule6(res);
+  }
+  else {
 	  if (TStrain - Teb >= -ZeroTol) {
 	    T_ePlastic[0]=T_ePlastic[2];
 	    TBranchNum=1;

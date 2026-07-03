@@ -10,13 +10,12 @@
 // GenericResponse should be used. The prior implementation of 
 // MaterialResponse was the only thing that depended on having a generic
 // Material base class, which was otherwise useless. Migrating to 
-// GenericResponse eliminates entirely the need for Material.
+// GenericResponse eliminates the need for Material.
 //
 // Written: cmp
 // Created: Oct 2024
 //
-#ifndef MaterialResponse_h
-#define MaterialResponse_h
+#pragma once
 
 #include <Response.h>
 #include <Information.h>
@@ -35,6 +34,4 @@ class MaterialResponse : public GenericResponse<T> {
 };
 template <typename T, typename ...B>
 MaterialResponse(T*, B...)->MaterialResponse<T>;
-
-#endif // include guard
 

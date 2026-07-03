@@ -277,7 +277,33 @@ template <int nn, int ndf>
 void
 PDeltaFrameTransf<nn,ndf>::Print(OPS_Stream &s, int flag)
 {
-  linear.Print(s, flag);
+  const std::array<Vector3D,nn> *offsets = linear.getRigidOffsets();
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\"";
+    s << ", \"vecxz\": [" 
+      // << vz[0] << ", " 
+      // << vz[1] << ", "
+      // << vz[2] 
+      << "]";
+    if (offsets != nullptr) {
+      s << ", \"offsets\": [";
+      for (int i=0; i<nn; i++) {
+        s << "["
+          << (*offsets)[i][0] << ", " 
+          << (*offsets)[i][1] << ", "
+          << (*offsets)[i][2] << "]";
+        if (i < nn-1)
+          s << ", ";
+      }
+      s << "]";
+    }
+
+    s << "}";
+
+    return;
+  }
 }
 
 } // namespace OpenSees

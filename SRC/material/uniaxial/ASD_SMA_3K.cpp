@@ -596,11 +596,18 @@ ASD_SMA_3K::recvSelf(int cTag, Channel &theChannel,
 void 
 ASD_SMA_3K::Print(OPS_Stream &s, int flag)
 {
-    s << "ASD_SMA_3K, tag: " << this->getTag() << endln;
-    s << "  k1: " << k1 << endln;
-    s << "  k2: " << k2 << endln;
-    s << "  k3: " << k3 << endln;
-    s << "  ActF: " << ActF << endln;
-    s << "  beta: " << beta << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\" ";
+    s << "}";
+    return;
+  }
+    s << "ASD_SMA_3K, tag: " << this->getTag() << "\n";
+    s << "  k1: " << k1 << "\n";
+    s << "  k2: " << k2 << "\n";
+    s << "  k3: " << k3 << "\n";
+    s << "  ActF: " << ActF << "\n";
+    s << "  beta: " << beta << "\n";
 }
 

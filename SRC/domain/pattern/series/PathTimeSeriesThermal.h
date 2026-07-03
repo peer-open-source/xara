@@ -60,7 +60,7 @@ class PathTimeSeriesThermal : public TimeSeries
     // destructor    
     ~PathTimeSeriesThermal();
     
-    TimeSeries *getCopy(void);
+    TimeSeries *getCopy();
   
    int WriteResults(double currentTime, const Vector& newData);
 
@@ -70,6 +70,7 @@ class PathTimeSeriesThermal : public TimeSeries
     double getDuration ();
     double getPeakFactor ();
     double getTimeIncr (double pseudoTime);
+    double getStartTime() const override { return 0.0; }
 
     // methods for output
     int sendSelf(int commitTag, Channel &theChannel);

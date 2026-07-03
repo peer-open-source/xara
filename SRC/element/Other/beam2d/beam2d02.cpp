@@ -34,7 +34,6 @@
 #include <Domain.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 
 #include <math.h>
 #include <stdlib.h>
@@ -375,29 +374,6 @@ beam2d02::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBrok
     return 0;
 }
 
-int
-beam2d02::displaySelf(Renderer &theViewer, int displayMode, float fact)
-{
-    // first determine the two end points of the truss based on
-    // the display factor (a measure of the distorted image)
-    // store this information in 2 3d vectors v1 and v2
-    const Vector &end1Crd = theNodes[0]->getCrds();
-    const Vector &end2Crd = theNodes[1]->getCrds();	
-    const Vector &end1Disp = theNodes[0]->getDisp();
-    const Vector &end2Disp = theNodes[1]->getDisp();    
-
-    if (displayMode == 1 || displayMode == 2) {
-	Vector v1(3);
-	Vector v2(3);
-	for (int i=0; i<2; i++) {
-	    v1(i) = end1Crd(i)+end1Disp(i)*fact;
-	    v2(i) = end2Crd(i)+end2Disp(i)*fact;    
-	}
-	
-	return theViewer.drawLine(v1, v2, 1.0,1.0);	
-    } else 
-	return 0;
-}
 
 void
 beam2d02::Print(OPS_Stream &s, int flag)

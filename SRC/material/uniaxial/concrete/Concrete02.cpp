@@ -46,54 +46,12 @@
 #include <Channel.h>
 #include <Information.h>
 
-#include <elementAPI.h>
-#include <OPS_Globals.h>
-
-void * OPS_ADD_RUNTIME_VPV(OPS_Concrete02)
-{
-  // Pointer to a uniaxial material that will be returned
-  UniaxialMaterial *theMaterial = 0;
-
-  int    iData[1];
-  double dData[7];
-  int numData = 1;
-
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid uniaxialMaterial Concrete02 tag" << endln;
-    return 0;
-  }
-
-  numData = OPS_GetNumRemainingInputArgs();
-
-  if (numData != 4 && numData != 7) {
-    opserr << "Invalid #args, want: uniaxialMaterial Concrete02 " << iData[0] << " fpc? epsc0? fpcu? epscu? <rat? ft? Ets?>\n";
-    return 0;
-  }
-
-  if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "Invalid #args, want: uniaxialMaterial Concrete02 " << iData[0] << " fpc? epsc0? fpcu? epscu? <rat? ft? Ets?>\n";
-    return 0;
-  }
-
-
-  // Parsing was successful, allocate the material
-  if (numData == 7)
-    theMaterial = new Concrete02(iData[0], dData[0], dData[1], dData[2], dData[3], dData[4], dData[5], dData[6]);
-  else
-    theMaterial = new Concrete02(iData[0], dData[0], dData[1], dData[2], dData[3]);
-  
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type Concrete02 Material\n";
-    return 0;
-  }
-
-  return theMaterial;
-}
 
 Concrete02::Concrete02(int tag, double _fc, double _epsc0, double _fcu,
-		       double _epscu, double _rat, double _ft, double _Ets):
+		       double _epscu, double _rat, double _ft, double _Ets, double rho):
   UniaxialMaterial(tag, MAT_TAG_Concrete02),
-  fc(_fc), epsc0(_epsc0), fcu(_fcu), epscu(_epscu), rat(_rat), ft(_ft), Ets(_Ets)
+  fc(_fc), epsc0(_epsc0), fcu(_fcu), epscu(_epscu), rat(_rat), ft(_ft), Ets(_Ets),
+  density(rho)
 {
   ecminP = 0.0;
   deptP = 0.0;
@@ -111,54 +69,26 @@ Concrete02::Concrete02(int tag, double _fc, double _epsc0, double _fcu,
   e = 2.0*fc/epsc0;
 }
 
-Concrete02::Concrete02(int tag, double _fc, double _epsc0, double _fcu,
-		       double _epscu):
-  UniaxialMaterial(tag, MAT_TAG_Concrete02),
-  fc(_fc), epsc0(_epsc0), fcu(_fcu), epscu(_epscu)
-{
-  ecminP = 0.0;
-  deptP = 0.0;
 
-  if (fc > 0) fc = -fc;
-  if (epsc0 > 0) epsc0 = -epsc0;
-  if (fcu > 0) fcu = -fcu;
-  if (epscu > 0) epscu = -epscu;
-	  
-  eP = 2.0*fc/epsc0;
-  epsP = 0.0;
-  sigP = 0.0;
-  eps = 0.0;
-  sig = 0.0;
-  e = 2.0*fc/epsc0;
-
-  rat = 0.1;
-  ft = 0.1*fc;
-  if (ft < 0.0)
-    ft = -ft;
-  Ets = 0.1*fc/epsc0;
-}
-
-Concrete02::Concrete02(void):
+Concrete02::Concrete02():
   UniaxialMaterial(0, MAT_TAG_Concrete02)
 {
  
 }
 
-Concrete02::~Concrete02(void)
+Concrete02::~Concrete02()
 {
   // Does nothing
 }
 
 UniaxialMaterial*
-Concrete02::getCopy(void)
+Concrete02::getCopy()
 {
-  Concrete02 *theCopy = new Concrete02(this->getTag(), fc, epsc0, fcu, epscu, rat, ft, Ets);
-  
-  return theCopy;
+  return new Concrete02(this->getTag(), fc, epsc0, fcu, epscu, rat, ft, Ets, density);
 }
 
 double
-Concrete02::getInitialTangent(void)
+Concrete02::getInitialTangent()
 {
   return 2.0*fc/epsc0;
 }
@@ -222,12 +152,12 @@ Concrete02::setTrialStrain(double trialStrain, double strainRate)
       sig = sigP + ec0 * deps;
       e = ec0;
       if (sig <= sigmin) {
-	sig = sigmin;
-	e = er;
+        sig = sigmin;
+        e = er;
       }
       if (sig >= sigmax) {
-	sig = sigmax;
-	e = 0.5 * er;
+        sig = sigmax;
+        e = 0.5 * er;
       }
     } else {
       
@@ -243,27 +173,24 @@ Concrete02::setTrialStrain(double trialStrain, double strainRate)
       double epn = ept + dept;
       double sicn;
       if (eps <= epn) {
-	this->Tens_Envlp(dept, sicn, e);
-	if (dept != 0.0) {
-	  e = sicn / dept;
-	} else {
-	  e = ec0;
-	}
-	sig = e * (eps - ept);
+        this->Tens_Envlp(dept, sicn, e);
+        if (dept != 0.0) {
+          e = sicn / dept;
+        } else {
+          e = ec0;
+        }
+        sig = e * (eps - ept);
       } else {
-	
-	// else, if the current strain is larger than epn the response 
-	// corresponds to the tensile envelope curve shifted by ept 
-	
-	double epstmp = eps - ept;
-	this->Tens_Envlp(epstmp, sig, e);
-	dept = eps - ept;
+        // else, if the current strain is larger than epn the response 
+        // corresponds to the tensile envelope curve shifted by ept 
+        double epstmp = eps - ept;
+        this->Tens_Envlp(epstmp, sig, e);
+        dept = eps - ept;
       }
     }
   }
 
   TEnergy += 0.5 * (sigP + sig) * (eps - epsP);
-  //opserr << "CE: " << CEnergy << " -> TE: " << TEnergy << " | s (" << sigP << ", " << sig << ", M: " << 0.5 * (sigP + sig) << "); dE: " << (eps - epsP) << "\n";
 
   return 0;
 }
@@ -271,25 +198,25 @@ Concrete02::setTrialStrain(double trialStrain, double strainRate)
 
 
 double 
-Concrete02::getStrain(void)
+Concrete02::getStrain()
 {
   return eps;
 }
 
 double 
-Concrete02::getStress(void)
+Concrete02::getStress()
 {
   return sig;
 }
 
 double 
-Concrete02::getTangent(void)
+Concrete02::getTangent()
 {
   return e;
 }
 
 int 
-Concrete02::commitState(void)
+Concrete02::commitState()
 {
   ecminP = ecmin;
   deptP = dept;
@@ -304,7 +231,7 @@ Concrete02::commitState(void)
 }
 
 int 
-Concrete02::revertToLastCommit(void)
+Concrete02::revertToLastCommit()
 {
   ecmin = ecminP;;
   dept = deptP;
@@ -319,7 +246,7 @@ Concrete02::revertToLastCommit(void)
 }
 
 int 
-Concrete02::revertToStart(void)
+Concrete02::revertToStart()
 {
   ecminP = 0.0;
   deptP = 0.0;
@@ -418,7 +345,7 @@ Concrete02::Print(OPS_Stream &s, int flag)
 
 
 void
-Concrete02::Tens_Envlp (double epsc, double &sigc, double &Ect)
+Concrete02::Tens_Envlp(double epsc, double &sigc, double &Ect)
 {
 /*-----------------------------------------------------------------------
 ! monotonic envelope of concrete in tension (positive envelope)
@@ -455,7 +382,7 @@ Concrete02::Tens_Envlp (double epsc, double &sigc, double &Ect)
 
   
 void
-Concrete02::Compr_Envlp (double epsc, double &sigc, double &Ect) 
+Concrete02::Compr_Envlp(double epsc, double &sigc, double &Ect) 
 {
 /*-----------------------------------------------------------------------
 ! monotonic envelope of concrete in compression (negative envelope)

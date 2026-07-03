@@ -31,7 +31,6 @@
 #define BASICS_HH
 
 #include <math.h>
-//#include <values.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,9 +43,6 @@
 #define tensor BJtensor
 #endif
 
-#ifndef tensor
-#define Tensor BJtensor
-#endif
 
 // redefine Pi from math.h M_PI
 #ifndef PI

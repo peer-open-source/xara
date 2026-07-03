@@ -46,13 +46,13 @@
 
 #define OPS_Export
 
-static int num_BeamContact2D = 0;
 
 OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_BeamContact2D)
 {
+  static int num_BeamContact2D = 0;
   if (num_BeamContact2D == 0) {
     num_BeamContact2D++;
-    opslog<<"BeamContact2D element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+    opslog << "BeamContact2D element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
   }
 
   // Pointer to an element that will be returned
@@ -62,7 +62,7 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_BeamContact2D)
 
   if (numRemainingInputArgs < 9) {
     opserr << "Invalid #args, want: element BeamContact2D eleTag? iNode? jNode? secondaryNode? lambdaNode? matTag? width? gapTol? forceTol? <cSwitch>?\n";
-	return 0;
+    return 0;
   }
 
   int iData[6];

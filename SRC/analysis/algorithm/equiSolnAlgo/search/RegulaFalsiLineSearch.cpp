@@ -92,7 +92,8 @@ RegulaFalsiLineSearch::search(double s0,
 
   if (printFlag == 0) {
     opserr << "RegulaFalsi Line Search - initial: "
-         << "      eta(0) : " << eta << " , Ratio |s/s0| = " << r0 << endln;
+           << "      eta(0) : " 
+           << eta << " , Ratio |s/s0| = " << r0 << "\n";
   }
 
   // we first search for a bracket to a solution, i.e. we want sU * sL < 0.0
@@ -141,7 +142,7 @@ RegulaFalsiLineSearch::search(double s0,
 
     if (printFlag == 0) {
       opserr << "Bisection Line Search - bracketing: " << count 
-           << " , eta(j) : " << etaU << " , Ratio |sj/s0| = " << r << endln;
+             << " , eta(j) : " << etaU << " , Ratio |sj/s0| = " << r << "\n";
     }
   }
 

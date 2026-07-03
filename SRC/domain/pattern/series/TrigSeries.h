@@ -65,11 +65,11 @@ public:
     double getDuration () {return tFinish-tStart;}
     double getPeakFactor () {return cFactor;}
     double getTimeIncr (double pseudoTime) {return tFinish-tStart;}
+    double getStartTime() const override { return tStart; }
 
     // methods for output    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-        FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &);
 
     void Print(OPS_Stream &s, int flag = 0);
 

@@ -216,10 +216,10 @@ class ReinforcingSteel : public UniaxialMaterial
   double inline MP_E(double e);
   int    SetMP(void);
   double MPfunc(double a);
-  void   inline SetTRp(void);
-  void   inline SetTRn(void);
-  void   inline SetTRp1(void);
-  void   inline SetTRn1(void);
+  double inline SetTRp();
+  double inline SetTRn();
+  void   inline SetTRp1();
+  void   inline SetTRn1();
   void   SetPastCurve(int branch);
 
   int    BranchDriver(int res);

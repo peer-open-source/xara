@@ -31,7 +31,6 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
 #include <string.h>
 
 extern OPS_Routine OPS_ArctangentBackbone;
-// extern OPS_Routine OPS_ManderBackbone;
 extern OPS_Routine OPS_TrilinearBackbone;
 HystereticBackbone* TclCommand_newManderBackbone(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char ** const argv);
 extern OPS_Routine OPS_BilinearBackbone;
@@ -156,7 +155,7 @@ TclCommand_addHystereticBackbone(ClientData clientData,
       return TCL_ERROR;
     }
     if (Tcl_GetDouble(interp, argv[7], &pu) != TCL_OK) {
-      opserr << "WARNING invalid hystereticBackbone ReeseSand pu" << endln;
+      opserr << "WARNING invalid pu" << endln;
       return TCL_ERROR;
     }
 

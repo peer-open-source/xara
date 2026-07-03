@@ -31,20 +31,15 @@
 //
 #include <UniaxialMaterial.h>
 
-// Default values for isotropic hardening parameters a1, a2, a3, and a4
-#define STEEL_01_DEFAULT_A1        0.0
-#define STEEL_01_DEFAULT_A2       55.0
-#define STEEL_01_DEFAULT_A3        0.0
-#define STEEL_01_DEFAULT_A4       55.0
 
 class Steel01 : public UniaxialMaterial
 {
   public:
     Steel01(int tag, double fy, double E0, double b,
-       double a1 = STEEL_01_DEFAULT_A1, 
-       double a2 = STEEL_01_DEFAULT_A2,
-       double a3 = STEEL_01_DEFAULT_A3, 
-       double a4 = STEEL_01_DEFAULT_A4,
+       double a1, 
+       double a2,
+       double a3, 
+       double a4,
        double density = 0.0
     );
     Steel01();
@@ -52,7 +47,7 @@ class Steel01 : public UniaxialMaterial
 
     const char *getClassType() const {return "Steel01";}
 
-    int setTrialStrain(double strain, double strainRate = 0.0); 
+    int setTrialStrain(double strain, double strainRate); 
     int setTrial (double strain, double &stress, double &tangent, double strainRate = 0.0);
     double getStrain();              
     double getStress();
@@ -71,15 +66,15 @@ class Steel01 : public UniaxialMaterial
     
     void Print(OPS_Stream &s, int flag);
     
-// AddingSensitivity:BEGIN //////////////////////////////////////////
+    // Sensitivity
     int setParameter(const char **argv, int argc, Parameter &param);
     int    updateParameter          (int parameterID, Information &info);
     int    activateParameter        (int parameterID);
     double getStressSensitivity     (int gradIndex, bool conditional);
     double getInitialTangentSensitivity(int gradIndex);
     int    commitSensitivity        (double strainGradient, int gradIndex, int numGrads);
-    // AddingSensitivity:END ///////////////////////////////////////////
-	//by SAJalali
+
+	// by SAJalali
 	virtual double getEnergy() { return Energy; }
 
  private:

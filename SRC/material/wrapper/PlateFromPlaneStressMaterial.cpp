@@ -269,18 +269,18 @@ void
 PlateFromPlaneStressMaterial::Print(OPS_Stream& s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-    s << "PlateFromPlaneStress Material tag: " << this->getTag() << "" << endln;
-    s << "G: " << gmod << endln;
-    s << "using PlaneStress material: " << endln;
+    s << "PlateFromPlaneStress Material tag: " << this->getTag() << "\n";
+    s << "G: " << gmod << "\n";
+    s << "using PlaneStress material: " << "\n";
     theMat->Print(s, flag);
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
-    s << "\"name\": \"" << this->getTag() << "\", ";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"PlateFromPlaneStressMaterial\", ";
     s << "\"G\": " << gmod << ", ";
-    s << "\"material\": \"" << theMat->getTag() << "\"}";
+    s << "\"material\": " << theMat->getTag() << "}";
   }
 }
 

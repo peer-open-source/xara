@@ -23,12 +23,12 @@
 //
 // References:
 // 1) Orakcal, K., Massone L.M., Ulugtekin, D.,"Constitutive Modeling of Reinforced Concrete
-// Panel Behavior under Cyclic Loading", Proceedings of the 15th World Conference on
-// Earthquake Engineering, Lisbon, Portugal, 2012.
+//    Panel Behavior under Cyclic Loading", Proceedings of the 15th World Conference on
+//    Earthquake Engineering, Lisbon, Portugal, 2012.
 // 2) Ulugtekin, D., "Analytical Modeling of Reinforced Concrete Panel Elements under
-// Reversed Cyclic Loadings", M.S. Thesis, Bogazici University, Istanbul, Turkey, 2010.
+//    Reversed Cyclic Loadings", M.S. Thesis, Bogazici University, Istanbul, Turkey, 2010.
 // 3) Kolozvari K. (2013). "Analytical Modeling of Cyclic Shear-Flexure Interaction in
-// Reinforced Concrete Structural Walls", PhD Dissertation, University of California, Los Angeles.
+//    Reinforced Concrete Structural Walls", PhD Dissertation, University of California, Los Angeles.
 //
 // Source: /usr/local/cvs/OpenSees/SRC/material/nD/reinforcedConcretePlaneStress/FSAM.h
 //
@@ -71,30 +71,30 @@ public:
 	// Destructor
 	~FSAM();				  
 
-	double getRho(void);
+	const char *getType() const { return "PlaneStress"; }
+	double getRho();
 
 	int setTrialStrain(const Vector &v);
 	int setTrialStrain(const Vector &v, const Vector &r);
 	int setTrialStrainIncr(const Vector &v);
 	int setTrialStrainIncr(const Vector &v, const Vector &r);
-	const Matrix &getTangent(void);
-	const Matrix &getInitialTangent(void);
+	const Matrix &getTangent();
+	const Matrix &getInitialTangent();
 	
 	Response *setResponse (const char **argv, int argc, OPS_Stream &theOutputStream);
 	int getResponse (int responseID, Information &matInformation);
 
-	int commitState(void);
-	int revertToLastCommit(void);
-	int revertToStart(void);
+	int commitState();
+	int revertToLastCommit();
+	int revertToStart();
 
-	NDMaterial *getCopy(void);
+	NDMaterial *getCopy();
 	NDMaterial *getCopy(const char *type);
 
-	void Print(OPS_Stream &s, int flag = 0);
-	int sendSelf(int commitTag, Channel &theChannel);
-	int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+	void Print(OPS_Stream &s, int flag);
+	int sendSelf(int commitTag, Channel &);
+	int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
-	const char *getType(void) const { return "PlaneStress"; };
 	int getOrder(void) const { return 3;};
 
 	// Functions used for recorders

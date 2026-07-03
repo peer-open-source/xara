@@ -47,48 +47,45 @@ class ElasticIsotropic3DThermal : public ElasticIsotropicMaterialThermal
     ElasticIsotropic3DThermal();
     ~ElasticIsotropic3DThermal();
 
-    const char *getClassType(void) const {return "ElasticIsotropic3DThermal";};
+    const char *getClassType(void) const {return "ElasticIsotropic3DThermal";}
 
-    int setTrialStrain (const Vector &v);
-    int setTrialStrain (const Vector &v, const Vector &r);
-    int setTrialStrainIncr (const Vector &v);
-    int setTrialStrainIncr (const Vector &v, const Vector &r);
-    const Matrix &getTangent (void);
-    const Matrix &getInitialTangent (void);
+    int setTrialStrain(const Vector &v);
+    int setTrialStrain(const Vector &v, const Vector &r);
+    int setTrialStrainIncr(const Vector &v);
+    int setTrialStrainIncr(const Vector &v, const Vector &r);
+    const Matrix &getTangent();
+    const Matrix &getInitialTangent();
 
-	double setThermalTangentAndElongation(double &TempT, double &, double &);//J.Jiang add
-    const Vector& getTempAndElong( void);
+    double setThermalTangentAndElongation(double &TempT, double &, double &);//J.Jiang add
+    const Vector& getTempAndElong();
 
-    const Vector &getStress (void);
-    const Vector &getStrain (void);
+    const Vector &getStress();
+    const Vector &getStrain();
     
-    int commitState (void);
-    int revertToLastCommit (void);
-    int revertToStart (void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
     
-    NDMaterial *getCopy (void);
-    const char *getType (void) const;
-    int getOrder (void) const;
+    NDMaterial *getCopy();
+    const char *getType() const;
+    int getOrder() const;
 
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
-    
- protected:
-	
-  private:
-    static Vector sigma;	// Stress vector ... class-wide for returns
-    static Matrix D;		// Elastic constants
-    Vector epsilon;	        // Trial strains
-    Vector Cepsilon;	        // Committed strain
-	
-    int softIndex;
-	double Temp;  //Temperature
-	double ThermalElong;  // eps(theata) = alpha *temperature
-	double E0T;//Elasticity modulus at temperature T
-	double E;
-	double Alpha; //Coefficient of thermal exmapnsion
-	double* redfactors;
+    int sendSelf(int commitTag, Channel &);  
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+
+private:
+  static Vector sigma;	// Stress vector ... class-wide for returns
+  static Matrix D;		// Elastic constants
+  Vector epsilon;	        // Trial strains
+  Vector Cepsilon;	        // Committed strain
+
+  int softIndex;
+  double Temp;  //Temperature
+  double ThermalElong;  // eps(theata) = alpha *temperature
+  double E0T;//Elasticity modulus at temperature T
+  double E;
+  double Alpha; //Coefficient of thermal exmapnsion
+  double* redfactors;
 };
 
 #endif
