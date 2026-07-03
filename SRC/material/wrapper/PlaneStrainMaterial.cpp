@@ -235,17 +235,17 @@ void
 PlaneStrainMaterial::Print(OPS_Stream &s, int flag)
 {
   if (flag ==  OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";
     s << "\"type\": \"PlaneStrainMaterial\", ";
     s << "\"material\": \"" << theMaterial->getTag() << "\"";
     s << "}";
-
-  } else if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
+    return;
+  }
+  else if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
     s << "General Plane Strain Material \n" ;
     s << " Tag: " << this->getTag() << "\n" ; 
     s << "using the 3D material : \n" ;
-
     theMaterial->Print( s, flag ) ;
   }
 
