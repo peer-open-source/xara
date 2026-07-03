@@ -43,8 +43,6 @@ class Concrete02 : public UniaxialMaterial
   public:
     Concrete02(int tag, double _fc, double _epsc0, double _fcu,
 	     double _epscu, double _rat, double _ft, double _Ets, double rho);
-    // Concrete02(int tag, double _fc, double _epsc0, double _fcu,
-	  //    double _epscu);
 
     Concrete02();
 
