@@ -95,16 +95,6 @@ private:
     double density;
     double dStrain;
 
-    struct {
-        double strain;
-        double stress;
-        double tangent;
-        double strainMin;
-        double onsetOfUnloadingStrain;
-        double onsetOfUnloadingStress;
-        double onsetOfReloadingStrain;
-        double onsetOfReloadingStress;
-    } trial, commit;
 
     double Tstress;
     double Tstrain;
