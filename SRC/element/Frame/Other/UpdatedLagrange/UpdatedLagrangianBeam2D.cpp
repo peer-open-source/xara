@@ -489,7 +489,8 @@ void UpdatedLagrangianBeam2D::getTrialLocalForce(Vector &lforce)
 
 }
 
-const Vector &UpdatedLagrangianBeam2D::getResistingForce()
+const Vector &
+UpdatedLagrangianBeam2D::getResistingForce()
 {
     // check for quick return
     if (L == 0)
@@ -535,9 +536,6 @@ double f5 = eleForce(5);
     force(4) =  sin*eleForce(3) + cos*eleForce(4);
     force(5) =  eleForce(5);
 
-    if(_debug)
-      { opserr << "Global forces:\n " << force; 
-      }
 
     return force;
 }
@@ -706,8 +704,6 @@ void UpdatedLagrangianBeam2D::getIncrNaturalDisp(Vector &nDisp)
 	nDisp(3) = un;
 	nDisp(4) = 0;
 	nDisp(5) = rbn;
-
-
 }
 
 
@@ -838,44 +834,28 @@ int UpdatedLagrangianBeam2D::getResponse(int responseID, Information &eleInforma
       return -1;
 
     case 1:
-		if(eleInformation.theVector!=0)
-		{
-			*(eleInformation.theVector) = eleForce;
-		}
-
-      return 0;
+		return eleInformation.setVector(eleForce);
 
     case 2:
-		if(eleInformation.theVector!=0)
-		{
-			this->getTrialLocalDisp(disp);
-			*(eleInformation.theVector) = disp;
-		}
-      return 0;
+		this->getTrialLocalDisp(disp);
+		return eleInformation.setVector(disp);
 
     case 3:
-      if (eleInformation.theMatrix != 0)
-	  {
-		*(eleInformation.theMatrix) = this->getTangentStiff();
-	  }
-      return 0;
+      return eleInformation.setMatrix(this->getTangentStiff());
 
 	case 4:
-		if(eleInformation.theVector!=0)
 		{
 			Vector disp(3);
-			if(nodeRecord==1)	disp = end1Ptr->getDisp();
+			if (nodeRecord==1)	disp = end1Ptr->getDisp();
 			else				disp = end2Ptr->getDisp();
 			
 			Vector temp(7);
 			temp(0) = disp(dofRecord);
 			for(int i=1; i < 7; i++) temp(i) = eleForce(i-1);
 			
-			eleInformation.theVector->addVector(0, temp, 1);
+			return eleInformation.setVector(temp);
 		}
-		return 0;
 	case 5:
-		if(eleInformation.theVector!=0)
 		{
 			double cos = cs;
 			double sin = sn;
@@ -887,13 +867,13 @@ int UpdatedLagrangianBeam2D::getResponse(int responseID, Information &eleInforma
 			force(4) =  sin*eleForce(3) + cos*eleForce(4);
 			force(5) =  eleForce(5);
 			
-			*(eleInformation.theVector) = force;
+			return eleInformation.setVector(force);
 		}
-      return 0;
 
 
 
-    default:      
+    default: {  
 	  return -1;
+	}
   }
 }
