@@ -113,16 +113,15 @@ class ElasticForceBeamColumnWarping2d: public Element
   int addInertiaLoadToUnbalance(const Vector &accel);
   
   const Vector &getResistingForce(void);
-  const Vector &getResistingForceIncInertia(void);            
+  const Vector &getResistingForceIncInertia();            
   
-  int sendSelf(int cTag, Channel &theChannel);
-  int recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-  
-  friend OPS_Stream &operator<<(OPS_Stream &s, ElasticForceBeamColumnWarping2d &E);        
-  void Print(OPS_Stream &s, int flag =0);    
+  int sendSelf(int cTag, Channel &);
+  int recvSelf(int cTag, Channel &, FEM_ObjectBroker &);
+     
+  void Print(OPS_Stream &s, int flag);    
   
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-  int getResponse(int responseID, Information &eleInformation);
+  int getResponse(int responseID, Information &);
   
   int setParameter(const char **argv, int argc, Parameter &param);
   int updateParameter(int parameterID, Information &info);
