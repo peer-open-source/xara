@@ -1546,12 +1546,12 @@ Domain::getElementResponse(int eleTag, const char **argv, int argc)
     DummyStream dummy;
     Response *theResponse = theEle->setResponse(argv, argc, dummy);
     if (theResponse == nullptr) {
-      return 0;
+      return nullptr;
     }
 
     if (theResponse->getResponse() < 0) {
       delete theResponse;
-      return 0;
+      return nullptr;
     }
 
     Information &eleInfo = theResponse->getInformation();
