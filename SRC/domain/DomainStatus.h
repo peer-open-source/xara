@@ -14,6 +14,7 @@
 //===----------------------------------------------------------------------===//
 //
 #pragma once
+namespace OpenSees {
 enum class DomainStatus: int {
     Success = 0,
     //
@@ -24,3 +25,4 @@ enum class DomainStatus: int {
     MaterialWrapperFailedToConverge = -6,
     ElementSingular = -4,
 };
+}
