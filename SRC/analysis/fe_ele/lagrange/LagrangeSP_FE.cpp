@@ -49,9 +49,9 @@
 
 LagrangeSP_FE::LagrangeSP_FE(int tag, Domain &theDomain, SP_Constraint &TheSP,
 			     DOF_Group &theGroup, double Alpha)
-:FE_Element(tag, 2,2),
- myID(2),
- alpha(Alpha), tang(0), resid(0), theSP(&TheSP), theDofGroup(&theGroup)
+: FE_Element(tag, 2,2),
+  myID(2),
+  alpha(Alpha), tang(0), resid(0), theSP(&TheSP), theDofGroup(&theGroup)
 {
   // create a Matrix and a Vector for the tangent and residual
   tang = new Matrix(2,2);
