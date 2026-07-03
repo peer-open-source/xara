@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.15 $
-// $Date: 2010-04-23 22:56:22 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/brick/Brick.h,v $
-
+//
 // Ed "C++" Love
 //
 // Eight node Brick element 
@@ -135,7 +131,7 @@ class Brick : public Element {
 
     static Matrix stiff;
     static Vector resid;
-    static Matrix mass ;
+    static Matrix mass;
 
     // quadrature data
     static constexpr double root3 = 1.73205080757;
