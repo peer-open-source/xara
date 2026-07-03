@@ -131,7 +131,10 @@ PrismFrame2d::PrismFrame2d(int tag, int Nd1, int Nd2,
   A  =  shape_data.A;
   Iz = *shape_data.Iz;
   E  = *shape_data.E;
-  G  = *shape_data.G;
+  G  = 0.0;
+  if (shape_data.G) {
+    G = *shape_data.G;
+  }
   if (!shear_flag) {
     Ay = 0.0;
   } 
@@ -224,7 +227,8 @@ PrismFrame2d::setDomain(Domain *theDomain)
   if (L == 0.0)
     opserr << "PrismFrame2d::setDomain -- Element has zero length\n";
 
-  if (G != 0 && Ay != 0)
+  // if (G != 0 && Ay != 0)
+  if (shear_flag)
     phi = 12.0 * E * Iz / (L * L * G * Ay);
   else
     phi = 0.0;
@@ -832,6 +836,8 @@ PrismFrame2d::Print(OPS_Stream &s, int flag)
     s << "\"release\": "<< release << ", ";
     s << "\"kinematics\": "<< geom_flag << ", ";
     s << "\"mass_flag\": "<< mass_flag << ", ";
+    s << "\"shear_flag\": "<< shear_flag << ", ";
+    s << "\"geom_flag\": "<< geom_flag << ", ";
     s << "\"crdTransformation\": \"" << theCoordTransf->getTag() << "\"}";
     return;
   }
