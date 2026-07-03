@@ -13,9 +13,14 @@
 //
 //===----------------------------------------------------------------------===//
 //
+#pragma once
 enum class DomainStatus: int {
+    Success = 0,
+    //
     ElementFailedToConverge = -1,
     SectionFailedToConverge = -2,
     MaterialFailedToConverge = -3,
+    MaterialWrapperSingular = -5,
+    MaterialWrapperFailedToConverge = -6,
     ElementSingular = -4,
 };
