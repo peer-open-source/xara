@@ -1463,27 +1463,27 @@ void DowelType::Print(OPS_Stream &s, int flag)
         }
     }
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{" << endln;
-        s << "\t\t\t\t\"tag\": " << this->getTag() << "," << endln;
-        s << "\t\t\t\t\"Fi\": " << fi << "," << endln;
-        s << "\t\t\t\t\"Kp\": " << kp << "," << endln;
-        s << "\t\t\t\t\"Ru\": " << ru << "," << endln;
-        s << "\t\t\t\t\"c\": " << c << "," << endln;
-        s << "\t\t\t\t\"beta\": " << beta << "," << endln;
-        s << "\t\t\t\t\"gamma\": " << gamma << "," << endln;
-        s << "\t\t\t\t\"eta\": " << eta << "," << endln;
-        s << "\t\t\t\t\"Dy\": " << dyield << "," << endln;
-        s << "\t\t\t\t\"alpha_p\": " << alpha_p << "," << endln;
-        s << "\t\t\t\t\"alpha_u\": " << alpha_u << "," << endln;
-        s << "\t\t\t\t\"alpha_r\": " << alpha_r << "," << endln;
+        s << "\t\t\t{" << "\n";
+        s << "\t\t\t\t\"tag\": " << this->getTag() << "," << "\n";
+        s << "\t\t\t\t\"Fi\": " << fi << "," << "\n";
+        s << "\t\t\t\t\"Kp\": " << kp << "," << "\n";
+        s << "\t\t\t\t\"Ru\": " << ru << "," << "\n";
+        s << "\t\t\t\t\"c\": " << c << "," << "\n";
+        s << "\t\t\t\t\"beta\": " << beta << "," << "\n";
+        s << "\t\t\t\t\"gamma\": " << gamma << "," << "\n";
+        s << "\t\t\t\t\"eta\": " << eta << "," << "\n";
+        s << "\t\t\t\t\"Dy\": " << dyield << "," << "\n";
+        s << "\t\t\t\t\"alpha_p\": " << alpha_p << "," << "\n";
+        s << "\t\t\t\t\"alpha_u\": " << alpha_u << "," << "\n";
+        s << "\t\t\t\t\"alpha_r\": " << alpha_r << "," << "\n";
         if (envType == 1) {
-            s << "\t\t\t\t\"envelope\": \"exponential\"," << endln;
+            s << "\t\t\t\t\"envelope\": \"exponential\"," << "\n";
             s << "\t\t\t\t\"envelope_params\": [" << k0_p << ", " << k1_p/k0_p << ", " << f0_p;
             s << ", " << dcap_p << ", " << kdesc_p << ", " << dult_p << ", " << k0_n;
             s << ", " << k1_n/k0_n << ", " << f0_n << ", " << dcap_n << ", " << kdesc_n;
-            s << ", " << dult_n << "]," << endln;
+            s << ", " << dult_n << "]," << "\n";
         } else if (envType == 2) {
-            s << "\t\t\t\t\"envelope\": \"bezier\"," << endln;
+            s << "\t\t\t\t\"envelope\": \"bezier\"," << "\n";
             s << "\t\t\t\t\"envelope_params\": [" << denv1_p << ", " << fenv1_p << ", " << denv2_p;
             s << ", " << fenv2_p << ", " << dcap_p << ", " << fcap_p << ", " << kdesc_p << ", " << dult_p;
             s << ", " << denv1_n << ", " << fenv1_n << ", " << denv2_n << ", " << fenv2_n ;
@@ -1496,11 +1496,11 @@ void DowelType::Print(OPS_Stream &s, int flag)
                 if (i != envSize-1) {
                     s << ", ";
                 } else {
-                    s << "]," << endln;
+                    s << "]," << "\n";
                 }
             }
         }
-        s << "\t\t\t}" << endln;
+        s << "\t\t\t}" << "\n";
     }
 }
 
