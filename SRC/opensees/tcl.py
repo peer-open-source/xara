@@ -62,6 +62,8 @@ def exec(script: str, silent=False, analysis=True)->dict:
             proc verify {{args}} {{set a 1}}
             # ANALYZE SHOULD RETURN A NUMBER IN CASE ITS CHECKED IN SCRIPT
             proc analyze {{args}} {{set a 1}}
+            proc systemSize {{args}} {{set a 1}}
+            proc getTime {{args}} {{set a 0.0}}
             {puts}
         """)
 
@@ -434,6 +436,7 @@ def _find_openseesrt():
 
     return libOpenSeesRT_path.parents[0], libOpenSeesRT_path
 
+resolve_library = _find_openseesrt
 
 def _create_interp(verbose=False, tcl_lib=None, preload=True, enable_tk=False):
 
