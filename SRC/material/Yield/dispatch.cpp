@@ -341,19 +341,16 @@ TclCommand_addYieldSurface_BC(ClientData clientData, Tcl_Interp *interp,
 
     if (Tcl_GetDouble(interp, argv[4], &D) != TCL_OK) {
       opserr << "WARNING invalid D \n";
-      opserr << "yieldSurfaceBC Hajjar2D  tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &b) != TCL_OK) {
       opserr << "WARNING invalid b \n";
-      opserr << "yieldSurfaceBC Hajjar2D  tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &t) != TCL_OK) {
       opserr << "WARNING invalid t \n";
-      opserr << "yieldSurfaceBC Hajjar2D  tag: " << tag << "\n";
       return TCL_ERROR;
     }
 
@@ -540,13 +537,11 @@ TclKinematic2D01Command(ClientData clientData, Tcl_Interp *interp, int argc,
   if (Tcl_GetDouble(interp, argv[3], &minIsoFactor) != TCL_OK)
     return TCL_ERROR;
 
-  PlasticHardeningMaterial *theMatX =
-      getTclPlasticMaterial(interp, argv[4], builder);
+  PlasticHardeningMaterial *theMatX = getTclPlasticMaterial(interp, argv[4], builder);
   if (theMatX == 0)
     return TCL_ERROR;
 
-  PlasticHardeningMaterial *theMatY =
-      getTclPlasticMaterial(interp, argv[5], builder);
+  PlasticHardeningMaterial *theMatY = getTclPlasticMaterial(interp, argv[5], builder);
   if (theMatY == 0)
     return TCL_ERROR;
 
@@ -654,8 +649,7 @@ TclCombinedIsoKin2D01Command(ClientData clientData, Tcl_Interp *interp, int argc
   if (kpx_pos == 0)
     return TCL_ERROR;
 
-  PlasticHardeningMaterial *kpx_neg =
-      getTclPlasticMaterial(interp, argv[9], builder);
+  PlasticHardeningMaterial *kpx_neg = getTclPlasticMaterial(interp, argv[9], builder);
   if (kpx_neg == 0)
     return TCL_ERROR;
 
