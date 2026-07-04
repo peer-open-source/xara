@@ -83,7 +83,7 @@ int symFactorization(int *fxadj, int *adjncy, int neq, int LSPARSE,
     double **penv;
     double *diag;
 
- /* set up storage space and pointers */ 
+   /* set up storage space and pointers */ 
 
     perm    = (int *)calloc(neq +1, sizeof(int)) ;
     invp    = (int *)calloc(neq +1, sizeof(int)) ;

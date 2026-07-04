@@ -410,7 +410,7 @@ PM4Sand::getCopy(const char *type)
 }
 
 int
-PM4Sand::commitState(void)
+PM4Sand::commitState()
 {
 	Vector n(3), R(3), dFabric(3);
 	this->GetElasticModuli(mSigma, mK, mG, mMcur, mzcum);
@@ -451,7 +451,7 @@ int PM4Sand::revertToLastCommit(void)
 	return 0;
 }
 
-int PM4Sand::revertToStart(void)
+int PM4Sand::revertToStart()
 {
 	// added: C.McGann, U.Washington for InitialStateAnalysis
 	if (ops_InitialStateAnalysis) {
@@ -466,7 +466,7 @@ int PM4Sand::revertToStart(void)
 }
 
 NDMaterial*
-PM4Sand::getCopy(void)
+PM4Sand::getCopy()
 {
 	PM4Sand  *clone;
 	clone = new PM4Sand();
@@ -475,13 +475,13 @@ PM4Sand::getCopy(void)
 }
 
 const char*
-PM4Sand::getType(void) const
+PM4Sand::getType() const
 {
 	return "PlaneStrain";
 }
 
 int
-PM4Sand::getOrder(void) const
+PM4Sand::getOrder() const
 {
 	return 3;
 }

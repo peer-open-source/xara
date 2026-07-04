@@ -19,6 +19,9 @@
 #include <cmath>
 
 namespace Voight {
+enum class Basis {
+  Stress, Strain, Mixed
+};
 
 using namespace OpenSees;
 

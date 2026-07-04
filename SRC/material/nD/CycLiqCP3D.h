@@ -33,8 +33,6 @@
 #define CycLiqCP3D_h
 
 
-
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -67,7 +65,7 @@ class CycLiqCP3D : public CycLiqCP {
   //destructor
   ~CycLiqCP3D( ) ;
 
-  const char *getClassType(void) const {return "CycLiqCP3D";};
+  const char *getClassType(void) const {return "CycLiqCP3D";}
   
   //make a clone of this material
   NDMaterial* getCopy ();

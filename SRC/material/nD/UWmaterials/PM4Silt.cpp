@@ -394,7 +394,7 @@ PM4Silt::getCopy(const char *type)
 }
 
 int
-PM4Silt::commitState(void)
+PM4Silt::commitState()
 {
 	Vector n(3), R(3), dFabric(3);
 	this->GetElasticModuli(mSigma, mK, mG, mMcur, mzcum);
@@ -432,13 +432,15 @@ PM4Silt::commitState(void)
 	return 0;
 }
 
-int PM4Silt::revertToLastCommit(void)
+int
+PM4Silt::revertToLastCommit()
 {
 	// need to be added
 	return 0;
 }
 
-int PM4Silt::revertToStart(void)
+int
+PM4Silt::revertToStart()
 {
 	// added: C.McGann, U.Washington for InitialStateAnalysis
 	if (ops_InitialStateAnalysis) {
@@ -453,7 +455,7 @@ int PM4Silt::revertToStart(void)
 }
 
 NDMaterial*
-PM4Silt::getCopy(void)
+PM4Silt::getCopy()
 {
 	PM4Silt  *clone;
 	clone = new PM4Silt();
@@ -462,15 +464,14 @@ PM4Silt::getCopy(void)
 }
 
 const char*
-PM4Silt::getType(void) const
+PM4Silt::getType() const
 {
 	return "PlaneStrain";
 }
 
 int
-PM4Silt::getOrder(void) const
+PM4Silt::getOrder() const
 {
-
 	return 3;
 }
 
@@ -703,8 +704,21 @@ PM4Silt::recvSelf(int commitTag, Channel &theChannel,
 
 void PM4Silt::Print(OPS_Stream &s, int flag)
 {
-	s << "PM4Silt Material, tag: " << this->getTag() << endln;
-	s << "Type: " << this->getType() << endln;
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"type\": \"" << this->getType() << "\", ";
+		s << "\"Su\": " << m_Su << ", ";
+		s << "\"Su_rate\": " << m_Su_rate << ", ";
+		s << "\"G0\": " << m_G0 << ", ";
+		s << "\"hpo\": " << m_hpo << ", ";
+		s << "\"massDen\": " << massDen;
+		s << "}";
+	}
+	else {
+		s << "PM4Silt Material, tag: " << this->getTag() << endln;
+		s << "Type: " << this->getType() << endln;
+	}
 }
 
 int
@@ -780,7 +794,7 @@ PM4Silt::updateParameter(int responseID, Information &info)
 	else if (responseID == 8) {
 		m_FirstCall = 0;
 		initialize(mSigma_n);
-		opserr << this->getTag() << " initialize" << endln;
+		opserr << this->getTag() << " initialize" << "\n";
 	}
 	// called update voidRatio
 	else if (responseID == 9) {
@@ -792,7 +806,7 @@ PM4Silt::updateParameter(int responseID, Information &info)
 		m_PostShake = 1;
 		// mElastFlag = 1;
 		GetElasticModuli(mSigma, mK, mG, mMcur, mzcum);
-		opserr << this->getTag() << " activate post shaking reconsolidation" << endln;
+		opserr << this->getTag() << " activate post shaking reconsolidation" << "\n";
 	}
 	// update undrained shear strength reduction factor Fsu
 	else if (responseID == 14) {

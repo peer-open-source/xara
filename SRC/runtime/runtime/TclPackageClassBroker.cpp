@@ -1287,9 +1287,6 @@ TclPackageClassBroker::getNewNDMaterial(int classTag)
   case ND_TAG_PM4Silt:
     return new PM4Silt();
 
-  case ND_TAG_J2CyclicBoundingSurface:
-    return new J2CyclicBoundingSurface();
-
   case ND_TAG_J2CyclicBoundingSurface3D:
     return new J2CyclicBoundingSurface3D();
 

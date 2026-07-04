@@ -152,7 +152,8 @@ J2CyclicBoundingSurface::J2CyclicBoundingSurface(int  tag, int classTag,
 	NDMaterial(tag, classTag),
 	m_sigma0_n(6), m_sigma0_np1(6), m_stress_n(6), m_stress_np1(6), m_strain_np1(6), 
 	m_strain_n(6), m_strainRate_n(6), m_strainRate_n1(6), m_Cep(6, 6), m_Ce(6, 6), 
-	m_D(6, 6), m_stress_vis_n(6), m_stress_vis_n1(6), m_stress_t_n1(6)
+	m_D(6, 6), 
+	m_stress_vis_n(6), m_stress_vis_n1(6), m_stress_t_n1(6)
 {
 	double m_poiss = (3.*K - 2.*G) / 2. / (3. * K + G);
 
@@ -186,8 +187,9 @@ J2CyclicBoundingSurface::J2CyclicBoundingSurface(int  tag, int classTag,
 
 
 //destructor
-J2CyclicBoundingSurface :: ~J2CyclicBoundingSurface()
+J2CyclicBoundingSurface::~J2CyclicBoundingSurface()
 {
+
 }
 
 
@@ -199,7 +201,6 @@ void J2CyclicBoundingSurface::zero()
 
 void J2CyclicBoundingSurface::integrate()
 {
-
 	if (m_ElastFlag == 0) // Force elastic response
 		elastic_integrator();
 	else if (m_ElastFlag == 1)  // ElastoPlastic response
@@ -460,8 +461,10 @@ Vector J2CyclicBoundingSurface::getDevPart(Vector V)
 		V(i) = V(i) - temp;
 	return V;
 }
+
 // Inner product
-double J2CyclicBoundingSurface::inner_product(Vector x, Vector y, int type)
+double 
+J2CyclicBoundingSurface::inner_product(Vector x, Vector y, int type)
 {
 	double modifier = 1.0;
 	double inner = 0.0;
@@ -485,14 +488,17 @@ double J2CyclicBoundingSurface::inner_product(Vector x, Vector y, int type)
 
 	return inner;
 }
+
 // Norm of a vector
-double J2CyclicBoundingSurface::vector_norm(Vector x, int type)
+double
+J2CyclicBoundingSurface::vector_norm(Vector x, int type)
 {
 	double vector_norm = sqrt(inner_product(x, x, type));
 	return vector_norm;
 }
 
-Vector J2CyclicBoundingSurface::convert_to_stressLike(Vector v)
+Vector 
+J2CyclicBoundingSurface::convert_to_stressLike(Vector v)
 {
 	Vector res = v;
 	for (int ii = 3; ii < 6; ii++)
@@ -533,7 +539,6 @@ J2CyclicBoundingSurface::calcInitialTangent()
 	m_D  = m_chi * m_Ce;
 
 	return;
-
 }
 
 
@@ -545,16 +550,35 @@ double J2CyclicBoundingSurface::H(double kappa)
 }
 
 
-void J2CyclicBoundingSurface::Print(OPS_Stream & s, int flag)
+void
+J2CyclicBoundingSurface::Print(OPS_Stream & s, int flag)
 {
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"type\": \"" << this->getClassType() << "\", ";
+		s << "\"G\": " << m_shear << ", ";
+		s << "\"K\": " << m_bulk << ", ";
+		s << "\"Su\": " << m_su << ", ";
+		s << "\"density\": " << m_density << ", ";
+		s << "\"H\": " << m_h_par << ", ";
+		s << "\"m\": " << m_m_par << ", ";
+		s << "\"Ho\": " << m_h0_par << ", ";
+		s << "\"eta\": " << m_chi << ", ";
+		s << "\"beta\": " << m_beta;
+		s << "}";
+	}
 }
 
-NDMaterial* J2CyclicBoundingSurface::getCopy(void)
+
+NDMaterial* 
+J2CyclicBoundingSurface::getCopy()
 {	
 	opserr << "J2CyclicBoundingSurface::getCopy -- subclass responsibilitynot implemented.\n";
 	exit(-1);
 	return 0;
 }
+
 
 NDMaterial*
 J2CyclicBoundingSurface::getCopy(const char* type)
@@ -570,23 +594,18 @@ J2CyclicBoundingSurface::getCopy(const char* type)
 		return clone;
 	}
 	else {
-		opserr << "J2CyclicBoundingSurface::getCopy failed to get copy: " << type << endln;
-		return 0;
+		return this->NDMaterial::getCopy(type);
 	}
-
-	//opserr << "J2CyclicBoundingSurface::getCopy -- subclass responsibilitynot implemented.\n";
-	//exit(-1);
-	//return 0;
 }
 
 const char*
-J2CyclicBoundingSurface::getType(void) const
+J2CyclicBoundingSurface::getType() const
 {
 	return "ThreeDimensional";
 }
 
 int
-J2CyclicBoundingSurface::getOrder(void) const
+J2CyclicBoundingSurface::getOrder() const
 {
 	opserr << "J2CyclicBoundingSurface::getOrder -- subclass responsibility\n";
 	exit(-1);

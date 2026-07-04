@@ -1,3 +1,5 @@
+//
+//
 // Written: Jun Peng  (junpeng@stanford.edu)
 //          Advisor: Prof. Kincho H. Law
 //          Stanford University
@@ -238,9 +240,9 @@ SymSparseLinSOE::addA(const Matrix &in_m, const ID &in_id, double fact)
 
    // check that m and id are of similar size
    if (idSize != in_m.noRows() && idSize != in_m.noCols()) {
-      // opserr << "SymSparseLinSOE::addA() ";
-      // opserr << " - Matrix and ID not of similar sizes\n";
-      return -1;
+    // opserr << "SymSparseLinSOE::addA() ";
+    // opserr << " - Matrix and ID not of similar sizes\n";
+    return -1;
    }
 
    // construct m and id based on non-negative id values.
@@ -261,17 +263,17 @@ SymSparseLinSOE::addA(const Matrix &in_m, const ID &in_id, double fact)
 
   int newII = 0;
   for (int ii = 0; ii < in_id.Size(); ii++) {
-      if (in_id(ii) >= 0 && in_id(ii) < size) {
+    if (in_id(ii) >= 0 && in_id(ii) < size) {
 
-    int newJJ = 0;
-    for (int jj = 0; jj < in_id.Size(); jj++) {
+      int newJJ = 0;
+      for (int jj = 0; jj < in_id.Size(); jj++) {
         if (in_id(jj) >= 0 && in_id(jj) < size) {
-      m[newII*idSize + newJJ] = in_m(ii, jj);
-      newJJ++;
+          m[newII*idSize + newJJ] = in_m(ii, jj);
+          newJJ++;
         }
-    }
-    newII++;
       }
+      newII++;
+    }
   }
 
   // forming the new id based on invp.
@@ -295,21 +297,21 @@ SymSparseLinSOE::addA(const Matrix &in_m, const ID &in_id, double fact)
 
   int nee = idSize;
   int lnee = nee;
-  int k = 0;
+  int i=0,k = 0;
   
   /* initialize isort */
-  for(int i = 0, k = 0; i < lnee ; i++ )
+  for (i = 0, k = 0; i < lnee ; i++ )
   {
-      if( newID[i] >= 0 ) {
-        isort[k] = i;
-        k++;
-      }
+    if ( newID[i] >= 0 ) {
+      isort[k] = i;
+      k++;
+    }
   }
 
   lnee = k;
 
   /* perform the sorting of isort here */
-  int i = k - 1;
+  i = k - 1;
   do
   {
       k = 0 ;
@@ -362,7 +364,7 @@ SymSparseLinSOE::addA(const Matrix &in_m, const ID &in_id, double fact)
       else /* row segment */
       { 
         while((j_eq >= (ptr->next)->beg) && ((ptr->next)->row == i_eq))
-            ptr = ptr->next ;
+            ptr = ptr->next;
         fpt = ptr->nz ;
         fpt[j_eq - ptr->beg] += m[it*idSize + jt] * fact;
       }
@@ -398,18 +400,18 @@ int SymSparseLinSOE::addB(const Vector &in_v, const ID &in_id, double fact)
   double *v = new double[idSize];
 
   for (int ii = 0; ii < idSize; ii++) {
-      if (in_id(ii) >= 0 && in_id(ii) < size) {
-    id[newPt] = in_id(ii);
-    v[newPt] = in_v(ii);
-    newPt++;
-      }
+    if (in_id(ii) >= 0 && in_id(ii) < size) {
+      id[newPt] = in_id(ii);
+      v[newPt] = in_v(ii);
+      newPt++;
+    }
   }
 
   idSize = newPt;
   if (idSize == 0)  {
-      delete [] id;
-      delete [] v;
-      return 0;
+    delete [] id;
+    delete [] v;
+    return 0;
   }
   int *newID = new int[idSize];
 
@@ -521,53 +523,34 @@ SymSparseLinSOE::setX(int loc, double value)
 void
 SymSparseLinSOE::setX(const Vector &x)
 {
-    if (x.Size() == size && vectX != 0) 
-        *vectX = x;
+  if (x.Size() == size && vectX != 0) 
+    *vectX = x;
 }
 
 
 const Vector &
-SymSparseLinSOE::getX(void)
+SymSparseLinSOE::getX()
 {
   assert(vectX != nullptr);
   return *vectX;
 }
 
 const Vector &
-SymSparseLinSOE::getB(void)
+SymSparseLinSOE::getB()
 {
   assert(vectB != nullptr);
   return *vectB;
 }
 
 double 
-SymSparseLinSOE::normRHS(void)
+SymSparseLinSOE::normRHS()
 {
-    double norm =0.0;
-    for (int i=0; i<size; i++) {
-    double Yi = B[i];
-    norm += Yi*Yi;
-    }
-    return sqrt(norm);
-}    
-
-
-/* Create a linkage between SOE and Solver.
- */
-int SymSparseLinSOE::setSymSparseLinSolver(SymSparseLinSolver &newSolver)
-{
-  newSolver.setLinearSOE(*this);
-  
-  if (size != 0) {
-    int solverOK = newSolver.setSize();
-    if (solverOK < 0) {
-        // opserr << "WARNING:SymSparseLinSOE::setSolver :";
-        // opserr << "the new solver could not setSeize() - staying with old\n";
-        return -1;
-    }
+  double norm =0.0;
+  for (int i=0; i<size; i++) {
+  double Yi = B[i];
+  norm += Yi*Yi;
   }
-  
-  return this->LinearSOE::setSolver(newSolver);
+  return sqrt(norm);
 }
 
 
