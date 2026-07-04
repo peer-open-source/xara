@@ -30,6 +30,7 @@ import pathlib
 import tempfile
 import uuid
 from functools import partial
+from collections import defaultdict
 
 from .tcl import Interpreter, _lift
 
@@ -579,23 +580,29 @@ class OpenSeesPy:
             kwds["section"] = self._current_section
         return self._invoke_proc("fiber", *args, **kwds)
 
-from collections import defaultdict
+
+
 
 class Model:
-    def __init__(self, *args, echo_file=None, **kwds):
-        self._openseespy = OpenSeesPy(echo_file=echo_file)
-        if len(args) > 0 or len(kwds) > 0:
-            self._openseespy._invoke_proc("model", *args, **kwds)
+    def __init__(self, 
+                 type="basic",
+                 *args,
+                 echo_file=None, **kwds):
 
-        self._parameters = {
-        }
+        self._openseespy = OpenSeesPy(echo_file=echo_file)
+
+        if len(kwds) > 0 or len(args) > 0:
+            self._openseespy._invoke_proc("model", type, *args, **kwds)
+
+        self._parameters = {}
 
         # Aug 2025, for xara._analysis
         self._patterns = {}
 
         # Apr 2026
         self._objects = defaultdict(dict)
-    
+
+
     @property
     def state(self):
         return StateView(self)
@@ -617,6 +624,8 @@ class Model:
     def lift(self, type_name: str, tag: int):
         return _lift(self._openseespy._interp._tcl.interpaddr(), type_name, tag)
 
+    def _has_object(self, obj):
+        return obj.tag is not None
 
     # def invoke(self, *args, **kwds):
     #     if len(args) == 2:
@@ -642,19 +651,20 @@ class Model:
     def material(self, type_or_object, *args, **kwds):
         if _is_model_object(type_or_object):
             # return self._openseespy.add_object(type_or_object)
-            return self.add_object(type_or_object)
+            return self.add_object(type_or_object, tag=kwds.get("tag", None))
         else:
             return self._openseespy.material(type_or_object, *args, **kwds)
     
     def section(self, type_or_object, *args, **kwds):
         if _is_model_object(type_or_object):
             # return self._openseespy.add_object(type_or_object)
-            return self.add_object(type_or_object)
+            return self.add_object(type_or_object, tag=kwds.get("tag", None))
         else:
             return self._openseespy.section(type_or_object, *args, **kwds)
 
 
-    def element(self, type, tag, *args, **kwds):
+    def element(self, type: str, tag: int, *args, **kwds):
+
         if tag is None:
             tag = 1
             ele_tags = self.getEleTags()
@@ -666,11 +676,13 @@ class Model:
             for existing_tag in ele_tags:
                 if tag <= existing_tag:
                     tag = existing_tag + 1
+
         try:
             self._openseespy._invoke_proc("element", type, tag, *args, **kwds)
         except Exception as e:
             raise e.with_traceback(None) from None
         return tag
+
 
     def symbols(self, **kwds):
         symbols = []
@@ -874,6 +886,101 @@ class Model:
 # A list of symbol names that are importable
 # from this module. All of these are dynamically
 # resolved by the function __getattr__ below.
+
+_Commands = {
+    "Build": {
+        "Nodes": [
+            "node",
+            # setters
+            "setNodeCoord",
+            "setNodeDisp",
+            "setNodeVel",
+            "setNodeAccel",
+            "setNodePressure",
+        ],
+        "Other": [
+            "wipe",
+            "model",
+            "element",
+            "section",
+            "fiber", "patch", "layer",
+            "geomTransf",
+            "transform",
+            "beamIntegration",
+            "nDMaterial",
+            "material",
+            "frictionModel",
+            "limitCurve",
+        ]
+    },
+    # /output/model/
+    "Model": {
+        "Nodes": [
+            "nodeCoord",
+            "nodeMass",
+            "getNodeTags",
+            "nodeDOFs",
+            "getFixedNodes",
+            "getFixedDOFs",
+            "getConstrainedNodes",
+        ]
+    },
+    "State": {
+        "Nodes": [
+            "nodeDisp",
+            "nodeRotation",
+            "nodeEigenvector",
+            "nodeVel",
+            "nodeAccel",
+            "nodeReaction",
+            "nodeResponse",
+            "nodeUnbalance",
+        ]
+    },
+    "Reliability": [
+        "randomVariable",
+        "getRVTags",
+        "getRVParamTag",
+        "getRVValue",
+        "getMean",
+        "getStdv",
+        "getPDF",
+        "getCDF",
+        "getInverseCDF",
+        "correlate",
+        "performanceFunction",
+        "gradPerformanceFunction",
+        "transformUtoX",
+        "wipeReliability",
+        "updateMaterialStage",
+        "sdfResponse",
+        "probabilityTransformation",
+        "startPoint",
+        "randomNumberGenerator",
+        "reliabilityConvergenceCheck",
+        "searchDirection",
+        "meritFunctionCheck",
+        "stepSizeRule",
+        "rootFinding",
+        "functionEvaluator",
+        "gradientEvaluator",
+    ],
+    "Analysis": [
+        "test",
+        "system",
+        "numberer",
+        "constraints",
+        "integrator",
+        "algorithm",
+        "analysis",
+        "analyze",
+        "modalProperties",
+        "responseSpectrumAnalysis",
+        "eigen",
+    ]
+}
+
+
 __all__ = [
 # 
     "tcl",
@@ -881,27 +988,16 @@ __all__ = [
     "invoke",
 
 # OpenSeesPy attributes
+    *_Commands["Build"]["Nodes"],
+    *_Commands["Build"]["Other"],
+    *_Commands["Model"]["Nodes"],
+    *_Commands["State"]["Nodes"],
+
+    *_Commands["Reliability"],
+
+    *_Commands["Analysis"],
 
     "uniaxialMaterial",
-    "testUniaxialMaterial",
-    "setStrain",
-    "getStrain",
-    "getStress",
-    "getTangent",
-    "getDampTangent",
-    "wipe",
-    "model",
-    "node",
-    "element",
-    "section",
-    "fiber", "patch", "layer",
-    "geomTransf",
-    "transform",
-    "beamIntegration",
-    "nDMaterial",
-    "material",
-    "frictionModel",
-    "limitCurve",
     # Constraints
     "fix",
     "sp",
@@ -933,19 +1029,8 @@ __all__ = [
     "imposedMotion",
     "imposedSupportMotion",
     "groundMotion",
-    # Analysis
     "loadConst",
-    "system",
-    "numberer",
-    "constraints",
-    "integrator",
-    "algorithm",
-    "analysis",
-    "analyze",
-    "test",
-    "modalProperties",
-    "responseSpectrumAnalysis",
-    "eigen",
+
     #
     "reactions",
     "setTime",
@@ -954,7 +1039,6 @@ __all__ = [
     "reset",
     "initialize",
     "getLoadFactor",
-    "build",
     "printModel",
     "printA",
     "printB",
@@ -963,21 +1047,15 @@ __all__ = [
     "testNorms",
     "testIter",
     "recorder",
+
+    # Database
     "database",
     "save",
     "restore",
 
+    "build",
+
     "getTime",
-    # node
-    "nodeUnbalance",
-    "nodeDisp",
-    "nodeRotation",
-    "nodeEigenvector",
-    "nodeVel",
-    "nodeAccel",
-    "nodeReaction",
-    "nodeResponse",
-    "nodeCoord",
     # element
     "eleResponse",
     "eleForce",
@@ -989,24 +1067,13 @@ __all__ = [
     "getNDF",
     "eleNodes",
     "eleType",
-    "nodeDOFs",
-    "nodeMass",
+    # getters
     "nodePressure",
-    "setNodePressure",
     "nodeBounds",
     "getPatterns",
-    "getFixedNodes",
-    "getFixedDOFs",
-    "getConstrainedNodes",
     "getConstrainedDOFs",
     "getRetainedNodes",
     "getRetainedDOFs",
-    "getNodeTags",
-    # Setters
-    "setNodeCoord",
-    "setNodeVel",
-    "setNodeAccel",
-    "setNodeDisp",
 
     "start",
     "stop",
@@ -1080,33 +1147,7 @@ __all__ = [
     "send",
     "recv",
     "Bcast",
-    # Reliability
-    "randomVariable",
-    "getRVTags",
-    "getRVParamTag",
-    "getRVValue",
-    "getMean",
-    "getStdv",
-    "getPDF",
-    "getCDF",
-    "getInverseCDF",
-    "correlate",
-    "performanceFunction",
-    "gradPerformanceFunction",
-    "transformUtoX",
-    "wipeReliability",
-    "updateMaterialStage",
-    "sdfResponse",
-    "probabilityTransformation",
-    "startPoint",
-    "randomNumberGenerator",
-    "reliabilityConvergenceCheck",
-    "searchDirection",
-    "meritFunctionCheck",
-    "stepSizeRule",
-    "rootFinding",
-    "functionEvaluator",
-    "gradientEvaluator",
+
     "getNumThreads",
     "setNumThreads",
     "logFile",
@@ -1124,6 +1165,14 @@ __all__ = [
     "runFORMAnalysis",
     "getLSFTags",
     "runImportanceSamplingAnalysis",
+
+    # UniaxialMaterialTest
+    "testUniaxialMaterial",
+    "setStrain",
+    "getStrain",
+    "getStress",
+    "getTangent",
+    "getDampTangent",
 ]
 
 
