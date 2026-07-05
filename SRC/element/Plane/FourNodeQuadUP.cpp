@@ -344,7 +344,7 @@ FourNodeQuadUP::getTangentStiff()
 
 
 const Matrix &
-FourNodeQuadUP::getInitialStiff ()
+FourNodeQuadUP::getInitialStiff()
 {
   if (Ki != 0) return *Ki;
 
