@@ -70,6 +70,9 @@ class BeamFiberMaterial: public NDMaterial {
     const char *getType() const;
     int getOrder() const;
 
+    Response *setResponse(const char **argv, int argc, OPS_Stream &) override;
+    int getResponse(int responseID, Information &) override;
+
     void Print(OPS_Stream &s, int flag);
 
     int sendSelf(int commitTag, Channel &);
