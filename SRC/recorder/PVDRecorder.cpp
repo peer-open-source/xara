@@ -1409,8 +1409,8 @@ PVDRecorder::savePart(int partno, int ctag, int nodendf)
     this->incrLevel();
     int type = vtktypes[ctag];
     if (type == 0) {
-	opserr<<"WARNING: the element type cannot be assigned a VTK type\n";
-	return -1;
+        opserr<<"WARNING: the element type cannot be assigned a VTK type\n";
+        return -1;
     }
     for(int i=0; i<eletags.Size(); i++) {
 	this->indent();
