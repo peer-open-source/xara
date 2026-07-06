@@ -8,15 +8,16 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include <MultiSurfCrack2D.h>
+#include "MultiSurfCrack2D.h"
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <MaterialResponse.h>
+#define ND_TAG_MultiSurfCrack2D 2020
 #include <elementAPI.h>
 
 
 // Parse user inputs and create material
-void* OPS_MultiSurfCrack2D()
+void* OPS_ADD_RUNTIME_VPV(OPS_MultiSurfCrack2D)
 {
 	int argc = OPS_GetNumRemainingInputArgs();
 	if (argc < 22) {
