@@ -57,17 +57,18 @@ public:
   virtual int addB(const Vector&, const ID&, double fact = 1.0);
   virtual int setB(const Vector&, double fact = 1.0);
 
-  virtual void zeroA(void);
-  virtual void zeroB(void);
+  virtual void zeroA();
+  virtual void zeroB();
 
-  virtual const Vector& getX(void);
-  virtual const Vector& getB(void);
-  virtual double normRHS(void);
+  virtual const Vector& getX();
+  virtual const Vector& getB();
+  virtual double normRHS();
 
   virtual void setX(int loc, double value);
   virtual void setX(const Vector& x);
+#if 0
   virtual int setSparseGenColSolver(SparseGenColLinSolver& newSolver);
-
+#endif
   virtual int sendSelf(int commitTag, Channel& theChannel);
   virtual int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
 #ifdef _PARALLEL_PROCESSING
