@@ -398,24 +398,10 @@ int HHTExplicit_TP::update(const Vector &aiPlusOne)
     }
     
     AnalysisModel *theModel = this->getAnalysisModel();
-    if (theModel == 0)  {
-        opserr << "WARNING HHTExplicit_TP::update() - no AnalysisModel set\n";
-        return -2;
-    }
-    
-    // check domainChanged() has been called, i.e. Ut will not be zero
-    if (Ut == 0)  {
-        opserr << "WARNING HHTExplicit_TP::update() - domainChange() failed or not called\n";
-        return -3;
-    }
-    
-    // check aiPlusOne is of correct size
-    if (aiPlusOne.Size() != U->Size())  {
-        opserr << "WARNING HHTExplicit_TP::update() - Vectors of incompatible size ";
-        opserr << " expecting " << U->Size() << " obtained " << aiPlusOne.Size() << endln;
-        return -4;
-    }
-    
+    assert(theModel != 0);
+    assert(Ut != 0);
+    assert(aiPlusOne.Size() == U->Size());
+
     //  determine the response at t+deltaT
     Udot->addVector(1.0, aiPlusOne, c2);
     
@@ -433,7 +419,7 @@ int HHTExplicit_TP::update(const Vector &aiPlusOne)
 }
 
 
-int HHTExplicit_TP::commit(void)
+int HHTExplicit_TP::commit()
 {
     // get a pointer to the LinearSOE and the AnalysisModel
     LinearSOE *theLinSOE = this->getLinearSOE();
