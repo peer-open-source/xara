@@ -179,7 +179,6 @@ using namespace OpenSees::Hash::literals;
 #include "UWmaterials/ManzariDafaliasPlaneStrainRO.h"
 #include "UWmaterials/PM4Sand.h"
 #include "UWmaterials/PM4Silt.h"
-#include "J2CyclicBoundingSurface.h"
 #include "J2CyclicBoundingSurface3D.h"
 #include "J2CyclicBoundingSurfacePlaneStrain.h"
 #include "UWmaterials/InitialStateAnalysisWrapper.h"
