@@ -1694,7 +1694,9 @@ TclBasicBuilder_addWheelRail(ClientData clientData, Tcl_Interp *interp, int argc
   // -- End of a 2D wheel-rail element(By Quan Gu, Yongdou Liu, et al.) on 2018/10/29
 
   else if (ndm == 3) {
-    opserr << OpenSees::PromptValueError << "Unimplemented." << OpenSees::SignalMessageEnd;
+    opserr << OpenSees::PromptValueError 
+           << "Unimplemented." 
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
