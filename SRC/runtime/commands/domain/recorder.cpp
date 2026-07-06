@@ -1307,7 +1307,7 @@ TclCreateRecorder(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_OK;
   }
 
-  else if (strcmp(argv[1], "vtk") == 0 || strcmp(argv[1], "VTK") == 0) {
+  else if (strcasecmp(argv[1], "vtk") == 0) {
     OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, nullptr);
     (*theRecorder) = (Recorder *)OPS_VTK_Recorder(rt, argc, argv);
   } 
@@ -1315,6 +1315,10 @@ TclCreateRecorder(ClientData clientData, Tcl_Interp *interp, int argc,
     OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, nullptr);
     (*theRecorder) = (Recorder *)OPS_ElementRecorderRMS(rt, argc, argv);
   }
+  // else if (strcasecmp(argv[1], "PVD") == 0) {
+  //   OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, nullptr);
+  //   (*theRecorder) = (Recorder *)OPS_PVDRecorder(rt, argc, argv);
+  // } 
 
   else if (strcmp(argv[1], "gmsh") == 0 || strcmp(argv[1], "GMSH") == 0) {
     OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, nullptr);
@@ -1442,10 +1446,11 @@ TclCreateRecorder(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   if (*theRecorder == nullptr) {
-    opserr << OpenSees::PromptValueError << "No recorder exists "
-           << "with type '" << argv[1] << "'\n";
-
-    return TCL_ERROR;
+    opserr << OpenSees::PromptValueError 
+           << "No recorder exists with type '" << argv[1] 
+           << "'\n";
+    return TCL_OK;
+    // return TCL_ERROR;
   }
 
   return TCL_OK;

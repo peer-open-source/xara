@@ -5,7 +5,6 @@
 //===----------------------------------------------------------------------===//
 //
 #include <assert.h>
-#include <element/Frame/for_int.tpp>
 #include <Logging.h>
 #include <Parsing.h>
 #include <elementAPI.h>
@@ -69,17 +68,23 @@ GetBeamIntegration(TCL_Char* type, int n)
   if (strcmp(type, "Lobatto") == 0) {
     BeamIntegration* bi = nullptr;
 
-    static_loop<2, 30>([&](auto i) {
+    Unroll<2, 30>([&](auto i) {
       if ((int)i.value == n)
         bi = new FrameQuadrature<GaussLobatto<1,i.value>>;
     });
+    if (bi == nullptr) {
+      opserr << OpenSees::PromptValueError
+             << "Lobatto quadrature with nIP = " 
+             << n
+             << " is not implemented\n";
+    }
     return bi; // LobattoBeamIntegration();
   }
 
   else if (strcmp(type, "Legendre") == 0) {
     BeamIntegration* bi = nullptr;
 
-    static_loop<2, 30>([&](auto i) {
+    Unroll<2, 30>([&](auto i) {
       if ((int)i.value == n)
         bi = new FrameQuadrature<GaussLegendre<1,i.value>>;
     });

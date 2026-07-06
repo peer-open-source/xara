@@ -144,9 +144,13 @@ class Interpreter:
                  verbose=False,
                  safe=False,
                  error_file=None,
+                 echo_error=None,
                  preload=True,
                  enable_tk=False):
 
+        if echo_error is None:
+            echo_error = os.environ.get("XARA_ECHO_ERROR", False)
+        self._echo_error = echo_error
         self._tcl = _create_interp(verbose=verbose,
                                    preload=preload,
                                    enable_tk=enable_tk)
@@ -171,11 +175,11 @@ class Interpreter:
 
         # Setup propagation of error messages
         self._err_file = error_file
+        echo_flag = "" if self._echo_error else "-noEcho"
         try:
-            echo = "" if os.environ.get("XARA_ECHO_ERROR", False) else "-noEcho"
             if self._err_file is not None and echo:
                 # Note: The extra braces are needed to escape backslashes on Windows
-                self.eval(f"logFile {{{self._err_file}}} {echo}")
+                self.eval(f"logFile {{{self._err_file}}} {echo_flag}")
         except:
             self._err_file = None
 
@@ -309,6 +313,10 @@ class Interpreter:
 
 
 class ModelRuntime:
+    """
+    Note(06/2026): This class is largely obsolete, in the future
+    we may refactor to only use the Interpreter class.
+    """
     def __init__(self, ndm=None, ndf=None, **kwds):
         self._interp = Interpreter(**kwds)
         self._tcl = self._interp._tcl
