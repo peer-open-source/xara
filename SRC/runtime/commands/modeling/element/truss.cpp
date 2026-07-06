@@ -40,7 +40,6 @@
 #else
 #  include <strings.h>
 #endif
-#define strcmp strcasecmp
 
 using namespace OpenSees;
 
@@ -145,8 +144,8 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
         return TCL_ERROR;
       tracker.consume(Positions::Material);
     }
-    else if ((strcmp(argv[i], "-A") == 0) ||
-             (strcmp(argv[i], "-area") == 0)) {
+    else if ((strcasecmp(argv[i], "-A") == 0) ||
+             (strcasecmp(argv[i], "-area") == 0)) {
       if (argc == ++i || Tcl_GetDouble(interp, argv[i], &area) != TCL_OK) {
         opserr << OpenSees::PromptValueError
                << "failed to read area\n";
@@ -154,7 +153,7 @@ CreateTruss(ClientData clientData, Tcl_Interp *interp, int argc,
       }
       tracker.consume(Positions::Area);
     }
-    else if (strcmp(argv[i], "-cMass") == 0) {
+    else if (strcasecmp(argv[i], "-cMass") == 0) {
       if (argc == ++i || Tcl_GetInt(interp, argv[i], &cMass) != TCL_OK) {
         opserr << OpenSees::PromptValueError
                << "failed to read mass flag\n";
