@@ -206,25 +206,24 @@ void DruckerPrager::initialize( )
 }
 
 
-NDMaterial * DruckerPrager::getCopy (const char *type)
+NDMaterial * 
+DruckerPrager::getCopy (const char *type)
 {
   	if (strcmp(type,"PlaneStrain2D") == 0 || strcmp(type,"PlaneStrain") == 0) {
 		DruckerPragerPlaneStrain *clone;
-		clone = new DruckerPragerPlaneStrain(this->getTag(), mK, mG, msigma_y, mrho, mrho_bar, mKinf, mKo,
+		return new DruckerPragerPlaneStrain(this->getTag(), mK, mG, msigma_y, mrho, mrho_bar, mKinf, mKo,
 		                                                     mdelta1, mdelta2, mHard, mtheta, massDen, mPatm);
-		return clone;
 	} else if (strcmp(type,"ThreeDimensional")==0 || strcmp(type, "3D") ==0) {  
 		DruckerPrager3D *clone;
-     	clone = new DruckerPrager3D(this->getTag(),  mK, mG, msigma_y, mrho, mrho_bar, mKinf, mKo,
+     	return new DruckerPrager3D(this->getTag(),  mK, mG, msigma_y, mrho, mrho_bar, mKinf, mKo,
 		                                             mdelta1, mdelta2, mHard, mtheta, massDen, mPatm);
-	 	return clone;
   	} else {
-	  	opserr << "DruckerPrager::getCopy failed to get copy: " << type << endln;
-	  	return 0;
+	  	return this->NDMaterial::getCopy(type);
   	}
 }
 
-int DruckerPrager::commitState (void)
+int 
+DruckerPrager::commitState()
 {
     mEpsilon_n_p = mEpsilon_n1_p;
     mAlpha1_n    = mAlpha1_n1; 
@@ -251,29 +250,6 @@ int DruckerPrager::revertToStart(void)
     return 0;
 }
 
-NDMaterial*
-DruckerPrager::getCopy()
-{
-  opserr << "DruckerPrager::getCopy -- subclass responsibility\n"; 
-  exit(-1);
-  return 0;
-}
-
-const char*
-DruckerPrager::getType (void) const
-{
-    opserr << "DruckerPrager::getType -- subclass responsibility\n";
-    exit(-1);
-    return 0;
-}
-
-int
-DruckerPrager::getOrder (void) const
-{
-    opserr << "DruckerPrager::getOrder -- subclass responsibility\n";
-    exit(-1);
-    return 0;
-}
 
 //--------------------Plasticity-------------------------------------
 //plasticity integration routine
@@ -535,7 +511,7 @@ DruckerPrager::plastic_integrator( )
 	} // end of while(!okay) loop
 
 
-	//update everything and exit!
+	//update everything and return!
 
 	Vector b1(6);
 	Vector b2(6);
