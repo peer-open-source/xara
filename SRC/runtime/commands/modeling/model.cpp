@@ -35,8 +35,8 @@ bool builtModel = false;
 FE_Datastore *theDatabase = nullptr;
 
 extern int G3_AddTclAnalysisAPI(Tcl_Interp *, ModelRegistry&);
-extern int G3_AddTclDomainCommands(Tcl_Interp *, Domain*);
-
+extern int AddTclDomainCommands(Tcl_Interp *, Domain*);
+extern int RemoveTclDomainCommands(Tcl_Interp* interp);
 
 // 
 int
@@ -81,7 +81,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
     Tcl_CreateCommand(interp, "model", &TclCommand_specifyModel, theNewDomain, nullptr);
 
-    G3_AddTclDomainCommands(interp, theNewDomain);
+    AddTclDomainCommands(interp, theNewDomain);
   }
 
 
@@ -259,6 +259,7 @@ TclCommand_wipeModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
     delete theDomain;
     delete builder;
 
+    RemoveTclDomainCommands(interp);
     static int ncmd = sizeof(ModelBuilderCommands)/sizeof(decltype(ModelBuilderCommands[0]));
     for (int i = 0; i < ncmd; i++)
       Tcl_DeleteCommand(interp, ModelBuilderCommands[i].name);
