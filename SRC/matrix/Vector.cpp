@@ -744,23 +744,23 @@ Vector::operator=(const Vector &V)
 {
   // assert(sz == V.sz); // TODO
   // first check we are not trying v = v
-  if (this != &V) {
+  if (this != &V) [[unlikely]] {
 
-      if (sz != V.sz)  {
-          // Check that we are not deleting an empty Vector
-          if (this->theData != nullptr){
-            delete [] this->theData;
-            this->theData = nullptr;
-          }
-          this->sz = V.sz;
-          
-          // Check that we are not creating an empty Vector
-          this->theData = (sz != 0) ? new double[sz] : nullptr;
+    if (sz != V.sz) [[unlikely]] {
+      // Check that we are not deleting an empty Vector
+      if (this->theData != nullptr){
+        delete [] this->theData;
+        this->theData = nullptr;
       }
+      this->sz = V.sz;
+      
+      // Check that we are not creating an empty Vector
+      this->theData = (sz != 0) ? new double[sz] : nullptr;
+    }
 
-      // copy the data
-      for (int i=0; i<sz; i++)
-        theData[i] = V.theData[i];
+    // copy the data
+    for (int i=0; i<sz; i++)
+      theData[i] = V.theData[i];
   }
 
   return *this;
