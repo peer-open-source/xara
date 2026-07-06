@@ -155,26 +155,23 @@ FluidSolidPorousMaterial::~FluidSolidPorousMaterial ()
 }
 
 
-int FluidSolidPorousMaterial::setTrialStrain (const Vector &strain)
+int
+FluidSolidPorousMaterial::setTrialStrain (const Vector &strain)
 {
   int ndm = ndmx[matN];
+  assert((ndm==2 && strain.Size()==3) || (ndm==3 && strain.Size()==6));
   
   if (ndm==2 && strain.Size()==3)
     trialVolumeStrain = strain[0]+strain[1];
   else if (ndm==3 && strain.Size()==6)
-		trialVolumeStrain = strain[0]+strain[1]+strain[2];
-  else {
-    opserr << "Fatal:FluidSolidPorousMaterial:: Material dimension is: " << ndm << endln;
-    opserr << "But strain vector size is: " << strain.Size() << endln;
-    exit(-1);;
-  }
+	trialVolumeStrain = strain[0]+strain[1]+strain[2];
 
   return theSoilMaterial->setTrialStrain(strain);
 }
 
 
 int
-FluidSolidPorousMaterial::setTrialStrain (const Vector &strain, const Vector &rate)
+FluidSolidPorousMaterial::setTrialStrain(const Vector &strain, const Vector &rate)
 {
 	int ndm = ndmx[matN];
 
@@ -258,7 +255,7 @@ const Matrix & FluidSolidPorousMaterial::getInitialTangent (void)
 	return *workM;
 }
 
-double FluidSolidPorousMaterial::getRho(void)
+double FluidSolidPorousMaterial::getRho()
 {
   return theSoilMaterial->getRho();
 }
@@ -404,7 +401,7 @@ NDMaterial * FluidSolidPorousMaterial::getCopy (const char *code)
 }
 
 
-const char * FluidSolidPorousMaterial::getType (void) const
+const char * FluidSolidPorousMaterial::getType() const
 {
 	int ndm = ndmx[matN];
 
@@ -412,7 +409,7 @@ const char * FluidSolidPorousMaterial::getType (void) const
 }
 
 
-int FluidSolidPorousMaterial::getOrder (void) const
+int FluidSolidPorousMaterial::getOrder() const
 {
 	int ndm = ndmx[matN];
 
