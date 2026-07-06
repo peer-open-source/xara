@@ -495,7 +495,7 @@ TclCommand_SSPquadUP(ClientData clientData, Tcl_Interp* interp,
 }
 
 
-#if 1
+#if 0
 #include <element/community/UWelements/BeamContact2D.h>
 // element BeamContact2Dp tag? iNode? jNode? secondaryNode? matTag? width? penalty? <cSwitch>?
 // element BeamContact2D  tag? iNode? jNode? secondaryNode? lambdaNode? matTag? width? gapTol? forceTol? <cSwitch>?
