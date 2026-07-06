@@ -644,7 +644,7 @@ TclDispatch_BeamContact2Dp(ClientData clientData, Tcl_Interp* interp, int argc, 
 
 #endif
 
-#if 1
+#if 0
 #include <CrdTransf.h>
 #include <element/community/UWelements/BeamContact3D.h>
 static Element*
