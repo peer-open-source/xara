@@ -465,6 +465,8 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
     // Parse remaining section properties as positional arguments
     //
     for (int i : positions) {
+      if (tracker.current() == Position::EndRequired)
+        tracker.increment();
 
       switch (tracker.current()) {
         case Position::E:
@@ -528,6 +530,18 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
           tracker.increment();
           break;
 
+        case Position::Density:
+          if (Tcl_GetDouble(interp, argv[i], &mass) != TCL_OK) {
+            opserr << OpenSees::PromptValueError << "invalid mass\n";
+            return TCL_ERROR;
+          }
+          use_mass = true;
+          tracker.increment();
+          break;
+
+        case Position::EndRequired:
+          // This shouldnt be reached; only here to silence compiler.
+          break;
         case Position::End:
           opserr << OpenSees::PromptParseError
                  << "unexpected argument " << argv[i] << "\n";
@@ -537,11 +551,11 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   // Ensure that all positional arguments have been consumed
-  if (tracker.current() != Position::End) {
+  if (tracker.current() < Position::EndRequired) {
       opserr << OpenSees::PromptParseError
              << "Missing required positional arguments\n";
 
-      while (tracker.current() != Position::End) {
+      while (tracker.current() != Position::EndRequired) {
         switch (tracker.current()) {
           case Position::E:
             opserr << "E ";
@@ -564,6 +578,8 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
           case Position::Transform:
             opserr << "transform ";
             break;
+          case Position::Density:
+          case Position::EndRequired:
           case Position::End:
             break;
         }
@@ -691,7 +707,8 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
                                     beam_data.J, beam_data.Iy, beam_data.Iz,
                                     iNode, jNode,
                                     *theTrans3d, 
-                                    mass, options.mass_type);
+                                    mass, 
+                                    options.mass_type);
       }
     }
   }
@@ -718,15 +735,21 @@ TclBasicBuilder_addElasticBeam(ClientData clientData, Tcl_Interp *interp, int ar
   const int ndm = builder->getNDM();
 
   enum class Args2D : int {
-    A, E, Iz, Transform, End, 
+    A, E, Iz, Transform, 
+    EndRequired, 
+      Density,
+    End, 
     // values coming after End wont be handled
     // by ArgumentTracker; these need to be here for
     // the template to compile.
-    G, J, Iy
+    G, J, Iy,
   };
 
   enum class Args3D : int {
-    A, E, G, J, Iy, Iz, Transform, End
+    A, E, G, J, Iy, Iz, Transform, 
+    EndRequired,
+      Density,
+    End
   };
 
   if (ndm == 2)
