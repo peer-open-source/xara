@@ -45,10 +45,10 @@ double BoundingCamClay::mElastFlag = 1;
 
 #include <elementAPI.h>
 
-static int numBoundingCamClayMaterials = 0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_BoundingCamClayMaterial)
 {
+	static int numBoundingCamClayMaterials = 0;
     if (numBoundingCamClayMaterials == 0) {
       numBoundingCamClayMaterials++;
       opslog << "BoundingCamClay nDmaterial - Written: C.McGann, K.Petek, P.Arduino, U.Washington\n";
@@ -80,10 +80,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_BoundingCamClayMaterial)
     theMaterial = new BoundingCamClay(tag, 0, dData[0], dData[1], dData[2], dData[3], dData[4], dData[5], 
                                               dData[6], dData[7], dData[8]);
     
-    if (theMaterial == 0) {
-      opserr << "WARNING ran out of memory for nDMaterial BoundingCamClay material with tag: " << tag << endln;
-    }
-  
     return theMaterial;
 }
 
@@ -295,7 +291,7 @@ int BoundingCamClay::revertToStart(void)
 }
 
 NDMaterial*
-BoundingCamClay::getCopy (void)
+BoundingCamClay::getCopy()
 {
 	opserr << "BoundingCamClay::getCopy -- subclass responsibility\n"; 
   	exit(-1);
@@ -303,7 +299,7 @@ BoundingCamClay::getCopy (void)
 }
 
 const char*
-BoundingCamClay::getType (void) const
+BoundingCamClay::getType() const
 {
     opserr << "BoundingCamClay::getType -- subclass responsibility\n";
     exit(-1);
@@ -311,7 +307,7 @@ BoundingCamClay::getType (void) const
 }
 
 int
-BoundingCamClay::getOrder (void) const
+BoundingCamClay::getOrder() const
 {
     opserr << "BoundingCamClay::getOrder -- subclass responsibility\n";
     exit(-1);
