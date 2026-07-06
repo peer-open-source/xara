@@ -18,11 +18,11 @@ namespace OpenSees {
 enum class DomainStatus: int {
     Success = 0,
     //
-    ElementFailedToConverge = -1,
-    SectionFailedToConverge = -2,
-    MaterialFailedToConverge = -3,
-    MaterialWrapperSingular = -5,
-    MaterialWrapperFailedToConverge = -6,
-    ElementSingular = -4,
+    ElementFailedToConverge = -100,
+    SectionFailedToConverge = -200,
+    MaterialFailedToConverge = -300,
+    MaterialWrapperSingular = -500,
+    MaterialWrapperFailedToConverge = -600,
+    ElementSingular = -400,
 };
 }
