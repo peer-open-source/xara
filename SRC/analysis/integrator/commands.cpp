@@ -1173,63 +1173,6 @@ TclCommand_createKRAlphaExplicit_TP(ClientData clientData, Tcl_Interp* interp, i
 
 
 
-
-
-#include <analysis/integrator/Static/MinUnbalDispNorm.h>
-int
-TclCommand_createMinUnbalDispNorm(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
-{
-  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
-
-  double lambda11, minlambda, maxlambda;
-  int numIter;
-  if (OPS_GetNumRemainingInputArgs() < 1) {
-    opserr << "WARNING integrator MinUnbalDispNorm lambda11 <Jd minLambda1j "
-              "maxLambda1j>\n";
-    return TCL_ERROR;
-  }
-
-  int numdata = 1;
-  if (OPS_GetDoubleInput(&numdata, &lambda11) < 0) {
-    opserr << "WARNING integrator MinUnbalDispNorm invalid lambda11\n";
-    return TCL_ERROR;
-  }
-
-  if (OPS_GetNumRemainingInputArgs() >= 3) {
-    if (OPS_GetIntInput(&numdata, &numIter) < 0) {
-      opserr << "WARNING integrator MinUnbalDispNorm invalid numIter\n";
-      return TCL_ERROR;
-    }
-    if (OPS_GetDoubleInput(&numdata, &minlambda) < 0) {
-      opserr << "WARNING integrator MinUnbalDispNorm invalid minlambda\n";
-      return TCL_ERROR;
-    }
-    if (OPS_GetDoubleInput(&numdata, &maxlambda) < 0) {
-      opserr << "WARNING integrator MinUnbalDispNorm invalid maxlambda\n";
-      return TCL_ERROR;
-    }
-  } else {
-    minlambda = lambda11;
-    maxlambda = lambda11;
-    numIter = 1;
-  }
-
-  int signFirstStepMethod = MinUnbalDispNorm::SIGN_LAST_STEP;
-  if (OPS_GetNumRemainingInputArgs() > 0) {
-    const char *flag = OPS_GetString();
-    if ((strcmp(flag, "-determinant") == 0) || (strcmp(flag, "-det") == 0)) {
-      signFirstStepMethod = MinUnbalDispNorm::CHANGE_DETERMINANT;
-    }
-  }
-
-
-  builder->set(*new MinUnbalDispNorm(lambda11, numIter, minlambda, maxlambda,
-                                     signFirstStepMethod));
-  return TCL_OK;
-}
-
-
-
 #include <analysis/integrator/Dynamic/Newmark1.h>
 int
 TclCommand_createNewmark1(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv)
