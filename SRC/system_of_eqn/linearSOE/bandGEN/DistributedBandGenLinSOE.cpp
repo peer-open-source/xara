@@ -242,17 +242,12 @@ DistributedBandGenLinSOE::setSize(Graph &theGraph)
   
   // get new Vector objects if size has changes
   if (oldSize != size) {
-    if (vectX != 0) 
-      delete vectX;
-    
-    if (vectB != 0) 
-      delete vectB;
-    
+
     if (myVectB != 0)
       delete myVectB;
 
-    vectX = new Vector(X,size);
-    vectB = new Vector(B,size);
+    vectX.setData(X,size);
+    vectB.setData(B,size);
     myVectB = new Vector(myB, size);
   }
 
@@ -378,8 +373,8 @@ DistributedBandGenLinSOE::solve(void)
     }
 
     // receive X,B and result
-    theChannel->recvVector(0, 0, *vectX);
-    theChannel->recvVector(0, 0, *vectB);
+    theChannel->recvVector(0, 0, vectX);
+    theChannel->recvVector(0, 0, vectB);
     theChannel->recvID(0, 0, result);
     
     factored = true;
@@ -392,30 +387,31 @@ DistributedBandGenLinSOE::solve(void)
   else {
 
     // add P0 contribution to B
-    *vectB = *myVectB;
+    vectB = *myVectB;
 
     // receive X and A contribution from subprocess & add them in
     for (int j=0; j<numChannels; j++) {
 
       // get X & add
       Channel *theChannel = theChannels[j];
-      theChannel->recvVector(0, 0, *vectX);
-      *vectB += *vectX;
+      theChannel->recvVector(0, 0, vectX);
+      // TODO(cmp): why add to vectB
+      vectB += vectX;
 
       // get A & add using local map
       if (factored == false) {
-	const ID &localMap = *(localCol[j]);
-	int ldA = 2*numSubD + numSuperD + 1;    
-	int localSize = localMap.Size() * ldA;
-	Vector vectA(workArea, localSize);    
-	theChannel->recvVector(0, 0, vectA);
+        const ID &localMap = *(localCol[j]);
+        int ldA = 2*numSubD + numSuperD + 1;    
+        int localSize = localMap.Size() * ldA;
+        Vector vectA(workArea, localSize);    
+        theChannel->recvVector(0, 0, vectA);
 
-	int loc = 0;
-	for (int i=0; i<localMap.Size(); i++) {
-	  int pos = localMap(i)*ldA;
-	  for (int k=0; k<ldA; k++) 
-	    A[pos++] += workArea[loc++];
-	}    
+        int loc = 0;
+        for (int i=0; i<localMap.Size(); i++) {
+          int pos = localMap(i)*ldA;
+          for (int k=0; k<ldA; k++) 
+            A[pos++] += workArea[loc++];
+        }
       }
     }
     
@@ -425,8 +421,8 @@ DistributedBandGenLinSOE::solve(void)
     // send results back
     for (int j=0; j<numChannels; j++) {
       Channel *theChannel = theChannels[j];
-      theChannel->sendVector(0, 0, *vectX);
-      theChannel->sendVector(0, 0, *vectB);
+      theChannel->sendVector(0, 0, vectX);
+      theChannel->sendVector(0, 0, vectB);
       theChannel->sendID(0, 0, result);      
     }
   } 
@@ -448,23 +444,23 @@ DistributedBandGenLinSOE::addB(const Vector &v, const ID &id, double fact)
     const int idSize = id.Size();        
 
     if (fact == 1.0) { // do not need to multiply if fact == 1.0
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		myB[pos] += v(i);
-	}
+      for (int i=0; i<idSize; i++) {
+        int pos = id(i);
+        if (pos <size && pos >= 0)
+          myB[pos] += v(i);
+      }
     } else if (fact == -1.0) {
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		myB[pos] -= v(i);
-	}
+      for (int i=0; i<idSize; i++) {
+        int pos = id(i);
+        if (pos <size && pos >= 0)
+          myB[pos] -= v(i);
+      }
     } else {
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		myB[pos] += v(i) * fact;
-	}
+      for (int i=0; i<idSize; i++) {
+        int pos = id(i);
+        if (pos <size && pos >= 0)
+          myB[pos] += v(i) * fact;
+      }
     }	
     return 0;
 }
@@ -481,17 +477,19 @@ DistributedBandGenLinSOE::setB(const Vector &v, double fact)
 
 
     if (fact == 1.0) { // do not need to multiply if fact == 1.0
-	for (int i=0; i<size; i++) {
-	    myB[i] = v(i);
-	}
-    } else if (fact == -1.0) {
-	for (int i=0; i<size; i++) {
-	    myB[i] = -v(i);
-	}
-    } else {
-	for (int i=0; i<size; i++) {
-	    myB[i] = v(i) * fact;
-	}
+      for (int i=0; i<size; i++) {
+        myB[i] = v(i);
+      }
+    }
+    else if (fact == -1.0) {
+      for (int i=0; i<size; i++) {
+        myB[i] = -v(i);
+      }
+    }
+    else {
+      for (int i=0; i<size; i++) {
+        myB[i] = v(i) * fact;
+      }
     }	
     return 0;
 }
@@ -513,7 +511,7 @@ DistributedBandGenLinSOE::getB(void)
 
     // send B & recv merged B
     theChannel->sendVector(0, 0, *myVectB);
-    theChannel->recvVector(0, 0, *vectB);
+    theChannel->recvVector(0, 0, vectB);
   } 
 
   //
@@ -522,7 +520,7 @@ DistributedBandGenLinSOE::getB(void)
 
   else {
 
-    *vectB = *myVectB;
+    vectB = *myVectB;
 
     Vector remoteB(workArea, size);    
     // receive X and A contribution from subprocess & add them in
@@ -531,17 +529,17 @@ DistributedBandGenLinSOE::getB(void)
 
       Channel *theChannel = theChannels[j];
       theChannel->recvVector(0, 0, remoteB);
-      *vectB += remoteB;
+      vectB += remoteB;
     }
   
     // send results back
     for (int j=0; j<numChannels; j++) {
       Channel *theChannel = theChannels[j];
-      theChannel->sendVector(0, 0, *vectB);
+      theChannel->sendVector(0, 0, vectB);
     }
   } 
 
-  return *vectB;
+  return vectB;
 }	
 
   
@@ -561,8 +559,8 @@ DistributedBandGenLinSOE::sendSelf(int commitTag, Channel &theChannel)
     bool found = false;
     for (int i=0; i<numChannels; i++)
       if (theChannels[i] == &theChannel) {
-	sendID = i+1;
-	found = true;
+        sendID = i+1;
+        found = true;
       }
 
     // if new object, enlarge Channel pointers to hold new channel * & allocate new ID
@@ -571,22 +569,22 @@ DistributedBandGenLinSOE::sendSelf(int commitTag, Channel &theChannel)
       Channel **nextChannels = new Channel *[nextNumChannels];
 
       for (int i=0; i<numChannels; i++)
-	nextChannels[i] = theChannels[i];
+        nextChannels[i] = theChannels[i];
       nextChannels[numChannels] = &theChannel;
       
       numChannels = nextNumChannels;
-      
+
       if (theChannels != 0)
-	delete [] theChannels;
+        delete [] theChannels;
       
       theChannels = nextChannels;
       
       if (localCol != 0)
-	delete [] localCol;
+        delete [] localCol;
       localCol = new ID *[numChannels];
 
       for (int i=0; i<numChannels; i++)
-	localCol[i] = 0;    
+        localCol[i] = 0;
 
       // allocate new processID for remote object
       sendID = numChannels;
