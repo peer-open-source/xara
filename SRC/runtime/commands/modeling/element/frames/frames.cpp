@@ -33,9 +33,8 @@
 #  include <strings.h>
 #endif
 #define strcmp strcasecmp
+#include <utility/Unroll.h>
 
-
-#include <for_int.tpp>
 #include "frames.hpp"
 
 // Parsing
@@ -128,7 +127,9 @@ enum class FrameClass {
   ForceBeamColumnWarping2d,
   ForceBeamColumn2dThermal,
   TimoshenkoBeamColumn2d,
-  Unknown
+  Unknown,
+  Only3d,
+  Only2d
 };
 
 
@@ -171,7 +172,8 @@ CheckTransformation(Domain& domain, int iNode, int jNode, CrdTransf& transform)
 
 template <int ndm, typename Transform, typename Section>
 static Element*
-CreateFrame(ModelRegistry& builder, 
+CreateFrame(FrameClass beam_type,
+            ModelRegistry& builder, 
             const char* name,
             int tag,
             std::vector<int>& nodev,
@@ -291,13 +293,14 @@ CreateFrame(ModelRegistry& builder,
     if (CheckTransformation(*builder.getDomain(), nodev[0], nodev[nodev.size()-1], *theTransf) != TCL_OK)
       return nullptr;
     
+    std::array<int, 2> nodes {nodev[0], nodev[1]};
+
+    FrameTransformBuilder* tb = builder.getTypedObject<FrameTransformBuilder>(transfTag);
     // Create 3d frame elements
     if (strstr(name, "Frame") != nullptr) {
       if (strstr(name, "Exact") == nullptr) {
 
-        std::array<int, 2> nodes {nodev[0], nodev[1]};
-
-        FrameTransformBuilder* tb = builder.getTypedObject<FrameTransformBuilder>(transfTag);
+        // FrameTransformBuilder* tb = builder.getTypedObject<FrameTransformBuilder>(transfTag);
 
         if (!tb) {
           opserr << OpenSees::PromptValueError << "invalid transform\n";
@@ -305,7 +308,7 @@ CreateFrame(ModelRegistry& builder,
         }
 
 
-        if (strcmp(name, "EulerFrame") == 0) {
+        if (strcasecmp(name, "EulerFrame") == 0) {
             theElement = new EulerFrame3d(tag, nodes, nIP, 
                                           sections.data(),
                                           beamIntegr, 
@@ -313,7 +316,7 @@ CreateFrame(ModelRegistry& builder,
                                           mass, options.mass_flag);
         }
 
-        else if (strcmp(name, "CubicFrame") == 0) {
+        else if (strcasecmp(name, "CubicFrame") == 0) {
           if (options.shear_flag)
             theElement = new CubicFrame3d<true,0>(tag, nodes, 
                                           sections,
@@ -328,7 +331,7 @@ CreateFrame(ModelRegistry& builder,
                                           mass);
         } 
 
-        else if (strcmp(name, "DisplFrame") == 0) {
+        else if (strcasecmp(name, "DisplFrame") == 0) {
           theElement =  new EulerDeltaFrame3d(tag, nodes, sections,
                                               beamIntegr, *theTransf, 
                                               mass, 
@@ -351,11 +354,11 @@ CreateFrame(ModelRegistry& builder,
               sections.push_back(sections[0]);
 
           unsigned nen = nodev.size();
-          static_loop<2,6>([&](auto nn) constexpr {
+          Unroll<2,6>([&](auto nn) constexpr {
             if (nn.value == nen) {
               std::array<int, nn.value> nodes;
               std::copy_n(nodev.begin(), nn.value, nodes.begin());
-              static_loop<0,4>([&](auto nwm) constexpr {
+              Unroll<0,4>([&](auto nwm) constexpr {
                 if (nwm.value+6 == ndf)
                   theElement = new ShearFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), *tb);
               });
@@ -373,7 +376,7 @@ CreateFrame(ModelRegistry& builder,
                  (strcmp(name, "MixedFrame") == 0)) {
           if (strcmp(name, "ForceDeltaFrame") == 0 || options.geom_flag) {
             if (!options.shear_flag)
-              static_loop<2,MAX_NIP>([&](auto nip) constexpr {
+              Unroll<2,MAX_NIP>([&](auto nip) constexpr {
                 if (nip.value == sections.size())
                   theElement = new ForceDeltaFrame3d<nip.value, 4>(tag, nodes, sections,
                                                 beamIntegr, *tb, 
@@ -385,7 +388,7 @@ CreateFrame(ModelRegistry& builder,
                                                 );
               });
             else
-              static_loop<2,MAX_NIP>([&](auto nip) constexpr {
+              Unroll<2,MAX_NIP>([&](auto nip) constexpr {
                 if (nip.value == sections.size())
                   theElement = new ForceDeltaFrame3d<nip.value, 6>(tag, nodes, sections,
                                                 beamIntegr, *tb, 
@@ -415,7 +418,8 @@ CreateFrame(ModelRegistry& builder,
           nodev, 
           sections, 
           beamIntegr,
-          *theTransf, 
+          *theTransf,
+          *builder.getTypedObject<FrameTransformBuilder>(transfTag),
           options,
           mass
         );
@@ -448,9 +452,16 @@ CreateFrame(ModelRegistry& builder,
                                             beamIntegr, *theTransf, 
                                             shear_center[0], shear_center[1],
                                             mass, options.mass_flag);
-    else
-      theElement = new ForceBeamColumn3d(tag, iNode, jNode, nIP, secptrs,
-                                         beamIntegr, *theTransf, mass, max_iter, tol);
+    else {
+      if (!getenv("XARA_NEW_FORCE"))
+        theElement = new ForceBeamColumn3d(tag, iNode, jNode, nIP, secptrs,
+                                          beamIntegr, *theTransf, mass, max_iter, tol);
+      else {
+
+        options.shear_flag = 0;
+        theElement = CreateForceFrame(tag, ndf, nodes, sections, beamIntegr, *tb, options, mass, max_iter, tol);
+      }
+    }
   }
   return theElement;
 }
@@ -625,6 +636,12 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
     else
       beam_type = FrameClass::ForceBeamColumn3d;
   }
+  else if (strcasecmp(argv[1], "elasticForceBeamColumn") == 0) {
+    if (ndm == 2)
+      beam_type = FrameClass::ElasticForceBeamColumn2d;
+    else
+      beam_type = FrameClass::ElasticForceBeamColumn3d;
+  }
   else if (strcasecmp(argv[1], "timoshenkoBeamColumn") == 0) {
     if (ndm == 2)
       beam_type = FrameClass::TimoshenkoBeamColumn2d;
@@ -640,6 +657,10 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       beam_type = FrameClass::ForceBeamColumn2d;
     else
       beam_type = FrameClass::ForceFrame3d;
+  }
+  else if (strcasecmp(argv[1], "ExactFrame") == 0) {
+    if (ndm == 3)
+      beam_type = FrameClass::ExactFrame3d;
   }
   // else {
   //   opserr << OpenSees::PromptValueError 
@@ -713,6 +734,7 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
       options.shear_flag = 0;
       break;
     case FrameClass::TimoshenkoBeamColumn2d:
+    case FrameClass::ExactFrame3d:
       options.shear_flag = 1;
       break;
     default:
@@ -905,8 +927,9 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   if (syntax == FrameSyntax::A ||
       syntax == FrameSyntax::B) {
     // Here we create a BeamIntegrationRule (theRule) which is a pair of
-    // section tags and a BeamIntegration. In this case we do not
-    // delete the BeamIntegration because it is owned by theRule.
+    // section tags and a BeamIntegration.
+
+    // In this case we do not delete the BeamIntegration because it is owned by theRule.
     if (syntax == FrameSyntax::B)
       deleteBeamIntegr = false;
 
@@ -1203,10 +1226,10 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   //
   {
     Element *theElement = ndm == 2 
-                        ? CreateFrame<2, CrdTransf, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
+                        ? CreateFrame<2, CrdTransf, FrameSection>(beam_type, *builder, argv[1], tag, multi_nodes, transfTag, 
                                                                   section_tags, *beamIntegr, mass, max_iter, tol, 
                                                                   shear_center, options)
-                        : CreateFrame<3, CrdTransf, FrameSection>(*builder, argv[1], tag, multi_nodes, transfTag, 
+                        : CreateFrame<3, CrdTransf, FrameSection>(beam_type, *builder, argv[1], tag, multi_nodes, transfTag, 
                                                                   section_tags, *beamIntegr, mass, max_iter, tol, 
                                                                   shear_center, options);
 
