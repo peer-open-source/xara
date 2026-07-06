@@ -53,13 +53,13 @@ class MumpsParallelSOE : public MumpsSOE
     ~MumpsParallelSOE();
 
     // these methods need to be rewritten
-    int setSize(Graph &theGraph);
+    int setSize(Graph &);
 
     int addB(const Vector &, const ID &, double fact = 1.0);    
     int setB(const Vector &, double fact = 1.0);            
-    const Vector &getB(void);
-    void zeroB(void);
-    int solve(void);
+    const Vector &getB();
+    void zeroB();
+    int solve() override;
 
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
@@ -68,8 +68,6 @@ class MumpsParallelSOE : public MumpsSOE
     int setProcessID(int processTag);
     int setChannels(int numChannels, Channel **theChannels);
 
-  protected:
-    
   private:
     int processID;
     int numChannels;
