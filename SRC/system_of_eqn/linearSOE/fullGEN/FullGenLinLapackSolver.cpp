@@ -43,8 +43,8 @@ FullGenLinLapackSolver::FullGenLinLapackSolver()
 
 FullGenLinLapackSolver::~FullGenLinLapackSolver()
 {
-    if (iPiv != nullptr)
-     delete [] iPiv;
+  if (iPiv != nullptr)
+    delete [] iPiv;
 }
 
 void
@@ -73,87 +73,90 @@ FullGenLinLapackSolver::getDeterminant()
 int
 FullGenLinLapackSolver::solve()
 {
-    assert(theSOE != nullptr);
-    
-    int n = theSOE->size;
-    
-    // check for quick return
-    if (n == 0)
-      return 0;
-    
-    // check iPiv is large enough
-    assert(!(sizeIpiv < n));
-     
-    int ldA = n;
-    int nrhs = 1;
-    int ldB = n;
-    int info;
-    double *Aptr = theSOE->A;
-    double *Xptr = &theSOE->X[0];
-    double *Bptr = &theSOE->B[0];
-    int *iPIV = iPiv;
-    
-    // first copy B into X
-    for (int i=0; i<n; i++)
-     *(Xptr++) = *(Bptr++);
-    Xptr = &theSOE->X[0];
-
-    //
-    // now solve AX = Y
-    //
-    char tran[] = "N";
-    if (theSOE->factored == false)  
-     // factor and solve 
-      DGESV(&n,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
-    else {
-     // solve only using factored matrix      
-      DGETRS(tran, &n,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);      
-    }
-
-    
-    // check if successful
-    if (info != 0) {
-      if (info > 0) {
-        // opserr << "WARNING FullGenLinLapackSolver::solve() -";
-        // opserr << "factorization failed, matrix singular U(i,i) = 0, i= " << info-1 << endln;
-        return -info+1;
-      } else {
-        // opserr << "WARNING FullGenLinLapackSolver::solve() - OpenSees code error\n";
-        return info;
-      }      
-    }
-
-    theSOE->factored = true;
-
-    // we must call setDeterminant while A is factored
-    this->setDeterminant();
+  assert(theSOE != nullptr);
+  
+  int n = theSOE->size;
+  
+  // check for quick return
+  if (n == 0)
     return 0;
+  // else if (n <= 6)
+  //   return theSOE->matA->rSolve(theSOE->B, theSOE->X);
+  
+  // check iPiv is large enough
+  assert(!(sizeIpiv < n));
+    
+  int ldA = n;
+  int nrhs = 1;
+  int ldB = n;
+  int info;
+  double *Aptr = theSOE->A;
+  double *Xptr = &theSOE->X[0];
+  double *Bptr = &theSOE->B[0];
+  int *iPIV = iPiv;
+  
+  // first copy B into X
+  for (int i=0; i<n; i++)
+    *(Xptr++) = *(Bptr++);
+  Xptr = &theSOE->X[0];
+
+  //
+  // now solve AX = Y
+  //
+  char tran[] = "N";
+  if (theSOE->factored == false)  
+    // factor and solve 
+    DGESV(&n,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
+  else {
+    // solve only using factored matrix      
+    DGETRS(tran, &n,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);      
+  }
+
+  
+  // check if successful
+  if (info != 0) {
+    if (info > 0) {
+      // opserr << "WARNING FullGenLinLapackSolver::solve() -";
+      // opserr << "factorization failed, matrix singular U(i,i) = 0, i= " << info-1 << endln;
+      return -info+1;
+    } else {
+      // opserr << "WARNING FullGenLinLapackSolver::solve() - OpenSees code error\n";
+      return info;
+    }      
+  }
+
+  theSOE->factored = true;
+
+  // we must call setDeterminant while A is factored
+  this->setDeterminant();
+  return 0;
 }
 
 
 int
 FullGenLinLapackSolver::setSize()
 {
-    int n = theSOE->size;
-    if (n > 0) {
-     if (sizeIpiv < n) {
-         if (iPiv != nullptr)
-          delete [] iPiv;
-         iPiv = new int[n];          
-         sizeIpiv = n;
-     }
-    } else if (n == 0)
-     return 0;
-     
+  int n = theSOE->size;
+  if (n > 0) {
+    if (sizeIpiv < n) {
+      if (iPiv != nullptr)
+      delete [] iPiv;
+      iPiv = new int[n];          
+      sizeIpiv = n;
+    }
+  } else if (n == 0)
     return 0;
+
+  return 0;
 }
+
 
 int
 FullGenLinLapackSolver::sendSelf(int commitTag,
                      Channel &theChannel)
 {
-    // nothing to do
-    return 0;
+  // nothing to do
+  return 0;
 }
 
 int
@@ -161,9 +164,8 @@ FullGenLinLapackSolver::recvSelf(int commitTag,
                      Channel &theChannel, 
                      FEM_ObjectBroker &theBroker)
 {
-    // nothing to do
-    return 0;
+  // nothing to do
+  return 0;
 }
-
 
 
