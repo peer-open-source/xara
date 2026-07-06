@@ -14,8 +14,10 @@ GetCompatibilityVersion(Tcl_Interp *interp)
     else {
       opserr << "WARNING: unknown compatibility version '" << version_str << "'.\n";
     }
+    return version;
   }
 
+  
   // 
   return version;
 }
