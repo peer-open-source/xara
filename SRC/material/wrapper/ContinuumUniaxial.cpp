@@ -33,6 +33,8 @@
 #include <FEM_ObjectBroker.h>
 #include <VectorND.h>
 #include <MatrixND.h>
+#include <domain/DomainStatus.h>
+
 using namespace OpenSees;
 
 ContinuumUniaxial::ContinuumUniaxial():
@@ -132,10 +134,12 @@ ContinuumUniaxial::revertToStart()
   return theMaterial->revertToStart();
 }
 
+
 int 
 ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
 {
   static const double tolerance = 1.0e-08;
+  static constexpr int max_iter = 25;
 
   strain11 = strain;
 
@@ -178,7 +182,9 @@ ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
 
     // Condensation
     static VectorND<5> strainIncrement;
-    dd22.rsolve(condensedStress, strainIncrement);
+    if (dd22.rsolve(condensedStress, strainIncrement) != 0) {
+      return static_cast<int>(DomainStatus::MaterialWrapperSingular);
+    }
 
     // Update
     Tstrain22 -= strainIncrement(0);
@@ -188,7 +194,12 @@ ContinuumUniaxial::setTrialStrain(double strain, double strainRate)
     Tgamma31  -= strainIncrement(4);
 
     iter++;
-  } while (norm > tolerance && iter < 25);
+
+  } while (norm > tolerance && iter < max_iter);
+
+  if (norm > tolerance) {
+    return static_cast<int>(DomainStatus::MaterialWrapperFailedToConverge);
+  }
 
   return 0;
 }

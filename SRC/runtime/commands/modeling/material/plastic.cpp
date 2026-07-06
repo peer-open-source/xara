@@ -42,7 +42,7 @@
 #include <J2ThreeDimensional.h>
 #include <J2PlasticityThermal.h>
 #include <MultiaxialCyclicPlasticity.h>
-#include <DruckerPrager.h>
+#include <DruckerPrager3D.h>
 #include <J2BeamFiber2d.h>
 #include <J2BeamFiber3d.h>
 #include <J2BeamThread3d.h>
@@ -937,8 +937,8 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
   else if (strcmp(argv[1], "DruckerPrager") == 0 ||
            strcmp(argv[1], "DP") == 0) {
 
-    NDMaterial* theMaterial = new DruckerPrager(
-                                    tag, 0, consts.K, consts.G,
+    NDMaterial* theMaterial = new DruckerPrager3D(
+                                    tag, consts.K, consts.G,
                                     Fy, rho, rho_bar, Fsat, Fo,
                                     isotropic.b[0], delta2, hard.Hmix, hard.theta,
                                     density, atm);

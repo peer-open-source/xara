@@ -133,7 +133,7 @@ class MultiaxialCyclicPlasticity : public NDMaterial {
 		       FEM_ObjectBroker &theBroker ) ;
 
   //print out material data
-  void Print(OPS_Stream &s, int flag = 0) ;
+  void Print(OPS_Stream &s, int flag) ;
 
   virtual NDMaterial *getCopy (void) ;
   virtual const char *getType (void) const ;
@@ -161,6 +161,7 @@ class MultiaxialCyclicPlasticity : public NDMaterial {
   double m;			   //Exponential degradation parameter H=h*kappa^m
   double beta;         //integration parameter
   double eta ;         //viscosity   // not used now
+
 
   // some flags
   int flagjustunload;       // not used

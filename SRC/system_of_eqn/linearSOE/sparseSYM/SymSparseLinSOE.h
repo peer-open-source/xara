@@ -31,9 +31,11 @@ class SymSparseLinSolver;
 class SymSparseLinSOE : public LinearSOE
 {
   public:
-    SymSparseLinSOE(SymSparseLinSolver &theSolver, int lSparse);        
+    SymSparseLinSOE(SymSparseLinSolver &theSolver, int numbering);        
     SymSparseLinSOE(int N, int NNZ, int *rowStartA, int *colA,
-		    SymSparseLinSolver &theSolver, int lSparse);        
+		    SymSparseLinSolver &theSolver, 
+        int numbering
+    );
 
     ~SymSparseLinSOE();
 
@@ -43,20 +45,18 @@ class SymSparseLinSOE : public LinearSOE
     int addB(const Vector &, const ID &, double fact = 1.0);    
     int setB(const Vector &, double fact = 1.0);        
     
-    void zeroA(void);
-    void zeroB(void);
+    void zeroA();
+    void zeroB();
     
-    const Vector &getX(void);
-    const Vector &getB(void);    
+    const Vector &getX();
+    const Vector &getB();    
     double normRHS(void);
 
     void setX(int loc, double value);        
-    void setX(const Vector &x);        
-    int setSymSparseLinSolver(SymSparseLinSolver &newSolver);    
+    void setX(const Vector &x);  
 
     int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
+    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
     friend class SymSparseLinSolver;
 

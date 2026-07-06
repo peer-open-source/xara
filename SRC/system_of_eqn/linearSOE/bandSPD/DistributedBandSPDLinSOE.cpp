@@ -39,7 +39,7 @@ DistributedBandSPDLinSOE::DistributedBandSPDLinSOE(BandSPDLinSolver &theSolvr)
   :BandSPDLinSOE(theSolvr, LinSOE_TAGS_DistributedBandSPDLinSOE), 
    processID(0), numChannels(0), theChannels(0), localCol(0), workArea(0), sizeWork(0),  myVectB(0), myB(0)
 {
-    theSolvr.setLinearSOE(*this);
+  theSolvr.setLinearSOE(*this);
 }
 
 DistributedBandSPDLinSOE::DistributedBandSPDLinSOE()
@@ -55,19 +55,21 @@ DistributedBandSPDLinSOE::~DistributedBandSPDLinSOE()
   if (theChannels != 0)
     delete [] theChannels;
 
-  if (localCol != 0)
-    for (int i=0; i<numChannels; i++)
+  if (localCol != nullptr) {
+    for (int i=0; i<numChannels; i++) {
       if (localCol[i] != 0)
-	delete localCol[i];
-  delete [] localCol;
+        delete localCol[i];
+    }
+    delete [] localCol;
+  }
 
-  if (workArea != 0)
+  if (workArea != nullptr)
     delete [] workArea;
 
-  if (myVectB != 0)
+  if (myVectB != nullptr)
     delete myVectB;
 
-  if (myB != 0)
+  if (myB != nullptr)
     delete [] myB;
 }
 

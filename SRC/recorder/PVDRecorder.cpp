@@ -36,9 +36,11 @@
 #include <classTags.h>
 #include <NodeIter.h>
 
+#ifdef XARA_PFEM
 #include "PFEMElement/BackgroundDef.h"
 #include "PFEMElement/Particle.h"
 #include "PFEMElement/ParticleGroup.h"
+#endif
 
 std::map<int,PVDRecorder::VtkType> PVDRecorder::vtktypes;
 
@@ -309,6 +311,7 @@ PVDRecorder::vtu()
     this->getParts();
 
     // get background mesh
+#ifdef XARA_PFEM
     VInt gtags;
     TaggedObjectIter& meshes = OPS_getAllMesh();
     Mesh* mesh = 0;
@@ -319,7 +322,6 @@ PVDRecorder::vtu()
 	}
         gtags.push_back(group->getTag());
     }
-
 
     // part 0: all nodes
     ID partno(0, (int)parts.size()+(int)gtags.size()+1);
@@ -354,6 +356,7 @@ PVDRecorder::vtu()
     // clear parts
     parts.clear();
 
+#endif
     return 0;
 }
 
@@ -840,6 +843,7 @@ PVDRecorder::savePart0(int nodendf)
 int
 PVDRecorder::savePartParticle(int pno, int bgtag, int nodendf)
 {
+#ifdef XARA_PFEM
     if (theDomain == 0) {
 	opserr<<"WARNING: setDomain has not been called -- PVDRecorder\n";
 	return -1;
@@ -1220,7 +1224,7 @@ PVDRecorder::savePartParticle(int pno, int bgtag, int nodendf)
     theFile<<"</VTKFile>\n";
 
     theFile.close();
-
+#endif
     return 0;
 }
 
@@ -1405,8 +1409,8 @@ PVDRecorder::savePart(int partno, int ctag, int nodendf)
     this->incrLevel();
     int type = vtktypes[ctag];
     if (type == 0) {
-	opserr<<"WARNING: the element type cannot be assigned a VTK type\n";
-	return -1;
+        opserr<<"WARNING: the element type cannot be assigned a VTK type\n";
+        return -1;
     }
     for(int i=0; i<eletags.Size(); i++) {
 	this->indent();

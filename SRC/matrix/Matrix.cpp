@@ -99,7 +99,6 @@ Matrix::Matrix(double *theData, int row, int col)
     matrixWork = new double[sizeDoubleWork];
     intWork    = new int[sizeIntWork];
   }
-
 }
 
 
@@ -252,6 +251,7 @@ Matrix::Assemble(const Matrix &V, const ID &rows, const ID &cols, double fact)
   return res;
 }
 
+
 int
 Matrix::Solve(const Vector &b, Vector &x)
 {
@@ -335,8 +335,7 @@ Matrix::Solve(const Vector &b, Vector &x) const
     }
  
     // copy the data
-    int i;
-    for (i=0; i<dataSize; i++)
+    for (int i=0; i<dataSize; i++)
       matrixWork[i] = data[i];
 
     // set x equal to b
@@ -362,7 +361,6 @@ Matrix::Solve(const Vector &b, Vector &x) const
 int
 Matrix::Solve(const Matrix &b, Matrix &x) // const
 {
-
   int n = numRows;
   int nrhs = x.numCols;
   assert(numRows == numCols);
@@ -389,8 +387,7 @@ Matrix::Solve(const Matrix &b, Matrix &x) // const
   }
 
   // copy the data
-  int i;
-  for (i=0; i<dataSize; i++)
+  for (int i=0; i<dataSize; i++)
     matrixWork[i] = data[i];
 
   x = b;
@@ -430,10 +427,10 @@ Matrix::Solve(const Matrix &b, Matrix &x) // const
 int
 Matrix::Invert(Matrix &theInverse) const
 {
-    assert(numRows == numCols);
-    assert(numRows == theInverse.numRows);
-    theInverse = *this;
-    return theInverse.Invert();
+  assert(numRows == numCols);
+  assert(numRows == theInverse.numRows);
+  theInverse = *this;
+  return theInverse.Invert();
 }
 
 int
@@ -498,7 +495,6 @@ Matrix::Invert()
       if (info != 0) 
         return -abs(info);
       DGETRI(&n,Aptr,&ldA,iPIV,Wptr,&workSize,&info);
-
   }
   return -abs(info);
 }

@@ -34,6 +34,7 @@
 #include <vector>
 class Domain;
 class TimeSeries;
+class DomainModalProperties;
 
 class ResponseSpectrumAnalysis
 {

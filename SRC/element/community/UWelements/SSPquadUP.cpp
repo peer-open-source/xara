@@ -852,7 +852,7 @@ SSPquadUP::Print(OPS_Stream &s, int flag)
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"SSPquadUP\", ";
         s << "\"nodes\": [" << mExternalNodes(0) << ", ";
@@ -861,7 +861,11 @@ SSPquadUP::Print(OPS_Stream &s, int flag)
         s << mExternalNodes(3) << "], ";
         s << "\"thickness\": " << mThickness << ", ";
         s << "\"bodyForces\": [" << b[0] << ", " << b[1] << "], ";
-        s << "\"material\": \"" << theMaterial->getTag() << "\"}";
+        s << "\"material\": \"" << theMaterial->getTag()  << ", ";
+        s << "\"fluid_density\": " << fDens << ", ";
+        s << "\"fluid_bulk\": " << fBulk << ", ";
+        s << "\"perm\": [" << perm[0] << ", " << perm[1] << "]";
+        s << "\"}";
     }
 }
 

@@ -114,7 +114,7 @@ Tcl_CmdProc TclCommand_sensitivityAlgorithm;
 Tcl_CmdProc TclCommand_getTime;
 Tcl_CmdProc TclCommand_setTime;
 
-Tcl_CmdProc rayleighDamping;
+Tcl_CmdProc TclCommand_rayleighDamping;
 
 Tcl_CmdProc modalDamping;
 

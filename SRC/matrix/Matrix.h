@@ -33,8 +33,9 @@
 #include <assert.h>
 #include <cstddef>
 using std::size_t;
+#include <Vector.h>
+#include <routines/small_solve.hpp>
 
-class Vector;
 class ID;
 class Message;
 class OPS_Stream;
@@ -104,6 +105,8 @@ class Matrix
     int Solve(const Vector &V, Vector &res) const;
     int Solve(const Vector &V, Vector &res);
     int Solve(const Matrix &M, Matrix &res);
+    // solve assuming no aliasing
+    inline int rSolve(const Vector &b, Vector &x);
     int Invert(Matrix &res) const;
     int Invert();
 
@@ -275,6 +278,40 @@ void Matrix::addMatrix(const OpenSees::MatrixND<NR, NC, double>& M, double fact)
   for (int i = 0; i< NR; i++)
     for (int j = 0; j< NC; j++)
       (*this)(i,j) += fact*M(i,j);
+}
+
+
+int
+Matrix::rSolve(const Vector &b, Vector &x)
+{
+  int n = numRows;
+  assert(numRows == numCols);
+  assert(numRows == x.Size());
+  assert(numRows == b.Size());
+
+  if (n == 2) {
+    return small_solve<2>(data, b.theData, x.theData);
+  }
+  else if (n == 3) {
+    return small_solve<3>(data, b.theData, x.theData);
+  }
+  else if (n == 4) {
+    return small_solve<4>(data, b.theData, x.theData);
+  }
+  else if (n == 5) {
+    return small_solve<5>(data, b.theData, x.theData);
+  }
+  else if (n == 6) {
+    return small_solve<6>(data, b.theData, x.theData);
+  }
+  else if (n == 7) {
+    return small_solve<7>(data, b.theData, x.theData);
+  }
+  else if (n == 8) {
+    return small_solve<8>(data, b.theData, x.theData);
+  }
+  else 
+    return Solve(b, x);
 }
 
 template <int nr, int nc>

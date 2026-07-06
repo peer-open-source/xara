@@ -26,8 +26,6 @@
 //#
 //#
 //===============================================================================
-#ifndef TOTALLAGRANGIANFD8NODEBRICK_CPP
-#define TOTALLAGRANGIANFD8NODEBRICK_CPP
 
 #include <TotalLagrangianFD8NodeBrick.h>
 
@@ -52,38 +50,34 @@ NDMaterial &m, double b1, double b2, double b3)
 :Element(tag, ELE_TAG_TotalLagrangianFD8NodeBrick ),
  theMaterial(0), connectedExternalNodes(NumNodes), Q(0), bf(NumDof), Ki(0)
 {
-      connectedExternalNodes( 0) = node_numb_1;
-      connectedExternalNodes( 1) = node_numb_2;
-      connectedExternalNodes( 2) = node_numb_3;
-      connectedExternalNodes( 3) = node_numb_4;
-      connectedExternalNodes( 4) = node_numb_5;
-      connectedExternalNodes( 5) = node_numb_6;
-      connectedExternalNodes( 6) = node_numb_7;
-      connectedExternalNodes( 7) = node_numb_8;
+  connectedExternalNodes( 0) = node_numb_1;
+  connectedExternalNodes( 1) = node_numb_2;
+  connectedExternalNodes( 2) = node_numb_3;
+  connectedExternalNodes( 3) = node_numb_4;
+  connectedExternalNodes( 4) = node_numb_5;
+  connectedExternalNodes( 5) = node_numb_6;
+  connectedExternalNodes( 6) = node_numb_7;
+  connectedExternalNodes( 7) = node_numb_8;
 
-      bf(0) = b1;
-      bf(1) = b2;
-      bf(2) = b3;
+  bf(0) = b1;
+  bf(1) = b2;
+  bf(2) = b3;
 
-      theMaterial = new NDMaterial *[NumTotalGaussPts];
+  theMaterial = new NDMaterial *[NumTotalGaussPts];
+  
+  int i;
+  for (i=0; i<NumTotalGaussPts; i++) {
+    theMaterial[i] = m.getCopy();
+    if (theMaterial[i] == 0) {
+      opserr<<"FiniteDeformationElastic3D::FiniteDeformationElastic3D -- failed allocate material model pointer\n";
+      exit(-1);
+    }
+  }
 
-      if (theMaterial == 0) {
-       opserr<<"FiniteDeformationElastic3D::FiniteDeformationElastic3D -- failed allocate material model pointer\n";
-       exit(-1);
-      }
-      
-      int i;
-      for (i=0; i<NumTotalGaussPts; i++) {
-       theMaterial[i] = m.getCopy();
-       if (theMaterial[i] == 0) {
-        opserr<<"FiniteDeformationElastic3D::FiniteDeformationElastic3D -- failed allocate material model pointer\n";
-        exit(-1);
-       }
-      }
+  rho = m.getRho();
 
-      rho = m.getRho();
-
-      for (i=0; i<NumNodes; i++) theNodes[i] = 0;
+  for (i=0; i<NumNodes; i++)
+    theNodes[i] = 0;
 
 }
 
@@ -91,33 +85,32 @@ NDMaterial &m, double b1, double b2, double b3)
 TotalLagrangianFD8NodeBrick::TotalLagrangianFD8NodeBrick ()
 :Element(0, ELE_TAG_TotalLagrangianFD8NodeBrick ),
  theMaterial(0), connectedExternalNodes(NumNodes), Q(0), bf(NumDof), Ki(0)
-{    
-	 int i;
-     for (i=0; i<NumNodes; i++) {  
-       theNodes[i] = 0;
-     }
+{
+  for (int i=0; i<NumNodes; i++) {  
+    theNodes[i] = 0;
+  }
 
-     bf(0) = 0.0;
-     bf(1) = 0.0;
-     bf(2) = 0.0;
+  bf(0) = 0.0;
+  bf(1) = 0.0;
+  bf(2) = 0.0;
 
-     rho = 0.0;
+  rho = 0.0;
 }
 
 //-------------------------------------------------------------------------------------------------
 TotalLagrangianFD8NodeBrick::~TotalLagrangianFD8NodeBrick ()
 {   
-	int i;
-	for (i=0; i<NumTotalGaussPts; i++) {
-      if (theMaterial[i]) 
-        delete theMaterial[i];
-    }
+  int i;
+  for (i=0; i<NumTotalGaussPts; i++) {
+    if (theMaterial[i]) 
+      delete theMaterial[i];
+  }
 
-    if(theMaterial) 
-      delete [] theMaterial;
+  if(theMaterial) 
+    delete [] theMaterial;
 
-    if(Ki) 
-      delete Ki;
+  if(Ki) 
+    delete Ki;
 
 }
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -126,64 +119,63 @@ TotalLagrangianFD8NodeBrick::~TotalLagrangianFD8NodeBrick ()
 //=============================================================================
 int TotalLagrangianFD8NodeBrick::getNumExternalNodes () const
 {
-    return NumNodes;
+  return NumNodes;
 }
 
 //=============================================================================
 const ID& TotalLagrangianFD8NodeBrick::getExternalNodes ()
 {
-    return connectedExternalNodes;
+  return connectedExternalNodes;
 }
 
 //=============================================================================
 Node **TotalLagrangianFD8NodeBrick::getNodePtrs(void)
 {
-    return theNodes;
+  return theNodes;
 }
 
 //=============================================================================
 int TotalLagrangianFD8NodeBrick::getNumDOF ()
 {
-    return NumElemDof;
+  return NumElemDof;
 }
 
 //=============================================================================
-void TotalLagrangianFD8NodeBrick::setDomain (Domain *theDomain)
+void TotalLagrangianFD8NodeBrick::setDomain(Domain *theDomain)
 {
-    int i;
+  int i;
 
-    // Check Domain is not null - invoked when object removed from a domain
-    if (theDomain == 0) {
-      for (i=0; i<NumNodes; i++) {
-	     theNodes[i] = 0; 
-      }
-      return;
-    }
-    
+  // Check Domain is not null - invoked when object removed from a domain
+  if (theDomain == 0) {
     for (i=0; i<NumNodes; i++) {
-	  theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
-	  if ( theNodes[i]==0 ) {
-		  opserr << "FATAL ERROR TotalLagrangianFD8NodeBrick (tag: " << this->getTag() <<
+      theNodes[i] = 0; 
+    }
+    return;
+  }
+  
+  for (i=0; i<NumNodes; i++) {
+    theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
+    if ( theNodes[i]==0 ) {
+      opserr << "FATAL ERROR TotalLagrangianFD8NodeBrick (tag: " << this->getTag() <<
           " ), node not found in domain\n";
           exit(-1);		  
-	  }	   
     }
+  }
 
-    if (theDomain != nullptr)
-      this->Element::link(*theDomain);  // Very Important!!
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);  // Very Important!!
 
-    for (i=0; i<NumNodes; i++) {
-	  if ( theNodes[i]->getNumberDOF() != NumDof ) {
-        opserr << "FATAL ERROR TotalLagrangianFD8NodeBrick (tag: " << this->getTag() <<
-        "), has differing number of DOFs at its nodes\n";
-        exit(-1);		    		    
-	  }	      
+  for (i=0; i<NumNodes; i++) {
+    if ( theNodes[i]->getNumberDOF() != NumDof ) {
+      opserr << "FATAL ERROR TotalLagrangianFD8NodeBrick (tag: " << this->getTag() <<
+      "), has differing number of DOFs at its nodes\n";
+      exit(-1);		    		    
     }
-
+  }
 }
 
 //=============================================================================
-int TotalLagrangianFD8NodeBrick::commitState ()
+int TotalLagrangianFD8NodeBrick::commitState()
 {
   int retVal = 0;
 
@@ -223,16 +215,17 @@ int TotalLagrangianFD8NodeBrick::revertToStart ()
 }
 
 //=============================================================================
-int TotalLagrangianFD8NodeBrick::update ()
+int TotalLagrangianFD8NodeBrick::update()
 {
     int ret = 0;
-    tensor dh;
-    tensor dH_dX;
     int where = 0;
     int GP_c_r, GP_c_s, GP_c_t;
     double r = 0.0;
     double s = 0.0;
     double t = 0.0;
+  
+    tensor dh;
+    tensor dH_dX;
     tensor I_ij("I", 2, def_dim_2);
     tensor currentF;
     tensor updatedF;
@@ -241,16 +234,16 @@ int TotalLagrangianFD8NodeBrick::update ()
     tensor CurrentNodesDisp = this->getNodesDisp();
 
     for( GP_c_r = 0 ; GP_c_r < NumIntegrationPts ; GP_c_r++ ) {
-      r = pts[GP_c_r ];
+      r = pts[GP_c_r];
       for( GP_c_s = 0 ; GP_c_s < NumIntegrationPts ; GP_c_s++ ) {
         s = pts[GP_c_s ];
         for( GP_c_t = 0 ; GP_c_t < NumIntegrationPts ; GP_c_t++ ) {
           t = pts[GP_c_t ];
-          where =(GP_c_r * NumIntegrationPts + GP_c_s) * NumIntegrationPts + GP_c_t;
+          where = (GP_c_r * NumIntegrationPts + GP_c_s) * NumIntegrationPts + GP_c_t;
           //dh = shapeFunctionDerivative(r,s,t);
           dH_dX = this->dh_Global(r,s,t);
           currentF = CurrentNodesDisp("Ia") * dH_dX("Ib");
-            currentF.null_indices();
+          currentF.null_indices();
           updatedF = currentF + I_ij;
           ret += theMaterial[where]->setTrialF(updatedF);
         }
@@ -261,21 +254,21 @@ int TotalLagrangianFD8NodeBrick::update ()
 
 //======================================================================
 tensor TotalLagrangianFD8NodeBrick::Jacobian_3D(double x, double y, double z)
-  {
-     tensor N_C = this->getNodesCrds();
-     tensor dh = this->shapeFunctionDerivative(x, y, z);
-     
-     tensor J3D = N_C("ki") * dh("kj");
-       J3D.null_indices();
-     return J3D;
-  }
+{
+  tensor N_C = this->getNodesCrds();
+  tensor dh = this->shapeFunctionDerivative(x, y, z);
+  
+  tensor J3D = N_C("ki") * dh("kj");
+    J3D.null_indices();
+  return J3D;
+}
 
 //======================================================================
 tensor TotalLagrangianFD8NodeBrick::Jacobian_3Dinv(double x, double y, double z)
-  {
-     tensor J = this->Jacobian_3D(x,y,z);
-     return J.inverse();
-  }
+{
+  tensor J = this->Jacobian_3D(x,y,z);
+  return J.inverse();
+}
 
 //======================================================================
 tensor TotalLagrangianFD8NodeBrick::dh_Global(double x, double y, double z)
@@ -288,91 +281,91 @@ tensor TotalLagrangianFD8NodeBrick::dh_Global(double x, double y, double z)
   }
 
 //======================================================================
-tensor TotalLagrangianFD8NodeBrick::getStiffnessTensor(void)
-  {
-    tensor tI2("I", 2, def_dim_2);
-	  
-	int K_dim[] = {NumNodes,NumDof,NumDof,NumNodes};
-    tensor Kk(4,K_dim,0.0);
+tensor TotalLagrangianFD8NodeBrick::getStiffnessTensor()
+{
+  tensor tI2("I", 2, def_dim_2);
+    
+  int K_dim[] = {NumNodes,NumDof,NumDof,NumNodes};
+  tensor Kk(4,K_dim,0.0);
 
-    double r  = 0.0;
-    double rw = 0.0;
-    double s  = 0.0;
-    double sw = 0.0;
-    double t  = 0.0;
-    double tw = 0.0;
-   
-    int where = 0;
-    int GP_c_r, GP_c_s, GP_c_t;
-    double weight = 0.0;
+  double r  = 0.0;
+  double rw = 0.0;
+  double s  = 0.0;
+  double sw = 0.0;
+  double t  = 0.0;
+  double tw = 0.0;
+  
+  int where = 0;
+  int GP_c_r, GP_c_s, GP_c_t;
+  double weight = 0.0;
 
-    int dh_dim[] = {NumNodes,NumDof};
-    tensor dh(2, dh_dim, 0.0);
-    stresstensor PK2Stress;
-    tensor L2;
+  int dh_dim[] = {NumNodes,NumDof};
+  tensor dh(2, dh_dim, 0.0);
+  stresstensor PK2Stress;
+  tensor L2;
 
-    double det_of_Jacobian = 0.0;
+  double det_of_Jacobian = 0.0;
 
-    tensor Jacobian;
-    tensor dhGlobal;
-    tensor nodesDisp;
-    tensor F;
-    //tensor temp01;
-    tensor temp02;
-    tensor temp03;
-    tensor temp04; 
-    tensor temp05;
-    tensor temp06;
+  tensor Jacobian;
+  tensor dhGlobal;
+  tensor nodesDisp;
+  tensor F;
+  //tensor temp01;
+  tensor temp02;
+  tensor temp03;
+  tensor temp04; 
+  tensor temp05;
+  tensor temp06;
 
-    nodesDisp = this->getNodesDisp( );
+  nodesDisp = this->getNodesDisp( );
 
-    for( GP_c_r = 0 ; GP_c_r < NumIntegrationPts ; GP_c_r++ ) {
-      r = pts[GP_c_r ];
-      rw = wts[GP_c_r ];
-      for( GP_c_s = 0 ; GP_c_s < NumIntegrationPts ; GP_c_s++ ) {
-        s = pts[GP_c_s ];
-        sw = wts[GP_c_s ];
-        for( GP_c_t = 0 ; GP_c_t < NumIntegrationPts ; GP_c_t++ ) {
-          t = pts[GP_c_t ];
-          tw = wts[GP_c_t ];
-          where =(GP_c_r * NumIntegrationPts + GP_c_s) * NumIntegrationPts + GP_c_t;
-          //dh = shapeFunctionDerivative(r,s,t);
-          Jacobian = this->Jacobian_3D(r,s,t);
-          det_of_Jacobian  = Jacobian.determinant();
-          dhGlobal = this->dh_Global(r,s,t);
-          weight = rw * sw * tw * det_of_Jacobian;
-          PK2Stress = theMaterial[where]->getStressTensor();
-          L2 = theMaterial[where]->getTangentTensor();
-          F = theMaterial[where]->getF();
-                        
-          //K1
-          temp04 = dhGlobal("Pb") * tI2("mn");
-            temp04.null_indices(); 
-          temp02 = PK2Stress("bd") * dhGlobal("Qd");   
-            temp02.null_indices();
-          temp06 = temp04("Pbmn") * temp02("bQ") * weight;
-            temp06.null_indices(); 
-          Kk += temp06;
-                        
-          //K2
-          temp03 =  dhGlobal("Pb") * F("ma");
-            temp03.null_indices(); 
-          temp04 = F("nc") * L2("abcd");
-            temp04.null_indices(); 
-          temp05 = temp04("nabd") * dhGlobal("Qd"); 
-            temp05.null_indices(); 
-          temp06 = temp03("Pbma") * temp05("nabQ") * weight;
-            temp06.null_indices(); 
-          Kk += temp06;
-        }
+  for( GP_c_r = 0 ; GP_c_r < NumIntegrationPts ; GP_c_r++ ) {
+    r = pts[GP_c_r ];
+    rw = wts[GP_c_r ];
+    for( GP_c_s = 0 ; GP_c_s < NumIntegrationPts ; GP_c_s++ ) {
+      s = pts[GP_c_s ];
+      sw = wts[GP_c_s ];
+      for( GP_c_t = 0 ; GP_c_t < NumIntegrationPts ; GP_c_t++ ) {
+        t = pts[GP_c_t ];
+        tw = wts[GP_c_t ];
+        where =(GP_c_r * NumIntegrationPts + GP_c_s) * NumIntegrationPts + GP_c_t;
+        //dh = shapeFunctionDerivative(r,s,t);
+        Jacobian = this->Jacobian_3D(r,s,t);
+        det_of_Jacobian  = Jacobian.determinant();
+        dhGlobal = this->dh_Global(r,s,t);
+        weight = rw * sw * tw * det_of_Jacobian;
+        PK2Stress = theMaterial[where]->getStressTensor();
+        L2 = theMaterial[where]->getTangentTensor();
+        F = theMaterial[where]->getF();
+                      
+        //K1
+        temp04 = dhGlobal("Pb") * tI2("mn");
+          temp04.null_indices(); 
+        temp02 = PK2Stress("bd") * dhGlobal("Qd");   
+          temp02.null_indices();
+        temp06 = temp04("Pbmn") * temp02("bQ") * weight;
+          temp06.null_indices(); 
+        Kk += temp06;
+                      
+        //K2
+        temp03 =  dhGlobal("Pb") * F("ma");
+          temp03.null_indices(); 
+        temp04 = F("nc") * L2("abcd");
+          temp04.null_indices(); 
+        temp05 = temp04("nabd") * dhGlobal("Qd"); 
+          temp05.null_indices(); 
+        temp06 = temp03("Pbma") * temp05("nabQ") * weight;
+          temp06.null_indices(); 
+        Kk += temp06;
       }
     }
-
-    return Kk;
   }
 
+  return Kk;
+}
+
 //======================================================================
-tensor TotalLagrangianFD8NodeBrick::getRtensor(void)
+tensor TotalLagrangianFD8NodeBrick::getRtensor()
   {
     int R_dim[] = {NumNodes,NumDof};
     tensor Rr(2,R_dim,0.0);
@@ -436,144 +429,147 @@ tensor TotalLagrangianFD8NodeBrick::getRtensor(void)
   }
 
 //======================================================================
-tensor TotalLagrangianFD8NodeBrick::getBodyForce(void)
-  {
-    int B_dim[] = {NumNodes,NumDof};
-    tensor Bb(2,B_dim,0.0);
+tensor
+TotalLagrangianFD8NodeBrick::getBodyForce()
+{
+  int B_dim[] = {NumNodes,NumDof};
+  tensor Bb(2,B_dim,0.0);
 
-    double r  = 0.0;
-    double rw = 0.0;
-    double s  = 0.0;
-    double sw = 0.0;
-    double t  = 0.0;
-    double tw = 0.0;
+  double r  = 0.0;
+  double rw = 0.0;
+  double s  = 0.0;
+  double sw = 0.0;
+  double t  = 0.0;
+  double tw = 0.0;
 
-    int where = 0;
-    int GP_c_r, GP_c_s, GP_c_t;
-    double weight = 0.0;
+  int where = 0;
+  int GP_c_r, GP_c_s, GP_c_t;
+  double weight = 0.0;
 
-    int h_dim[] = {20};
-    tensor h(1, h_dim, 0.0);
-    int dh_dim[] = {NumNodes,NumDof};
-    tensor dh(2, dh_dim, 0.0);
-    int bodyforce_dim[] = {3};
-    tensor bodyforce(1, bodyforce_dim, 0.0);
+  int h_dim[] = {20};
+  tensor h(1, h_dim, 0.0);
+  int dh_dim[] = {NumNodes,NumDof};
+  tensor dh(2, dh_dim, 0.0);
+  int bodyforce_dim[] = {3};
+  tensor bodyforce(1, bodyforce_dim, 0.0);
 
-    double det_of_Jacobian = 0.0;
+  double det_of_Jacobian = 0.0;
 
-    tensor Jacobian;
-    tensor JacobianINV;
+  tensor Jacobian;
+  tensor JacobianINV;
 
-    bodyforce.val(1) = bf(0);
-    bodyforce.val(2) = bf(1);
-    bodyforce.val(3) = bf(2);
+  bodyforce.val(1) = bf(0);
+  bodyforce.val(2) = bf(1);
+  bodyforce.val(3) = bf(2);
 
-    for( GP_c_r = 0 ; GP_c_r < NumIntegrationPts ; GP_c_r++ ) {
-      r = pts[GP_c_r ];
-      rw = wts[GP_c_r ];
-      for( GP_c_s = 0 ; GP_c_s < NumIntegrationPts ; GP_c_s++ ) {
-        s = pts[GP_c_s ];
-        sw = wts[GP_c_s ];
-        for( GP_c_t = 0 ; GP_c_t < NumIntegrationPts ; GP_c_t++ ) {
-          t = pts[GP_c_t ];
-          tw = wts[GP_c_t ];
-          where =(GP_c_r * NumIntegrationPts + GP_c_s) * NumIntegrationPts + GP_c_t;
-          h = shapeFunction(r,s,t);
-          dh = shapeFunctionDerivative(r,s,t);
-          Jacobian = this->Jacobian_3D(r,s,t);
-          det_of_Jacobian  = Jacobian.determinant();
-          weight = rw * sw * tw * det_of_Jacobian;
-          Bb = Bb +  h("P") * bodyforce("i") * rho *weight;
-             Bb.null_indices();
+  for( GP_c_r = 0 ; GP_c_r < NumIntegrationPts ; GP_c_r++ ) {
+    r = pts[GP_c_r ];
+    rw = wts[GP_c_r ];
+    for( GP_c_s = 0 ; GP_c_s < NumIntegrationPts ; GP_c_s++ ) {
+      s = pts[GP_c_s ];
+      sw = wts[GP_c_s ];
+      for( GP_c_t = 0 ; GP_c_t < NumIntegrationPts ; GP_c_t++ ) {
+        t = pts[GP_c_t ];
+        tw = wts[GP_c_t ];
+        where =(GP_c_r * NumIntegrationPts + GP_c_s) * NumIntegrationPts + GP_c_t;
+        h = shapeFunction(r,s,t);
+        dh = shapeFunctionDerivative(r,s,t);
+        Jacobian = this->Jacobian_3D(r,s,t);
+        det_of_Jacobian  = Jacobian.determinant();
+        weight = rw * sw * tw * det_of_Jacobian;
+        Bb = Bb +  h("P") * bodyforce("i") * rho *weight;
+            Bb.null_indices();
+      }
+    }
+  }
+  return Bb;
+}
+
+//======================================================================
+tensor TotalLagrangianFD8NodeBrick::getSurfaceForce()
+{
+  int S_dim[] = {NumNodes, NumDof};
+  tensor Ss(2,S_dim,0.0);
+  // Need Work Here!
+
+  return Ss;
+}
+
+//============================================================================
+tensor TotalLagrangianFD8NodeBrick::getForces()
+{
+  int F_dim[] = {NumNodes,NumDof};
+  tensor Ff(2,F_dim,0.0);
+
+  Ff = this->getBodyForce( ) + this->getSurfaceForce( );
+
+  return Ff;
+}
+
+//=============================================================================
+const Matrix &
+TotalLagrangianFD8NodeBrick::getTangentStiff()
+{
+  K.Zero();
+
+  tensor stifftensor = this->getStiffnessTensor();
+
+  int kki=0;
+  int kkj=0;
+  
+  int i, j, k, l;
+  for (i=1 ; i<=NumNodes ; i++ ) {
+    for (j=1 ; j<=NumNodes ; j++ ) {
+      for (k=1 ; k<=NumDof ; k++ ) {
+        for (l=1 ; l<=NumDof ; l++ ) {
+            kki = k + NumDof*(i-1);
+            kkj = l + NumDof*(j-1);
+            K(kki-1 , kkj-1) = stifftensor.cval(i,k,l,j); 
         }
       }
     }
-    return Bb;
   }
 
-//======================================================================
-tensor TotalLagrangianFD8NodeBrick::getSurfaceForce(void)
-  {
-    int S_dim[] = {NumNodes, NumDof};
-    tensor Ss(2,S_dim,0.0);
-    // Need Work Here!
-
-    return Ss;
-  }
-
-//============================================================================
-tensor TotalLagrangianFD8NodeBrick::getForces(void)
-  {
-    int F_dim[] = {NumNodes,NumDof};
-    tensor Ff(2,F_dim,0.0);
-
-    Ff = this->getBodyForce( ) + this->getSurfaceForce( );
-
-    return Ff;
-  }
-
-//=============================================================================
-const Matrix &TotalLagrangianFD8NodeBrick::getTangentStiff ()
-{
-     K.Zero();
-
-     tensor stifftensor = this->getStiffnessTensor();
-
-     int kki=0;
-     int kkj=0;
-     
-     int i, j, k, l;
-     for (i=1 ; i<=NumNodes ; i++ ) {
-        for (j=1 ; j<=NumNodes ; j++ ) {
-           for (k=1 ; k<=NumDof ; k++ ) {
-              for (l=1 ; l<=NumDof ; l++ ) {
-                 kki = k + NumDof*(i-1);
-                 kkj = l + NumDof*(j-1);
-                 K(kki-1 , kkj-1) = stifftensor.cval(i,k,l,j); 
-              }
-           }
-        }
-     }
-
-     return K;
+  return K;
 }
 
 //=============================================================================
 const Matrix &TotalLagrangianFD8NodeBrick::getInitialStiff ()
 {
-     if (Ki != 0) return *Ki;
+  if (Ki != 0) return *Ki;
 
-     K.Zero();
-     K = this->getTangentStiff ();
+  K.Zero();
+  K = this->getTangentStiff ();
 
-     Ki = new Matrix(K);
+  Ki = new Matrix(K);
 
-     return K;
+  return K;
 }
 
 //=============================================================================
-const Matrix &TotalLagrangianFD8NodeBrick::getMass ()
+const Matrix &
+TotalLagrangianFD8NodeBrick::getMass ()
 {
-    // Need Work Here
-    M.Zero();
-    return M;
+  // Need Work Here
+  M.Zero();
+  return M;
 }
 
 //======================================================================
 tensor TotalLagrangianFD8NodeBrick::getNodesCrds(void) 
 {
-    const int dimensions[] = {NumNodes, NumDof};
-    tensor N_coord(2, dimensions, 0.0);
+  const int dimensions[] = {NumNodes, NumDof};
+  tensor N_coord(2, dimensions, 0.0);
 
-    int i, j;
-    for (i=0; i<NumNodes; i++) {
-	  const Vector &TNodesCrds = theNodes[i]->getCrds();
+  int i, j;
+  for (i=0; i<NumNodes; i++) {
+    const Vector &TNodesCrds = theNodes[i]->getCrds();
       for (j=0; j<NumDof; j++) {
         N_coord.val(i+1, j+1) = TNodesCrds(j);
-	  }		    
     }
-    
-    return N_coord;
+  }
+  
+  return N_coord;
 }
 
 //=============================================================================================
@@ -608,46 +604,48 @@ void TotalLagrangianFD8NodeBrick::zeroLoad(void)
 int
 TotalLagrangianFD8NodeBrick::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-    opserr<<"TotalLagrangianFD8NodeBrick::addLoad - load type unknown for ele with tag: "<<this->getTag();          
-    return -1;
+  opserr<<"TotalLagrangianFD8NodeBrick::addLoad - load type unknown for ele with tag: "<<this->getTag();          
+  return -1;
 }
 
 //=============================================================================
-int TotalLagrangianFD8NodeBrick::addInertiaLoadToUnbalance(const Vector &accel)
+int 
+TotalLagrangianFD8NodeBrick::addInertiaLoadToUnbalance(const Vector &accel)
 {
-    // Check for a quick return
-    if (rho == 0.0) return 0;
+  // Check for a quick return
+  if (rho == 0.0) return 0;
 
-    static Vector ra(NumElemDof);
-    int i, j;
+  static Vector ra(NumElemDof);
+  int i, j;
 
-    for (i=0; i<NumNodes; i++) {
-      const Vector &RA = theNodes[i]->getRV(accel);
-      if ( RA.Size() != NumDof ) {
-        opserr << "TotalLagrangianFD8NodeBrick::addInertiaLoadToUnbalance(): matrix and vector sizes are incompatable \n";
-        return (-1);
-      }
-      
-      for (j=0; j<NumDof; j++) {
-	    ra(i*NumDof +j) = RA(j);
-      }
-
+  for (i=0; i<NumNodes; i++) {
+    const Vector &RA = theNodes[i]->getRV(accel);
+    if ( RA.Size() != NumDof ) {
+      opserr << "TotalLagrangianFD8NodeBrick::addInertiaLoadToUnbalance(): matrix and vector sizes are incompatable \n";
+      return (-1);
+    }
+    
+    for (j=0; j<NumDof; j++) {
+    ra(i*NumDof +j) = RA(j);
     }
 
-    this->getMass();
+  }
 
-    if (Q == 0)  
-      Q = new Vector(NumElemDof);
+  this->getMass();
 
-    Q->addMatrixVector(1.0, M, ra, -1.0);
+  if (Q == 0)  
+    Q = new Vector(NumElemDof);
 
-    return 0;  
+  Q->addMatrixVector(1.0, M, ra, -1.0);
+
+  return 0;  
     
 }
 
 
 //=============================================================================
-const Vector &TotalLagrangianFD8NodeBrick::getResistingForce ()
+const Vector &
+TotalLagrangianFD8NodeBrick::getResistingForce ()
 {   
 	int i, j;
     int f_dim[] = {NumNodes, NumDof};
@@ -667,7 +665,8 @@ const Vector &TotalLagrangianFD8NodeBrick::getResistingForce ()
 }
 
 //=============================================================================
-const Vector &TotalLagrangianFD8NodeBrick::getResistingForceIncInertia ()
+const Vector &
+TotalLagrangianFD8NodeBrick::getResistingForceIncInertia ()
 {
     int i, j;
     Vector a(NumElemDof);
@@ -696,52 +695,53 @@ const Vector &TotalLagrangianFD8NodeBrick::getResistingForceIncInertia ()
 }
 
 //=============================================================================
-int TotalLagrangianFD8NodeBrick::sendSelf (int commitTag, Channel &theChannel)
+int 
+TotalLagrangianFD8NodeBrick::sendSelf (int commitTag, Channel &theChannel)
 {
-     // Not implemtented yet
-     return 0;
+  // Not implemtented yet
+  return 0;
 }
 
 //=============================================================================
 int TotalLagrangianFD8NodeBrick::recvSelf (int commitTag, Channel &theChannel,
 FEM_ObjectBroker &theBroker)
 {
-     // Not implemtented yet
-     return 0;
+  // Not implemtented yet
+  return 0;
 }
 
 
 //=============================================================================
 void TotalLagrangianFD8NodeBrick::Print(OPS_Stream &s, int flag)
 {
-    s << "\nTotalLagrangianFD8NodeBrick, element id:  " << this->getTag() << endln;
-    s << "\nConnected external nodes:  " << connectedExternalNodes;
-    s << "\nBody forces:  " << bf(0) << " " << bf(1) << " " << bf(2) << endln;
+  s << "\nTotalLagrangianFD8NodeBrick, element id:  " << this->getTag() << endln;
+  s << "\nConnected external nodes:  " << connectedExternalNodes;
+  s << "\nBody forces:  " << bf(0) << " " << bf(1) << " " << bf(2) << endln;
 
-    theMaterial[0]->Print(s,flag);
+  theMaterial[0]->Print(s,flag);
 
-    tensor sigma;
-    Vector P00(6);
-    
-    int i;
-    for (i=0; i<NumTotalGaussPts; i++)
-    {
-      sigma = theMaterial[i]->getCauchyStressTensor();
-      P00(0) = sigma.val(1,1);
-      P00(1) = sigma.val(2,2);
-      P00(2) = sigma.val(3,3);
-      P00(3) = sigma.val(2,3);
-      P00(4) = sigma.val(3,1);
-      P00(5) = sigma.val(1,2);
+  tensor sigma;
+  Vector P00(6);
+  
+  int i;
+  for (i=0; i<NumTotalGaussPts; i++)
+  {
+    sigma = theMaterial[i]->getCauchyStressTensor();
+    P00(0) = sigma.val(1,1);
+    P00(1) = sigma.val(2,2);
+    P00(2) = sigma.val(3,3);
+    P00(3) = sigma.val(2,3);
+    P00(4) = sigma.val(3,1);
+    P00(5) = sigma.val(1,2);
 
-      s << "\n where = " << i << endln;
-      s << " Stress (Cauchy): xx yy zz yz zx xy) " << P00 << endln;
-    }
-
+    s << "\n where = " << i << endln;
+    s << " Stress (Cauchy): xx yy zz yz zx xy) " << P00 << endln;
+  }
 }
 
 //=============================================================================
-Response * TotalLagrangianFD8NodeBrick::setResponse (const char **argv, int argc, OPS_Stream &output)
+Response * 
+TotalLagrangianFD8NodeBrick::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
   Response *theResponse = 0;
 
@@ -758,8 +758,8 @@ Response * TotalLagrangianFD8NodeBrick::setResponse (const char **argv, int argc
   if (strcmp(argv[0],"force") == 0 || strcmp(argv[0],"forces") == 0) {
     for (int i=1; i<=NumNodes; i++)
       for (int j=1; j<=NumDof; j++) {
-	sprintf(outputData,"P%d_%d",j,i);
-	output.tag("ResponseType",outputData);
+        sprintf(outputData,"P%d_%d",j,i);
+        output.tag("ResponseType",outputData);
       }
     
     theResponse = new ElementResponse(this, 1, this->getResistingForce());
@@ -825,15 +825,15 @@ int TotalLagrangianFD8NodeBrick::getResponse (int responseID, Information &eleIn
      case 5: { 
         Vector P0(NumTotalGaussPts*6);
         tensor e;
-	tensor E;
-	tensor F;
-	tensor tI2("I", 2, def_dim_2); 
+        tensor E;
+        tensor F;
+        tensor tI2("I", 2, def_dim_2); 
         for (i=0; i<NumTotalGaussPts; i++) {
           E = theMaterial[i]->getStrainTensor();
-	  F = theMaterial[i]->getF();
-	  F = F.inverse();
-	  e = F("ki")*F("kj"); e.null_indices();
-	  e = (tI2-e) *0.5;
+          F = theMaterial[i]->getF();
+          F = F.inverse();
+          e = F("ki")*F("kj"); e.null_indices();
+          e = (tI2-e) *0.5;
           P0(i*6 +0 ) = e.val(1,1);
           P0(i*6 +1 ) = e.val(2,2);
           P0(i*6 +2 ) = e.val(3,3);
@@ -939,8 +939,3 @@ tensor TotalLagrangianFD8NodeBrick::shapeFunctionDerivative(double r1, double r2
 
     return dh;
   }
-
-
-#endif
-
-

@@ -1,7 +1,10 @@
+#include <set>
+#include <array>
 #include <Logging.h>
 #include <Parsing.h>
 #include <assert.h>
 #include <Domain.h>
+#include <ArgumentTracker.h>
 #include <ModelRegistry.h>
 #include <elementAPI.h>
 #include <element/community/UWelements/SSPquadUP.h>
@@ -18,7 +21,7 @@
 static Element *TclDispatch_SSPbrick(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 static Element *TclDispatch_SSPbrickUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 // static int      TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
-static Element *TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
+// static Element *TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 
 int
 TclCommand_SSP_Element(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
@@ -33,10 +36,11 @@ TclCommand_SSP_Element(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
   //   return TclCommand_addSSPquad(clientData, interp, argc, argv);
   // }
   // else 
-  if (strcasecmp(argv[1], "SSPquadUP")==0) {
-    theEle = TclDispatch_SSPquadUP(clientData, interp, argc, argv);
-  }
-  else if (strcasecmp(argv[1], "SSPbrick")==0) {
+  // if (strcasecmp(argv[1], "SSPquadUP")==0) {
+  //   theEle = TclDispatch_SSPquadUP(clientData, interp, argc, argv);
+  // }
+  // else 
+  if (strcasecmp(argv[1], "SSPbrick")==0) {
     theEle = TclDispatch_SSPbrick(clientData, interp, argc, argv);
   }
   else if (strcasecmp(argv[1], "SSPbrickUP")==0) {
@@ -296,8 +300,9 @@ TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
 }
 #endif
 
-static Element*
-TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
+int
+TclCommand_SSPquadUP(ClientData clientData, Tcl_Interp* interp,
+                      Tcl_Size argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
@@ -309,8 +314,6 @@ TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
-  // Pointer to an element that will be returned
-  Element *theElement = nullptr;
 
   // LM change
   if (argc < 13) {
@@ -320,66 +323,182 @@ TclDispatch_SSPquadUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_C
     return 0;
   }
 
-  int iData[6];
-  double dData[13];
-  dData[7] = 0.0;
-  dData[8] = 0.0;
-  dData[9] = 0.0;
-  dData[10] = 0.0;
-  dData[11] = 0.0;
-  dData[12] = 0.0;
+  std::array<int,4> nodes;
+  enum class Positions: int {
+    Thickness, fBulk, fDen, k1, k2, e, alpha,
+    EndRequired,
+    b1, b2, Pup, Plow, Pleft, Pright,
+    End
+  };
+  ArgumentTracker<Positions> tracker;
+
   // LM change
-
-  int numData = 6;
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer data: element SSPquadUP " << iData[0]
+  int argi = 2;
+  int tag;
+  if (Tcl_GetInt(interp, argv[argi], &tag) != TCL_OK) {
+    opserr << "WARNING invalid tag " << argv[argi]
            << endln;
-    return 0;
+    return TCL_ERROR;
+  }
+  argi++;
+
+  // nodes
+  for (int i=0; i<4; i++) {
+    if (argi >= argc) {
+      return TCL_ERROR;
+    }
+    if (Tcl_GetInt(interp, argv[argi], &nodes[i]) != TCL_OK) {
+      opserr << "WARNING invalid node tag " << argv[argi]
+            << endln;
+      return TCL_ERROR;
+    }
+    argi++;
   }
 
-  numData = 7;
-  if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "WARNING invalid double data: element SSPquadUP " << iData[0]
+  // material
+  int mat;
+  if (Tcl_GetInt(interp, argv[argi], &mat) != TCL_OK) {
+    opserr << "WARNING invalid material tag " << argv[argi]
            << endln;
-    return 0;
+    return TCL_ERROR;
   }
+  argi++;
 
-  int matID = iData[5];
-  NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
+  
+  double thickness;
+  if (Tcl_GetDouble(interp, argv[argi], &thickness) != TCL_OK) {
+    opserr << "WARNING invalid thickness"
+           << endln;
+    return TCL_ERROR;
+  }
+  argi++;
+
+  double fBulk;
+  if (Tcl_GetDouble(interp, argv[argi], &fBulk) != TCL_OK) {
+    opserr << "WARNING invalid fBulk "
+           << endln;
+    return TCL_ERROR;
+  }
+  tracker.consume(Positions::fBulk);
+  argi++;
+
+  double fDen;
+  if (Tcl_GetDouble(interp, argv[argi], &fDen) != TCL_OK) {
+    opserr << "WARNING invalid fDen "
+           << endln;
+    return TCL_ERROR;
+  }
+  tracker.consume(Positions::fDen);
+  argi++;
+
+  double k1;
+  if (Tcl_GetDouble(interp, argv[argi], &k1) != TCL_OK) {
+    opserr << "WARNING invalid k1 " << argv[argi]
+           << endln;
+    return TCL_ERROR;
+  }
+  tracker.consume(Positions::k1);
+  argi++;
+
+  double k2;
+  if (Tcl_GetDouble(interp, argv[argi], &k2) != TCL_OK) {
+    opserr << "WARNING invalid k2 " << argv[argi]
+           << endln;
+    return TCL_ERROR;
+  }
+  tracker.consume(Positions::k2);
+  argi++;
+
+  double e;
+  if (Tcl_GetDouble(interp, argv[argi], &e) != TCL_OK) {
+    opserr << "WARNING invalid e " << argv[argi]
+           << endln;
+    return TCL_ERROR;
+  }
+  tracker.consume(Positions::e);
+  argi++;
+
+  double alpha;
+  if (Tcl_GetDouble(interp, argv[argi], &alpha) != TCL_OK) {
+    opserr << "WARNING invalid alpha " << argv[argi]
+           << endln;
+    return TCL_ERROR;
+  }
+  argi++;
+
+  NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(mat);
   if (theMaterial == nullptr)
-    return nullptr;
+    return TCL_ERROR;
 
 
-  // LM change
-  if (argc == 15) {
-    numData = 2;
-    if (OPS_GetDoubleInput(&numData, &dData[7]) != 0) {
-      opserr << "WARNING invalid optional data: element SSPquadUP " << iData[0]
-             << endln;
-      return 0;
-    }
-  } else if (argc == 19) {
-    numData = 6;
-    if (OPS_GetDoubleInput(&numData, &dData[7]) != 0) {
-      opserr << "WARNING invalid optional data: element SSPquadUP " << iData[0]
-             << endln;
-      return 0;
+  double b1=0, b2=0, Pup=0, Plow=0, Pleft=0, Pright=0;
+  while (argi < argc) {
+    switch (tracker.current()) {
+      case Positions::Pup:
+        if (Tcl_GetDouble(interp, argv[argi], &Pup) != TCL_OK) {
+          opserr << "WARNING invalid Pup " << endln;
+          return TCL_ERROR;
+        }
+        tracker.consume(Positions::Pup);
+        argi++;
+
+      case Positions::Plow:
+        if (Tcl_GetDouble(interp, argv[argi], &Plow) != TCL_OK) {
+          opserr << "WARNING invalid Plow " << endln;
+          return TCL_ERROR;
+        }
+        tracker.consume(Positions::Plow);
+        argi++;
+
+      case Positions::Pleft:
+        if (Tcl_GetDouble(interp, argv[argi], &Pleft) != TCL_OK) {
+          opserr << "WARNING invalid Pleft " << endln;
+          return TCL_ERROR;
+        }
+        tracker.consume(Positions::Pleft);
+        argi++;
+
+      case Positions::Pright:
+        if (Tcl_GetDouble(interp, argv[argi], &Pright) != TCL_OK) {
+          opserr << "WARNING invalid Pright " << endln;
+          return TCL_ERROR;
+        }
+        tracker.consume(Positions::Pright);
+        argi++;
+
+      default:
+        opserr << "Extra argument " << argv[argi] << endln;
+        return TCL_ERROR;
     }
   }
+  
 
   // parsing was successful, allocate the element
+  Element *theElement = nullptr;
   theElement = new SSPquadUP(
-      iData[0], iData[1], iData[2], iData[3], iData[4], *theMaterial, dData[0],
-      dData[1], dData[2], dData[3], dData[4], dData[5], dData[6], dData[7],
-      dData[8], dData[9], dData[10], dData[11], dData[12]);
+      tag, 
+      nodes[0], nodes[1], nodes[2], nodes[3], 
+      *theMaterial, 
+      thickness,
+      fBulk, fDen, 
+      k1, k2, 
+      e, alpha, 
+      b1, b2,
+      Pup, Plow, 
+      Pleft, Pright);
   // LM change
 
-  return theElement;
+  if (builder->getDomain()->addElement(theElement) != true) {
+    return TCL_ERROR;
+  }
+  return TCL_OK;
 }
 
 
 #if 0
 #include <element/community/UWelements/BeamContact2D.h>
+// element BeamContact2Dp tag? iNode? jNode? secondaryNode? matTag? width? penalty? <cSwitch>?
+// element BeamContact2D  tag? iNode? jNode? secondaryNode? lambdaNode? matTag? width? gapTol? forceTol? <cSwitch>?
 
 static Element*
 TclDispatch_BeamContact2D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
@@ -387,19 +506,16 @@ TclDispatch_BeamContact2D(ClientData clientData, Tcl_Interp* interp, int argc, T
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
 
+  static int num_BeamContact2D = 0;
   if (num_BeamContact2D == 0) {
     num_BeamContact2D++;
     opslog << "BeamContact2D element - Written: C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
-  // Pointer to an element that will be returned
-  Element *theElement = 0;
 
   if (argc < 9) {
-    opserr << "Invalid #args, want: element BeamContact2D eleTag? iNode? "
-              "jNode? secondaryNode? lambdaNode? matTag? width? gapTol? "
-              "forceTol? <cSwitch>?\n";
+    opserr << "Invalid #args, want: element BeamContact2D eleTag? iNode? jNode? secondaryNode? lambdaNode? matTag? width? gapTol? forceTol? <cSwitch>?\n";
     return 0;
   }
 
@@ -410,14 +526,14 @@ TclDispatch_BeamContact2D(ClientData clientData, Tcl_Interp* interp, int argc, T
   int numData = 6;
   if (OPS_GetIntInput(&numData, iData) != 0) {
     opserr << "WARNING invalid integer data: element BeamContact2D " << iData[0]
-           << endln;
+           << OpenSees::SignalMessageEnd;
     return 0;
   }
 
   numData = 3;
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
     opserr << "WARNING invalid data: element BeamContact2D " << dData[0]
-           << endln;
+           << OpenSees::SignalMessageEnd;
     return 0;
   }
 
@@ -441,41 +557,36 @@ TclDispatch_BeamContact2D(ClientData clientData, Tcl_Interp* interp, int argc, T
   }
 
   // Parsing was successful, allocate the element
+  Element *theElement = 0;
   theElement =
       new BeamContact2D(iData[0], iData[1], iData[2], iData[3], iData[4],
                         *theMaterial, dData[0], dData[1], dData[2], icSwitch);
-
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type BeamContact2DElement\n";
-    return 0;
-  }
 
   return theElement;
 }
 
 
 #include <element/community/UWelements/BeamContact2Dp.h>
-static Element*
+static int
 TclDispatch_BeamContact2Dp(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
 
+
+  static int num_BeamContact2Dp = 0;
   if (num_BeamContact2Dp == 0) {
     num_BeamContact2Dp++;
     opslog << "BeamContact2Dp element - Written: C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
-  // Pointer to an element that will be returned
-  Element *theElement = 0;
 
   int numRemainingInputArgs = OPS_GetNumRemainingInputArgs();
 
   if (numRemainingInputArgs < 7) {
-    opserr << "Invalid #args, want: element BeamContact2Dp eleTag? iNode? "
-              "jNode? secondaryNode? matTag? width? penalty? <cSwitch>?\n";
-    return 0;
+    opserr << "Invalid #args, want: element BeamContact2Dp eleTag? iNode? jNode? secondaryNode? matTag? width? penalty? <cSwitch>?\n";
+    return TCL_ERROR;
   }
 
   int iData[5];
@@ -485,23 +596,24 @@ TclDispatch_BeamContact2Dp(ClientData clientData, Tcl_Interp* interp, int argc, 
   int numData = 5;
   if (OPS_GetIntInput(&numData, iData) != 0) {
     opserr << "WARNING invalid integer data: element BeamContact2Dp "
-           << iData[0] << endln;
-    return 0;
+           << iData[0] << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
   }
 
   numData = 2;
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
     opserr << "WARNING invalid data: element BeamContact2Dp " << iData[0]
-           << endln;
-    return 0;
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
   }
 
   int matID = iData[4];
   NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
   if (theMaterial == 0) {
-    opserr << "WARNING element BeamContact2Dp " << iData[0] << endln;
-    opserr << " Material: " << matID << "not found\n";
-    return 0;
+    opserr << OpenSees::PromptValueError
+           << " Material " << matID << "not found"
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
   }
 
   numRemainingInputArgs -= 7;
@@ -509,27 +621,31 @@ TclDispatch_BeamContact2Dp(ClientData clientData, Tcl_Interp* interp, int argc, 
     numData = 1;
     if (OPS_GetIntInput(&numData, &icSwitch) != 0) {
       opserr << "WARNING invalid initial contact flag: element BeamContact2Dp "
-             << iData[0] << endln;
-      return 0;
+             << iData[0] << OpenSees::SignalMessageEnd;
+      return TCL_ERROR;
     }
     numRemainingInputArgs -= 1;
   }
 
   // Parsing was successful, allocate the element
+  // Pointer to an element that will be returned
+  Element *theElement = 0;
   theElement = new BeamContact2Dp(iData[0], iData[1], iData[2], iData[3],
                                   *theMaterial, dData[0], dData[1], icSwitch);
-
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type BeamContact2Dp\n";
-    return 0;
+  
+  Domain* theDomain = builder->getDomain();
+  if (theDomain->addElement(theElement) == false) {
+    opserr << "WARNING could not add element to the domain\n";
+    delete theElement;
+    return TCL_ERROR;
   }
-
-  return theElement;
+  return TCL_OK;
 }
 
 #endif
 
 #if 0
+#include <CrdTransf.h>
 #include <element/community/UWelements/BeamContact3D.h>
 static Element*
 TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
@@ -544,8 +660,6 @@ TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, T
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
-  // Pointer to a uniaxial material that will be returned
-  Element *theElement = 0;
 
   int numRemainingInputArgs = OPS_GetNumRemainingInputArgs();
 
@@ -599,7 +713,7 @@ TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, T
   int matID = iData[6];
   NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
   if (theMaterial == 0) {
-    opserr << "WARNING element BeamContact3D " << iData[0] << endln;
+    opserr << "WARNING element BeamContact3D " << iData[0] << "\n";
     opserr << " Material: " << matID << "not found\n";
     return 0;
   }
@@ -609,13 +723,14 @@ TclDispatch_BeamContact3D(ClientData clientData, Tcl_Interp* interp, int argc, T
     numData = 1;
     if (OPS_GetIntInput(&numData, &icSwitch) != 0) {
       opserr << "WARNING invalid initial contact flag: element BeamContact3D "
-             << iData[0] << endln;
+             << iData[0] << "\n";
       return 0;
     }
     numRemainingInputArgs -= 1;
   }
 
   // Parsing was successful, allocate the element
+  Element *theElement = 0;
   theElement = new BeamContact3D(iData[0], iData[1], iData[2], iData[3],
                                  iData[4], dData[0], *theTransf, *theMaterial,
                                  dData[1], dData[2], icSwitch);
@@ -634,7 +749,7 @@ TclDispatch_BeamContact3Dp(ClientData clientData, Tcl_Interp* interp, int argc, 
 {
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
-
+  static int num_BeamContact3Dp = 0;
   if (num_BeamContact3Dp == 0) {
     num_BeamContact3Dp++;
     opslog << "BeamContact3Dp element - Written: K.Petek, C.McGann, P.Arduino, "
@@ -736,14 +851,13 @@ TclDispatch_BeamEndContact3D(ClientData clientData, Tcl_Interp* interp, int argc
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
 
+  static int num_BeamEndContact3D = 0;
   if (num_BeamEndContact3D == 0) {
     num_BeamEndContact3D++;
     opslog << "BeamEndContact3D element - Written: C.McGann, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
-  // Pointer to an element that will be returned
-  Element *theElement = 0;
 
   int numRemainingInputArgs = OPS_GetNumRemainingInputArgs();
 
@@ -785,6 +899,7 @@ TclDispatch_BeamEndContact3D(ClientData clientData, Tcl_Interp* interp, int argc
   }
 
   // Parsing was successful, allocate the element
+  Element *theElement = 0;
   theElement =
       new BeamEndContact3D(iData[0], iData[1], iData[2], iData[3], iData[4],
                            dData[0], dData[1], dData[2], icSwitch);
@@ -808,6 +923,7 @@ TclDispatch_BeamEndContact3Dp(ClientData clientData, Tcl_Interp* interp, int arg
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
 
+  static int num_BeamEndContact3Dp = 0;
   if (num_BeamEndContact3Dp == 0) {
     num_BeamEndContact3Dp++;
     opslog << "BeamEndContact3Dp element - Written: C.McGann, P.Arduino, "
@@ -859,12 +975,6 @@ TclDispatch_BeamEndContact3Dp(ClientData clientData, Tcl_Interp* interp, int arg
   theElement = new BeamEndContact3Dp(iData[0], iData[1], iData[2], iData[3],
                                      dData[0], dData[1], icSwitch);
 
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type "
-              "BeamEndContact3DpElement\n";
-    return 0;
-  }
-
   return theElement;
 }
 
@@ -877,13 +987,13 @@ static Element *OPS_Brick8FiberOverlay(void)
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
 
+  static int num_Brick8FiberOverlay = 0;
   if (num_Brick8FiberOverlay == 0) {
     num_Brick8FiberOverlay++;
     opslog << "Brick8FiberOverlay element - Written: M.Chiaramonte, P.Arduino, "
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
-  Element *theElement = 0;
 
   if (OPS_GetNumRemainingInputArgs() != 15) {
     opserr << "Want: Brick8FiberOverlay tag? nd1? nd2? nd3? nd4? nd5? nd6? "
@@ -926,15 +1036,11 @@ static Element *OPS_Brick8FiberOverlay(void)
   }
 
   // Parsing was successful, allocate the material
+  Element *theElement = 0;
   theElement = new Brick8FiberOverlay(iData[0], iData[1], iData[2], iData[3],
                                       iData[4], iData[5], iData[6], iData[7],
                                       iData[8], *theMaterial, dData[0],
                                       dData[1], dData[2], dData[3], dData[4]);
-
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type Brick8FiberOverlay\n";
-    return 0;
-  }
 
   return theElement;
 }
@@ -948,6 +1054,7 @@ static Element *OPS_EmbeddedBeamInterfaceL(void)
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
 
+  static int num_EmbeddedBeamInterfaceL = 0;
   if (num_EmbeddedBeamInterfaceL == 0) {
     num_EmbeddedBeamInterfaceL++;
     opslog << "EmbeddedBeamInterfaceL element - Written: A.Ghofrani, "
@@ -974,12 +1081,6 @@ static Element *OPS_EmbeddedBeamInterfaceL(void)
 
   theElement = new EmbeddedBeamInterfaceL(eleTag);
 
-  if (theElement == 0) {
-    opserr
-        << "WARNING could not create element of type EmbeddedBeamInterfaceL\n";
-    return 0;
-  }
-
   return theElement;
 }
 
@@ -992,6 +1093,7 @@ static Element *OPS_EmbeddedBeamInterfaceP(void)
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
 
+  static int num_EmbeddedBeamInterfaceP = 0;
   if (num_EmbeddedBeamInterfaceP == 0) {
     num_EmbeddedBeamInterfaceP++;
     opslog << "EmbeddedBeamInterfaceP element - Written: A.Ghofrani, "
@@ -1018,13 +1120,6 @@ static Element *OPS_EmbeddedBeamInterfaceP(void)
   eleTag = iData[0];
 
   theElement = new EmbeddedBeamInterfaceP(eleTag);
-
-  if (theElement == 0) {
-    opserr
-        << "WARNING could not create element of type EmbeddedBeamInterfaceP\n";
-    return 0;
-  }
-
   return theElement;
 }
 
@@ -1037,6 +1132,7 @@ static Element *OPS_EmbeddedEPBeamInterface(void)
   assert(clientData != nullptr);
   ModelRegistry* builder = (ModelRegistry*)clientData;
 
+  static int num_EmbeddedEPBeamInterface = 0;
   if (num_EmbeddedEPBeamInterface == 0) {
     num_EmbeddedEPBeamInterface++;
     opslog << "EmbeddedEPBeamInterface element - Written: A.Ghofrani, "
@@ -1342,11 +1438,6 @@ TclDispatch_SimpleContact2D(ClientData clientData, Tcl_Interp* interp, int argc,
   theElement = new SimpleContact2D(iData[0], iData[1], iData[2], iData[3],
                                    iData[4], *theMaterial, dData[0], dData[1]);
 
-  if (theElement == 0) {
-    opserr
-        << "WARNING could not create element of type SimpleContact2DElement\n";
-    return 0;
-  }
 
   return theElement;
 }
@@ -1368,8 +1459,6 @@ TclDispatch_SimpleContact3D(ClientData clientData, Tcl_Interp* interp, int argc,
               "P.Mackenzie-Helnwein, U.Washington\n";
   }
 
-  // Pointer to a uniaxial material that will be returned
-  Element *theElement = 0;
 
   if (OPS_GetNumRemainingInputArgs() != 10) {
     opserr << "Invalid #args,  want: element SimpleContact3D eleTag? iNode? "
@@ -1403,16 +1492,12 @@ TclDispatch_SimpleContact3D(ClientData clientData, Tcl_Interp* interp, int argc,
     return 0;
   }
 
-  // Parsing was successful, allocate the material
+  // Parsing was successful, allocate the element
+  Element *theElement = 0;
   theElement =
       new SimpleContact3D(iData[0], iData[1], iData[2], iData[3], iData[4],
                           iData[5], iData[6], *theMaterial, dData[0], dData[1]);
 
-  if (theElement == 0) {
-    opserr
-        << "WARNING could not create element of type SimpleContact3DElement\n";
-    return 0;
-  }
 
   return theElement;
 }

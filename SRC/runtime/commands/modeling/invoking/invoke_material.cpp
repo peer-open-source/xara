@@ -77,11 +77,6 @@ TclCommand_useMaterial(ClientData clientData, Tcl_Interp *interp,
   for (int i = 0; i < ncmd; ++i) {
     Tcl_DeleteCommand(interp, MaterialTestCommands[i].name);
   }
-//   Tcl_DeleteCommand(interp, "material::update");
-//   Tcl_DeleteCommand(interp, "material::stress");
-//   Tcl_DeleteCommand(interp, "material::tangent");
-//   Tcl_DeleteCommand(interp, "material::commit");
-//   Tcl_DeleteCommand(interp, "material::response");
 
   return status;
 }

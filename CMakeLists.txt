@@ -60,7 +60,7 @@ if (UNIX)
 
   if (APPLE)
     message(":: MacOS")
-    add_compile_definitions(_LINUX _UNIX _TCL85)
+    add_compile_definitions(_LINUX _UNIX)
     add_link_options("-Wl,-no_compact_unwind")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0)
 
@@ -69,18 +69,18 @@ if (UNIX)
         -g
         -fno-omit-frame-pointer
 #       -gdwarf-4
-#       -fsanitize=address,undefined #, leak
+        # -fsanitize=address,undefined # , leak
       )
-#     add_link_options(
-#       -fsanitize=address,undefined # , leak
-#       -shared-libsan
-#     )
+      # add_link_options(
+      #   -fsanitize=address,undefined # , leak
+      #   -shared-libsan
+      # )
     else()
       add_compile_options(
         $<$<COMPILE_LANGUAGE:CXX>:-O3>
-        # $<$<COMPILE_LANGUAGE:CXX>:-ffast-math>
+        -fno-stack-protector
         $<$<COMPILE_LANGUAGE:CXX>:-fno-math-errno>
-        -freciprocal-math
+        # -freciprocal-math
         # $<$<COMPILE_LANGUAGE:CXX>:-fno-trapping-math>
       )
     endif()
@@ -192,6 +192,34 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   # endif()
 endif()
 
+function(disable_rtti)
+    cmake_parse_arguments(ARG "PUBLIC" "TARGET;FILE" "" ${ARGN})
+
+    if(ARG_TARGET AND ARG_FILE)
+        message(FATAL_ERROR "disable_rtti: TARGET and FILE are mutually exclusive")
+    elseif(NOT ARG_TARGET AND NOT ARG_FILE)
+        message(FATAL_ERROR "disable_rtti: must specify TARGET or FILE")
+    endif()
+
+    set(rtti_flags
+        $<$<CXX_COMPILER_ID:MSVC>:/GR->
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fno-rtti>
+    )
+
+    if(ARG_TARGET)
+        if(ARG_PUBLIC)
+            set(scope PUBLIC)
+        else()
+            set(scope PRIVATE)
+        endif()
+        target_compile_options(${ARG_TARGET} ${scope} ${rtti_flags})
+    else()
+        set_source_files_properties(${ARG_FILE}
+            PROPERTIES COMPILE_OPTIONS "${rtti_flags}"
+        )
+    endif()
+endfunction()
+
 #----------------------------------------------------------------
 # Global Includes
 #---------------------------------------------------------------- 
@@ -285,8 +313,36 @@ target_link_libraries(OPS_Numerics INTERFACE
   ${BLAS_LIBRARIES}
 )
 
+add_library(FastMath INTERFACE)
+add_library(Xara::FastMath ALIAS FastMath)
+target_compile_options(FastMath INTERFACE
+  $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fno-math-errno>
+  $<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-fno-math-errno>
+  $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-fno-math-errno>
+
+  $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fno-signaling-nans>
+
+  $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fno-trapping-math>
+  $<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-fno-trapping-math>
+  $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-fno-trapping-math>
+  $<$<CXX_COMPILER_ID:MSVC>:/fp:except->
+
+  $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-freciprocal-math>
+  $<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-freciprocal-math>
+  $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-freciprocal-math>
+
+  # $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-ffp-contract=fast>
+  # $<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-ffp-contract=fast>
+  # $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-ffp-contract=fast>
+
+  $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fno-signed-zeros>
+  $<$<COMPILE_LANG_AND_ID:CXX,AppleClang>:-fno-signed-zeros>
+  $<$<COMPILE_LANG_AND_ID:CXX,Clang>:-fno-signed-zeros>
+)
+
 # Core OpenSees
 add_library(OPS_Matrix             OBJECT)
+# disable_rtti(TARGET OPS_Matrix)
 add_library(OPS_Handler            OBJECT)
 add_library(OPS_Logging            OBJECT)
 add_library(OPS_Actor              OBJECT)
@@ -314,7 +370,6 @@ add_library(OPS_Database           OBJECT EXCLUDE_FROM_ALL)
 add_library(OPS_Parallel           OBJECT EXCLUDE_FROM_ALL)
 add_library(OPS_Partition          OBJECT EXCLUDE_FROM_ALL)
 add_library(OPS_ASDEA              OBJECT EXCLUDE_FROM_ALL)
-add_library(OPS_Paraview           OBJECT EXCLUDE_FROM_ALL)
 
 # Packaged libraries
 add_library(G3)

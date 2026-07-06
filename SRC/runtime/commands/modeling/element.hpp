@@ -137,6 +137,7 @@ Tcl_CmdProc TclBasicBuilder_addFourNodeQuad;
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuadWithSensitivity;
 Tcl_CmdProc TclBasicBuilder_addConstantPressureVolumeQuad;
 Tcl_CmdProc TclBasicBuilder_addNineNodeMixedQuad;
+Tcl_CmdProc TclCommand_SSPquadUP;
 // Tcl_CmdProc TclBasicBuilder_addSixNodeTri;
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addNineFourNodeQuadUP;
@@ -328,7 +329,7 @@ ElementLibrary = {
 
 // U-P
   {"quadUP",                    TclBasicBuilder_addFourNodeQuadUP},
-  {"SSPquadUP",                 TclCommand_SSP_Element},
+  {"SSPquadUP",                 TclCommand_SSPquadUP},
   {"9_4_QuadUP",                TclBasicBuilder_addNineFourNodeQuadUP},
   {"bbarQuadUP",                TclBasicBuilder_addBBarFourNodeQuadUP},
 //

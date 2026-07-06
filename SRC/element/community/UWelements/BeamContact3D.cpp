@@ -28,7 +28,7 @@
 //    02/11 C.McGann: added initial contact switch (default is inContact)
 //
 // Description: This file contains the implementation for the BeamContact3D class.
-
+//
 #include "BeamContact3D.h"
 #include <Information.h>
 #include <ElementResponse.h>
@@ -507,17 +507,18 @@ BeamContact3D::commitState()
                 opserr << "x_c_G  = [ " << x_c_G << "];" << endln;
         opserr << "(x_s - x_c_G) = [" << (mDcrd_s - x_c_G) << " ];" << endln;
                 opserr << "check 1 = "  << check1 << ";      check 2 = " << check2 << ";" << endln;
-                opserr << endln; */
+                opserr << endln; 
+        */
 
 
         int retVal = 0;
         // call element commitState to do any base class stuff
         if ((retVal = this->Element::commitState()) != 0) {
                 opserr << "BeamContact3D::commitState () - failed in base class";
-                }    
+        }
         retVal = theMaterial->commitState();
 
-                return retVal;
+        return retVal;
 
 }
 
@@ -556,22 +557,22 @@ BeamContact3D::revertToStart()
 	mDisp_b_n.Zero();
 	mDisp_s_n.Zero();
 
-    mL = (mDcrd_b - mDcrd_a).Norm();  
-       
-    mxi = ((mDcrd_b - mDcrd_s)^(mDcrd_b - mDcrd_a))/((mDcrd_b - mDcrd_a)^(mDcrd_b - mDcrd_a));
-    mxi = project(mxi);
+        mL = (mDcrd_b - mDcrd_a).Norm();  
+        
+        mxi = ((mDcrd_b - mDcrd_s)^(mDcrd_b - mDcrd_a))/((mDcrd_b - mDcrd_a)^(mDcrd_b - mDcrd_a));
+        mxi = project(mxi);
 
-	in_bounds      = ( (mxi>0.000) && (mxi<1.0000) );
-    inContact      = ( was_inContact && in_bounds );
+                in_bounds      = ( (mxi>0.000) && (mxi<1.0000) );
+        inContact      = ( was_inContact && in_bounds );
 
-    UpdateBase(mxi);
-    ComputeB();
+        UpdateBase(mxi);
+        ComputeB();
 
-    return theMaterial->revertToStart();
+        return theMaterial->revertToStart();
 }
 
 int
-BeamContact3D::update(void)
+BeamContact3D::update()
 {
 #ifdef DEBUG
         opserr << "BeamContact3D::update(): " << MyTag << endln;
@@ -711,82 +712,82 @@ BeamContact3D::project(double xi)
         opserr << "BeamContact3D::project(): " << MyTag << endln;
 #endif
 
-                double xi_P;                                    // local value of xi
-                double H1;                                              // local value of Hermitian Function, H1
-                double H2;                                              // local value of Hermitian Function, H2
-                double H3;                                              // local value of Hermitian Function, H3
-                double H4;                                              // local value of Hermitian Function, H4
-                double R;
-                double DR;
-                double dxi;                                             // change in xi
-                double xi_P_squared;                   
-                double xi_P_cubed;                             
-                Vector a1(BC3D_NUM_NDM);                // tangent at end a
-                Vector b1(BC3D_NUM_NDM);                // tangent at end b
-                Vector x_c_P(BC3D_NUM_NDM);             // current centerline projection coordinate
-                Vector d(BC3D_NUM_NDM);                 // distance from secondary node to centerline coord
-                Vector tc(BC3D_NUM_NDM);                // tangent at projection point = 1st deriv of x_c
-                Vector ddx_c(BC3D_NUM_NDM);             // 2nd derivative of x_c
+        double xi_P;                                    // local value of xi
+        double H1;                                              // local value of Hermitian Function, H1
+        double H2;                                              // local value of Hermitian Function, H2
+        double H3;                                              // local value of Hermitian Function, H3
+        double H4;                                              // local value of Hermitian Function, H4
+        double R;
+        double DR;
+        double dxi;                                             // change in xi
+        double xi_P_squared;                   
+        double xi_P_cubed;                             
+        Vector a1(BC3D_NUM_NDM);                // tangent at end a
+        Vector b1(BC3D_NUM_NDM);                // tangent at end b
+        Vector x_c_P(BC3D_NUM_NDM);             // current centerline projection coordinate
+        Vector d(BC3D_NUM_NDM);                 // distance from secondary node to centerline coord
+        Vector tc(BC3D_NUM_NDM);                // tangent at projection point = 1st deriv of x_c
+        Vector ddx_c(BC3D_NUM_NDM);             // 2nd derivative of x_c
 
-                // initialize xi_P to previous value of xi
-                xi_P = xi;
+        // initialize xi_P to previous value of xi
+        xi_P = xi;
 
-                // Perform exponential update of coordinate transforms Qa, Qb
-                UpdateTransforms();
-                // set tangent vectors from Qa, Qb for calc of x_c_P
-                a1 = Geta1();
-                b1 = Getb1();
+        // Perform exponential update of coordinate transforms Qa, Qb
+        UpdateTransforms();
+        // set tangent vectors from Qa, Qb for calc of x_c_P
+        a1 = Geta1();
+        b1 = Getb1();
 
-                // calculate current projection location
+        // calculate current projection location
+        xi_P_squared = xi_P*xi_P;
+        xi_P_cubed = xi_P*xi_P_squared;
+        H1 = 1.0-3.0*xi_P_squared + 2.0*xi_P_cubed;
+        H2 = (xi_P - 2.0*xi_P_squared + xi_P_cubed) * mL;
+        H3 = 1.0 - H1;
+        H4 = (-xi_P_squared + xi_P_cubed) * mL;
+        x_c_P = mDcrd_a*H1 + a1*H2 + mDcrd_b*H3 + b1*H4;
+
+        d = mDcrd_s - x_c_P;
+        tc = Getdx_c(xi_P);
+        R = (d^tc);
+
+        // Iterate to determine a new value of xi
+        //    such that:  normal ^ tangent = d ^ tc = 0
+        int Gapcount = 0;
+        while (fabs(R/mL) > mTolGap && Gapcount < 50) {
+                ddx_c = Getddx_c(xi_P);
+                DR = (d^ddx_c) - (tc^tc);
+                dxi = -R / DR;
+                xi_P = xi_P + dxi;
+
                 xi_P_squared = xi_P*xi_P;
                 xi_P_cubed = xi_P*xi_P_squared;
                 H1 = 1.0-3.0*xi_P_squared + 2.0*xi_P_cubed;
                 H2 = (xi_P - 2.0*xi_P_squared + xi_P_cubed) * mL;
                 H3 = 1.0 - H1;
                 H4 = (-xi_P_squared + xi_P_cubed) * mL;
+        
                 x_c_P = mDcrd_a*H1 + a1*H2 + mDcrd_b*H3 + b1*H4;
-
                 d = mDcrd_s - x_c_P;
                 tc = Getdx_c(xi_P);
                 R = (d^tc);
+                Gapcount +=1;
+        }
 
-                // Iterate to determine a new value of xi
-                //    such that:  normal ^ tangent = d ^ tc = 0
-                int Gapcount = 0;
-                while (fabs(R/mL) > mTolGap && Gapcount < 50) {
-                        ddx_c = Getddx_c(xi_P);
-                        DR = (d^ddx_c) - (tc^tc);
-                        dxi = -R / DR;
-                        xi_P = xi_P + dxi;
+        // update norm, n, for current projection
+        mn = (mDcrd_s - x_c_P) / ( (mDcrd_s - x_c_P).Norm() );
 
-                        xi_P_squared = xi_P*xi_P;
-                        xi_P_cubed = xi_P*xi_P_squared;
-                        H1 = 1.0-3.0*xi_P_squared + 2.0*xi_P_cubed;
-                        H2 = (xi_P - 2.0*xi_P_squared + xi_P_cubed) * mL;
-                        H3 = 1.0 - H1;
-                        H4 = (-xi_P_squared + xi_P_cubed) * mL;
-               
-                        x_c_P = mDcrd_a*H1 + a1*H2 + mDcrd_b*H3 + b1*H4;
-                        d = mDcrd_s - x_c_P;
-                    tc = Getdx_c(xi_P);
-                    R = (d^tc);
-                        Gapcount +=1;
-                }
+        // set value of c1 for current projection for use in ComputeQc
+        Setc1( (tc/tc.Norm()) );
 
-                // update norm, n, for current projection
-                mn = (mDcrd_s - x_c_P) / ( (mDcrd_s - x_c_P).Norm() );
+        // update Hermitian Basis functions for use in ComputeB
+        //    and for use in next time step in function update()
+        mH(0) = H1;
+        mH(1) = H2;
+        mH(2) = H3;
+        mH(3) = H4;
 
-                // set value of c1 for current projection for use in ComputeQc
-                Setc1( (tc/tc.Norm()) );
-
-                // update Hermitian Basis functions for use in ComputeB
-                //    and for use in next time step in function update()
-                mH(0) = H1;
-                mH(1) = H2;
-                mH(2) = H3;
-                mH(3) = H4;
-
-                return xi_P;
+        return xi_P;
 }
 
 
@@ -798,83 +799,82 @@ BeamContact3D::UpdateBase(double xi)
         opserr << "BeamContact3D::UpdateBase(): " << MyTag << endln;
 #endif
 
-                //double rho2;                          // angular coord relating c2 to radial vector
-                //double rho3;                          // angular coord relating c3 to radial vector
-                Vector c1(BC3D_NUM_NDM);       
-                Vector c2(BC3D_NUM_NDM);        // c1, c2, c3 are coord transf. vectors at projected point
-                Vector c3(BC3D_NUM_NDM);
-                Vector tc(BC3D_NUM_NDM);    // tangent at projected point = 1st deriv of x_c
-                Vector ddx_c(BC3D_NUM_NDM); // 2nd deriv of x_c w.r.t. xi
-                Vector d_c1(BC3D_NUM_NDM);  // deriv of c1 w.r.t xi
-                Vector d_c2(BC3D_NUM_NDM);  // deriv of c2 w.r.t xi
-                Vector d_c3(BC3D_NUM_NDM);  // deriv of c3 w.r.t xi
-                //Vector g1(BC3D_NUM_NDM);      // tangent plane basis vector, g_xi
-                //Vector g2(BC3D_NUM_NDM);    // tangent plane basis vector, g_psi
-                Matrix Qc(BC3D_NUM_NDM, BC3D_NUM_NDM);  // coord transf at projected point
-                Vector g1(BC3D_NUM_NDM);    // temporary vector for g1 (co-variant)
-                Vector g2(BC3D_NUM_NDM);    // temporary vector for g2 (co-variant)
-                Vector test(3);
+        //double rho2;                          // angular coord relating c2 to radial vector
+        //double rho3;                          // angular coord relating c3 to radial vector
+        Vector c1(BC3D_NUM_NDM);       
+        Vector c2(BC3D_NUM_NDM);        // c1, c2, c3 are coord transf. vectors at projected point
+        Vector c3(BC3D_NUM_NDM);
+        Vector tc(BC3D_NUM_NDM);    // tangent at projected point = 1st deriv of x_c
+        Vector ddx_c(BC3D_NUM_NDM); // 2nd deriv of x_c w.r.t. xi
+        Vector d_c1(BC3D_NUM_NDM);  // deriv of c1 w.r.t xi
+        Vector d_c2(BC3D_NUM_NDM);  // deriv of c2 w.r.t xi
+        Vector d_c3(BC3D_NUM_NDM);  // deriv of c3 w.r.t xi
+        //Vector g1(BC3D_NUM_NDM);      // tangent plane basis vector, g_xi
+        //Vector g2(BC3D_NUM_NDM);    // tangent plane basis vector, g_psi
+        Matrix Qc(BC3D_NUM_NDM, BC3D_NUM_NDM);  // coord transf at projected point
+        Vector g1(BC3D_NUM_NDM);    // temporary vector for g1 (co-variant)
+        Vector g2(BC3D_NUM_NDM);    // temporary vector for g2 (co-variant)
+        Vector test(3);
 
-                // Update interpolated coordinate transform, Qc
-                ComputeQc(xi);  // sets new value of mQc
-                Qc = mQc;
+        // Update interpolated coordinate transform, Qc
+        ComputeQc(xi);  // sets new value of mQc
+        Qc = mQc;
 
-                // obtain c1, c2, c3 vectors
-                c1 = Getc1();
-                int i;
-                for (i=0; i<3; i++) {
-                        // c1(i) = Qc(i,0);  if //: c1 = tc/norm(tc);
-                        test(i) = c1(i) - Qc(i,0);
-                        c2(i) = Qc(i,1);
-                        c3(i) = Qc(i,2);
-                }
+        // obtain c1, c2, c3 vectors
+        c1 = Getc1();
+        int i;
+        for (i=0; i<3; i++) {
+                // c1(i) = Qc(i,0);  if //: c1 = tc/norm(tc);
+                test(i) = c1(i) - Qc(i,0);
+                c2(i) = Qc(i,1);
+                c3(i) = Qc(i,2);
+        }
 
-//opserr << "ELE : " << MyTag << "     test.norm() = " << test.Norm() << ";   test = [" << test << "];" << endln;
 
-                // calculate local coordinates rho2, rho3 for radial vector, r_vec
-                //  where: r_vec = rho2*c2 + rho3*c3
-                mrho2 = mRadius * (mn^c2); //  = cos(psi)*mRadius
-                mrho3 = mRadius * (mn^c3); //  = sin(psi)*mRadius
+        // calculate local coordinates rho2, rho3 for radial vector, r_vec
+        //  where: r_vec = rho2*c2 + rho3*c3
+        mrho2 = mRadius * (mn^c2); //  = cos(psi)*mRadius
+        mrho3 = mRadius * (mn^c3); //  = sin(psi)*mRadius
 
-                // calculate all derivatives
-                tc = Getdx_c(xi);
-                ddx_c = Getddx_c(xi);
-                d_c1 = ddx_c - ((c1^ddx_c)*c1);
-                d_c1 = d_c1/(tc.Norm());
-                d_c2 = -(d_c1 ^ c2)*c1 + mchi*c3;
-                d_c3 = -(d_c1 ^ c3)*c1 - mchi*c2;
+        // calculate all derivatives
+        tc = Getdx_c(xi);
+        ddx_c = Getddx_c(xi);
+        d_c1 = ddx_c - ((c1^ddx_c)*c1);
+        d_c1 = d_c1/(tc.Norm());
+        d_c2 = -(d_c1 ^ c2)*c1 + mchi*c3;
+        d_c3 = -(d_c1 ^ c3)*c1 - mchi*c2;
 
-                // calculate tangent plane vectors, g1 & g2
-                // g1 = d(x_c + r_vec)/dxi
-                // g2 = d(x_c + r_vec)/dpsi
-                g1 = tc + mrho2*d_c2 + mrho3*d_c3;
-                g2 = -mrho3 * c2 + mrho2 * c3;
+        // calculate tangent plane vectors, g1 & g2
+        // g1 = d(x_c + r_vec)/dxi
+        // g2 = d(x_c + r_vec)/dpsi
+        g1 = tc + mrho2*d_c2 + mrho3*d_c3;
+        g2 = -mrho3 * c2 + mrho2 * c3;
 
-                // fill metric tensor (covariant)
-                mg_metric(0,0) = g1^g1;
-                mg_metric(0,1) = g1^g2;
-                mg_metric(1,0) = mg_metric(0,1);
-                mg_metric(1,1) = g2^g2;
+        // fill metric tensor (covariant)
+        mg_metric(0,0) = g1^g1;
+        mg_metric(0,1) = g1^g2;
+        mg_metric(1,0) = mg_metric(0,1);
+        mg_metric(1,1) = g2^g2;
 
-                theMaterial->setMetricTensor(mg_metric);
+        theMaterial->setMetricTensor(mg_metric);
 
-                Matrix G_metric(2,2);  // contravariant
-                double det = (mg_metric(0,0) * mg_metric(1,1)) - (mg_metric(0,1) * mg_metric(1,0)) ;
-                G_metric(0,0) =  mg_metric(1,1);
-                G_metric(1,0) = -mg_metric(1,0);
-                G_metric(0,1) = -mg_metric(0,1);
-                G_metric(1,1) =  mg_metric(0,0);
-                G_metric = G_metric / det;
+        Matrix G_metric(2,2);  // contravariant
+        double det = (mg_metric(0,0) * mg_metric(1,1)) - (mg_metric(0,1) * mg_metric(1,0)) ;
+        G_metric(0,0) =  mg_metric(1,1);
+        G_metric(1,0) = -mg_metric(1,0);
+        G_metric(0,1) = -mg_metric(0,1);
+        G_metric(1,1) =  mg_metric(0,0);
+        G_metric = G_metric / det;
 
-                // transform mg1, mg2 to contravariant form
-                mg1 = G_metric(0,0)*g1 + G_metric(0,1)*g2;
-                mg2 = G_metric(1,0)*g1 + G_metric(1,1)*g2;
+        // transform mg1, mg2 to contravariant form
+        mg1 = G_metric(0,0)*g1 + G_metric(0,1)*g2;
+        mg2 = G_metric(1,0)*g1 + G_metric(1,1)*g2;
 
-                return 0;
+        return 0;
 }
 
 void
-BeamContact3D::ComputeB(void)
+BeamContact3D::ComputeB()
 {
 #ifdef DEBUG
         opserr << "BeamContact3D::ComputeB(): " << MyTag << endln;
@@ -882,35 +882,35 @@ BeamContact3D::ComputeB(void)
 
         // vector n used below should be of same step
 
-                // initialize Bn, Bs;
-                mBn.Zero();
-                mBs.Zero();
+        // initialize Bn, Bs;
+        mBn.Zero();
+        mBs.Zero();
 
-                int i;
+        int i;
 
-                Vector a1(3);
-                Vector b1(3);
-                Vector a1xn(3);
-                Vector b1xn(3);
-                Vector r(3);
-                Vector rxg1(3);
-                Vector rxg2(3);
+        Vector a1(3);
+        Vector b1(3);
+        Vector a1xn(3);
+        Vector b1xn(3);
+        Vector r(3);
+        Vector rxg1(3);
+        Vector rxg2(3);
 
-                Matrix Bx(3,12);
+        Matrix Bx(3,12);
 
-                a1 = Geta1();
-                b1 = Getb1();
-                a1xn = CrossProduct(a1, mn);
-                b1xn = CrossProduct(b1, mn);  
+        a1 = Geta1();
+        b1 = Getb1();
+        a1xn = CrossProduct(a1, mn);
+        b1xn = CrossProduct(b1, mn);  
 
-                r(0) = mrho2*mQc(0,1) + mrho3*mQc(0,2);
-                r(1) = mrho2*mQc(1,1) + mrho3*mQc(1,2);
-                r(2) = mrho2*mQc(2,1) + mrho3*mQc(2,2);
+        r(0) = mrho2*mQc(0,1) + mrho3*mQc(0,2);
+        r(1) = mrho2*mQc(1,1) + mrho3*mQc(1,2);
+        r(2) = mrho2*mQc(2,1) + mrho3*mQc(2,2);
 
-                rxg1 = CrossProduct(r,mg1);
-                rxg2 = CrossProduct(r,mg2);
-                //rxg1 = -1*rxg1;
-                //rxg2 = -1*rxg2;
+        rxg1 = CrossProduct(r,mg1);
+        rxg2 = CrossProduct(r,mg2);
+        //rxg1 = -1*rxg1;
+        //rxg2 = -1*rxg2;
 
         // dgap = Bn' * dq
         mBn(0)  = mn(0)*mH(0);
@@ -933,141 +933,141 @@ BeamContact3D::ComputeB(void)
         mBn(13) =  -mn(1);
         mBn(14) =  -mn(2);
 
-                // Derivatives of H
-                double dH1 =      - 6.0*mxi + 6.0*mxi*mxi;
-                double dH2 =  1.0 - 4.0*mxi + 3.0*mxi*mxi;
+        // Derivatives of H
+        double dH1 =      - 6.0*mxi + 6.0*mxi*mxi;
+        double dH2 =  1.0 - 4.0*mxi + 3.0*mxi*mxi;
         double dH3 =        6.0*mxi - 6.0*mxi*mxi;
-                double dH4 =      - 2.0*mxi + 3.0*mxi*mxi;
+        double dH4 =      - 2.0*mxi + 3.0*mxi*mxi;
 
-                Matrix At(3,3);
-                Matrix Bt(3,3);
-                Matrix Ct(3,3);
-                Matrix Dt(3,3);
-                Matrix Et(3,3);
-                Matrix Ft(3,3);
-                Matrix Gt(3,3);
-                Matrix Ht(3,3);
-                Matrix Qct(3,3);
-                Matrix temp1(3,3);
-                Matrix temp2(3,3);
-                Matrix temp3(3,3);
+        Matrix At(3,3);
+        Matrix Bt(3,3);
+        Matrix Ct(3,3);
+        Matrix Dt(3,3);
+        Matrix Et(3,3);
+        Matrix Ft(3,3);
+        Matrix Gt(3,3);
+        Matrix Ht(3,3);
+        Matrix Qct(3,3);
+        Matrix temp1(3,3);
+        Matrix temp2(3,3);
+        Matrix temp3(3,3);
 
-                At.Zero();
-                At(0,0) = mH(0);
-                At(1,1) = mH(0);
-                At(2,2) = mH(0);
+        At.Zero();
+        At(0,0) = mH(0);
+        At(1,1) = mH(0);
+        At(2,2) = mH(0);
 
-                Bt.Zero();
-                temp1.Zero();
-                temp1 = ComputeSkew(a1);
-                Bt = 1*mH(1) * temp1;  // sign should be +:  -(a1_skew^T) = -(-a1_skew) = + a1_skew
+        Bt.Zero();
+        temp1.Zero();
+        temp1 = ComputeSkew(a1);
+        Bt = 1*mH(1) * temp1;  // sign should be +:  -(a1_skew^T) = -(-a1_skew) = + a1_skew
 
-                Ct.Zero();
-                Ct(0,0) = mH(2);
-                Ct(1,1) = mH(2);
-                Ct(2,2) = mH(2);
+        Ct.Zero();
+        Ct(0,0) = mH(2);
+        Ct(1,1) = mH(2);
+        Ct(2,2) = mH(2);
 
-                Dt.Zero();
-                temp1.Zero();
-                temp1 = ComputeSkew(b1);
-                Dt = 1*mH(3) * temp1;  // sign should be +:  -(b1_skew^T) = -(-b1_skew) = + b1_skew
+        Dt.Zero();
+        temp1.Zero();
+        temp1 = ComputeSkew(b1);
+        Dt = 1*mH(3) * temp1;  // sign should be +:  -(b1_skew^T) = -(-b1_skew) = + b1_skew
 
-                Qct = Transpose(3, 3, mQc);
+        Qct = Transpose(3, 3, mQc);
 
-                Et.Zero();
-                temp1.Zero();
-                temp1(0,1) = -mQa(0,2);
-                temp1(0,2) =  mQa(0,1);
-                temp1(1,1) = -mQa(1,2);
-                temp1(1,2) =  mQa(1,1);
-                temp1(2,1) = -mQa(2,2);
-                temp1(2,2) =  mQa(2,1);
-                Et = (dH1/mL) * temp1 * Qct;
+        Et.Zero();
+        temp1.Zero();
+        temp1(0,1) = -mQa(0,2);
+        temp1(0,2) =  mQa(0,1);
+        temp1(1,1) = -mQa(1,2);
+        temp1(1,2) =  mQa(1,1);
+        temp1(2,1) = -mQa(2,2);
+        temp1(2,2) =  mQa(2,1);
+        Et = (dH1/mL) * temp1 * Qct;
 
-                temp1.Zero();
-                temp1(0,0) = (1-mxi)* mQa(0,0);
-                temp1(0,1) =    dH2 * mQa(0,1);
-                temp1(0,2) =    dH2 * mQa(0,2);
-                temp1(1,0) = (1-mxi)* mQa(1,0);
-                temp1(1,1) =    dH2 * mQa(1,1);
-                temp1(1,2) =    dH2 * mQa(1,2);
-                temp1(2,0) = (1-mxi)* mQa(2,0);
-                temp1(2,1) =    dH2 * mQa(2,1);
-                temp1(2,2) =    dH2 * mQa(2,2);
-                Ft = temp1 * Qct;
+        temp1.Zero();
+        temp1(0,0) = (1-mxi)* mQa(0,0);
+        temp1(0,1) =    dH2 * mQa(0,1);
+        temp1(0,2) =    dH2 * mQa(0,2);
+        temp1(1,0) = (1-mxi)* mQa(1,0);
+        temp1(1,1) =    dH2 * mQa(1,1);
+        temp1(1,2) =    dH2 * mQa(1,2);
+        temp1(2,0) = (1-mxi)* mQa(2,0);
+        temp1(2,1) =    dH2 * mQa(2,1);
+        temp1(2,2) =    dH2 * mQa(2,2);
+        Ft = temp1 * Qct;
 
-                Gt.Zero();
-                temp1.Zero();
-                temp1(0,1) = -mQb(0,2);
-                temp1(0,2) =  mQb(0,1);
-                temp1(1,1) = -mQb(1,2);
-                temp1(1,2) =  mQb(1,1);
-                temp1(2,1) = -mQb(2,2);
-                temp1(2,2) =  mQb(2,1);
-                Gt = (dH3/mL) * temp1 * Qct;
+        Gt.Zero();
+        temp1.Zero();
+        temp1(0,1) = -mQb(0,2);
+        temp1(0,2) =  mQb(0,1);
+        temp1(1,1) = -mQb(1,2);
+        temp1(1,2) =  mQb(1,1);
+        temp1(2,1) = -mQb(2,2);
+        temp1(2,2) =  mQb(2,1);
+        Gt = (dH3/mL) * temp1 * Qct;
 
-                Ht.Zero();
-                temp1(0,0) = mxi * mQb(0,0);
-                temp1(0,1) = dH4 * mQb(0,1);
-                temp1(0,2) = dH4 * mQb(0,2);
-                temp1(1,0) = mxi * mQb(1,0);
-                temp1(1,1) = dH4 * mQb(1,1);
-                temp1(1,2) = dH4 * mQb(1,2);
-                temp1(2,0) = mxi * mQb(2,0);
-                temp1(2,1) = dH4 * mQb(2,1);
-                temp1(2,2) = dH4 * mQb(2,2);
-                Ht = temp1 * Qct;
+        Ht.Zero();
+        temp1(0,0) = mxi * mQb(0,0);
+        temp1(0,1) = dH4 * mQb(0,1);
+        temp1(0,2) = dH4 * mQb(0,2);
+        temp1(1,0) = mxi * mQb(1,0);
+        temp1(1,1) = dH4 * mQb(1,1);
+        temp1(1,2) = dH4 * mQb(1,2);
+        temp1(2,0) = mxi * mQb(2,0);
+        temp1(2,1) = dH4 * mQb(2,1);
+        temp1(2,2) = dH4 * mQb(2,2);
+        Ht = temp1 * Qct;
 
-                // Fill Bs(0:2,0), Bs(0:2,1)
-                Vector col1(3);
-                Vector col2(3);
-                col1.Zero();
-                col2.Zero();
-                col1 = At*mg1 + Et*rxg1;
-                col2 = At*mg2 + Et*rxg2;
-                for (i = 0; i < 3; i++) {
-                        mBs(i,0) = -col1(i);
-                        mBs(i,1) = -col2(i);
-                }
+        // Fill Bs(0:2,0), Bs(0:2,1)
+        Vector col1(3);
+        Vector col2(3);
+        col1.Zero();
+        col2.Zero();
+        col1 = At*mg1 + Et*rxg1;
+        col2 = At*mg2 + Et*rxg2;
+        for (i = 0; i < 3; i++) {
+                mBs(i,0) = -col1(i);
+                mBs(i,1) = -col2(i);
+        }
 
-                // Fill Bs(3:5,0), Bs(3:5,1)
-                col1 = Bt*mg1 + Ft*rxg1;
-                col2 = Bt*mg2 + Ft*rxg2;
-                for (i = 0; i < 3; i++) {
-                        mBs(i+3,0) = -col1(i);
-                        mBs(i+3,1) = -col2(i);
-                }
+        // Fill Bs(3:5,0), Bs(3:5,1)
+        col1 = Bt*mg1 + Ft*rxg1;
+        col2 = Bt*mg2 + Ft*rxg2;
+        for (i = 0; i < 3; i++) {
+                mBs(i+3,0) = -col1(i);
+                mBs(i+3,1) = -col2(i);
+        }
 
-                // Fill Bs(6:8,0), Bs(6:8,1)
-                col1 = Ct*mg1 + Gt*rxg1;
-                col2 = Ct*mg2 + Gt*rxg2;
-                for (i = 0; i < 3; i++) {
-                        mBs(i+6,0) = -col1(i);
-                        mBs(i+6,1) = -col2(i);
-                }
+        // Fill Bs(6:8,0), Bs(6:8,1)
+        col1 = Ct*mg1 + Gt*rxg1;
+        col2 = Ct*mg2 + Gt*rxg2;
+        for (i = 0; i < 3; i++) {
+                mBs(i+6,0) = -col1(i);
+                mBs(i+6,1) = -col2(i);
+        }
 
-                // Fill Bs(9:11,0), Bs(9:11,1)
-                col1 = Dt*mg1 + Ht*rxg1;
-                col2 = Dt*mg2 + Ht*rxg2;
-                for (i = 0; i < 3; i++) {
-                        mBs(i+9,0) = -col1(i);
-                        mBs(i+9,1) = -col2(i);
-                }
+        // Fill Bs(9:11,0), Bs(9:11,1)
+        col1 = Dt*mg1 + Ht*rxg1;
+        col2 = Dt*mg2 + Ht*rxg2;
+        for (i = 0; i < 3; i++) {
+                mBs(i+9,0) = -col1(i);
+                mBs(i+9,1) = -col2(i);
+        }
 
-                // Fill Bs(12:14,0), Bs(12:14,1)
-                for (i = 0; i < 3; i++) {
-                        mBs(i+12,0) = mg1(i);
-                        mBs(i+12,1) = mg2(i);
-                }
+        // Fill Bs(12:14,0), Bs(12:14,1)
+        for (i = 0; i < 3; i++) {
+                mBs(i+12,0) = mg1(i);
+                mBs(i+12,1) = mg2(i);
+        }
 
-                mBphi = ComputeBphi();
+        mBphi = ComputeBphi();
 
-                return;
+        return;
 }
 
 
 Matrix
-BeamContact3D::ComputeBphi(void)
+BeamContact3D::ComputeBphi()
 {
 #ifdef DEBUG
         opserr << "BeamContact3D::ComputeB(): " << MyTag << endln;

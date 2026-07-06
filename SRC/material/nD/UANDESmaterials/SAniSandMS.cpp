@@ -73,12 +73,13 @@ Matrix              SAniSandMS::mIIdevMix(6, 6);
 Matrix              SAniSandMS::mIIdevCo(6, 6);
 SAniSandMS::initTensors SAniSandMS::initTensorOps;
 
-static int numSAniSandMSMaterials = 0;
 
+#include <elementAPI.h>
 void * OPS_ADD_RUNTIME_VPV(OPS_SAniSandMSMaterial)
 {
 	// feenableexcept(FE_DIVBYZERO);// | FE_INVALID );//| FE_OVERFLOW);
 
+	static int numSAniSandMSMaterials = 0;
 	int numArgs = OPS_GetNumRemainingInputArgs();
 	if (numSAniSandMSMaterials == 0)
 	{

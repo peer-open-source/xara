@@ -45,93 +45,86 @@ const double TotalLagrangianFD20NodeBrick::wts[3] = {+0.55555555555555556, +0.88
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 TotalLagrangianFD20NodeBrick::TotalLagrangianFD20NodeBrick(int tag,
-int node_numb_1,  int node_numb_2,  int node_numb_3,  int node_numb_4,
-int node_numb_5,  int node_numb_6,  int node_numb_7,  int node_numb_8,
-int node_numb_9,  int node_numb_10, int node_numb_11, int node_numb_12,
-int node_numb_13, int node_numb_14, int node_numb_15, int node_numb_16,
-int node_numb_17, int node_numb_18, int node_numb_19, int node_numb_20,
-NDMaterial &m, double b1, double b2, double b3)
+  int node_numb_1,  int node_numb_2,  int node_numb_3,  int node_numb_4,
+  int node_numb_5,  int node_numb_6,  int node_numb_7,  int node_numb_8,
+  int node_numb_9,  int node_numb_10, int node_numb_11, int node_numb_12,
+  int node_numb_13, int node_numb_14, int node_numb_15, int node_numb_16,
+  int node_numb_17, int node_numb_18, int node_numb_19, int node_numb_20,
+  NDMaterial &m, double b1, double b2, double b3)
 :Element(tag, ELE_TAG_TotalLagrangianFD20NodeBrick ),
  theMaterial(0), connectedExternalNodes(NumNodes), Q(0), bf(NumDof), Ki(0)
 {
-      connectedExternalNodes( 0) = node_numb_1;
-      connectedExternalNodes( 1) = node_numb_2;
-      connectedExternalNodes( 2) = node_numb_3;
-      connectedExternalNodes( 3) = node_numb_4;
-      connectedExternalNodes( 4) = node_numb_5;
-      connectedExternalNodes( 5) = node_numb_6;
-      connectedExternalNodes( 6) = node_numb_7;
-      connectedExternalNodes( 7) = node_numb_8;
-      connectedExternalNodes( 8) = node_numb_9;
-      connectedExternalNodes( 9) = node_numb_10;
-      connectedExternalNodes(10) = node_numb_11;
-      connectedExternalNodes(11) = node_numb_12;
-      connectedExternalNodes(12) = node_numb_13;
-      connectedExternalNodes(13) = node_numb_14;
-      connectedExternalNodes(14) = node_numb_15;
-      connectedExternalNodes(15) = node_numb_16;
-      connectedExternalNodes(16) = node_numb_17;
-      connectedExternalNodes(17) = node_numb_18;
-      connectedExternalNodes(18) = node_numb_19;
-      connectedExternalNodes(19) = node_numb_20;
+  connectedExternalNodes( 0) = node_numb_1;
+  connectedExternalNodes( 1) = node_numb_2;
+  connectedExternalNodes( 2) = node_numb_3;
+  connectedExternalNodes( 3) = node_numb_4;
+  connectedExternalNodes( 4) = node_numb_5;
+  connectedExternalNodes( 5) = node_numb_6;
+  connectedExternalNodes( 6) = node_numb_7;
+  connectedExternalNodes( 7) = node_numb_8;
+  connectedExternalNodes( 8) = node_numb_9;
+  connectedExternalNodes( 9) = node_numb_10;
+  connectedExternalNodes(10) = node_numb_11;
+  connectedExternalNodes(11) = node_numb_12;
+  connectedExternalNodes(12) = node_numb_13;
+  connectedExternalNodes(13) = node_numb_14;
+  connectedExternalNodes(14) = node_numb_15;
+  connectedExternalNodes(15) = node_numb_16;
+  connectedExternalNodes(16) = node_numb_17;
+  connectedExternalNodes(17) = node_numb_18;
+  connectedExternalNodes(18) = node_numb_19;
+  connectedExternalNodes(19) = node_numb_20;
 
-      bf(0) = b1;
-      bf(1) = b2;
-      bf(2) = b3;
+  bf(0) = b1;
+  bf(1) = b2;
+  bf(2) = b3;
 
-      theMaterial = new NDMaterial *[NumTotalGaussPts];
+  theMaterial = new NDMaterial *[NumTotalGaussPts];
+  
+  int i;
+  for (i=0; i<NumTotalGaussPts; i++) {
+    theMaterial[i] = m.getCopy();
+    if (theMaterial[i] == 0)
+    {
+      opserr<<"FiniteDeformationElastic3D::FiniteDeformationElastic3D -- failed allocate material model pointer\n";
+      exit(-1);
+    }
+  }
 
-      if (theMaterial == 0) {
-       opserr<<"FiniteDeformationElastic3D::FiniteDeformationElastic3D -- failed allocate material model pointer\n";
-       exit(-1);
-      }
-      
-      int i;
-      for (i=0; i<NumTotalGaussPts; i++) {
-       theMaterial[i] = m.getCopy();
-       if (theMaterial[i] == 0)
-       {
-        opserr<<"FiniteDeformationElastic3D::FiniteDeformationElastic3D -- failed allocate material model pointer\n";
-        exit(-1);
-       }
-      }
+  rho = m.getRho();
 
-      rho = m.getRho();
-
-      for (i=0; i<NumNodes; i++) 
-        theNodes[i] = 0;
+  for (i=0; i<NumNodes; i++) 
+    theNodes[i] = 0;
 }
 
 //-------------------------------------------------------------------------------------------
 TotalLagrangianFD20NodeBrick::TotalLagrangianFD20NodeBrick ()
 :Element(0, ELE_TAG_TotalLagrangianFD20NodeBrick ),
  theMaterial(0), connectedExternalNodes(NumNodes), Q(0), bf(NumDof), Ki(0)
-{    
-     int  i;
-     for (i=0; i<NumNodes; i++)  
-       theNodes[i] = 0;
+{
+  for (int i=0; i<NumNodes; i++)  
+    theNodes[i] = 0;
 
-     bf(0) = 0.0;
-     bf(1) = 0.0;
-     bf(2) = 0.0;
+  bf(0) = 0.0;
+  bf(1) = 0.0;
+  bf(2) = 0.0;
 
-     rho = 0.0;
+  rho = 0.0;
 }
 
 //-------------------------------------------------------------------------------------------------
 TotalLagrangianFD20NodeBrick::~TotalLagrangianFD20NodeBrick ()
 {
-    int i;
-    for (i=0; i<NumTotalGaussPts; i++) {
-      if (theMaterial[i]) 
-        delete theMaterial[i];
-    }
+  int i;
+  for (i=0; i<NumTotalGaussPts; i++) {
+    if (theMaterial[i]) 
+      delete theMaterial[i];
+  }
 
-    if(theMaterial) 
-      delete [] theMaterial;
+  if(theMaterial) 
+    delete [] theMaterial;
 
-    if(Ki) delete Ki;
-
+  if(Ki) delete Ki;
 }
 
 
@@ -164,7 +157,7 @@ void TotalLagrangianFD20NodeBrick::setDomain (Domain *theDomain)
 {
   // Check Domain is not null - invoked when object removed from a domain
   if (theDomain == 0) {
-    for (i=0; i<NumNodes; i++) {
+    for (int i=0; i<NumNodes; i++) {
       theNodes[i] = 0; 
     }
     return;
@@ -182,7 +175,7 @@ void TotalLagrangianFD20NodeBrick::setDomain (Domain *theDomain)
   if (theDomain != nullptr)
     this->Element::link(*theDomain);  // Very Important!!
 
-  for (i=0; i<NumNodes; i++) {
+  for (int i=0; i<NumNodes; i++) {
     if ( theNodes[i]->getNumberDOF() != NumDof ) {
       opserr << "FATAL ERROR TotalLagrangianFD8NodeBrick (tag: " << this->getTag() <<
       "), has differing number of DOFs at its nodes\n";
@@ -193,43 +186,42 @@ void TotalLagrangianFD20NodeBrick::setDomain (Domain *theDomain)
 }
 
 //=============================================================================
-int TotalLagrangianFD20NodeBrick::commitState ()
+int
+TotalLagrangianFD20NodeBrick::commitState ()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    if ((retVal = this->Element::commitState()) != 0)
-      opserr << "TotalLagrangianFD20NodeBrick::commitState () - failed in base class";
-    
-    int i;
-    for (i = 0; i < NumTotalGaussPts ; i++)
-      retVal += theMaterial[i]->commitState();
+  if ((retVal = this->Element::commitState()) != 0)
+    opserr << "TotalLagrangianFD20NodeBrick::commitState () - failed in base class";
+  
+  int i;
+  for (i = 0; i < NumTotalGaussPts ; i++)
+    retVal += theMaterial[i]->commitState();
 
-    return retVal;
+  return retVal;
 }
 
 //=============================================================================
-int TotalLagrangianFD20NodeBrick::revertToLastCommit ()
+int TotalLagrangianFD20NodeBrick::revertToLastCommit()
 {
-    int retVal = 0;
-    
-    int i;
-    for (i=0; i<NumTotalGaussPts; i++)
-       retVal += theMaterial[i]->revertToLastCommit();
+  int retVal = 0;
+  
+  int i;
+  for (i=0; i<NumTotalGaussPts; i++)
+    retVal += theMaterial[i]->revertToLastCommit();
 
-    return retVal;
+  return retVal;
 }
 
 //=============================================================================
 int TotalLagrangianFD20NodeBrick::revertToStart ()
 {
-    int retVal = 0;
-    
-    int i;
-    for (i=0; i<NumTotalGaussPts; i++)
-       retVal += theMaterial[i]->revertToStart();
+  int retVal = 0;
 
-    return retVal;
+  for (int i=0; i<NumTotalGaussPts; i++)
+    retVal += theMaterial[i]->revertToStart();
 
+  return retVal;
 }
 
 //=============================================================================
@@ -445,170 +437,176 @@ tensor TotalLagrangianFD20NodeBrick::getRtensor()
 }
 
 //======================================================================
-tensor TotalLagrangianFD20NodeBrick::getBodyForce()
+tensor 
+TotalLagrangianFD20NodeBrick::getBodyForce()
 {
-    int B_dim[] = {NumNodes, NumDof};
-    tensor Bb(2,B_dim,0.0);
+  int B_dim[] = {NumNodes, NumDof};
+  tensor Bb(2,B_dim,0.0);
 
-    double r  = 0.0;
-    double rw = 0.0;
-    double s  = 0.0;
-    double sw = 0.0;
-    double t  = 0.0;
-    double tw = 0.0;
+  double r  = 0.0;
+  double rw = 0.0;
+  double s  = 0.0;
+  double sw = 0.0;
+  double t  = 0.0;
+  double tw = 0.0;
 
-    int where = 0;
-    int GP_c_r, GP_c_s, GP_c_t;
-    double weight = 0.0;
+  int where = 0;
+  double weight = 0.0;
 
-    int h_dim[] = {20};
-    tensor h(1, h_dim, 0.0);
-    int dh_dim[] = {NumNodes,NumDof};
-    tensor dh(2, dh_dim, 0.0);
-    int bodyforce_dim[] = {3};
-    tensor bodyforce(1, bodyforce_dim, 0.0);
+  int h_dim[] = {20};
+  tensor h(1, h_dim, 0.0);
+  int dh_dim[] = {NumNodes,NumDof};
+  tensor dh(2, dh_dim, 0.0);
+  int bodyforce_dim[] = {3};
+  tensor bodyforce(1, bodyforce_dim, 0.0);
 
-    double det_of_Jacobian = 0.0;
+  double det_of_Jacobian = 0.0;
 
-    tensor Jacobian;
-    tensor JacobianINV;
+  tensor Jacobian;
+  tensor JacobianINV;
 
-    bodyforce.val(1) = bf(0);
-    bodyforce.val(2) = bf(1);
-    bodyforce.val(3) = bf(2);
+  bodyforce.val(1) = bf(0);
+  bodyforce.val(2) = bf(1);
+  bodyforce.val(3) = bf(2);
 
-    for( GP_c_r = 0 ; GP_c_r < NumIntegrationPts ; GP_c_r++ ) {
-      r = pts[GP_c_r ];
-      rw = wts[GP_c_r ];
-      for( GP_c_s = 0 ; GP_c_s < NumIntegrationPts ; GP_c_s++ ) {
-        s = pts[GP_c_s ];
-        sw = wts[GP_c_s ];
-        for( GP_c_t = 0 ; GP_c_t < NumIntegrationPts ; GP_c_t++ ) {
-          t = pts[GP_c_t ];
-          tw = wts[GP_c_t ];
-          where =(GP_c_r * NumIntegrationPts + GP_c_s) * NumIntegrationPts + GP_c_t;
-          h = shapeFunction(r,s,t);
-          //dh = shapeFunctionDerivative(r,s,t);
-          Jacobian = this->Jacobian_3D(r,s,t);
-          det_of_Jacobian  = Jacobian.determinant();
-          weight = rw * sw * tw * det_of_Jacobian;
-          Bb = Bb +  h("P") * bodyforce("i") * rho *weight;
-            Bb.null_indices();
-        }
+  for (int GP_c_r = 0 ; GP_c_r < NumIntegrationPts ; GP_c_r++ ) {
+    r = pts[GP_c_r ];
+    rw = wts[GP_c_r ];
+    for (int GP_c_s = 0 ; GP_c_s < NumIntegrationPts ; GP_c_s++ ) {
+      s = pts[GP_c_s ];
+      sw = wts[GP_c_s ];
+      for (int GP_c_t = 0 ; GP_c_t < NumIntegrationPts ; GP_c_t++ ) {
+        t = pts[GP_c_t ];
+        tw = wts[GP_c_t ];
+        where =(GP_c_r * NumIntegrationPts + GP_c_s) * NumIntegrationPts + GP_c_t;
+        h = shapeFunction(r,s,t);
+        //dh = shapeFunctionDerivative(r,s,t);
+        Jacobian = this->Jacobian_3D(r,s,t);
+        det_of_Jacobian  = Jacobian.determinant();
+        weight = rw * sw * tw * det_of_Jacobian;
+        Bb = Bb +  h("P") * bodyforce("i") * rho *weight;
+        Bb.null_indices();
       }
     }
-    return Bb;
+  }
+  return Bb;
 }
 
 //======================================================================
-tensor TotalLagrangianFD20NodeBrick::getSurfaceForce()
+tensor 
+TotalLagrangianFD20NodeBrick::getSurfaceForce()
 {
-    int S_dim[] = {NumNodes, NumDof};
-    tensor Ss(2,S_dim,0.0);
-    // Need Work Here!
+  int S_dim[] = {NumNodes, NumDof};
+  tensor Ss(2,S_dim,0.0);
+  // Need Work Here!
 
-    return Ss;
+  return Ss;
 }
 
 //============================================================================
 tensor TotalLagrangianFD20NodeBrick::getForces()
 {
-    int F_dim[] = {NumNodes,NumDof};
-    tensor Ff(2,F_dim,0.0);
+  int F_dim[] = {NumNodes,NumDof};
+  tensor Ff(2,F_dim,0.0);
 
-    Ff = this->getBodyForce( ) + this->getSurfaceForce( );
+  Ff = this->getBodyForce( ) + this->getSurfaceForce( );
 
-    return Ff;
+  return Ff;
 }
 
 //=============================================================================
-const Matrix &TotalLagrangianFD20NodeBrick::getTangentStiff ()
+const Matrix &
+TotalLagrangianFD20NodeBrick::getTangentStiff ()
 {
-     K.Zero();
+  K.Zero();
 
-     tensor stifftensor = this->getStiffnessTensor();
+  tensor stifftensor = this->getStiffnessTensor();
 
-     int kki=0;
-     int kkj=0;
-     
-     int i, j, k, l;
-     for (i=1 ; i<=NumNodes ; i++ ) {
-        for (j=1 ; j<=NumNodes ; j++ ) {
-           for (k=1 ; k<=NumDof ; k++ ) {
-              for (l=1 ; l<=NumDof ; l++ ) {
-                 kki = k + NumDof*(i-1);
-                 kkj = l + NumDof*(j-1);
-                 K(kki-1 , kkj-1) = stifftensor.cval(i,k,l,j); 
-              }
-           }
+  int kki=0;
+  int kkj=0;
+  
+  int i, j, k, l;
+  for (i=1 ; i<=NumNodes ; i++ ) {
+    for (j=1 ; j<=NumNodes ; j++ ) {
+      for (k=1 ; k<=NumDof ; k++ ) {
+        for (l=1 ; l<=NumDof ; l++ ) {
+          kki = k + NumDof*(i-1);
+          kkj = l + NumDof*(j-1);
+          K(kki-1 , kkj-1) = stifftensor.cval(i,k,l,j); 
         }
-     }
+      }
+    }
+  }
 
-     return K;
+  return K;
 }
 
 //=============================================================================
 const Matrix &TotalLagrangianFD20NodeBrick::getInitialStiff ()
 {
-    if (Ki != 0) return *Ki;
+  if (Ki != 0) return *Ki;
 
-    K.Zero();
-    K = this->getTangentStiff ();
+  K.Zero();
+  K = this->getTangentStiff();
 
-    Ki = new Matrix(K);
+  Ki = new Matrix(K);
 
-    return K;
+  return K;
 }
 
 //=============================================================================
-const Matrix &TotalLagrangianFD20NodeBrick::getMass ()
+const Matrix &
+TotalLagrangianFD20NodeBrick::getMass ()
 {
-    // Need Work Here
-    M.Zero();
-    return M;
+  // Need Work Here
+  M.Zero();
+  return M;
 }
 
 //======================================================================
-tensor TotalLagrangianFD20NodeBrick::getNodesCrds()
+tensor 
+TotalLagrangianFD20NodeBrick::getNodesCrds()
 {
-    const int dimensions[] = {NumNodes, NumDof};
-    tensor N_coord(2, dimensions, 0.0);
+  const int dimensions[] = {NumNodes, NumDof};
+  tensor N_coord(2, dimensions, 0.0);
 
-    int i, j;
-    for (i=0; i<NumNodes; i++) {
-	  const Vector &TNodesCrds = theNodes[i]->getCrds();
-      for (j=0; j<NumDof; j++) {
-        N_coord.val(i+1, j+1) = TNodesCrds(j);
-	  }		    
+  int i, j;
+  for (i=0; i<NumNodes; i++) {
+    const Vector &TNodesCrds = theNodes[i]->getCrds();
+    for (j=0; j<NumDof; j++) {
+      N_coord.val(i+1, j+1) = TNodesCrds(j);
     }
-    
-    return N_coord;
+  }
+
+  return N_coord;
 }
 
 //=============================================================================================
-tensor TotalLagrangianFD20NodeBrick::getNodesDisp()
+tensor 
+TotalLagrangianFD20NodeBrick::getNodesDisp()
 {
-    int i, j;
-    int dimU[] = {NumNodes, NumDof};
-    tensor total_disp(2, dimU, 0.0);
+  int i, j;
+  int dimU[] = {NumNodes, NumDof};
+  tensor total_disp(2, dimU, 0.0);
 
-    for (i=0; i<NumNodes; i++) {
-      const Vector &TNodesDisp = theNodes[i]->getTrialDisp();
-      for (j=0; j<NumDof; j++) {
-        total_disp.val(i+1, j+1) = TNodesDisp(j);
-      }
+  for (i=0; i<NumNodes; i++) {
+    const Vector &TNodesDisp = theNodes[i]->getTrialDisp();
+    for (j=0; j<NumDof; j++) {
+      total_disp.val(i+1, j+1) = TNodesDisp(j);
     }
+  }
 
-    return total_disp;
+  return total_disp;
 }
 
 //=============================================================================
-void TotalLagrangianFD20NodeBrick::zeroLoad()
+void
+TotalLagrangianFD20NodeBrick::zeroLoad()
 {
-   if ( Q != 0 )
-     Q->Zero();
-    
-   return;
+  if ( Q != 0 )
+    Q->Zero();
+  
+  return;
 }
 
 
@@ -616,136 +614,135 @@ void TotalLagrangianFD20NodeBrick::zeroLoad()
 int
 TotalLagrangianFD20NodeBrick::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
-    opserr<<"TotalLagrangianFD20NodeBrick::addLoad - load type unknown for ele with tag: "<<this->getTag();          
-    return -1;
+  opserr<<"TotalLagrangianFD20NodeBrick::addLoad - load type unknown for ele with tag: "<<this->getTag();          
+  return -1;
 }
 
 //=============================================================================
 int TotalLagrangianFD20NodeBrick::addInertiaLoadToUnbalance(const Vector &accel)
 {
-    // Check for a quick return
-    if (rho == 0.0) return 0;
+  // Check for a quick return
+  if (rho == 0.0) return 0;
 
-    static Vector ra(NumElemDof);
-    int i, j;
+  static Vector ra(NumElemDof);
+  int i, j;
 
-    for (i=0; i<NumNodes; i++) {
-      const Vector &RA = theNodes[i]->getRV(accel);
-      if ( RA.Size() != NumDof ) {
-        opserr << "TotalLagrangianFD20NodeBrick::addInertiaLoadToUnbalance(): matrix and vector sizes are incompatable \n";
-        return (-1);
-      }
-      
-      for (j=0; j<NumDof; j++) {
-        ra(i*NumDof +j) = RA(j);
-      }
-
+  for (i=0; i<NumNodes; i++) {
+    const Vector &RA = theNodes[i]->getRV(accel);
+    if ( RA.Size() != NumDof ) {
+      opserr << "TotalLagrangianFD20NodeBrick::addInertiaLoadToUnbalance(): matrix and vector sizes are incompatable \n";
+      return (-1);
     }
-
-    this->getMass();
-
-    if (Q == 0)  
-      Q = new Vector(NumElemDof);
-
-    Q->addMatrixVector(1.0, M, ra, -1.0);
-
-    return 0;  
     
+    for (j=0; j<NumDof; j++) {
+      ra(i*NumDof +j) = RA(j);
+    }
+  }
+
+  this->getMass();
+
+  if (Q == 0)  
+    Q = new Vector(NumElemDof);
+
+  Q->addMatrixVector(1.0, M, ra, -1.0);
+
+  return 0;    
 }
 
 
 //=============================================================================
 const Vector &TotalLagrangianFD20NodeBrick::getResistingForce ()
 {
-	int i, j;
-    int f_dim[] = {NumNodes, NumDof};
-    tensor NodalForces_in(2, f_dim, 0.0);
-    NodalForces_in = this->getRtensor() - this->getForces();
-    
-    for (i=0; i<NumNodes; i++) {
-      for (j=0; j<NumDof; j++) {
-         P(i*NumDof +j) = NodalForces_in.cval(i+1, j+1);
-      }
+  int i, j;
+  int f_dim[] = {NumNodes, NumDof};
+  tensor NodalForces_in(2, f_dim, 0.0);
+  NodalForces_in = this->getRtensor() - this->getForces();
+  
+  for (i=0; i<NumNodes; i++) {
+    for (j=0; j<NumDof; j++) {
+      P(i*NumDof +j) = NodalForces_in.cval(i+1, j+1);
     }
-    
-    if (Q != 0)
-      P.addVector(1.0, *Q, -1.0);
-    
-    return P;
+  }
+  
+  if (Q != 0)
+    P.addVector(1.0, *Q, -1.0);
+  
+  return P;
 }
 
 //=============================================================================
-const Vector &TotalLagrangianFD20NodeBrick::getResistingForceIncInertia ()
+const Vector &
+TotalLagrangianFD20NodeBrick::getResistingForceIncInertia ()
 {
-    int i, j;
-    Vector a(NumElemDof);
-  
-    this->getResistingForce();
+  int i, j;
+  Vector a(NumElemDof);
 
-    if (rho != 0.0)
-    {
-      for (i=0; i<NumNodes; i++) {
-        const Vector &acc = theNodes[i]->getTrialAccel();
-        if ( acc.Size() != NumDof ) {
-          opserr << "TotalLagrangianFD20NodeBrick::getResistingForceIncInertia matrix and vector sizes are incompatable \n";
-          exit(-1);
-        }
-       for (j=0; j<NumDof; j++) {
-         a(i*NumDof +j) = acc(j);
+  this->getResistingForce();
+
+  if (rho != 0.0)
+  {
+    for (i=0; i<NumNodes; i++) {
+      const Vector &acc = theNodes[i]->getTrialAccel();
+      if ( acc.Size() != NumDof ) {
+        opserr << "TotalLagrangianFD20NodeBrick::getResistingForceIncInertia matrix and vector sizes are incompatable \n";
+        exit(-1);
+      }
+      for (j=0; j<NumDof; j++) {
+        a(i*NumDof +j) = acc(j);
       }
     }
 
     this->getMass();
     P.addMatrixVector(1.0, M, a, 1.0);
-
   }
-
   return P;
 }
 
 //=============================================================================
-int TotalLagrangianFD20NodeBrick::sendSelf (int commitTag, Channel &theChannel)
-{
-     // Not implemtented yet
-     return 0;
-}
-
-//=============================================================================
-int TotalLagrangianFD20NodeBrick::recvSelf (int commitTag, Channel &theChannel,
-FEM_ObjectBroker &theBroker)
+int 
+TotalLagrangianFD20NodeBrick::sendSelf (int commitTag, Channel &theChannel)
 {
   // Not implemtented yet
-  return 0;
+  return -1;
+}
+
+//=============================================================================
+int 
+TotalLagrangianFD20NodeBrick::recvSelf (int commitTag, Channel &theChannel,FEM_ObjectBroker &theBroker)
+{
+  // Not implemtented yet
+  return -1;
 }
 
 
 
 //=============================================================================
-void TotalLagrangianFD20NodeBrick::Print(OPS_Stream &s, int flag)
+void 
+TotalLagrangianFD20NodeBrick::Print(OPS_Stream &s, int flag)
 {
-    s << "\nTotalLagrangianFD20NodeBrick, element id:  " << this->getTag() << endln;
-    s << "\nConnected external nodes:  " << connectedExternalNodes;
-    s << "\nBody forces:  " << bf(0) << " " << bf(1) << " " << bf(2) << endln;
+  s << "\nTotalLagrangianFD20NodeBrick, element id:  " << this->getTag() << endln;
+  s << "\nConnected external nodes:  " << connectedExternalNodes;
+  s << "\nBody forces:  " << bf(0) << " " << bf(1) << " " << bf(2) << endln;
 
-    theMaterial[0]->Print(s,flag);
+  theMaterial[0]->Print(s,flag);
 
-    tensor sigma;
-    Vector P00(6);
-    
-    int i;
-    for (i=0; i<NumTotalGaussPts; i++)
-    {
-      sigma = theMaterial[i]->getCauchyStressTensor();
-      P00(0) = sigma.val(1,1);
-      P00(1) = sigma.val(2,2);
-      P00(2) = sigma.val(3,3);
-      P00(3) = sigma.val(2,3);
-      P00(4) = sigma.val(3,1);
-      P00(5) = sigma.val(1,2);
+  tensor sigma;
+  Vector P00(6);
+  
+  int i;
+  for (i=0; i<NumTotalGaussPts; i++)
+  {
+    sigma = theMaterial[i]->getCauchyStressTensor();
+    P00(0) = sigma.val(1,1);
+    P00(1) = sigma.val(2,2);
+    P00(2) = sigma.val(3,3);
+    P00(3) = sigma.val(2,3);
+    P00(4) = sigma.val(3,1);
+    P00(5) = sigma.val(1,2);
 
-      s << "\n where = " << i << endln;
-      s << " Stress (Cauchy): xx yy zz yz zx xy) " << P00 << endln;
-    }
+    s << "\n where = " << i << endln;
+    s << " Stress (Cauchy): xx yy zz yz zx xy) " << P00 << endln;
+  }
 }
 
 //=============================================================================

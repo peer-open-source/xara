@@ -20,7 +20,8 @@
 //              CONICET
 // 
 // Description: This file contains the implementation for the Borja material class.
-// MultiaxialCyclicPlasticity for clays 
+// MultiaxialCyclicPlasticity for class
+//
 // Borja R.I, Amies, A.P.Multiaxial Cyclic Plasticity Model for Clays,
 // ASCE J.Geotech.Eng.Vol 120, No 6, 1051 - 1070
 //            
@@ -93,13 +94,13 @@ public:
 		FEM_ObjectBroker &theBroker);
 
 	//print out material data
-	void Print(OPS_Stream &s, int flag = 0);
+	void Print(OPS_Stream &s, int flag);
 
-	virtual NDMaterial *getCopy(void);
-	virtual const char *getType(void) const;
-	virtual int getOrder(void) const;
+	virtual NDMaterial *getCopy();
+	virtual const char *getType() const;
+	virtual int getOrder() const;
 
-	double getRho(void) { return m_density; }
+	double getRho() { return m_density; }
 
 
 
@@ -182,7 +183,7 @@ protected:
 	void    calcInitialTangent();
 	const Matrix& calcTangent();
 
-	//hardening function
+	// hardening function
 	double H(double kappa);
 
 	double trace(Vector V);
