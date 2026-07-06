@@ -32,7 +32,6 @@
 #include <ConvergenceTest.h>
 #include <AnalysisModel.h>
 #include <TimeSeries.h>
-#include <LoadPattern.h>
 #include <float.h>
 
 // For eigen
@@ -354,7 +353,7 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
   for (int i=0; i<numSteps; i++) {
     // This is done for parallelization
     result = theAnalysisModel->analysisStep(0.0);
-    if (result < 0) {
+    if (result < 0) [[unlikely]] {
       opserr << "The AnalysisModel failed\n";
       opserr << " at step: " << i << " with domain at load factor ";
       opserr << theDomain->getCurrentTime() << "\n";
@@ -367,7 +366,7 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
     // this must now be inside the loop
     int stamp = theDomain->hasDomainChanged();
 
-    if (stamp != domainStamp) {
+    if (stamp != domainStamp) [[unlikely]] {
       opsdbg << G3_DEBUG_PROMPT 
              << "Domain changed during static analysis at step " << i+1 << "\n";
       domainStamp = stamp;
@@ -377,6 +376,10 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
         opserr << " at step " << i << " of " << numSteps << "\n";
         return -1;
       }
+    }
+
+    if (flag & Update) {
+      theAnalysisModel->updateDomain();
     }
 
     if (flag & Increment) {
@@ -456,6 +459,16 @@ int
 BasicAnalysisBuilder::analyzeTransient(int numSteps, double dT)
 {
   int result = 0;
+  if (theDomain->getModalDampingFactors() != nullptr) {
+    if ((theDomain->getNumEigenvalues() < theDomain->getModalDampingFactors()->Size())) {
+      opserr << "Cannot include modal damping in transient analysis without eigenvalues\n";
+      return -1;
+    }
+
+    if (theAnalysisModel->getModalDamping() == nullptr) {
+      theAnalysisModel->setModalDamping(*theDomain->getModalDampingFactors());
+    }
+  }
 
   for (int i=0; i<numSteps; i++) {
     result = this->analyzeStep(dT);
@@ -498,7 +511,7 @@ int
 BasicAnalysisBuilder::analyzeStep(double dT)
 {
   int result = 0;
-  if (theAnalysisModel->analysisStep(dT) < 0) {
+  if (theAnalysisModel->analysisStep(dT) < 0) [[unlikely]] {
     opserr << "DirectIntegrationAnalysis::analyze() - the AnalysisModel failed";
     opserr << " at time " << theDomain->getCurrentTime() << "\n";
     theDomain->revertToLastCommit();
