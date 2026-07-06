@@ -342,7 +342,7 @@ target_compile_options(FastMath INTERFACE
 
 # Core OpenSees
 add_library(OPS_Matrix             OBJECT)
-disable_rtti(TARGET OPS_Matrix)
+# disable_rtti(TARGET OPS_Matrix)
 add_library(OPS_Handler            OBJECT)
 add_library(OPS_Logging            OBJECT)
 add_library(OPS_Actor              OBJECT)
