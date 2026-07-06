@@ -40,10 +40,10 @@ class FeapMaterial01 : public FeapMaterial
   FeapMaterial01(void);
   ~FeapMaterial01();
 
-  const char *getClassType(void) const {return "FeapMaterial01";};
+  const char *getClassType(void) const {return "FeapMaterial01";}
   
  protected:
-  int fillDArray(void);
+  int fillDArray();
   
  private:
   
