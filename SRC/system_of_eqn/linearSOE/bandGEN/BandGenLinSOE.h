@@ -74,8 +74,7 @@ class BandGenLinSOE : public LinearSOE
   protected:
     int size, numSuperD, numSubD;    
     double *A, *B, *X;
-    Vector *vectX;
-    Vector *vectB;
+    Vector vectX,vectB;
     int Asize, Bsize;
     bool factored;
     
