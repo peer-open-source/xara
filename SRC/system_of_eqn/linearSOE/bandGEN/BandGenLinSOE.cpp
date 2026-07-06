@@ -45,16 +45,20 @@ BandGenLinSOE::BandGenLinSOE(BandGenLinSolver &theSolvr)
 
 BandGenLinSOE::BandGenLinSOE()
 :LinearSOE(LinSOE_TAGS_BandGenLinSOE),
- size(0), numSuperD(0), numSubD(0), A(0), B(0), X(0), 
- vectX(0), vectB(0), Asize(0), Bsize(0), factored(false)
+ size(0), numSuperD(0), numSubD(0), A(0), 
+ B(0), X(0), vectX(0), vectB(0), 
+ Asize(0), Bsize(0), 
+ factored(false)
 {
 
 }
 
 BandGenLinSOE::BandGenLinSOE(int classTag)
 :LinearSOE(classTag),
- size(0), numSuperD(0), numSubD(0), A(0), B(0), X(0), 
- vectX(0), vectB(0), Asize(0), Bsize(0), factored(false)
+ size(0), numSuperD(0), numSubD(0), A(0), 
+ B(0), X(0), vectX(0), vectB(0), 
+ Asize(0), Bsize(0), 
+ factored(false)
 {
 
 }
@@ -63,8 +67,10 @@ BandGenLinSOE::BandGenLinSOE(int classTag)
 BandGenLinSOE::BandGenLinSOE(int N, int numSuperDiag, int numSubDiag,
                              BandGenLinSolver &theSolvr)
 :LinearSOE(theSolvr, LinSOE_TAGS_BandGenLinSOE),
- size(N), numSuperD(numSuperDiag), numSubD(numSubDiag), A(0), B(0), 
- X(0), vectX(0), vectB(0), Asize(0), Bsize(0), factored(false)
+ size(N), numSuperD(numSuperDiag), numSubD(numSubDiag), A(0), 
+ B(0), X(0), vectX(0), vectB(0), 
+ Asize(0), Bsize(0), 
+ factored(false)
 {
   Asize = N * (2*numSubD + numSuperD +1);
   A = new double[Asize];
@@ -82,9 +88,9 @@ BandGenLinSOE::BandGenLinSOE(int N, int numSuperDiag, int numSubDiag,
     B[j] = 0;
     X[j] = 0;
   }
-  
-  vectX = new Vector(X,size);
-  vectB = new Vector(B,size);
+
+  vectX.setData(X,size);
+  vectB.setData(B,size);
 
   theSolvr.setLinearSOE(*this);        
   
@@ -106,9 +112,7 @@ BandGenLinSOE::~BandGenLinSOE()
 {
   if (A != nullptr) delete [] A;
   if (B != nullptr) delete [] B;
-  if (X != nullptr) delete [] X;
-  if (vectX != nullptr) delete vectX;    
-  if (vectB != nullptr) delete vectB;    
+  if (X != nullptr) delete [] X; 
 }
 
 
@@ -173,23 +177,13 @@ BandGenLinSOE::setSize(Graph &theGraph)
       Bsize = size;
     }
 
-    // zero the vectors
-    for (int j=0; j<size; j++)
-        B[j] = 0;
-    for (int j=0; j<size; j++)
-        X[j] = 0;
-
     // get new Vector objects if size has changes
-    if (oldSize != size) {
-      if (vectX != 0) 
-        delete vectX;
+    vectX.setData(X,size);
+    vectB.setData(B,size);
 
-      if (vectB != 0) 
-        delete vectB;
-              
-      vectX = new Vector(X,size);
-      vectB = new Vector(B,size);
-    }
+    // zero the vectors
+    vectX.Zero();
+    vectB.Zero();
     
     // invoke setSize() on the Solver
     LinearSOESolver *theSolvr = this->getSolver();
@@ -200,7 +194,7 @@ BandGenLinSOE::setSize(Graph &theGraph)
         return solverOK;
     }    
 
-    return result;    
+    return result;
 }
 
 int 
@@ -421,16 +415,14 @@ BandGenLinSOE::zeroB()
 const Vector &
 BandGenLinSOE::getX()
 {
-  assert(vectX != nullptr);
-  return *vectX;
+  return vectX;
 }
 
 
 const Vector &
 BandGenLinSOE::getB()
 {
-  assert(vectB != nullptr);
-  return *vectB;
+  return vectB;
 }
 
 
@@ -457,29 +449,11 @@ BandGenLinSOE::setX(int loc, double value)
 void 
 BandGenLinSOE::setX(const Vector &x)
 {
-  if (x.Size() == size && vectX != 0)
-    *vectX = x;
+  if (x.Size() == vectX.Size())
+    vectX = x;
 }
 
 
-#if 0
-int
-BandGenLinSOE::setBandGenSolver(BandGenLinSolver &newSolver)
-{
-  newSolver.setLinearSOE(*this);
-
-  if (size != 0) {
-    int solverOK = newSolver.setSize();
-    if (solverOK < 0) {
-      // opserr << "WARNING:BandGenLinSOE::setSolver :";
-      // opserr << "the new solver could not setSeize() - staying with old\n";
-      return solverOK;
-    }
-  }
-
-  return this->setSolver(newSolver);
-}
-#endif
 
 
 int 
