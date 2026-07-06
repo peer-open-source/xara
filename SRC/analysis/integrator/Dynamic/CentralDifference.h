@@ -29,9 +29,8 @@
 // Created: 11/98
 // Revision: A
 //
-// Description: This file contains the class definition for CentralDifference.
-// CentralDifference is an algorithmic class for performing a transient analysis
-// using the central difference integration scheme.
+// Description: CentralDifference is an algorithmic class for performing 
+// a transient analysis using the central difference integration scheme.
 
 #include <TransientIntegrator.h>
 
@@ -54,7 +53,7 @@ public:
     int formEleTangent(FE_Element *theEle);
     int formNodTangent(DOF_Group *theDof);
     
-    int domainChanged(void);
+    int domainChanged();
 
     int newStep(double deltaT);
     int update(const Vector &U);

@@ -58,9 +58,6 @@ OPS_ADD_RUNTIME_VPV(OPS_NewmarkExplicit)
     
     theIntegrator = new NewmarkExplicit(gamma);
     
-    if (theIntegrator == 0)
-        opserr << "WARNING - out of memory creating NewmarkExplicit integrator\n";
-    
     return theIntegrator;
 }
 
@@ -282,6 +279,7 @@ NewmarkExplicit::getVel()
 {
   return *Udot;
 }
+
 
 int NewmarkExplicit::sendSelf(int cTag, Channel &theChannel)
 {
