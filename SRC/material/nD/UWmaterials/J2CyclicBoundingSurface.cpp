@@ -670,7 +670,7 @@ J2CyclicBoundingSurface::setParameter(const char **argv, int argc,
 int
 J2CyclicBoundingSurface::updateParameter(int responseID, Information &info)
 {
-	// called updateMaterialStage in tcl file
+	// called updateMaterialStage
 	if (responseID == 1) {
 		m_ElastFlag = info.theInt;
 		m_isElast2Plast = true;
@@ -689,7 +689,7 @@ int
 J2CyclicBoundingSurface::activateParameter(int paramID)
 {
 	// TODO : implement this
-	return 0;
+	return -1;
 }
 
 int
@@ -704,7 +704,7 @@ J2CyclicBoundingSurface::recvSelf(int commitTag, Channel &,
 	FEM_ObjectBroker &)
 {
 	// TODO : implement this
-	return 0;
+	return -1;
 }
 
 
