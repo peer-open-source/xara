@@ -415,24 +415,7 @@ SparseGenRowLinSOE::normRHS()
   return sqrt(norm);
 }
 
-#if 0
-int
-SparseGenRowLinSOE::setSparseGenRowSolver(SparseGenRowLinSolver& newSolver)
-{
-  newSolver.setLinearSOE(*this);
 
-  if (size != 0) {
-    int solverOK = newSolver.setSize();
-    if (solverOK < 0) {
-      opserr << "WARNING:SparseGenRowLinSOE::setSolver :";
-      opserr << "the new solver could not setSeize() - staying with old\n";
-      return -1;
-    }
-  }
-
-  return this->LinearSOE::setSolver(newSolver);
-}
-#endif
 
 
 int
