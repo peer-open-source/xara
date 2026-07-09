@@ -70,7 +70,6 @@ extern Tcl_CmdProc TclCommand_newJ2Material;
 extern Tcl_CmdProc TclCommand_newPlasticMaterial;
 extern Tcl_CmdProc TclCommand_newConcreteMaterial;
 // concrete_asd.cpp
-extern Tcl_CmdProc TclCommand_addASDConcrete1D;
 extern Tcl_CmdProc TclCommand_addASDConcrete3D;
 // wrapper.cpp
 extern Tcl_CmdProc TclCommand_addWrappingMaterial;
