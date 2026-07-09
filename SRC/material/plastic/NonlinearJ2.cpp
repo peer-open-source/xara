@@ -73,6 +73,7 @@ NonlinearJ2::NonlinearJ2(int tag,
   retInitialTangent(Ce), retTangent(C),
   retStress(pres.sig), retStrain(eps)
 {
+  G = E/2./(1. +    nu);
   int nc = Ck.size();
   for (int i=0;i<nc;i++) {
     Ck_.push_back((2.0/3.0)*Ck[i]);
@@ -91,7 +92,7 @@ int
 NonlinearJ2::updateState()
 {
 
-  const double G  = E/2./(1. +    nu);  // Shear modulus
+  // const double G  = E/2./(1. +    nu);  // Shear modulus
   const double K  = E/3./(1. - 2.*nu);  // Bulk  modulus
 
   // Deviatoric and volumetric strain
@@ -130,8 +131,9 @@ NonlinearJ2::updateState()
     C.addMatrix(Voight::IoI,      K);
     C.addMatrix(Voight::IIdevCon, 2.0*G);
 
-    // Energies (use avg stress with Deps)
+    // Currently not computing energy
     if (false) {
+      // Energy computations (use avg stress with Deps)
       const VectorND<6> sigav = (pres.sig + past.sig) * 0.5;
       const VectorND<6> Deps  = pres.eps - past.eps;
       const VectorND<6> Deps_p = pres.eps_p - past.eps_p;
@@ -151,6 +153,7 @@ NonlinearJ2::updateState()
 
   this->newton_update(s_tr,lamda,  m,g,Dg,phi_a);
 
+  // Currently not doing line search
   if constexpr (false) {
 
     // Build a left bracket at lambda=0 for bisection fallback
@@ -238,7 +241,8 @@ NonlinearJ2::updateState()
     }
   } 
   else {
-    while ((std::abs(g) > YFtol_) && (iter < MaxIter_)) {
+    // standard Newton solve without line search
+    while ((std::fabs(g) > YFtol_) && (iter < MaxIter_)) {
 
       Dg = std::abs(Dg)>EPS_DBL ? Dg : ((Dg>=0)?EPS_DBL:-EPS_DBL);
       // Newton step
@@ -254,11 +258,13 @@ NonlinearJ2::updateState()
   }
 
   if (iter == MaxIter_ && std::abs(g) > YFtol_) {
-    opserr << "Material failed to converge after ";
-    opserr << MaxIter_ << " iterations, |g| = " 
-    << std::abs(g) 
-    << " > " << YFtol_
-    << "\n";
+    // Currently cannot print since opserr is not thread safe.
+
+    // opserr << "Material failed to converge after ";
+    // opserr << MaxIter_ << " iterations, |g| = " 
+    // << std::abs(g) 
+    // << " > " << YFtol_
+    // << "\n";
     return -1;
   }
 
@@ -314,7 +320,7 @@ NonlinearJ2::updateState()
   Kinematic::addTangent(*this, past, d_mises_strain, m, -2.0*G*theta_phi*theta_lam, C);
 
 
-  // Energies
+  // Energy
   if (false) {
     const VectorND<6> sigav = (pres.sig + past.sig) * 0.5;
     pres.Estr = past.Estr + sigav.dot(pres.eps - past.eps);
@@ -344,10 +350,10 @@ NonlinearJ2::setTrialStrainIncr(const Vector &dv)
   return updateState();
 }
 
-const Matrix &NonlinearJ2::getTangent()         { return retTangent; }
-const Matrix &NonlinearJ2::getInitialTangent()  { return retInitialTangent; }
-const Vector &NonlinearJ2::getStress()          { return retStress; }
-const Vector &NonlinearJ2::getStrain()          { return retStrain; }
+const Matrix &NonlinearJ2::getTangent() { return retTangent; }
+const Matrix &NonlinearJ2::getInitialTangent() { return retInitialTangent; }
+const Vector &NonlinearJ2::getStress() { return retStress; }
+const Vector &NonlinearJ2::getStrain() { return retStrain; }
 
 
 int 
@@ -422,6 +428,7 @@ NonlinearJ2::getCopy(const char *type)
 {
   if (type && std::strcmp(type, "ThreeDimensional") == 0)
     return this->getCopy();
+
   return NDMaterial::getCopy(type);
 }
 
