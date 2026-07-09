@@ -438,12 +438,11 @@ MumpsParallelSOE::setB(const Vector &v, double fact)
     }
   }
 
-   //opserr << "MumpsParallelSOE::setB() - end()\n";
   return 0;
 }
 
 void 
-MumpsParallelSOE::zeroB(void)
+MumpsParallelSOE::zeroB()
 {
   double *Bptr = myB;
   for (int i=0; i<size; i++)
@@ -452,7 +451,7 @@ MumpsParallelSOE::zeroB(void)
 
 
 const Vector &
-MumpsParallelSOE::getB(void)
+MumpsParallelSOE::getB()
 {
 
   if (processID != 0) {
