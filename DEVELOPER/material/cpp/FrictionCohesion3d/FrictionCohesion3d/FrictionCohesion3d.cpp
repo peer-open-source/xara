@@ -48,11 +48,11 @@ Earthquake Engineering and Structural Dynamics laboratory, 2019
 #define OPS_Export extern "C"
 #endif
 
-static int numFrictionCohesion3d = 0;
-
 OPS_Export void *
-OPS_FrictionCohesion3d()
+OPS_ADD_RUNTIME_VPV(OPS_FrictionCohesion3d)
 {
+  static int numFrictionCohesion3d = 0;
+
   // print out some KUDO's
   if (numFrictionCohesion3d == 0) {
     opserr << "FrictionCohesion3d - Loaded from external library. Written by Igor Tomic, EPFL, 2019.\n";
