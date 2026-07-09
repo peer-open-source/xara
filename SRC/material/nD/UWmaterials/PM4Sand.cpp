@@ -25,6 +25,7 @@
 // Last Modified:  Aug 2019
 
 // Description: This file contains the implementation for the PM4Sand class.
+//
 // PM4Sand(Version 3.1): A Sand Plasticity Model For Earthquake Engineering Applications
 // by R.W.Boulanger and K.Ziotopoulou
 // Oct 2017
