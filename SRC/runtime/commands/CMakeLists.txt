@@ -31,11 +31,6 @@ target_sources(OPS_Runtime PRIVATE
     "modeling/utilities/Block2D.cpp"
     "modeling/utilities/Block3D.cpp"
 
-    "modeling/invoking/invoke.cpp"
-    "modeling/invoking/invoke_uniaxial.cpp"
-    "modeling/invoking/invoke_section.cpp"
-    "modeling/invoking/invoke_stress.cpp"
-
 # Analysis
     "analysis/algorithm.cpp"
     "analysis/integrator.cpp"
