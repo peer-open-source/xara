@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.4 $
-// $Date: 2003-02-14 23:02:12 $
-// $Source: /usr/local/cvs/OpenSees/SRC/utility/Timer.h,v $
-                                                                        
-                                                                        
+//
 // File: ~/utility/Timer.h
 //
 // Written: fmk 
