@@ -58,4 +58,5 @@ add_subdirectory(Solid)
 add_subdirectory(Plane)
 add_subdirectory(Yield)
 add_subdirectory(nD)
+add_subdirectory(concrete/MultiSurfCrack2d)
 
