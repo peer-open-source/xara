@@ -6,7 +6,7 @@
 #==============================================================================
 
 target_link_libraries(OPS_Material
-  PRIVATE OPS_Domain OPS_Logging 
+  PRIVATE OPS_Domain OPS_Logging Xara::FastMath
   PUBLIC OPS_Recorder
 )
 
@@ -58,4 +58,6 @@ add_subdirectory(Solid)
 add_subdirectory(Plane)
 add_subdirectory(Yield)
 add_subdirectory(nD)
-
+if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/ucsd)
+  add_subdirectory(ucsd)
+endif()
