@@ -80,9 +80,9 @@ TclModelBuilder_addTLFD20nBrick(ClientData clientData,
   {
       if (Tcl_GetInt(interp, argv[2+i+eleArgStart], &nodes[i]) != TCL_OK)
       {
-  opserr << "command: element TotalLagrangianFD20nbrick " << eleID << " - invalid integer tag " <<
-    argv[2+i+eleArgStart] << "\n";
-  return TCL_ERROR;
+        opserr << "command: element TotalLagrangianFD20nbrick " << eleID << " - invalid integer tag " <<
+          argv[2+i+eleArgStart] << "\n";
+        return TCL_ERROR;
       }
   }
 
