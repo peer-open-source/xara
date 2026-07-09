@@ -384,9 +384,9 @@ GeneralizedJ2::revertToStart()
   Ce.addMatrix(Voight::IoI, K);
   Ce.addMatrix(Voight::IIdevCon, 2.0*G); // Idp
   C = Ce;
-
   return 0;
 }
+
 
 NDMaterial *
 GeneralizedJ2::getCopy()
