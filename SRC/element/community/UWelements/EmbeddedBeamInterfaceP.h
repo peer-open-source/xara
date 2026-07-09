@@ -47,14 +47,19 @@ class EmbeddedBeamInterfaceP : public Element
 {
 public:
     EmbeddedBeamInterfaceP(int tag);
-    EmbeddedBeamInterfaceP(int tag, std::vector <int> beamTag, std::vector <int> solidTag, int crdTransfTag,
+    EmbeddedBeamInterfaceP(int tag, std::vector <int> beamTag, std::vector <int> solidTag,
+        CrdTransf &theCrdTransf,
         std::vector <double>  beamRho, std::vector <double>  beamTheta, std::vector <double>  solidXi,
         std::vector <double>  solidEta, std::vector <double>  solidZeta, double radius, std::vector <double> area,
-        std::vector <double> length, double penaltyParam = 1.0e12, bool writeConnectivity = false, const char * connectivityFN = "", Domain& theDomain);
+        std::vector <double> length, 
+        Domain &theDomain,
+        double penaltyParam = 1.0e12, 
+        bool writeConnectivity = false, 
+        const char * connectivityFN = "");
     EmbeddedBeamInterfaceP();
     ~EmbeddedBeamInterfaceP();
 
-    const char *getClassType(void) const { return "EmbeddedBeamInterfaceP"; };
+    const char *getClassType(void) const { return "EmbeddedBeamInterfaceP"; }
 
     int getNumExternalNodes(void) const;
     const ID &getExternalNodes(void);
