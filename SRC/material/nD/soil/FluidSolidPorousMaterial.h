@@ -80,7 +80,7 @@ class FluidSolidPorousMaterial : public NDMaterial
      const char *getType() const ;
 
      // Return 3 or 6.
-     int getOrder (void) const ;
+     int getOrder() const ;
 
      int sendSelf(int commitTag, Channel &theChannel);  
      int recvSelf(int commitTag, Channel &theChannel, 
