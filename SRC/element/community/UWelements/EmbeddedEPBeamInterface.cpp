@@ -92,12 +92,18 @@ EmbeddedEPBeamInterface::EmbeddedEPBeamInterface(int tag) :
 
 }
 
-EmbeddedEPBeamInterface::EmbeddedEPBeamInterface(int tag, std::vector <int> beamTag, std::vector <int> solidTag, int crdTransfTag, int matTag,
+EmbeddedEPBeamInterface::EmbeddedEPBeamInterface(int tag, std::vector <int> beamTag, std::vector <int> solidTag, 
+    CrdTransf &theCrdTransf, 
+    NDMaterial &theMaterial,
     std::vector <double>  beamRho, std::vector <double>  beamTheta, std::vector <double>  solidXi, std::vector <double>  solidEta,
-    std::vector <double>  solidZeta, double radius, std::vector <double> area, std::vector <double> length, 
-    bool writeConnectivity, const char * connectivityFN, double width, Domain& theDomain)
+    std::vector <double>  solidZeta, double radius, 
+    std::vector <double> area, std::vector <double> length, 
+    Domain& theDomain,
+    bool writeConnectivity, const char * connectivityFN, double width)
   : Element(tag, ELE_TAG_EmbeddedEPBeamInterface),
-    m_beam_radius(radius), theMatTag(matTag), mQa(3, 3), mQb(3, 3), mQc(3, 3),
+    m_beam_radius(radius), 
+    theMatTag(theMaterial.getTag()), 
+    mQa(3, 3), mQb(3, 3), mQc(3, 3),
     mBphi(3, 12), mBu(3, 12), mHf(3, 12), m_Ns(8)
 {
     // get domain to access element tags and their nodes
@@ -214,7 +220,7 @@ EmbeddedEPBeamInterface::EmbeddedEPBeamInterface(int tag, std::vector <int> beam
     
     theMat = new NDMaterial*[m_numEmbeddedPoints];
     for (int ii = 0; ii < m_numEmbeddedPoints; ii++)
-        theMat[ii] = OPS_getNDMaterial(matTag)->getCopy("ThreeDimensional");
+        theMat[ii] = theMaterial.getCopy("ThreeDimensional");
 
     if (width > 0)
         m_intWidth = width;
@@ -223,7 +229,8 @@ EmbeddedEPBeamInterface::EmbeddedEPBeamInterface(int tag, std::vector <int> beam
 
     // get the coordinate transformation object
     // TODO: move out of constructor - cmp
-    crdTransf = G3_getSafeBuilder(rt)->getTypedObject<CrdTransf>(crdTransfTag)->getCopy3d();
+    crdTransf = theCrdTransf.getCopy3d();
+#if 0
     if (writeConnectivity)
     {
         FileStream connFile(connectivityFN, APPEND);
@@ -243,6 +250,7 @@ EmbeddedEPBeamInterface::EmbeddedEPBeamInterface(int tag, std::vector <int> beam
         connFile << endln;
         connFile.close();
     }
+#endif
 }
 
 EmbeddedEPBeamInterface::EmbeddedEPBeamInterface()

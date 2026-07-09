@@ -62,6 +62,8 @@ def exec(script: str, silent=False, analysis=True)->dict:
             proc verify {{args}} {{set a 1}}
             # ANALYZE SHOULD RETURN A NUMBER IN CASE ITS CHECKED IN SCRIPT
             proc analyze {{args}} {{set a 1}}
+            proc systemSize {{args}} {{set a 1}}
+            proc getTime {{args}} {{set a 0.0}}
             {puts}
         """)
 
@@ -142,9 +144,13 @@ class Interpreter:
                  verbose=False,
                  safe=False,
                  error_file=None,
+                 echo_error=None,
                  preload=True,
                  enable_tk=False):
 
+        if echo_error is None:
+            echo_error = os.environ.get("XARA_ECHO_ERROR", False)
+        self._echo_error = echo_error
         self._tcl = _create_interp(verbose=verbose,
                                    preload=preload,
                                    enable_tk=enable_tk)
@@ -169,11 +175,11 @@ class Interpreter:
 
         # Setup propagation of error messages
         self._err_file = error_file
+        echo_flag = "" if self._echo_error else "-noEcho"
         try:
-            echo = "" if os.environ.get("XARA_ECHO_ERROR", False) else "-noEcho"
             if self._err_file is not None and echo:
                 # Note: The extra braces are needed to escape backslashes on Windows
-                self.eval(f"logFile {{{self._err_file}}} {echo}")
+                self.eval(f"logFile {{{self._err_file}}} {echo_flag}")
         except:
             self._err_file = None
 
@@ -307,6 +313,10 @@ class Interpreter:
 
 
 class ModelRuntime:
+    """
+    Note(06/2026): This class is largely obsolete, in the future
+    we may refactor to only use the Interpreter class.
+    """
     def __init__(self, ndm=None, ndf=None, **kwds):
         self._interp = Interpreter(**kwds)
         self._tcl = self._interp._tcl
@@ -434,6 +444,7 @@ def _find_openseesrt():
 
     return libOpenSeesRT_path.parents[0], libOpenSeesRT_path
 
+resolve_library = _find_openseesrt
 
 def _create_interp(verbose=False, tcl_lib=None, preload=True, enable_tk=False):
 

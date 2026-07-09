@@ -875,39 +875,23 @@ int ActuatorCorot::getResponse(int responseID, Information &eleInformation)
         return 0;
         
     case 2:  // global forces
-        if (eleInformation.theVector != 0)  {
-            *(eleInformation.theVector) = this->getResistingForce();
-        }
-        return 0;
+        return eleInformation.setVector(this->getResistingForce());
         
     case 3:  // local forces
-        if (eleInformation.theVector != 0)  {
-            theVector->Zero();
-            // Axial
-            (*theVector)(0)        = -q(0);
-            (*theVector)(numDOF/2) =  q(0);
-            
-            *(eleInformation.theVector) = *theVector;
-        }
-        return 0;
+        theVector->Zero();
+        // Axial
+        (*theVector)(0)        = -q(0);
+        (*theVector)(numDOF/2) =  q(0);
+        return eleInformation.setVector(*theVector);
         
     case 4:  // basic force
-        if (eleInformation.theVector != 0)  {
-            *(eleInformation.theVector) = q;
-        }
-        return 0;
+        return eleInformation.setVector(q);
         
     case 5:  // ctrl basic displacement
-        if (eleInformation.theVector != 0)  {
-            *(eleInformation.theVector) = *ctrlDisp;
-        }
-        return 0;
-        
+        return eleInformation.setVector(*ctrlDisp);
+
     case 6:  // daq basic displacement
-        if (eleInformation.theVector != 0)  {
-            *(eleInformation.theVector) = *daqDisp;
-        }
-        return 0;
+        return eleInformation.setVector(*daqDisp);
         
     default:
         return 0;

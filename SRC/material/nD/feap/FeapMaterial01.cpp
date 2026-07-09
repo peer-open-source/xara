@@ -45,13 +45,13 @@ FeapMaterial01::FeapMaterial01(void):
   // Does nothing
 }
 
-FeapMaterial01::~FeapMaterial01(void)
+FeapMaterial01::~FeapMaterial01()
 {
   // Does nothing
 }
 
 int
-FeapMaterial01::fillDArray(void)
+FeapMaterial01::fillDArray()
 {
   // Look in FEAP programmer's manual
   d[0] = ud[0];

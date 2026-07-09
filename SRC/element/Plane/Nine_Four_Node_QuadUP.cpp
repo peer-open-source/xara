@@ -112,13 +112,13 @@ NineFourNodeQuadUP::~NineFourNodeQuadUP()
 int
 NineFourNodeQuadUP::getNumExternalNodes() const
 {
-    return nenu;
+  return nenu;
 }
 
 const ID&
 NineFourNodeQuadUP::getExternalNodes()
 {
-    return connectedExternalNodes;
+  return connectedExternalNodes;
 }
 
 Node **
@@ -130,7 +130,7 @@ NineFourNodeQuadUP::getNodePtrs()
 int
 NineFourNodeQuadUP::getNumDOF()
 {
-    return 22;
+  return 22;
 }
 
 void

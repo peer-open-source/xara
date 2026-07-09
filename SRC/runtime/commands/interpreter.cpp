@@ -250,16 +250,6 @@ getInterpPWD(Tcl_Interp *interp)
   if (pwd != 0)
     delete[] pwd;
 
-#ifdef _TCL84
-  Tcl_Obj *cwd = Tcl_FSGetCwd(interp);
-  if (cwd != NULL) {
-    int length;
-    const char *objPWD = Tcl_GetStringFromObj(cwd, &length);
-    pwd = new char[length + 1];
-    strcpy(pwd, objPWD);
-    Tcl_DecrRefCount(cwd);
-  }
-#else
   Tcl_DString buf;
   const char *objPWD = Tcl_GetCwd(interp, &buf);
 
@@ -267,7 +257,7 @@ getInterpPWD(Tcl_Interp *interp)
   strcpy(pwd, objPWD);
 
   Tcl_DStringFree(&buf);
-#endif
+
   return pwd;
 }
 

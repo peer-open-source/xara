@@ -829,21 +829,21 @@ FiberSection3d::Print(OPS_Stream &s, int flag)
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
         s << OPS_PRINT_JSON_MATE_INDENT << "{";
-        s << "\"name\": \"" << this->getTag() << "\", ";
+        s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"FiberSection3d\", ";
         if (theTorsion != 0)
           s << "\"torsion\": " << theTorsion->getInitialTangent() << ", ";
         s << "\"fibers\": [\n";
         for (int i = 0; i < numFibers; i++) {
-              s << OPS_PRINT_JSON_MATE_INDENT 
-                << "\t{\"coord\": [" << matData[3*i] << ", " 
-                                     << matData[3*i+1] << "], ";
-              s << "\"area\": " << matData[3*i+2] << ", ";
-              s << "\"material\": " << theMaterials[i]->getTag();
-              if (i < numFibers - 1)
-                    s << "},\n";
-              else
-                    s << "}\n";
+          s << OPS_PRINT_JSON_MATE_INDENT 
+            << "\t{\"coord\": [" << matData[3*i] << ", " 
+                                  << matData[3*i+1] << "], ";
+          s << "\"area\": " << matData[3*i+2] << ", ";
+          s << "\"material\": " << theMaterials[i]->getTag();
+          if (i < numFibers - 1)
+                s << "},\n";
+          else
+                s << "}\n";
         }
         s << OPS_PRINT_JSON_MATE_INDENT << "]}";
   }
@@ -1047,7 +1047,7 @@ FiberSection3d::getResponse(int responseID, Information &sectInfo)
     }
     return sectInfo.setVector(data);		  
 
-  } else  if (responseID == 6) {
+  } else if (responseID == 6) {
     int count = 0;
     for (int j = 0; j < numFibers; j++) {    
       if (theMaterials[j]->hasFailed() == true)

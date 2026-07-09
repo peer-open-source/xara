@@ -42,8 +42,10 @@ options = {
 use_conan = False
 
 if os.name == "nt":
-    EnvArgs = []
-    use_conan = True
+    EnvArgs = [
+            # "-DCMAKE_TOOLCHAIN_FILE=ifx_toolchain.cmake"
+    ]
+    use_conan = False
 
 elif "CONDA_PREFIX" in os.environ:
     # Ensure that conda libraries and compilers are used
@@ -114,6 +116,7 @@ if __name__ == "__main__":
                cmake_configure_options = [
                    *EnvArgs,
                    *options[build_type],
+                #    "-G Ninja",
                    f"-DOPENSEESRT_VERSION={version}",
                    *OpenSeesPyRT_Config,
 

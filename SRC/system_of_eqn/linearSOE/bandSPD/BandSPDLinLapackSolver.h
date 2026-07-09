@@ -47,11 +47,8 @@ class BandSPDLinLapackSolver : public BandSPDLinSolver
     int solve();
     int setSize();
     
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
-  private:
-
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 };
 
 #endif

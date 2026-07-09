@@ -49,13 +49,14 @@ Matrix PenaltySP_FE::tang(1,1);
 Vector PenaltySP_FE::resid(1);
 
 PenaltySP_FE::PenaltySP_FE(int tag, Domain &theDomain, 
-                            SP_Constraint &TheSP, double Alpha)
-:FE_Element(tag, 1,1), alpha(Alpha),
- theSP(&TheSP), theNode(0)
+                           SP_Constraint &TheSP, double Alpha)
+: FE_Element(tag, 1,1), alpha(Alpha),
+  myID(1),
+  theSP(&TheSP), theNode(nullptr)
 {
   // get a pointer to the Node
   theNode = theDomain.getNode(theSP->getNodeTag());
-  if (theNode == 0) {
+  if (theNode == nullptr) {
     opserr << "FATAL PenaltySP_FE::PenaltySP_FE() - no Node: ";
     opserr << theSP->getNodeTag() << "in domain\n";
     exit(-1);

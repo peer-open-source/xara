@@ -31,7 +31,7 @@
 
 
 BandSPDLinLapackSolver::BandSPDLinLapackSolver()
-:BandSPDLinSolver(SOLVER_TAGS_BandSPDLinLapackSolver)
+ : BandSPDLinSolver(SOLVER_TAGS_BandSPDLinLapackSolver)
 {
 
 }
@@ -45,53 +45,53 @@ BandSPDLinLapackSolver::~BandSPDLinLapackSolver()
 int
 BandSPDLinLapackSolver::solve()
 {
-    assert(theSOE != nullptr);
-    if (theSOE->size == 0)
-      return 0;
-
-    int n = theSOE->size;
-    int kd = theSOE->half_band -1;
-    int ldA = kd +1;
-    int nrhs = 1;
-    int ldB = n;
-    int info;
-    double *Aptr = theSOE->A;
-    double *Xptr = &theSOE->X[0];
-    double *Bptr = &theSOE->B[0];
-
-    // first copy B into X
-    for (int i=0; i<n; i++)
-      *(Xptr++) = *(Bptr++);
-
-    Xptr = &theSOE->X[0];
-
-    // now solve AX = Y
-
-    char tflag[] = "U";
-    if (theSOE->factored == false) {
-      // factor and solve
-      DPBSV(tflag, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
-
-    } else {
-      // solve only using factored matrix
-      // unsigned int sizeC = 1;
-      // DPBTRS("U", sizeC, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
-
-      DPBTRS(tflag, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
-    }
-
-
-    // check if successful
-    if (info != 0) {
-      if (info > 0) {
-        return -info+1;
-      } else {
-        return info;
-      }
-    }
-
-    theSOE->factored = true;
+  assert(theSOE != nullptr);
+  if (theSOE->size == 0)
     return 0;
+
+  int n = theSOE->size;
+  int kd = theSOE->half_band -1;
+  int ldA = kd +1;
+  int nrhs = 1;
+  int ldB = n;
+  int info;
+  double *Aptr = theSOE->A;
+  double *Xptr = &theSOE->X[0];
+  double *Bptr = &theSOE->B[0];
+
+  // first copy B into X
+  for (int i=0; i<n; i++)
+    *(Xptr++) = *(Bptr++);
+
+  Xptr = &theSOE->X[0];
+
+  // now solve AX = Y
+
+  char tflag[] = "U";
+  if (theSOE->factored == false) {
+    // factor and solve
+    DPBSV(tflag, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
+
+  } else {
+    // solve only using factored matrix
+    // unsigned int sizeC = 1;
+    // DPBTRS("U", sizeC, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
+
+    DPBTRS(tflag, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
+  }
+
+
+  // check if successful
+  if (info != 0) {
+    if (info > 0) {
+      return -info+1;
+    } else {
+      return info;
+    }
+  }
+
+  theSOE->factored = true;
+  return 0;
 }
 
 

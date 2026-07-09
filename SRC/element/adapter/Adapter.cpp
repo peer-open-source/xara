@@ -934,46 +934,37 @@ int Adapter::getResponse(int responseID, Information &eleInformation)
         return 0;
         
     case 2:  // global forces
-        if (eleInformation.theVector != 0)  {
-            *(eleInformation.theVector) = this->getResistingForce();
-        }
-        return 0;
+        return eleInformation.setVector(this->getResistingForce());
         
     case 3:  // local forces
-        if (eleInformation.theVector != 0)  {
-            *(eleInformation.theVector) = this->getResistingForce();
-        }
-        return 0;
+        return eleInformation.setVector(this->getResistingForce());
         
     case 4:  // basic forces
-        if (eleInformation.theVector != 0)  {
-            *(eleInformation.theVector) = q;
-        }
-        return 0;
+        return eleInformation.setVector(q);
         
     case 5:  // ctrl basic displacements
-        if (eleInformation.theVector != 0  &&  ctrlDisp != 0)  {
-            *(eleInformation.theVector) = *ctrlDisp;
-        }
-        return 0;
+        if (ctrlDisp != nullptr)
+            return eleInformation.setVector(*ctrlDisp);
+        else
+            return -1;
         
     case 6:  // ctrl basic velocities
-        if (eleInformation.theVector != 0  &&  ctrlVel != 0)  {
-            *(eleInformation.theVector) = *ctrlVel;
-        }
-        return 0;
+        if (ctrlVel != nullptr)
+            return eleInformation.setVector(*ctrlVel);
+        else
+            return -1;
         
     case 7:  // ctrl basic accelerations
-        if (eleInformation.theVector != 0  &&  ctrlAccel != 0)  {
-            *(eleInformation.theVector) = *ctrlAccel;
-        }
-        return 0;
+        if (ctrlAccel != nullptr)
+            return eleInformation.setVector(*ctrlAccel);
+        else
+            return -1;
         
     case 8:  // daq basic displacements
-        if (eleInformation.theVector != 0  &&  daqDisp != 0)  {
-            *(eleInformation.theVector) = *daqDisp;
-        }
-        return 0;
+        if (daqDisp != nullptr)
+            return eleInformation.setVector(*daqDisp);
+        else
+            return -1;
         
     default:
         return -1;
@@ -981,7 +972,8 @@ int Adapter::getResponse(int responseID, Information &eleInformation)
 }
 
 
-int Adapter::setupConnection()
+int
+Adapter::setupConnection()
 {
     // setup the connection
     if (udp)

@@ -26,11 +26,11 @@ class FluidSolidPorousMaterial : public NDMaterial
 {
   public:
      // Initialization constructor
-     FluidSolidPorousMaterial (int tag, int nd, NDMaterial &soilMat,
+     FluidSolidPorousMaterial(int tag, int nd, NDMaterial &soilMat,
 			       double combinedBulkModul, double atm=101.);
 
      // Default constructor
-     FluidSolidPorousMaterial ();
+     FluidSolidPorousMaterial();
 
      // Copy constructor
      FluidSolidPorousMaterial (const FluidSolidPorousMaterial &);
@@ -38,7 +38,7 @@ class FluidSolidPorousMaterial : public NDMaterial
      // Destructor: clean up memory storage space.
      virtual ~FluidSolidPorousMaterial ();
 
-     const char *getClassType(void) const {return "FluidSolidPorousMaterial";}
+     const char *getClassType() const {return "FluidSolidPorousMaterial";}
 
      // Sets the values of the trial strain tensor.
      int setTrialStrain (const Vector &strain);
@@ -71,7 +71,7 @@ class FluidSolidPorousMaterial : public NDMaterial
      int revertToStart();
 
      // Return an exact copy of itself.
-     NDMaterial *getCopy(void);
+     NDMaterial *getCopy();
 
      // Return a copy of itself if "code"="PlainStrain" or "ThreeDimensional", otherwise return null.
      NDMaterial *getCopy(const char *code);

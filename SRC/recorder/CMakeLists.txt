@@ -33,6 +33,7 @@ target_sources(OPS_Recorder
     Recorder.cpp
     RemoveRecorder.cpp
     VTK_Recorder.cpp
+    PVDRecorder.cpp
   PUBLIC
     DamageRecorder.h
     DatastoreRecorder.h
@@ -54,18 +55,12 @@ target_sources(OPS_Recorder
     RemoveRecorder.h
     VTK_Recorder.h
 )
-target_sources(OPS_Paraview
-    PRIVATE
-      PVDRecorder.cpp
-    PUBLIC
-      PVDRecorder.h
-)
 
 target_sources(OPS_ASDEA
-    PRIVATE
-      MPCORecorder.cpp
-    PUBLIC
-      MPCORecorder.h
+  PRIVATE
+    MPCORecorder.cpp
+  PUBLIC
+    MPCORecorder.h
 )
 
 

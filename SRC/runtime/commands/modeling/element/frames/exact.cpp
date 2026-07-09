@@ -15,12 +15,13 @@
 //
 #define ALLOW_IMPLICIT_MATRIX
 #include "frames.hpp"
-#include <for_int.tpp>
+#include <utility/Unroll.h>
 #include <ExactFrame3d.h>
 // #define XARA_ExactFrame02
 
 #ifdef XARA_ExactFrame02
 #include <ExactFrame02.h>
+#include <ExactFrame3d04.h>
 #endif
 // #include <ExactFrame03.h>
 #include <stdlib.h>
@@ -28,7 +29,7 @@
 #include <algorithm>
 class CrdTransf;
 
-#define MAX_NEN 6
+#define MAX_NEN 5
 
 Element*
 CreateExactFrame(int tag,
@@ -37,6 +38,7 @@ CreateExactFrame(int tag,
                  std::vector<FrameSection*>& sections,
                  BeamIntegration& beamIntegr,
                  CrdTransf& theTransf,
+                 FrameTransformBuilder& tb,
                  const FrameOptions& options,
                  double mass
                 )
@@ -66,11 +68,17 @@ CreateExactFrame(int tag,
       sections.push_back(sections[0]);
 
   unsigned nen = nodev.size();
-  static_loop<2,MAX_NEN>([&](auto nn) constexpr {
+  if (nen < 2 || nen > MAX_NEN) {
+      opserr << OpenSees::PromptValueError 
+              << "invalid number of nodes for ExactFrame; got " << nen
+              << OpenSees::SignalMessageEnd;
+      return nullptr;
+  }
+  Unroll<2,MAX_NEN+1>([&](auto nn) constexpr {
     if (nn.value == nen) {
       std::array<int, nn.value> nodes;
       std::copy_n(nodev.begin(), nn.value, nodes.begin());
-      static_loop<0,2>([&](auto nwm) constexpr {
+      Unroll<0,2>([&](auto nwm) constexpr {
         if (nwm.value+6 == ndf) {
           // element = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
           if (!exact_version) {
@@ -80,6 +88,10 @@ CreateExactFrame(int tag,
 #ifdef XARA_ExactFrame02
           else if (exact_version == 2) {
             element = new ExactFrame02<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
+            return;
+          }
+          else if (exact_version == 4) {
+            element = new ExactFrame3d04<nn.value, nwm.value>(tag, nodes, sections.data(), tb);
             return;
           }
 #endif

@@ -59,10 +59,7 @@
 
 // Includes for general things (Felipe Elgueta)
 #include <algorithm>  // for "max" function
-using namespace::std;
 #include <stdlib.h>
-// #include <cstdlib>
-//#include <bits/stdc++.h>
 #include <limits.h>
 
 // Vector VonPapaDamage :: strain_vec(3) ;
@@ -927,33 +924,17 @@ void VonPapaDamage :: calculateDerDamage(double max_incr_dam_var)
   const Vector& epsilon = getStrain();
 
   if (deltaSigma1_t > 0.0) {
-    dstrain1_p = c9 * epsilon(0) * max(ddst, ddsc);
+    dstrain1_p = c9 * epsilon(0) * std::fmax(ddst, ddsc);
   } else {
     dstrain1_p = 0.0;
   }
 
   if (deltaSigma2_t > 0.0) {
-    dstrain2_p = c9 * epsilon(1) * max(ddst, ddsc);
+    dstrain2_p = c9 * epsilon(1) * std::fmax(ddst, ddsc);
   } else {
     dstrain2_p = 0.0;
   }
 
-  // opserr << "Njump_dft = " << Njump_dft << endln;
-  // opserr << "ddft = " << ddft << endln;
-  // opserr << "Njump_dfc = " << Njump_dfc << endln;
-  // opserr << "ddfc = " << ddfc << endln << endln;
-
-
-  // opserr << "Njump_dmt = " << Njump_dmt << endln;
-  // opserr << "ddmt = " << ddmt << endln;
-  // opserr << "Njump_dmc = " << Njump_dmc << endln;
-  // opserr << "ddmc = " << ddmc << endln << endln;
-
-
-  // opserr << "Njump_dst = " << Njump_dst << endln;
-  // opserr << "ddst = " << ddst << endln;
-  // opserr << "Njump_dsc = " << Njump_dsc << endln;
-  // opserr << "ddsc = " << ddsc << endln << endln;
 
   // Calculate NJUMP_local(3) for fiber, membrane and shear. Material can be only in tension or compression
   NJUMP_local.Zero();
@@ -971,12 +952,11 @@ void VonPapaDamage :: calculateDerDamage(double max_incr_dam_var)
 ID VonPapaDamage::getNJUMP(double max_incr_dam_var)
 {
 
-  // opserr << "VonPapaDamage::getNJUMP called!" << endln;
-
   calculateDerDamage(max_incr_dam_var);
 
   return NJUMP_local;
 }
+
 
 void VonPapaDamage :: advanceDamageState(int Ncycles)
 {
@@ -984,15 +964,6 @@ void VonPapaDamage :: advanceDamageState(int Ncycles)
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
   //     Update the fatigue damage variables by using the Forward Euler algorithm        !
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-
-  // opserr << "dft = " << dft << endln;
-  // opserr << "dfc = " << dfc << endln;
-  // opserr << "dmt = " << dmt << endln;
-  // opserr << "dmc = " << dmc << endln;
-  // opserr << "dst = " << dst << endln;
-  // opserr << "dsc = " << dsc << endln << endln;
-
-
 
   dft += ddft * Ncycles;
   if (dft >= 1.0) dft = 0.999;
@@ -1058,17 +1029,6 @@ void VonPapaDamage :: advanceDamageState(int Ncycles)
   if (D22 >= 1.0) D22 = 0.999;
   if (D12 >= 1.0) D12 = 0.999;
 
-  // if (D11 >= 0.999) opserr << "D11 = " << D11 << endln;
-  // if (D22 >= 0.999) opserr << "D22 = " << D22 << endln;
-  // if (D12 >= 0.999) opserr << "D12 = " << D12 << endln;
-
-
-
-
-  // opserr << "D11 = " << D11 << endln;
-  // opserr << "D22 = " << D22 << endln;
-  // opserr << "D12 = " << D12 << endln << endln;
-
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
   //     Update the plastic strains      !
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
@@ -1082,8 +1042,6 @@ void VonPapaDamage :: advanceDamageState(int Ncycles)
 
 int VonPapaDamage :: setParameter(const char **argv, int argc, Parameter &param)
 {
-  // opserr << "VonPapaDamage :: setParameter called" << endln;
-  // opserr << "argv[0] = " << argv[0] << endln;
   if (argc < 1)
     return -1;
 
@@ -1243,34 +1201,18 @@ VonPapaDamage::getResponse(int responseID, Information &matInfo)
 }
 
 
-
-// int VonPapaDamage :: activateParameter(int parameterID)
-// {
-//   return -1;
-// }
-
-// int VonPapaDamage :: setVariable(const char *variable, Information &)
-// {
-//   return -1;
-// }
-
-// int VonPapaDamage :: getVariable(const char *variable, Information &)
-// {
-//   return -1;
-// }
-
-const Vector& VonPapaDamage :: getDamageState() const
+const Vector& VonPapaDamage::getDamageState() const
 {
-    static Vector damage_state(9);
-    damage_state(0) = dft;
-    damage_state(1) = dfc;
-    damage_state(2) = dmt;
-    damage_state(3) = dmc;
-    damage_state(4) = dst;
-    damage_state(5) = dsc;
-    damage_state(6) = D11;
-    damage_state(7) = D22;
-    damage_state(8) = D12;
+  static Vector damage_state(9);
+  damage_state(0) = dft;
+  damage_state(1) = dfc;
+  damage_state(2) = dmt;
+  damage_state(3) = dmc;
+  damage_state(4) = dst;
+  damage_state(5) = dsc;
+  damage_state(6) = D11;
+  damage_state(7) = D22;
+  damage_state(8) = D12;
 
-    return damage_state;
+  return damage_state;
 }

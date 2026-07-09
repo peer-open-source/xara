@@ -109,6 +109,7 @@ def main():
 
     tcl = opensees.tcl.TclRuntime(verbose=opts["verbose"],
                                   preload=opts["preload"],
+                                  echo_error=True,
                                   enable_tk=opts["enable_tk"])
 
     from_pipe = not sys.stdin.isatty()

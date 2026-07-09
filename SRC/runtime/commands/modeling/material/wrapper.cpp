@@ -182,8 +182,6 @@ TclCommand_newParallelMaterial(ClientData clientData, Tcl_Interp* interp, int ar
   }
 
   int tag;
-  UniaxialMaterial* theMaterial = nullptr;
-
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << "WARNING invalid uniaxialMaterial Parallel tag" << "\n";
     return TCL_ERROR;
@@ -216,8 +214,12 @@ TclCommand_newParallelMaterial(ClientData clientData, Tcl_Interp* interp, int ar
   }
   
   // Parsing was successful, allocate the material
-  theMaterial = new ParallelMaterial(tag, numMaterials, theMats);
-  builder->addTaggedObject<UniaxialMaterial>(*theMaterial);
+  UniaxialMaterial* theMaterial = new ParallelMaterial(tag, numMaterials, theMats);
+  if (builder->addTaggedObject<UniaxialMaterial>(*theMaterial) != TCL_OK) {
+    delete theMaterial;
+    delete [] theMats;
+    return TCL_ERROR;
+  }
   
   delete [] theMats;
   return TCL_OK;

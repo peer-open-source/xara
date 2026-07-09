@@ -290,7 +290,7 @@ TclCommand_integrateUniaxialMaterial(ClientData clientData,
   UniaxialMaterial* material = static_cast<UniaxialMaterial*>(clientData);
   
   if (Tcl_GetDouble(interp, argv[1], &dt) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "problem reading time step, got '" << argv[1] << "'\n";
+    opserr << OpenSees::PromptValueError << "Invalid time step, got '" << argv[1] << "'\n";
     return TCL_ERROR;
   }
 
@@ -303,42 +303,43 @@ TclCommand_integrateUniaxialMaterial(ClientData clientData,
   while (argi < argc) {
     if (strcmp(argv[argi], "-alphaf") == 0) {
       if (Tcl_GetDouble(interp, argv[1+argi], &conf.alpha_f) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "problem reading " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
+        opserr << OpenSees::PromptValueError 
+               << "Invalid " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
         return TCL_ERROR;
       }
       argi += 2;
     }
     else if (strcmp(argv[argi], "-alpham") == 0) {
       if (Tcl_GetDouble(interp, argv[1+argi], &conf.alpha_m) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "problem reading " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
+        opserr << OpenSees::PromptValueError << "Invalid " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
         return TCL_ERROR;
       }
       argi += 2;
     }
     else if (strcmp(argv[argi], "-beta") == 0) {
       if (Tcl_GetDouble(interp, argv[1+argi], &conf.beta) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "problem reading " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
+        opserr << OpenSees::PromptValueError << "Invalid value for " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
         return TCL_ERROR;
       }
       argi += 2;
     }
     else if (strcmp(argv[argi], "-gamma") == 0) {
       if (Tcl_GetDouble(interp, argv[1+argi], &conf.gamma) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "problem reading " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
+        opserr << OpenSees::PromptValueError << "Invalid value for " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
         return TCL_ERROR;
       }
       argi += 2;
     }
     else if (strcmp(argv[argi], "-mass") == 0) {
       if (Tcl_GetDouble(interp, argv[1+argi], &M) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "problem reading " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
+        opserr << OpenSees::PromptValueError << "Invalid value for " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
         return TCL_ERROR;
       }
       argi += 2;
     }
     else if (strcmp(argv[argi], "-damp") == 0) {
       if (Tcl_GetDouble(interp, argv[1+argi], &C) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "problem reading " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
+        opserr << OpenSees::PromptValueError << "Invalid value for " << argv[argi] << ", got '" << argv[argi+1] << "'\n";
         return TCL_ERROR;
       }
       argi += 2;

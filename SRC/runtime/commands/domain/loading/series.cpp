@@ -111,9 +111,11 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       endMarker++;
       if (endMarker == argc || 
           Tcl_GetDouble(interp, argv[endMarker], &cFactor) != TCL_OK) {
-            
-        opserr << "WARNING invalid cFactor " << argv[endMarker] << " - ";
-        opserr << " Constant -factor cFactor\n";
+
+        opserr << OpenSees::PromptValueError
+               << "Invalid cFactor " 
+               << (endMarker < argc ? argv[endMarker] : "")
+               << OpenSees::SignalMessageEnd;
         Tcl_Free((char*)argv);
         return 0;
       }
@@ -223,20 +225,21 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
 
   else if (strcmp(argv[0],"Pulse") == 0)  {
     // LoadPattern and PulseSeries - read args & create PulseSeries object
+    // Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>
     double cFactor = 1.0;
     double tStart, tFinish, period;
     double width = 0.5;
     double shift = 0.0;
       
     if (argc < 4) {
-      opserr << "WARNING not enough PulseSeries args - ";
-      opserr << " Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>\n";
+      opserr << "WARNING not enough args for Pulse"
+             << OpenSees::SignalMessageEnd;
       Tcl_Free((char*)argv);
       return 0; 
     }
     if (Tcl_GetDouble(interp, argv[1], &tStart) != TCL_OK) {
-      opserr << "WARNING invalid tStart " << argv[1] << " - ";
-      opserr << " Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>\n";
+      opserr << "WARNING invalid tStart " << argv[1]
+             << OpenSees::SignalMessageEnd;
       Tcl_Free((char*)argv);
       return 0;                         
     }
@@ -261,9 +264,9 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
         endMarker++;
         if (endMarker == argc || 
             Tcl_GetDouble(interp, argv[endMarker], &cFactor) != TCL_OK) {
-          
-          opserr << "WARNING invalid cFactor " << argv[endMarker] << " -";
-          opserr << " Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>\n";
+          opserr << "WARNING invalid cFactor " 
+                 << (endMarker < argc ? argv[endMarker] : "")
+                 << OpenSees::SignalMessageEnd;
           Tcl_Free((char*)argv);
           return 0;
         }
@@ -275,8 +278,9 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
         if (endMarker == argc || 
             Tcl_GetDouble(interp, argv[endMarker], &width) != TCL_OK) {
             
-          opserr << "WARNING invalid pulse width " << argv[endMarker] << " - ";
-          opserr << " Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>\n";
+          opserr << "WARNING invalid pulse width " 
+                 << (endMarker < argc ? argv[endMarker] : "")
+                 << OpenSees::SignalMessageEnd;
           Tcl_Free((char*)argv);
           return 0;
         }
@@ -288,8 +292,9 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
         if (endMarker == argc || 
             Tcl_GetDouble(interp, argv[endMarker], &shift) != TCL_OK) {
             
-          opserr << "WARNING invalid phase shift " << argv[endMarker] << " - ";
-          opserr << " Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>\n";
+          opserr << "WARNING invalid phase shift " 
+                 << (endMarker < argc ? argv[endMarker] : "")
+                 << OpenSees::SignalMessageEnd;
           Tcl_Free((char*)argv);
           return 0;
         }
@@ -307,18 +312,22 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
     double shift = 0.0;
       
     if (argc < 4) {
-      opserr << "WARNING not enough TriangleSeries args - ";
-      opserr << " Triangle tStart tFinish period <-shift shift> <-factor cFactor>\n";
+      opserr << "WARNING not enough TriangleSeries args"
+             << OpenSees::SignalMessageEnd;
       Tcl_Free((char*)argv);
       return 0; 
     }   
     if (Tcl_GetDouble(interp, argv[1], &tStart) != TCL_OK) {
-      opserr << "WARNING invalid tStart " << argv[1] << OpenSees::SignalMessageEnd;
+      opserr << "WARNING invalid tStart " 
+             << argv[1] 
+             << OpenSees::SignalMessageEnd;
       Tcl_Free((char*)argv);
       return 0;                         
     }
     if (Tcl_GetDouble(interp, argv[2], &tFinish) != TCL_OK) {
-      opserr << "WARNING invalid tFinish " << argv[2] << OpenSees::SignalMessageEnd;
+      opserr << "WARNING invalid tFinish " 
+             << argv[2] 
+             << OpenSees::SignalMessageEnd;
       Tcl_Free((char*)argv);
       return 0; 
     }
@@ -337,8 +346,9 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
         if (endMarker == argc || 
             Tcl_GetDouble(interp, argv[endMarker], &cFactor) != TCL_OK) {
           
-          opserr << "WARNING invalid cFactor " << argv[endMarker] << " -";
-          opserr << " Triangle tStart tFinish period <-shift shift> <-factor cFactor>\n";
+          opserr << "WARNING invalid scale factor " 
+                 << (endMarker < argc ? argv[endMarker] : "")
+                 << OpenSees::SignalMessageEnd;
           Tcl_Free((char*)argv);
           return 0;
         }
@@ -351,7 +361,8 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
             Tcl_GetDouble(interp, argv[endMarker], &shift) != TCL_OK) {
             
           opserr << "WARNING invalid phase shift "
-                 << argv[endMarker] << OpenSees::SignalMessageEnd;
+                 << (endMarker < argc ? argv[endMarker] : "")
+                 << OpenSees::SignalMessageEnd;
           Tcl_Free((char*)argv);
           return 0;
         }
@@ -391,7 +402,9 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       if (endMarker == argc || 
           Tcl_GetDouble(interp, argv[endMarker], &cFactor) != TCL_OK) {
 
-        opserr << "WARNING invalid cFactor " << argv[endMarker] << OpenSees::SignalMessageEnd;
+        opserr << "WARNING invalid cFactor "
+               << (endMarker < argc ? argv[endMarker] : "")
+               << OpenSees::SignalMessageEnd;
         Tcl_Free((char*)argv);
         return 0;
       }
@@ -463,7 +476,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
             Tcl_GetInt(interp, argv[endMarker], &tag) != TCL_OK) {
 
           opserr << OpenSees::PromptValueError
-                 << "invalid tag " << argv[endMarker]
+                 << (endMarker < argc ? argv[endMarker] : "")
                  << OpenSees::SignalMessageEnd;
           return 0;
         }
@@ -476,7 +489,8 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
             Tcl_GetDouble(interp, argv[endMarker], &cFactor) != TCL_OK) {
 
           opserr << OpenSees::PromptValueError
-                 << "invalid scale factor " << argv[endMarker]
+                 << "invalid scale factor "
+                 << (endMarker < argc ? argv[endMarker] : "")
                  << OpenSees::SignalMessageEnd;
           return 0;
         }
@@ -494,6 +508,11 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
                    << OpenSees::SignalMessageEnd;
             return nullptr;
           }
+        }
+        else {
+          opserr << OpenSees::PromptValueError
+                 << "Missing argument"
+                 << OpenSees::SignalMessageEnd;
         }
       }
 
@@ -536,10 +555,9 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
         int pathSize;
         TCL_Char **pathStrings;
         if (Tcl_SplitList(interp, argv[endMarker], &pathSize, &pathStrings) != TCL_OK) {
-
-          opserr << OpenSees::PromptValueError << "problem splitting path list " << argv[endMarker]
-                  << " - ";
-          opserr << " Series -values {path} ... \n";
+          opserr << OpenSees::PromptValueError
+                 << "problem splitting path list " << argv[endMarker]
+                 << OpenSees::SignalMessageEnd;
           return nullptr;
         }
 
@@ -549,7 +567,6 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
           // -values is not enclosed in {}
           Tcl_Free((char *)pathStrings);
           int count = 0;
-          // Use std::vector which will amortize the memory allocation
           std::vector<double> values;
           for (int i = endMarker; i < argc; i++) {
             double value;
@@ -560,9 +577,9 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
             count++;
           }
           dataPath = new Vector(count);
-          for (int i = 0; i < count; i++) {
+          for (int i = 0; i < count; i++)
             (*dataPath)(i) = values[i];
-          }
+
         }
         else {
           dataPath = new Vector(pathSize);
@@ -570,7 +587,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
             double value;
             if (Tcl_GetDouble(interp, pathStrings[i], &value) != TCL_OK) {
               opserr << OpenSees::PromptValueError
-                     << "problem reading path value "
+                     << "Invalid path value "
                       << pathStrings[i]
                       << OpenSees::SignalMessageEnd;
               Tcl_Free((char *)pathStrings);
@@ -584,31 +601,58 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       }
 
       else if (strcmp(argv[endMarker], "-time") == 0) {
-        // Data points in tcl list
+        // time points in one of two forms:
+        // a) -time 0.0 0.1 ...
+        // b) -time {0.0 0.1 ...}
         endMarker++;
-        if (endMarker != argc) {
-          int pathSize;
+        if (endMarker >= argc) {
+          opserr << OpenSees::PromptValueError
+                 << "Missing required argument for 'time'"
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        
+        // check for case a)
+        double time_i;
+        if (Tcl_GetDouble(interp, argv[endMarker], &time_i) == TCL_OK) {
+          // it is case a)
+          std::vector<double> time_vector{};
+          do {
+            time_vector.push_back(time_i);
+            if ((endMarker+1 >= argc) || (Tcl_GetDouble(interp, argv[++endMarker], &time_i) != TCL_OK))
+              break;
+          } while (true);
+          dataTime = new Vector(time_vector.size());
+          for (std::size_t i=0; i<time_vector.size(); i++)
+            (*dataTime)(i) = time_vector[i];
+            
+          endMarker--;
+        }
+        else
+        {
+          // case b), time in a Tcl list
+          Tcl_Size pathSize;
           TCL_Char **pathStrings;
 
           if (Tcl_SplitList(interp, argv[endMarker], &pathSize, &pathStrings) !=
               TCL_OK) {
 
-            opserr << OpenSees::PromptValueError << "problem spltting time path " << argv[endMarker]
-                   << " - ";
-            opserr << " Series -time {times} ... \n";
-            return 0;
+            opserr << OpenSees::PromptValueError 
+                   << "problem spltting time path " << argv[endMarker]
+                   << OpenSees::SignalMessageEnd;
+            return nullptr;
           }
 
           dataTime = new Vector(pathSize);
           for (int i = 0; i < pathSize; ++i) {
             double value;
             if (Tcl_GetDouble(interp, pathStrings[i], &value) != TCL_OK) {
-              opserr << OpenSees::PromptValueError << "problem reading time path value "
-                     << pathStrings[i] << " - ";
-              opserr << " Series -values {path} ... \n";
-
+              opserr << OpenSees::PromptValueError 
+                     << "Invalid time path value "
+                     << pathStrings[i]
+                     << OpenSees::SignalMessageEnd;
               Tcl_Free((char *)pathStrings);
-              return 0;
+              return nullptr;
             }
             (*dataTime)(i) = value;
           }
@@ -632,8 +676,9 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
         if (endMarker == argc ||
             Tcl_GetDouble(interp, argv[endMarker], &startTime) != TCL_OK) {
 
-          opserr << OpenSees::PromptValueError << "invalid tStart " << argv[endMarker] << " - ";
-          opserr << " Series -startTime tStart ... \n";
+          opserr << OpenSees::PromptValueError << "invalid tStart " 
+                 << (endMarker < argc ? argv[endMarker] : "")
+                 << OpenSees::SignalMessageEnd;
           return 0;
         }
       }
@@ -658,14 +703,17 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
                                  prependZero, startTime);
       delete dataPath;
 
-    } else if (dataPath != 0 && dataTime != 0) {
+    }
+    else if ((dataPath != nullptr) && (dataTime != nullptr)) {
       if (dataTime->Size() != dataPath->Size()) {
         opserr << OpenSees::PromptValueError << "size of time vector (" << dataTime->Size()
-               << ") must be equal to size of values (" << dataPath->Size() << ")\n";
+               << ") must be equal to size of values (" << dataPath->Size() << ")"
+               << OpenSees::SignalMessageEnd;
+        delete dataPath;
+        delete dataTime;
         return nullptr;
       }
-      theSeries =
-          new PathTimeSeries(tag, *dataPath, *dataTime, cFactor, useLast);
+      theSeries =  new PathTimeSeries(tag, *dataPath, *dataTime, cFactor, useLast);
       delete dataPath;
       delete dataTime;
 
@@ -732,7 +780,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
     // type unknown
     opserr << "WARNING unknown Series type " << argv[0] << " - ";
     opserr << " valid types: Linear, Rectangular, Path, Constant, Trig, Sine\n";
-    return 0;
+    return nullptr;
   }
 
   return theSeries;

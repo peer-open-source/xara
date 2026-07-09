@@ -130,7 +130,8 @@ int CentralDifference::newStep(double _deltaT)
 }
 
 
-int CentralDifference::formEleTangent(FE_Element *theEle)
+int 
+CentralDifference::formEleTangent(FE_Element *theEle)
 {
     theEle->zeroTangent();
     
@@ -141,7 +142,8 @@ int CentralDifference::formEleTangent(FE_Element *theEle)
 }
 
 
-int CentralDifference::formNodTangent(DOF_Group *theDof)
+int 
+CentralDifference::formNodTangent(DOF_Group *theDof)
 {
     theDof->zeroTangent();
     
@@ -152,7 +154,8 @@ int CentralDifference::formNodTangent(DOF_Group *theDof)
 }
 
 
-int CentralDifference::domainChanged()
+int
+CentralDifference::domainChanged()
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();
@@ -185,39 +188,8 @@ int CentralDifference::domainChanged()
         Utdotdot = new Vector(size);
         Udot = new Vector(size);
         Udotdot = new Vector(size);
-        
-        // check we obtained the new
-        if (Utm1 == 0 || Utm1->Size() != size ||
-            Ut == 0 || Ut->Size() != size ||
-            Utdot == 0 || Utdot->Size() != size ||
-            Utdotdot == 0 || Utdotdot->Size() != size ||
-            Udot == 0 || Udot->Size() != size ||
-            Udotdot == 0 || Udotdot->Size() != size)  {
-            
-            opserr << "CentralDifference::domainChanged - ran out of memory\n";
-            
-            // delete the old
-            if (Utm1 != 0)
-                delete Utm1;
-            if (Ut != 0)
-                delete Ut;
-            if (Utdot != 0)
-                delete Utdot;
-            if (Utdotdot != 0)
-                delete Utdotdot;
-            if (Udot != 0)
-                delete Udot;
-            if (Udotdot != 0)
-                delete Udotdot;
-            
-            Utm1 = 0;
-            Ut = 0; Utdot = 0; Utdotdot = 0;
-            Udot = 0; Udotdot = 0;
-            
-            return -1;
-        }
     }
-    
+
     // now go through and populate U, Udot and Udotdot by iterating through
     // the DOF_Groups and getting the last committed velocity and accel
     DOF_GrpIter &theDOFs = theModel->getDOFs();

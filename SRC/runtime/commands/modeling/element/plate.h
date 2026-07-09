@@ -12,17 +12,13 @@
 // See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
-//
-#pragma once
-namespace OpenSees {
-enum class DomainStatus: int {
-    Success = 0,
-    //
-    ElementFailedToConverge = -100,
-    SectionFailedToConverge = -200,
-    MaterialFailedToConverge = -300,
-    MaterialWrapperSingular = -500,
-    MaterialWrapperFailedToConverge = -600,
-    ElementSingular = -400,
-};
-}
+
+#include <array>
+#include <Parsing.h>
+class Element;
+class SectionForceDeformation;
+
+Element* CreatePlateQ4(TCL_Char *name,
+                       int tag,
+                       const std::array<int,4>& nodes,
+                       SectionForceDeformation& section);

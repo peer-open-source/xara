@@ -434,24 +434,6 @@ SparseGenColLinSOE::normRHS()
 
 
 int
-SparseGenColLinSOE::setSparseGenColSolver(SparseGenColLinSolver& newSolver)
-{
-  newSolver.setLinearSOE(*this);
-
-  if (size != 0) {
-    int solverOK = newSolver.setSize();
-    if (solverOK < 0) {
-      // opserr << "WARNING:SparseGenColLinSOE::setSolver :";
-      // opserr << "the new solver could not setSeize() - staying with old\n";
-      return -1;
-    }
-  }
-
-  return this->LinearSOE::setSolver(newSolver);
-}
-
-
-int
 SparseGenColLinSOE::sendSelf(int cTag, Channel& theChannel)
 {
   return 0;

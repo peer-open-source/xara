@@ -54,6 +54,9 @@ class DruckerPrager : public NDMaterial
   DruckerPrager();
   ~DruckerPrager();
 
+  NDMaterial *getCopy() override =0;
+  const char *getType() const override=0;
+  int getOrder() const override =0;
   NDMaterial *getCopy(const char *type);
   const char* getClassType() const { return "DruckerPrager"; }
   
@@ -65,9 +68,6 @@ class DruckerPrager : public NDMaterial
     return -1;
   }
   
-  NDMaterial *getCopy();
-  const char *getType() const;
-  int getOrder() const;
   
   Response *setResponse (const char **argv, int argc, OPS_Stream &output);
   int getResponse (int responseID, Information &matInformation);

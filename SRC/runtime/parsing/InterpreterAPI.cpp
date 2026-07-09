@@ -181,7 +181,9 @@ int OPS_GetDoubleListInput(int* size, Vector* data)
   for (int i = 0; i < *size; i++) {
       double value;
       if (Tcl_GetDouble(theInterp, strings[i], &value) != TCL_OK) {
-          opserr << "ERROR problem reading data value " << strings[i] << " \n";
+          opserr << OpenSees::PromptValueError 
+                 << "Invalid  data value " << strings[i] 
+                 << " \n";
           // free up the array of strings .. see tcl man pages as to why
           Tcl_Free((char*)strings);
           return -1;

@@ -45,21 +45,25 @@ DruckerPrager(tag, ND_TAG_DruckerPrager3D, bulk, shear, s_y, r, r_bar, Kinfinity
 
    
 //destructor
-DruckerPrager3D::~DruckerPrager3D( ) 
-{} 
+DruckerPrager3D::~DruckerPrager3D() 
+{
+
+} 
 
 
-NDMaterial* DruckerPrager3D::getCopy( ) 
+NDMaterial* 
+DruckerPrager3D::getCopy() 
 { 
   DruckerPrager3D  *clone;
-  clone = new DruckerPrager3D( ) ;   //new instance of this class
-  *clone = *this ;          //assignment to make copy
+  clone = new DruckerPrager3D() ;   // new instance of this class
+  *clone = *this ;          // assignment to make copy
   return clone ;
 }
 
 
 //send back type of material
-const char* DruckerPrager3D::getType( ) const 
+const char* 
+DruckerPrager3D::getType( ) const 
 {
   return "ThreeDimensional" ;
 }

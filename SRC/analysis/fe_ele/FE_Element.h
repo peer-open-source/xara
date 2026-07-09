@@ -94,6 +94,7 @@ class FE_Element: public TaggedObject
    
   protected:
     ID myDOF_Groups;
+
   private:
     int numDOF;
     AnalysisModel *theModel;

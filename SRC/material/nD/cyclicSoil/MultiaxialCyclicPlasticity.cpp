@@ -83,14 +83,13 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <string.h>
-#include <elementAPI.h>
 
 //parameters
-const double MultiaxialCyclicPlasticity :: one3   = 1.0 / 3.0 ;
-const double MultiaxialCyclicPlasticity :: two3   = 2.0 / 3.0 ;
-const double MultiaxialCyclicPlasticity :: four3  = 4.0 / 3.0 ;
-const double MultiaxialCyclicPlasticity :: root23 = sqrt( 2.0 / 3.0 ) ;
-const double MultiaxialCyclicPlasticity :: infinity  = 1.0e12;
+const double MultiaxialCyclicPlasticity::one3   = 1.0 / 3.0 ;
+const double MultiaxialCyclicPlasticity::two3   = 2.0 / 3.0 ;
+const double MultiaxialCyclicPlasticity::four3  = 4.0 / 3.0 ;
+const double MultiaxialCyclicPlasticity::root23 = sqrt( 2.0 / 3.0 ) ;
+const double MultiaxialCyclicPlasticity::infinity  = 1.0e12;
 
 double MultiaxialCyclicPlasticity::initialTangent[3][3][3][3] ;   //material tangent
 double MultiaxialCyclicPlasticity::IIdev[3][3][3][3] ; //rank 4 deviatoric 
@@ -100,6 +99,7 @@ int MultiaxialCyclicPlasticity::MaterialStageID = 2;   // classwide load stage t
                                                        // elasto-plastic by default
 int MultiaxialCyclicPlasticity::IncrFormulationFlag=1;
 
+#include <elementAPI.h>
 void * OPS_ADD_RUNTIME_VPV(OPS_MultiaxialCyclicPlasticity)
 {
     int numdata = OPS_GetNumRemainingInputArgs();
@@ -120,7 +120,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_MultiaxialCyclicPlasticity)
     data[9] = 0.0;
     numdata = OPS_GetNumRemainingInputArgs();
     if (numdata > 10) {
-	numdata = 10;
+		numdata = 10;
     }
     if (OPS_GetDoubleInput(&numdata,data)) {
 	opserr << "WARNING invalid MultiaxialCyclicPlasticity double inputs\n";
@@ -129,15 +129,15 @@ void * OPS_ADD_RUNTIME_VPV(OPS_MultiaxialCyclicPlasticity)
 
     NDMaterial* mat = new MultiaxialCyclicPlasticity(tag,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9]);
     if (mat == 0) {
-	opserr << "WARNING: failed to create Multiaxialcyclicplasticity material\n";
-	return 0;
+		opserr << "WARNING: failed to create Multiaxialcyclicplasticity material\n";
+		return 0;
     }
 
     return mat;
 }
 
 //zero internal variables
-void MultiaxialCyclicPlasticity :: initialize ( ) 
+void MultiaxialCyclicPlasticity::initialize ( ) 
 {
   stress.Zero();
   strain.Zero();
@@ -170,7 +170,7 @@ void MultiaxialCyclicPlasticity :: initialize ( )
 
 
 //null constructor
-MultiaxialCyclicPlasticity ::  MultiaxialCyclicPlasticity( ) : 
+MultiaxialCyclicPlasticity:: MultiaxialCyclicPlasticity( ) : 
 NDMaterial( ), stress(3,3), strain(3,3),
 stress_n(3,3), strain_n(3,3), backs(3,3), backs_n(3,3), so(3,3), so_n(3,3)
 { 
@@ -336,14 +336,14 @@ MultiaxialCyclicPlasticity::MultiaxialCyclicPlasticity(int    tag,
   IIdev [2][0] [2][0] = 0.5 ;
   IIdev [2][1] [1][2] = 0.5 ;
   IIdev [2][1] [2][1] = 0.5 ;
-  IIdev [2][2] [0][0] = -one3 ; //-0.333333 
+  IIdev [2][2] [0][0] = -one3 ; //-0.333333
   IIdev [2][2] [1][1] = -one3 ; //-0.333333 
   IIdev [2][2] [2][2] =  two3 ; // 0.666667 
 }
 
 
 //elastic constructor
-MultiaxialCyclicPlasticity :: 
+MultiaxialCyclicPlasticity::
 MultiaxialCyclicPlasticity(  int tag, int classTag, 
 			     double rho, double K, double G ) 
 :NDMaterial(tag, classTag),
@@ -416,12 +416,12 @@ backs(3,3), backs_n(3,3), so(3,3), so_n(3,3)
 
 
 //destructor
-MultiaxialCyclicPlasticity :: ~MultiaxialCyclicPlasticity( ) 
+MultiaxialCyclicPlasticity::~MultiaxialCyclicPlasticity( ) 
 {  } 
 
 
 NDMaterial*
-MultiaxialCyclicPlasticity :: getCopy (const char *type)
+MultiaxialCyclicPlasticity::getCopy (const char *type)
 {
     if (strcmp(type,"PlaneStress2D") == 0 || strcmp(type,"PlaneStress") == 0)
     {
@@ -463,25 +463,42 @@ MultiaxialCyclicPlasticity :: getCopy (const char *type)
 }
 
 //print out material data
-void MultiaxialCyclicPlasticity :: Print( OPS_Stream &s, int flag )
+void MultiaxialCyclicPlasticity::Print( OPS_Stream &s, int flag )
 {
-  s << endln ;
-  s << "MultiaxialCyclicPlasticity : " ; 
-  s << this->getType( )  << endln ;
-  s << "K    =   " << bulk        << endln ;
-  s << "Gmax =   " << shear       << endln ;
-  s << "Rho  =   " << density     << endln ;
-  s << "R    =   " << R           << endln ;
-  s << "Ho   =   " << Ho          << endln ;
-  s << "h    =   " << h           << endln ;
-  s << "m    =   " << m           << endln ;
-  s << "beta =   " << beta        << endln ;
-  s << "eta  =   " << eta         << endln ;
-  s << endln ;
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
+		s << "\"name\": " << this->getTag() << ", ";
+		s << "\"type\": \"" << this->getClassType() << "\", ";
+		s << "\"G\": " << shear << ", ";
+		s << "\"K\": " << bulk << ", ";
+		s << "\"Su\": " << std::sqrt(3.0/8.0)*R << ", ";
+		s << "\"density\": " << density << ", ";
+		s << "\"H\": " << h << ", ";
+		s << "\"m\": " << m << ", ";
+		s << "\"Ho\": " << Ho << ", ";
+		s << "\"eta\": " << eta << ", ";
+		s << "\"beta\": " << beta;
+		s << "}";
+	}
+	else {
+		s << "\n" ;
+		s << "MultiaxialCyclicPlasticity : " ; 
+		s << this->getType( )  << "\n" ;
+		s << "K    =   " << bulk        << "\n" ;
+		s << "Gmax =   " << shear       << "\n" ;
+		s << "Rho  =   " << density     << "\n" ;
+		s << "R    =   " << R           << "\n" ;
+		s << "Ho   =   " << Ho          << "\n" ;
+		s << "h    =   " << h           << "\n" ;
+		s << "m    =   " << m           << "\n" ;
+		s << "beta =   " << beta        << "\n" ;
+		s << "eta  =   " << eta         << "\n" ;
+		s << "\n" ;
+	}
 }
 
 
-void MultiaxialCyclicPlasticity :: elastic_integrator( )
+void MultiaxialCyclicPlasticity::elastic_integrator()
 {
   static Matrix dev_strain(3,3) ; //deviatoric strain  
 
@@ -497,22 +514,21 @@ void MultiaxialCyclicPlasticity :: elastic_integrator( )
 
 
   if (IncrFormulationFlag==0){
+    trace = strain(0,0) + strain(1,1) + strain(2,2) ;
+    
+    //compute the deviatoric strains
+    dev_strain = strain ;
 
-  trace = strain(0,0) + strain(1,1) + strain(2,2) ;
-  
-  //compute the deviatoric strains
-  dev_strain = strain ;
+    for (int i = 0; i < 3; i++ )
+    dev_strain(i,i) -= ( one3*trace ) ;
 
-  for ( i = 0; i < 3; i++ )
-   dev_strain(i,i) -= ( one3*trace ) ;
-
-  //compute the trial deviatoric stresses
-  dev_stress = dev_strain;
-  dev_stress *= 2.0 * shear_K0;	
-  
-  // compute the trial pressure    
-  pressure   = trace ;
-  pressure  *= bulk_K0 ;						 
+    //compute the trial deviatoric stresses
+    dev_stress = dev_strain;
+    dev_stress *= 2.0 * shear_K0;	
+    
+    // compute the trial pressure    
+    pressure   = trace ;
+    pressure  *= bulk_K0 ;						 
   }
 
   static Matrix IncrStrain(3,3);
@@ -521,40 +537,38 @@ void MultiaxialCyclicPlasticity :: elastic_integrator( )
 
   static double pressure_n;
 
-  if (IncrFormulationFlag==1){
-   
-	  
-  // opserr<<"DP::elasticintegrator:stress_n"<<stress_n;
-  // opserr<<"DP::elasticintegrator:strain_n"<<strain_n;
+  if (IncrFormulationFlag==1) {
 
-  IncrStrain = strain;
-  IncrStrain -= strain_n ;
+    IncrStrain = strain;
+    IncrStrain -= strain_n ;
 
-  trace = IncrStrain(0,0) + IncrStrain(1,1) + IncrStrain(2,2) ;
+    trace = IncrStrain(0,0) + IncrStrain(1,1) + IncrStrain(2,2) ;
 
-  dev_strain = IncrStrain ;
-  for ( i = 0; i < 3; i++ )  dev_strain(i,i) -= ( one3*trace ) ;
- 
-  pressure_n  = one3 * (stress_n(0,0)+stress_n(1,1)+stress_n(2,2));
+    dev_strain = IncrStrain ;
+    for ( i = 0; i < 3; i++ ) 
+      dev_strain(i,i) -= ( one3*trace ) ;
   
-  DevStress_n = stress_n ;
-  
-  for ( i = 0; i < 3; i++ )  DevStress_n(i,i) -= pressure_n ;
+    pressure_n  = one3 * (stress_n(0,0)+stress_n(1,1)+stress_n(2,2));
+    
+    DevStress_n = stress_n ;
+    
+    for ( i = 0; i < 3; i++ )
+      DevStress_n(i,i) -= pressure_n ;
 
-  // Delta_S = 2*shear*Delta_e
-  // Delta_p = bulk * Delta_theta
-  
-  // incremental formulation, NOTE: now dev_strain and trace are INCREMENTAL strains
+    // Delta_S = 2*shear*Delta_e
+    // Delta_p = bulk * Delta_theta
+    
+    // incremental formulation, NOTE: now dev_strain and trace are INCREMENTAL strains
 
-  dev_stress = dev_strain;
-  dev_stress *= 2.0 * shear_K0;
-  dev_stress += DevStress_n;
-  
-  pressure = trace;
-  pressure *= bulk_K0;
-  pressure += pressure_n;
+    dev_stress = dev_strain;
+    dev_stress *= 2.0 * shear_K0;
+    dev_stress += DevStress_n;
+    
+    pressure = trace;
+    pressure *= bulk_K0;
+    pressure += pressure_n;
 
-  }  
+  }
   
   // add on bulk part of stress, compute TOTAL stress at t=n+1
 
@@ -593,7 +607,7 @@ void MultiaxialCyclicPlasticity :: elastic_integrator( )
 
 
 // set up for initial elastic
-void MultiaxialCyclicPlasticity :: doInitialTangent( )
+void MultiaxialCyclicPlasticity::doInitialTangent( )
 {
   int ii,jj,i,j,k,l;
 
@@ -622,7 +636,7 @@ void MultiaxialCyclicPlasticity :: doInitialTangent( )
 
 
 //matrix_index ---> tensor indices i,j
-void MultiaxialCyclicPlasticity :: index_map( int matrix_index, int &i, int &j )
+void MultiaxialCyclicPlasticity::index_map( int matrix_index, int &i, int &j )
 {
   switch ( matrix_index+1 ) { //add 1 for standard tensor indices
 

@@ -82,7 +82,8 @@ NDMaterial* CycLiqCP3D :: getCopy( )
 
 
 //send back type of material
-const char* CycLiqCP3D :: getType( ) const 
+const char* 
+CycLiqCP3D::getType( ) const 
 {
   return "ThreeDimensional" ;
 }

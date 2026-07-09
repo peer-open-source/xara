@@ -44,7 +44,7 @@ BeamFiberMaterial2dPS::BeamFiberMaterial2dPS(void)
   :NDMaterial(0, ND_TAG_BeamFiberMaterial2dPS),
    Tstrain22(0.0), Cstrain22(0.0), theMaterial(0), strain(2)
 {
-        // Nothing to do
+  // Nothing to do
 }
 
 BeamFiberMaterial2dPS::BeamFiberMaterial2dPS(int tag, NDMaterial &theMat)
@@ -61,14 +61,14 @@ BeamFiberMaterial2dPS::BeamFiberMaterial2dPS(int tag, NDMaterial &theMat)
   }
 }
 
-BeamFiberMaterial2dPS::~BeamFiberMaterial2dPS(void) 
+BeamFiberMaterial2dPS::~BeamFiberMaterial2dPS() 
 { 
   if (theMaterial != 0)
     delete theMaterial;
 } 
 
 NDMaterial*
-BeamFiberMaterial2dPS::getCopy(void) 
+BeamFiberMaterial2dPS::getCopy() 
 {
   BeamFiberMaterial2dPS *theCopy =
     new BeamFiberMaterial2dPS(this->getTag(), *theMaterial);
@@ -89,19 +89,19 @@ BeamFiberMaterial2dPS::getCopy(const char *type)
 }
 
 int 
-BeamFiberMaterial2dPS::getOrder(void) const
+BeamFiberMaterial2dPS::getOrder() const
 {
   return 2;
 }
 
 const char*
-BeamFiberMaterial2dPS::getType(void) const 
+BeamFiberMaterial2dPS::getType() const 
 {
   return "BeamFiber2d";
 }
 
 int 
-BeamFiberMaterial2dPS::commitState(void)
+BeamFiberMaterial2dPS::commitState()
 {
   Cstrain22 = Tstrain22;
 
@@ -109,7 +109,7 @@ BeamFiberMaterial2dPS::commitState(void)
 }
 
 int 
-BeamFiberMaterial2dPS::revertToLastCommit(void)
+BeamFiberMaterial2dPS::revertToLastCommit()
 {
   Tstrain22 = Cstrain22;
   
@@ -128,7 +128,7 @@ BeamFiberMaterial2dPS::revertToStart()
 }
 
 double
-BeamFiberMaterial2dPS::getRho(void)
+BeamFiberMaterial2dPS::getRho()
 {
   return theMaterial->getRho();
 }

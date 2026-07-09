@@ -69,6 +69,7 @@ removeObject(ClientData clientData, Tcl_Interp *interp, int argc,
     opserr << "WARNING want - remove objectType?\n";
     return TCL_ERROR;
   }
+
   const char* remove_type = Tcl_GetString(objv[1]);
 
   int tag;
@@ -85,6 +86,9 @@ removeObject(ClientData clientData, Tcl_Interp *interp, int argc,
       return TCL_ERROR;
     }
     Element *theEle = the_domain->removeElement(tag);
+    
+    opserr << "remove Element is currently not available\n";
+    return TCL_ERROR;
     if (theEle != nullptr) {
 #if 0
       // we also have to remove any elemental loads from the domain
@@ -134,9 +138,15 @@ removeObject(ClientData clientData, Tcl_Interp *interp, int argc,
       delete thePattern;
     }
   }
-#if 0
   else if ((strcmp(remove_type, "TimeSeries") == 0) ||
            (strcmp(remove_type, "timeSeries") == 0)) {
+#if 1
+    opserr << OpenSees::PromptValueError
+           << "removing TimeSeries is no longer supported due to inherent "
+           << "memory bugs"
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+#else
     if (argc < 3) {
       opserr << "WARNING want - remove loadPattern patternTag?\n";
       return TCL_ERROR;
@@ -151,8 +161,9 @@ removeObject(ClientData clientData, Tcl_Interp *interp, int argc,
       return TCL_OK;
     else
       return TCL_ERROR;
-  }
 #endif
+  }
+
   else if (strcmp(remove_type, "parameter") == 0) {
     if (argc < 3) {
       opserr << "WARNING want - remove parameter paramTag?\n";

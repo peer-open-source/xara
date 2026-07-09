@@ -36,6 +36,7 @@
 #include <Matrix3D.h>
 #include <Cholesky.tpp>
 #include <cmath>
+#include <domain/DomainStatus.h>
 using namespace OpenSees;
 
 //      0  1  2  3  4  5
@@ -65,6 +66,7 @@ BeamFiberMaterial::~BeamFiberMaterial()
   if (theMaterial != nullptr)
     delete theMaterial;
 } 
+
 
 NDMaterial*
 BeamFiberMaterial::getCopy() 
@@ -175,8 +177,9 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
     threeDstrain(4) = this->Tgamma23;  // 
     threeDstrain(5) = this->strain(2);
 
-    if (theMaterial->setTrialStrain(threeDstrain) < 0)
-      return -1;
+    int m_status = theMaterial->setTrialStrain(threeDstrain);
+    if (m_status != 0)
+      return static_cast<int>(m_status);
 
     // three dimensional stress
     const Vector &threeDstress = theMaterial->getStress();
@@ -185,7 +188,7 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
     const Matrix &Duu = theMaterial->getTangent();
 
     // NDmaterial strain order        = 11, 22, 33, 12, 23, 31  
-    // BeamFiberMaterial strain order = 11, 12, 31, 22, 33, 23
+    // BeamFiberMaterial strain order = 11, 12, 31, [22, 33, 23]
 
     condensedStress(0) = threeDstress(1);
     condensedStress(1) = threeDstress(2);
@@ -209,12 +212,8 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
       norm0 = norm;
 
     // condensation
-    Cholesky<3,true> chol(dd22);
-    if (chol.solve(&condensedStress[0], &strainIncrement[0]) < 0) [[unlikely]] {
-      if (dd22.solve(condensedStress, strainIncrement) < 0) {
-        opserr << "could not solve for strain increment\n";
-        return -1;
-      }
+    if (dd22.rsolve(condensedStress, strainIncrement) != 0) {
+      return static_cast<int>(DomainStatus::MaterialWrapperSingular);
     }
 
     this->Tstrain22 -= strainIncrement(0);
@@ -224,9 +223,9 @@ BeamFiberMaterial::setTrialStrain(const Vector &strainFromElement)
   } while ((count++ < maxCount) && (norm > tolerance));
 
   if (norm > tolerance && norm0 > 0.0) {
-    opserr << "BeamFiberMaterial::setTrialStrain -- did not converge after ";
-    opserr << maxCount << " iterations, norm: " << norm << endln;
-    return -1;
+    // opserr << "BeamFiberMaterial::setTrialStrain -- did not converge after ";
+    // opserr << maxCount << " iterations, norm: " << norm << "\n";
+    return static_cast<int>(DomainStatus::MaterialWrapperFailedToConverge);
   }
 
   return 0;
@@ -301,7 +300,7 @@ BeamFiberMaterial::getStressSensitivity(int gradIndex,
   sigma2(2) = threeDstress(4);
 
   VectorND<3> dd22sigma2{};
-  dd22.solve(sigma2,dd22sigma2);
+  dd22.rsolve(sigma2,dd22sigma2);
 
   stress.addMatrixVector(1.0, dd12, dd22sigma2, -1.0);
 
@@ -367,19 +366,17 @@ BeamFiberMaterial::getTangent()
     dd21(1,2) = D(2,5);
     dd21(2,2) = D(4,5);
 
-    //int Solve(const Vector &V, Vector &res) const;
-    //int Solve(const Matrix &M, Matrix &res) const;
-    //condensation
-    Cholesky<3, true> chol(dd22);
-    Matrix3D d22inv;
-    if (chol.invert(d22inv) < 0) [[unlikely]] {
+    // condensation
+    // Cholesky<3, true> chol(dd22);
+    // Matrix3D d22inv;
+    // if (chol.invert(d22inv) < 0) [[unlikely]] {
       if (dd22.solve(dd21, dd22invdd21) < 0) {
-        opserr << "could not solve material tangent\n";
+        // opserr << "could not solve material tangent\n";
       }
-    }
-    else {
-      dd22invdd21 = d22inv * dd21;
-    }
+    // }
+    // else {
+    //   dd22invdd21 = d22inv * dd21;
+    // }
   }
 
   //this->tangent   = dd11; 
@@ -468,10 +465,27 @@ BeamFiberMaterial::getInitialTangent()
   return tangent;
 }
 
+
+Response*
+BeamFiberMaterial::setResponse(const char **argv, int argc, OPS_Stream &output)
+{
+  Response* res = NDMaterial::setResponse(argv, argc, output);
+  if (res != nullptr)
+    return res;
+  
+  return theMaterial->setResponse(argv, argc, output);
+}
+
+int 
+BeamFiberMaterial::getResponse(int responseID, Information &info)
+{
+  // Responses from theMaterial won't pass through this method
+  return this->NDMaterial::getResponse(responseID, info);
+}
+
 void  
 BeamFiberMaterial::Print(OPS_Stream &s, int flag)
 {
-
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": \"" << this->getTag() << "\", ";

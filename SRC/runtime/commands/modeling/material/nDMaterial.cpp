@@ -1011,6 +1011,10 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
 
   // start Yuli Huang & Xinzheng Lu PlaneStressUserMaterial
   else if (strcmp(argv[1], "PlaneStressUserMaterial") == 0) {
+    {
+      opserr << "PSUMAT - NOT DEFINED IN THIS VERSION, SOURCE CODE RESTRICTED\n";
+      return TCL_ERROR;
+    }
     if (argc < 6) {
       opserr << "WARNING insufficient arguments\n";
       opserr << "Want: nDMaterial PlaneStressUserMaterial tag? nstatevs? "

@@ -15,7 +15,7 @@
 //
 #define ALLOW_IMPLICIT_MATRIX
 #include "frames.hpp"
-#include <for_int.tpp>
+#include <utility/Unroll.h>
 #include <MixedFrame3d02.h>
 
 
@@ -32,10 +32,10 @@ CreateMixedFrame(int tag,
 
   Element* element = nullptr;
 
-  static_loop<0, 2>([&](auto nwm) constexpr {
+  Unroll<0, 2>([&](auto nwm) constexpr {
     if (nwm.value + 6 == ndf) {
       if (!options.shear_flag) {
-        static_loop<2,MAX_NIP>([&](auto nip) constexpr {
+        Unroll<2,MAX_NIP>([&](auto nip) constexpr {
           if (nip.value == sections.size())
             element = new MixedFrame3d02<nip.value, 4+nwm.value*2, nwm.value, 0>(tag, 
                                           nodes,
@@ -48,7 +48,7 @@ CreateMixedFrame(int tag,
           });
       }
       else {
-        static_loop<2,MAX_NIP>([&](auto nip) constexpr {
+        Unroll<2,MAX_NIP>([&](auto nip) constexpr {
           if (nip.value == sections.size())
             element = new MixedFrame3d02<nip.value, 6+nwm.value*2, nwm.value, 1>(tag, 
                                           nodes,

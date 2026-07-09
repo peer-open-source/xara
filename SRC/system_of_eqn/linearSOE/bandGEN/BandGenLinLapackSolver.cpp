@@ -47,13 +47,13 @@ BandGenLinLapackSolver::~BandGenLinLapackSolver()
 }
 
 static inline double *
-index(double* A, int kl, int ku, int i, int j)
+index_band(double* A, int kl, int ku, int i, int j)
 {
   int ldA = 2*kl + ku + 1;
   double *coliiptr = A + j*ldA + kl + ku;
   int diff = j - i;
   if (diff > 0 && diff <= ku) {
-      return coliiptr - diff;
+    return coliiptr - diff;
   } else {
     diff *= -1;
     if (diff <= kl) {
@@ -73,7 +73,9 @@ BandGenLinLapackSolver::setDeterminant()
 
   det = 1.0;
   for (int i=0; i < theSOE->size; i++) {
-    det *= *index(theSOE->A, kl, ku, i, i);
+    double *Aij;
+    if ((Aij = index_band(theSOE->A, kl, ku, i, i)))
+      det *= *Aij;
   }
 
   for (int i=0; i < iPivSize; i++)

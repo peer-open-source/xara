@@ -92,7 +92,7 @@ static struct {
   {"setCreep",            &TclCommand_setCreep},
 
   // DAMPING
-  {"rayleigh",            &rayleighDamping},
+  {"rayleigh",            &TclCommand_rayleighDamping},
   
   {"getLoadFactor",       &getLoadFactor},
 
@@ -140,7 +140,17 @@ static struct {
   {"getEleLoadTags",      &getEleLoadTags},
   {"getEleLoadData",      &getEleLoadData},
   {"getEleLoadClassTags", &getEleLoadClassTags},
-
+  // Element response
+  {"localForce",          &OpenSees::DomainCommands::localForce         },
+  {"eleType",             &OpenSees::DomainCommands::eleType,           },
+  {"eleNodes",            &OpenSees::DomainCommands::eleNodes,          },
+  {"getEleTags",          &OpenSees::DomainCommands::getEleTags,        },
+  {"getNumElements",      &OpenSees::DomainCommands::getNumElements,    },
+  {"getEleClassTags",     &OpenSees::DomainCommands::getEleClassTags,   },
+  {"eleForce",            &OpenSees::DomainCommands::eleForce,          },
+  {"eleResponse",         &OpenSees::DomainCommands::eleResponse,       },
+  {"eleDynamicalForce",   &OpenSees::DomainCommands::eleDynamicalForce, },
+  {"updateElementDomain", &OpenSees::DomainCommands::updateElementDomain},
 
   {"sectionForce",        &sectionForce},
   {"sectionTag",          &sectionTag},
@@ -151,6 +161,7 @@ static struct {
   {"sectionLocation",     &sectionLocation},
   {"sectionWeight",       &sectionWeight},
 
+  // Recorders
   {"recorderValue",       &OPS_recorderValue},
   {"record",              &TclCommand_record},
 
@@ -159,8 +170,30 @@ static struct {
 }
 
 
+static int 
+TclCommand_BadDomainCommand(ClientData, Tcl_Interp* interp, 
+                            Tcl_Size argc, 
+                            TCL_Char** const argv)
+{
+  opserr << OpenSees::PromptModelError
+         << "The model does not exist or has been destroyed."
+         << OpenSees::SignalMessageEnd;
+  return TCL_ERROR;
+}
+
+
 int
-G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
+RemoveTclDomainCommands(Tcl_Interp* interp)
+{
+  for (size_t i = 0; i < sizeof(domainCommands) / sizeof(domainCommands[0]); ++i) {
+    // Tcl_DeleteCommand(interp, domainCommands[i].name);
+    Tcl_CreateCommand(interp, domainCommands[i].name,  &TclCommand_BadDomainCommand, nullptr, nullptr);
+  }
+  return 0;
+}
+
+int
+AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 {
 
   ClientData domain = (ClientData)the_domain;
@@ -176,17 +209,6 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
     Tcl_CreateObjCommand(interp, "remove",              &removeObject,        domain, nullptr);
     Tcl_CreateCommand(interp,    "retainedNodes",       &retainedNodes,       domain, nullptr);
     Tcl_CreateCommand(interp,    "retainedDOFs",        &retainedDOFs,        domain, nullptr);
-    // Elements
-    Tcl_CreateCommand(interp, "localForce",          &localForce,    domain, nullptr);
-    Tcl_CreateCommand(interp, "eleType",             &eleType,       domain, nullptr);
-    Tcl_CreateCommand(interp, "eleNodes",            &eleNodes,            domain, nullptr);
-    Tcl_CreateCommand(interp, "getEleTags",          &getEleTags,          domain, nullptr);
-    Tcl_CreateCommand(interp, "getNumElements",      &getNumElements,      domain, nullptr);
-    Tcl_CreateCommand(interp, "getEleClassTags",     &getEleClassTags,     domain, nullptr);
-    Tcl_CreateCommand(interp, "eleForce",            &eleForce,            domain, nullptr);
-    Tcl_CreateCommand(interp, "eleResponse",         &eleResponse,         domain, nullptr);
-    Tcl_CreateCommand(interp, "eleDynamicalForce",   &eleDynamicalForce,   domain, nullptr);
-    Tcl_CreateCommand(interp, "updateElementDomain", &updateElementDomain, nullptr, nullptr);
     // damping
     Tcl_CreateCommand(interp, "setElementRayleighDampingFactors", &addElementRayleigh, domain, nullptr);
     Tcl_CreateCommand(interp, "setElementRayleighFactors",        &addElementRayleigh, domain, nullptr);
@@ -196,7 +218,8 @@ G3_AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 
   for (size_t i = 0; i < sizeof(domainCommands) / sizeof(domainCommands[0]); ++i) {
     Tcl_CreateCommand(interp, domainCommands[i].name,
-                      domainCommands[i].func, domain, nullptr);
+                      domainCommands[i].func, 
+                      domain, nullptr);
   }
 
   // sensitivity
@@ -320,7 +343,7 @@ InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 }
 
 int
-rayleighDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+TclCommand_rayleighDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                 TCL_Char ** const argv)
 {
   //
