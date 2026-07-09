@@ -18,11 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 
-// $Revision: 1.5 $
-// $Date: 2009-05-11 20:57:49 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/sparseGEN/SparseGenColLinSOE.h,v $
-
-
 #ifndef SparseGenColLinSOE_h
 #define SparseGenColLinSOE_h
 
@@ -66,9 +61,7 @@ public:
 
   virtual void setX(int loc, double value);
   virtual void setX(const Vector& x);
-#if 0
-  virtual int setSparseGenColSolver(SparseGenColLinSolver& newSolver);
-#endif
+
   virtual int sendSelf(int commitTag, Channel& theChannel);
   virtual int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
 #ifdef _PARALLEL_PROCESSING
