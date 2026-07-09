@@ -1,0 +1,46 @@
+"""
+Created on Wed Jul 1 2020
+@author: vanin
+"""
+
+###############################################
+Procedure executed on virtual machine with next configuration:
+LSB Version:	no LSB modules available
+Distributor ID:	Ubuntu
+Description:	Ubuntu 20.04 LTS
+Release:	20.04
+Codename:	focal
+user_name: osboxes
+###############################################
+
+STEP 1: Download and configuring Opensees
+1. Checking out the prerequisites:
+sudo apt-get install make tcl8.6 tcl8.6-dev gcc g++ gfortran python3-dev
+
+2. Download OpenSees source from: https://github.com/eesd-epfl/OpenSees. Place it in /home/user_name ("Home" directory)
+
+3. Create (if not existing yet) bin and lib folders in “home user” directory. Ex: /home/user_name/bin, /home/user_name/lib
+
+4. Extract “OpenSees-master.zip” in “Home” directory and rename it to “OpenSees” 
+
+5a. If using the tools only with external libraries, go to DEVELOPER and open Makefile, delete line 23 and save.
+    Execute "make" in the DEVELOPER folder and copy the libraries in the element/cpp/Macroelement3d/Macroelement3d and material/cpp folders. Following steps are not necessary.
+    Consider that section types cannot be used as external libraries. 
+
+5. If instead all tools are needed, including section models (OrthotropicMembraneSection, NoTensionSection3d) the executable has to be rebuilt. 
+   Go inside OpenSees source, in folder “MAKES” open “Makefile.def.EC2-UBUNTU” file.
+
+6. Modify it to add the developer libraries to the compiled version:
+   -  line 90: change path to "/usr/local"
+   -  line 91: change path to "/home/user_name" (change user_name to the actual user name)
+   -  add new line after line 103: "DEVdir       = $(HOME)/OpenSees/DEVELOPER"
+   -  in what is now line 108, after "$(SRCdir)" add " $(DEVdir) "
+   -  save file
+   
+7. Compiling: Open terminal being in "OpenSees” folder. Execute “cp ./MAKES/Makefile.def.EC2-UBUNTU ./Makefile.def”. Execute then “make”. 
+   The libraries in the DEVELOPER folder will be linked to the main SRC code. It has to be used with the SRC folder from the repository https://github.com/eesd-epfl/OpenSees, which includes in section, element and material 
+   Tcl commands the references to the added libraries (linked in SRC/Makefile.incl and added to the main FE library through in line 23 of the DEVELOPER Makefile)
+
+8. After compiling, a binary file called “OpenSees” is created in “bin” folder (created in step 3). 
+
+
