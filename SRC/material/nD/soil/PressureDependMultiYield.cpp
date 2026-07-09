@@ -892,7 +892,7 @@ PressureDependMultiYield::getCopy (const char *code)
 }
 
 const char *
-PressureDependMultiYield::getType (void) const
+PressureDependMultiYield::getType() const
 {
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 2;
@@ -901,7 +901,7 @@ PressureDependMultiYield::getType (void) const
 }
 
 int
-PressureDependMultiYield::getOrder (void) const
+PressureDependMultiYield::getOrder() const
 {
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 2;
