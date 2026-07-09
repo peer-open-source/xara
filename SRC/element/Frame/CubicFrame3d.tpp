@@ -1006,7 +1006,7 @@ CubicFrame3d<shear,nwm>::setResponse(const char** argv, int argc, OPS_Stream& ou
   // section response
   else if (strcmp(argv[0], "sectionX") == 0) {
     if (argc > 2) {
-      float sectionLoc = atof(argv[1]);
+      double sectionLoc = atof(argv[1]);
 
       double xi[maxNumSections];
       double L = theCoordTransf->getInitialLength();
@@ -1014,7 +1014,7 @@ CubicFrame3d<shear,nwm>::setResponse(const char** argv, int argc, OPS_Stream& ou
 
       sectionLoc /= L;
 
-      float minDistance = fabs(xi[0] - sectionLoc);
+      double minDistance = fabs(xi[0] - sectionLoc);
       int sectionNum    = 0;
       for (int i = 1; i < numSections; i++) {
         if (fabs(xi[i] - sectionLoc) < minDistance) {

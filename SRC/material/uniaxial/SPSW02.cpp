@@ -48,19 +48,20 @@
 #define OPS_Export extern "C"
 #endif
 
-static int numSPSWcall = 0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_SPSW02)
 {
+    static int numSPSWcall = 0;
 	if (numSPSWcall == 0) {
-		opserr << "------ SPSW02 unaxialMaterial, Written by SAJalali @ Amirkabir University of Technology, Tehran, 2015-------\n";
-		opserr << "------------------------------ Please Send Comments to: seyyed-jalali@aut.ac.ir-----------------------------\n";
-		opserr<<  "-------Syntax:\n";
-		opserr<<  "-------UniaxialMaterial SPSW02 tag ";
-		opserr<<  "-------E0 b <-geom Fpy t h l> <-params Fts Fcs cmpUnldngEFac sigTEFac sigTFfac epsTFfac> -R $R -Damage epsPCFac pstCapEFac gama c resFac\n\n";
-		opserr << "------------------------------------------------------------------------------------------------------------\n\n\n";
-			numSPSWcall = 1;
+		opslog << "------ SPSW02 unaxialMaterial, Written by SAJalali @ Amirkabir University of Technology, Tehran, 2015-------\n";
+		opslog << "------------------------------ Please Send Comments to: seyyed-jalali@aut.ac.ir-----------------------------\n";
+		opslog <<  "-------Syntax:\n";
+		opslog <<  "-------UniaxialMaterial SPSW02 tag ";
+		opslog <<  "-------E0 b <-geom Fpy t h l> <-params Fts Fcs cmpUnldngEFac sigTEFac sigTFfac epsTFfac> -R $R -Damage epsPCFac pstCapEFac gama c resFac\n\n";
+		opslog << "------------------------------------------------------------------------------------------------------------\n\n\n";
+		numSPSWcall = 1;
 	}
+
 	int tag;
 	double fpy, E0,  b, t, hs, R, l, gama, c, epsPCFac, pstCapEFac, resFac;
 	double Fts, Fcs, cmpUnldngEFac, sigTEFac, sigTFfac, epsTFfac;
@@ -72,21 +73,18 @@ void * OPS_ADD_RUNTIME_VPV(OPS_SPSW02)
 	int curArg = 2;
 	if (OPS_GetIntInput(&numData, &tag) != 0) {
 		opserr << "WARNING invalid -tag";
-		opserr << "uniaxialMaterial SPSW02: " << tag << endln;
 		return 0;
 	}
 	curArg ++;
 
 	if (OPS_GetDoubleInput (&numData, &E0) != 0) {
 		opserr << "WARNING invalid -E0";
-		opserr << "uniaxialMaterial SPSW02: " << tag << endln;
 		return 0;
 	}
 	curArg ++;
 
 	if (OPS_GetDoubleInput (&numData, &b) != 0) {
-		opserr << "WARNING invalid -b";
-		opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+		opserr << "WARNING invalid -b\n";
 		return 0;
 	}
 	curArg ++;
@@ -97,85 +95,74 @@ void * OPS_ADD_RUNTIME_VPV(OPS_SPSW02)
 	if (strcmp(str , "-geom") == 0)
 	{
 		if (OPS_GetDoubleInput (&numData, &fpy) != 0) {
-			opserr << "WARNING invalid -Fts";
-			opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+			opserr << "WARNING invalid -Fts" << OpenSees::SignalMessageEnd;
 			return 0;
 		}
 		curArg ++;
 
 		if (OPS_GetDoubleInput (&numData, &t) != 0) {
-			opserr << "WARNING invalid -t";
-			opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+			opserr << "WARNING invalid -t" << OpenSees::SignalMessageEnd;
 			return 0;
 		}
 		curArg ++;
 
 		if (OPS_GetDoubleInput (&numData, &hs) != 0) {
-			opserr << "WARNING invalid -h";
-			opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+			opserr << "WARNING invalid -h" << OpenSees::SignalMessageEnd;
 			return 0;
 		}
 		curArg ++;
 
 		if (OPS_GetDoubleInput (&numData, &l) != 0) {
-			opserr << "WARNING invalid -l";
-			opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+			opserr << "WARNING invalid -l" << OpenSees::SignalMessageEnd;
 			return 0;
 		}
 		curArg ++;
-	} else if (strcmp(str , "-params") == 0) {
+	}
+	else if (strcmp(str , "-params") == 0) {
 		paramsSet = true;
 		//Fts, Fcs, cmpUnldngEFac, sigTEFac, sigTFfac, epsTFfac
 		if (OPS_GetDoubleInput (&numData, &Fts) != 0) {
-			opserr << "WARNING invalid Fts";
-			opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+			opserr << "WARNING invalid Fts" << OpenSees::SignalMessageEnd;
 			return 0;
 		}
 		curArg ++;
 
 		if (OPS_GetDoubleInput (&numData, &Fcs) != 0) {
-			opserr << "WARNING invalid Fcs";
-			opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+			opserr << "WARNING invalid Fcs" << OpenSees::SignalMessageEnd;
 			return 0;
 		}
 		curArg ++;
 
 		if (OPS_GetDoubleInput (&numData, &cmpUnldngEFac) != 0) {
-			opserr << "WARNING invalid cmpUnldngEFac";
-			opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+			opserr << "WARNING invalid cmpUnldngEFac" << OpenSees::SignalMessageEnd;
 			return 0;
 		}
 		curArg ++;
 
 		if (OPS_GetDoubleInput (&numData, &sigTEFac) != 0) {
-			opserr << "WARNING invalid sigTEFac";
-			opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+			opserr << "WARNING invalid sigTEFac" << OpenSees::SignalMessageEnd;
 			return 0;
 		}
 		curArg ++;
 
 		if (OPS_GetDoubleInput (&numData, &sigTFfac) != 0) {
-			opserr << "WARNING invalid sigTFfac";
-			opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+			opserr << "WARNING invalid sigTFfac" << OpenSees::SignalMessageEnd;
 			return 0;
 		}
 		curArg ++;
 
 		if (OPS_GetDoubleInput (&numData, &epsTFfac) != 0) {
-			opserr << "WARNING invalid epsTFfac";
-			opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+			opserr << "WARNING invalid epsTFfac" << OpenSees::SignalMessageEnd;
 			return 0;
 		}
 		curArg ++;
 	}
 	if (fpy == 0 && !paramsSet) {
-		opserr << "WARNING at least one of -params or -geom options must be provided";
-		opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+		opserr << "WARNING at least one of -params or -geom options must be provided" << OpenSees::SignalMessageEnd;
 		return 0;
 	}
 	if (fpy != 0 && paramsSet) {
-		opserr << "WARNING both -params and -geom options cannot be used at the same time";
-		opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+		opserr << "WARNING both -params and -geom options cannot be used at the same time" << OpenSees::SignalMessageEnd;
 		return 0;
 	}
 	R = 50;
@@ -210,36 +197,31 @@ void * OPS_ADD_RUNTIME_VPV(OPS_SPSW02)
 		if (strcmp(str , "-Damage") == 0 || strcmp(str , "-damage") == 0)
 		{
 			if (OPS_GetDoubleInput (&numData, &epsPCFac) != 0) {
-				opserr << "WARNING invalid -epsPCFac";
-				opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+				opserr << "WARNING invalid -epsPCFac" << OpenSees::SignalMessageEnd;
 				return 0;
 			}
 			curArg++;
 	
 			if (OPS_GetDoubleInput (&numData, &pstCapEFac) != 0) {
-				opserr << "WARNING invalid -pstCapEFac";
-				opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+				opserr << "WARNING invalid -pstCapEFac" << OpenSees::SignalMessageEnd;
 				return 0;
 			}
 			curArg++;
 	
 			if (OPS_GetDoubleInput (&numData, &gama) != 0) {
-				opserr << "WARNING invalid -gama";
-				opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+				opserr << "WARNING invalid -gama" << OpenSees::SignalMessageEnd;
 				return 0;
 			}
 			curArg++;
 	
 			if (OPS_GetDoubleInput (&numData, &c) != 0) {
-				opserr << "WARNING invalid -c";
-				opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+				opserr << "WARNING invalid -c" << OpenSees::SignalMessageEnd;
 				return 0;
 			}
 			curArg++;
 	
 			if (OPS_GetDoubleInput (&numData, &resFac) != 0) {
-				opserr << "WARNING invalid -resFac";
-				opserr << "uniaxialMaterial SPSW02: " << tag << endln;
+				opserr << "WARNING invalid -resFac" << OpenSees::SignalMessageEnd;
 				return 0;
 			}
 			curArg++;
@@ -249,7 +231,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_SPSW02)
 		theMaterial = new SPSW02(tag, E0,  b, Fts, Fcs, cmpUnldngEFac, sigTEFac, sigTFfac, epsTFfac, R, epsPCFac, pstCapEFac, gama, c, resFac);
 	else
 		theMaterial = new SPSW02(tag, fpy, E0,  b, t, hs, l, R, epsPCFac, pstCapEFac, gama, c, resFac);
-	//opserr<<"ok\n";
+
 
 	return theMaterial;
 }
@@ -797,7 +779,7 @@ int SPSW02::recvSelf(int commitTag, Channel & theChannel, FEM_ObjectBroker & the
 void SPSW02::Print(OPS_Stream & s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_ELEM_INDENT << "{}";
+    s << OPS_PRINT_JSON_MATE_INDENT << "{}";
   } else {
     s << "SPSW02:(strain, stress, tangent)" << eps << " " << sig << " " << e << endln;
   }
