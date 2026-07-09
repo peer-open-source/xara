@@ -47,21 +47,25 @@ class EmbeddedBeamInterfaceL : public Element
 {
 public:
     EmbeddedBeamInterfaceL(int tag);
-    EmbeddedBeamInterfaceL(int tag, std::vector <int> beamTag, std::vector <int> solidTag, int crdTransfTag,
+    EmbeddedBeamInterfaceL(int tag, std::vector <int> beamTag, std::vector <int> solidTag, 
+        CrdTransf &,
         std::vector <double>  beamRho, std::vector <double>  beamTheta, std::vector <double>  solidXi,
         std::vector <double>  solidEta, std::vector <double>  solidZeta, double radius, std::vector <double> area,
-        std::vector <double> length, bool writeConnectivity = false, const char * connectivityFN = "");
+        std::vector <double> length, 
+        Domain &,
+        bool writeConnectivity = false, const char * connectivityFN = "");
+
     EmbeddedBeamInterfaceL();
     ~EmbeddedBeamInterfaceL();
 
-    const char *getClassType(void) const { return "EmbeddedBeamInterfaceL"; };
+    const char *getClassType() const { return "EmbeddedBeamInterfaceL"; }
 
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
 
-    int getNumDOF(void);
-    void setDomain(Domain *theDomain);
+    int getNumDOF();
+    void setDomain(Domain *);
 
     // public methods to set the state of the element    
     int commitState(void);
