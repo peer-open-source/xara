@@ -99,42 +99,6 @@ int MultiaxialCyclicPlasticity::MaterialStageID = 2;   // classwide load stage t
                                                        // elasto-plastic by default
 int MultiaxialCyclicPlasticity::IncrFormulationFlag=1;
 
-#include <elementAPI.h>
-void * OPS_ADD_RUNTIME_VPV(OPS_MultiaxialCyclicPlasticity)
-{
-    int numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata < 10) {
-	opserr << "WARNING: Insufficient arguments\n";
-	opserr << "Want: nDMaterial MultiaxialCyclicPlasticity tag? rho? K? G? Su? Ho? h? m? beta? KCoeff? <eta?>" << endln;
-	return 0;
-    }
-
-    int tag;
-    numdata = 1;
-    if (OPS_GetIntInput(&numdata,&tag) < 0) {
-	opserr << "WARNING invalid MultiaxialCyclicPlasticity tag\n";
-	return 0;
-    }
-
-    double data[10];
-    data[9] = 0.0;
-    numdata = OPS_GetNumRemainingInputArgs();
-    if (numdata > 10) {
-		numdata = 10;
-    }
-    if (OPS_GetDoubleInput(&numdata,data)) {
-	opserr << "WARNING invalid MultiaxialCyclicPlasticity double inputs\n";
-	return 0;
-    }
-
-    NDMaterial* mat = new MultiaxialCyclicPlasticity(tag,data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9]);
-    if (mat == 0) {
-		opserr << "WARNING: failed to create Multiaxialcyclicplasticity material\n";
-		return 0;
-    }
-
-    return mat;
-}
 
 //zero internal variables
 void MultiaxialCyclicPlasticity::initialize ( ) 
