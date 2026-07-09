@@ -85,11 +85,11 @@ double Macroelement3d::workArea[200];
 #define OPS_Export extern "C"
 #endif
 
-static int numMyMacroelement = 0;
 
 OPS_Export 	void * 
-OPS_Macroelement3d()
+OPS_ADD_RUNTIME_VPV(OPS_Macroelement3d)
 {
+	static int numMyMacroelement = 0;
 	Vector intLength(3);
 	intLength(0) = 1.0/6;
 	intLength(1) = 2.0/3;
