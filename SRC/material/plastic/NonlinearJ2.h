@@ -30,6 +30,7 @@ class OPS_Stream;
 //
 namespace OpenSees {
 
+
 class NonlinearJ2 : public NDMaterial
 {
 public:
@@ -98,7 +99,7 @@ private:
   Matrix                  retInitialTangent, retTangent;
   Vector                  retStress, retStrain;
 
-  // History (past/present)
+  // History
   struct State {
     OpenSees::VectorND<6> sig;     // Cauchy stress
     OpenSees::VectorND<6> eps;     // total strain at commit
@@ -113,6 +114,7 @@ private:
 private:
   // Core update
   int updateState();
+  bool isLinearHardening() const {return (Ck_.size() == 1 && gammak_[0] == 0.0);}
 
 
   // 6x9 Voight mapping used like: (P^vec6) -> 9x1   and   (P*vec9) -> 6x1
@@ -129,9 +131,10 @@ private:
          0,        0,        0,        0,        0,   0.5000};
 
 
+  // constants for different conventions in scaling the yield check
   static constexpr double SQRT23 = 0.81649658092772603; // sqrt(2/3)
   static constexpr double mises_scale = SQRT23; 
-  static constexpr double norm_unit = 1.0;// /SQRT23; // sqrt(3/2) for J2 norm
+  static constexpr double norm_unit = 1.0; // /SQRT23; // sqrt(3/2) for J2 norm
   static constexpr double flow_rate = 1.0; // SQRT23;
   // derived
   static constexpr double phi_n = norm_unit;
@@ -139,8 +142,10 @@ private:
   static constexpr double mises_rate = flow_rate*phi_n*mises_scale;
   static constexpr double phi_m = flow_rate*phi_n*phi_n;
   static constexpr double phi_nnmm = (phi_n*phi_n)/(phi_m*phi_m);
+
+  // method for integrating backstress; currently set at compile time
   enum class BackStressIntegration {
-    Exponential,
+    Exponential, // Hartloper version
     BackwardEuler
   } bs_integration = BackStressIntegration::BackwardEuler;
 
@@ -156,7 +161,6 @@ private:
                             double& g, 
                             double& Dg,
                             double& phi_a) const noexcept {
-    // const double G  = E/2./(1. +    nu);
     double mises_strain = (flow_rate*lambda)*phi_n*mises_scale;
     // Modified relative stress, Z
     m = s_tr;
@@ -164,11 +168,13 @@ private:
 
     phi_a  = metric(m); // phi(a)
     m    *= phi_m/phi_a; // m = a * phi(m)/phi(a)
+
+    // Newton residual function
     g = phi_a - 2.0*G*mises_strain*(phi_n/mises_scale)
       - Kinematic::H(*this, past, mises_strain)*(phi_n/mises_scale)
       - Isotropic::Y(*this, past, mises_strain)*phi_n*mises_scale;
 
-
+    // Derivative of newton residual
     // Note: d(norm(Z))/d(lamda) == n . X' == dX(n)
     Dg = Kinematic::dX(*this, past, mises_strain, m)*mises_rate/flow_rate
        - Kinematic::dH(*this, past, mises_strain)*mises_rate*(phi_n/mises_scale)
@@ -177,6 +183,7 @@ private:
   }
 
 
+  // Nonlinear Chaboche kinematic hardening
   struct Kinematic {
     static inline VectorND<9> A(const NonlinearJ2 &m,
                                 const NonlinearJ2::State &past,
