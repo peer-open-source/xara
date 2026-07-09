@@ -58,6 +58,10 @@ add_subdirectory(Solid)
 add_subdirectory(Plane)
 add_subdirectory(Yield)
 add_subdirectory(nD)
+add_subdirectory(concrete/MultiSurfCrack2d)
+
 if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/ucsd)
   add_subdirectory(ucsd)
 endif()
+
+
