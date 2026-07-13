@@ -101,7 +101,7 @@ int MultiaxialCyclicPlasticity::IncrFormulationFlag=1;
 
 
 //zero internal variables
-void MultiaxialCyclicPlasticity::initialize ( ) 
+void MultiaxialCyclicPlasticity::initialize() 
 {
   stress.Zero();
   strain.Zero();

@@ -4,6 +4,10 @@
 #                Pacific Earthquake Engineering Research Center
 #
 #==============================================================================
+#
+# _PARALLEL_PROCESSING: OpenSeesSP
+# _PARALLEL_INTERPRETERS: OpenSeesMP
+
 find_package(MPI)
 
 if (NOT MPI_FOUND)
