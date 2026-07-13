@@ -52,7 +52,7 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
 
 static void *
 TclDispatch_newLinearSeries(ClientData clientData, 
-                            Tcl_Interp* interp, 
+                            Tcl_Interp* interp,
                             Tcl_Size argc, 
                             TCL_Char ** const argv)
 {
