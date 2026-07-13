@@ -42,31 +42,30 @@ public:
 
     ~UmfpackGenLinSOE();
 
-    int getNumEqn(void) const;
+    int getNumEqn() const;
     int setSize(Graph &theGraph);
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addB(const Vector &, const ID &, double fact = 1.0);    
     int setB(const Vector &, double fact = 1.0);        
     
-    void zeroA(void);
-    void zeroB(void);
+    void zeroA();
+    void zeroB();
     
-    const Vector &getX(void);
-    const Vector &getB(void);    
-    double normRHS(void);
+    const Vector &getX();
+    const Vector &getB();    
+    double normRHS();
 
     void setX(int loc, double value);        
     void setX(const Vector &x);        
     int setUmfpackGenLinSolver(UmfpackGenLinSolver &newSolver);    
 
     int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker); 
+    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker); 
+
+    // int saveSparseA(OPS_Stream& output, int baseIndex = 0) override;
 
     friend class UmfpackGenLinSolver;
 
-protected:
-    
 private:
     Vector X,B;
     std::vector<int> Ap, Ai;
