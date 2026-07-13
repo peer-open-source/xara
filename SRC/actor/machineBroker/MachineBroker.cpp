@@ -36,7 +36,9 @@
 #include <OPS_Globals.h>
 
 MachineBroker::MachineBroker(FEM_ObjectBroker *theBroker)
-  :theObjectBroker(theBroker), actorChannels(0), numActorChannels(0), numActiveChannels(0), activeChannels(0)
+  :theObjectBroker(theBroker), 
+   actorChannels(0), numActorChannels(0), 
+   numActiveChannels(0), activeChannels(0)
 {
 
 }
@@ -51,7 +53,7 @@ MachineBroker::~MachineBroker()
 
 
 int
-MachineBroker::shutdown(void)
+MachineBroker::shutdown()
 {  
   // send the termination notice to all machineBrokers running actorProcesses
   if (actorChannels != 0) {
@@ -61,11 +63,11 @@ MachineBroker::shutdown(void)
       idData(0) = 0;
       Channel *theChannel = actorChannels[i];
       if (theChannel->sendID(0, 0, idData) < 0) {
-      opserr << "MachineBroker::shutdown(void) - failed to send ID\n";
+        opserr << "MachineBroker::shutdown(void) - failed to send ID\n";
       }
       
       if (theChannel->recvID(0, 0, idData) < 0) {
-	opserr << "MachineBroker::shutdown(void) - failed to recv ID\n";
+        opserr << "MachineBroker::shutdown(void) - failed to recv ID\n";
       }
       
       this->freeProcess(theChannel);
@@ -85,7 +87,7 @@ MachineBroker::shutdown(void)
 
 
 int
-MachineBroker::runActors(void)
+MachineBroker::runActors()
 {
   Channel *theChannel = this->getMyChannel();
 
@@ -112,7 +114,7 @@ MachineBroker::runActors(void)
       done = 1;
 
       if (theChannel->sendID(0, 0, idData) < 0) {
-	opserr << "MachineBroker::run(void) - failed to send ID\n";
+        opserr << "MachineBroker::run(void) - failed to send ID\n";
       }
 
       return 0;
@@ -122,21 +124,21 @@ MachineBroker::runActors(void)
       // create an actor of approriate type
       Actor *theActor = theObjectBroker->getNewActor(actorType, theChannel);
       if (theActor == 0) {
-	opserr << "MachineBroker::run(void) - invalid actor type\n";
-	idData(0) = 1;
+        opserr << "MachineBroker::run(void) - invalid actor type\n";
+        idData(0) = 1;
       } else
-	idData(0) = 0;
+        idData(0) = 0;
 
       // send ID back indicating wheter actor was created 
       if (theChannel->sendID(0, 0, idData) < 0) {
-	opserr << "MachineBroker::run(void) - failed to send ID\n";
+        opserr << "MachineBroker::run(void) - failed to send ID\n";
       }
 	 
       // run the actor object
       if (theActor->run() != 0) {
-	opserr << "MachineBroker::run(void) - actor failed while running\n";
-      }  
-	 
+        opserr << "MachineBroker::run(void) - actor failed while running\n";
+      }
+
       // destroying theActor
       delete theActor;
     }
@@ -159,10 +161,10 @@ MachineBroker::startActor(int actorType, int compDemand)
   if (numActiveChannels < numActorChannels) {
     for (int i=0; i<numActorChannels; i++) {
       if ((*activeChannels)(i) == 0) {
-	theChannel = actorChannels[i];
-	numActiveChannels++;
-	(*activeChannels)(i) = 1;
-	i=numActorChannels;
+        theChannel = actorChannels[i];
+        numActiveChannels++;
+        (*activeChannels)(i) = 1;
+        i=numActorChannels;
       }
     }
   }
