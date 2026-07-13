@@ -65,6 +65,7 @@ ProcessContext::setup(Interpreter& interp)
 {
   Tcl_CreateCommand(&interp, "getNP",     &getNP,   (ClientData)this, nullptr);
   Tcl_CreateCommand(&interp, "getPID",    &getPID,  (ClientData)this, nullptr);
+  return 0;
 }
 
 
@@ -74,12 +75,13 @@ getPID(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** cons
   int pid = 0;
 
   // MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-  ParallelContext* context = (ParallelContext*)clientData;
+
+  ProcessContext* context = (ProcessContext*)clientData;
 
   if (context != nullptr)
     pid = context->getProcessID();
 
-  // now we copy the value to the tcl string that is returned
+  // set the returned integer
   Tcl_SetObjResult(interp, Tcl_NewIntObj(pid));
 
   return TCL_OK;
@@ -90,14 +92,14 @@ static int
 getNP(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   int np = 1;
-  ParallelContext* context = (ParallelContext*)clientData;
-
-  if (context != nullptr)
-    np = context->getNP();
-
   // MPI_Comm_size(MPI_COMM_WORLD, &np);
 
-  // now we copy the value to the tcl string that is returned
+  ProcessContext* context = (ProcessContext*)clientData;
+
+  if (context != nullptr)
+    np = context->getProcessCount();
+
+  // set the returned integer
   Tcl_SetObjResult(interp, Tcl_NewIntObj(np));
 
   return TCL_OK;
