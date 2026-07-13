@@ -47,8 +47,6 @@ ProcessContext::ProcessContext()
     for (int j=0; j<OPS_np-1; j++) {
       Channel *otherChannel = theMachine.getRemoteProcess();
       theChannels[j] = otherChannel;
-    //   otherChannel->sendID(0,0,data);
-    //   otherChannel->sendMsg(0,0,msgChar);
     }
   }
   else {
