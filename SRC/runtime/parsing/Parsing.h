@@ -29,6 +29,8 @@ typedef int Tcl_Size;
 #define TCL_SIZE_MAX INT_MAX
 #endif
 
+#include "ArgSize.h"
+
 // #define OPS_API
 #if defined(OPS_API)
 # if !defined(_TCL)

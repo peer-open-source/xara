@@ -241,7 +241,7 @@ isotropic_convert(int flag1, double in1,
 
 
 int
-TclCommand_setIsotropicParameters(
+XaraCmd_setIsotropicParameters(
   ClientData clientData,
   Tcl_Interp *interp,
   Tcl_Size argc,

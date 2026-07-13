@@ -43,8 +43,10 @@
 #include <SelfWeight.h>
 #include <StaticPattern.h>
 
-int
-TclCommand_addFrameLoad(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+static int
+XaraCmd_addFrameLoad(ClientData clientData, 
+                        Tcl_Interp *interp, 
+                        ArgSize argc,
                         TCL_Char **const argv)
 {
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
@@ -324,7 +326,7 @@ TclCommand_addElementalLoad(ClientData clientData, Tcl_Interp *interp,
   }
 
   if (strcmp(argv_main[1], "Frame") == 0) {
-    return TclCommand_addFrameLoad(clientData, interp, argc_main, argv_main);
+    return XaraCmd_addFrameLoad(clientData, interp, argc_main, argv_main);
   }
 
 

@@ -116,7 +116,7 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
 
   // Isotropy
   IsotropicParse iso {consts, niso};
-  if (TclCommand_setIsotropicParameters((ClientData)&iso, interp, argc, argv) == TCL_OK) {
+  if (XaraCmd_setIsotropicParameters((ClientData)&iso, interp, argc, argv) == TCL_OK) {
     tracker.consume(Position::E);
     tracker.consume(Position::G);
     tracker.consume(Position::Nu);

@@ -81,8 +81,8 @@ TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
 
   if (argc < 2) {
     opserr << OpenSees::PromptValueError
-           << "missing argument type"
-           << "\n";
+           << "missing material type"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
