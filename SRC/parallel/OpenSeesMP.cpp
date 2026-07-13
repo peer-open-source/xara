@@ -75,7 +75,6 @@ Libopenseesmp_Init(Tcl_Interp* interp)
   // to some SOE constructors
   Channel **theChannels = nullptr;
   int numChannels;
-
   if (pid == 0) {
     theChannels = new Channel *[np-1];
     numChannels = np-1;
@@ -141,7 +140,6 @@ Libopenseesmp_Init(Tcl_Interp* interp)
     Message msgChar(dataArgs, sizeArg);
     
     myChannel->recvMsg(0,0,msgChar);
-
   }
 
   args = new char *[numArg];
