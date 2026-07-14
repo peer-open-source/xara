@@ -35,6 +35,7 @@
 // What: "@(#) LinearSOE.h, revA"
 
 #include <MovableObject.h>
+#include <vector>
 
 class LinearSOESolver;
 class Graph;
@@ -42,6 +43,7 @@ class Matrix;
 class Vector;
 class ID;
 class AnalysisModel;
+class OPS_Stream;
 
 class LinearSOE : public MovableObject
 {
@@ -50,19 +52,23 @@ class LinearSOE : public MovableObject
     LinearSOE(int classTag);    
     virtual ~LinearSOE();
 
-    virtual int solve();    
-    virtual int setLinks(AnalysisModel &);    
+    virtual int solve();
 
     // pure virtual functions
-    virtual int setSize(Graph &theGraph) =0;    
+    virtual int setSize(Graph &) =0;    
     virtual int getNumEqn() const =0;
     
     virtual int addA(const Matrix &, const ID &, double fact = 1.0) =0;
-    virtual int addB(const Vector &, const ID &, double fact = 1.0) =0;    
+    virtual int addB(const Vector &, const ID &, double fact = 1.0) =0;
+    virtual int addX(const Vector &) { return -1; }
     virtual int setB(const Vector &, double fact = 1.0) =0;        
 
     virtual int addA(const Matrix &);
-    virtual int addColA(const Vector &col, int colIndex, double fact = 1.0);
+
+    // TODO: remove addColA
+    virtual int addColA(const Vector &col, int colIndex, double fact = 1.0) {
+      return -1;
+    }
 
     virtual void zeroA() =0;
     virtual void zeroB() =0;
@@ -74,17 +80,24 @@ class LinearSOE : public MovableObject
     virtual const Matrix *getA() {return nullptr;}
     virtual int getA(int row, int col, double &value) const {return -2;}
   
-    double getDeterminant();
+    virtual double getDeterminant();
     virtual double normRHS() = 0;
 
     virtual void setX(int loc, double value) =0;
     virtual void setX(const Vector &X) =0;
+
+    virtual int saveSparseA(OPS_Stream& output, int baseIndex = 0); 
+    virtual int getSparseA(ID& rowIndices, ID& colIndices, Vector& values, int baseIndex = 0);
+    virtual int getSparseA(std::vector<int>& rowIndices, std::vector<int>& colIndices, std::vector<double>& values, int baseIndex = 0);
     
-    LinearSOESolver *getSolver();
     
+    virtual int setProcessID(int processTag) {return -1;}
+    virtual int setChannels(int numChannels, Channel **theChannels) {return -1;}
+
   protected:
+    LinearSOESolver *getSolver();
     int setSolver(LinearSOESolver &);
-    
+
   private:
     LinearSOESolver *theSolver;
 };
