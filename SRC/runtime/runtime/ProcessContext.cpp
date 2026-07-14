@@ -18,15 +18,20 @@
 #include <Channel.h>
 #include <Logging.h>
 #include <runtime/interpreter/Interpreter.h>
+#include <mpi.h>
 
 using namespace OpenSees;
 
-static int getPID(ClientData,  Tcl_Interp *, ArgSize, TCL_Char ** const argv);
-static int getNP(ClientData,   Tcl_Interp *, ArgSize, TCL_Char ** const argv);
+static Tcl_CmdProc getPID;
+static Tcl_CmdProc getNP;
+static Tcl_CmdProc opsBarrier;
 
 
 ProcessContext::~ProcessContext() 
 {
+  // theMachine.shutdown();
+  // MPI_Finalize();
+
   delete m_obroker;
 }
 
@@ -39,7 +44,8 @@ ProcessContext::ProcessContext()
   int OPS_np = theMachine.getNP();
 
   if (OPS_rank == 0) {
-    opserr << "Rank = " << OPS_rank << " / " << OPS_np << "\n";
+    opsdbg << "Rank = " << OPS_rank << " / " << OPS_np << "\n";
+
     theChannels = new Channel *[OPS_np-1];
     numChannels = OPS_np-1;
 
@@ -63,6 +69,7 @@ ProcessContext::setup(Interpreter& interp)
 {
   Tcl_CreateCommand(&interp, "getNP",     &getNP,   (ClientData)this, nullptr);
   Tcl_CreateCommand(&interp, "getPID",    &getPID,  (ClientData)this, nullptr);
+  Tcl_CreateCommand(&interp, "barrier",   &opsBarrier,  (ClientData)this, nullptr);
   return 0;
 }
 
@@ -101,4 +108,11 @@ getNP(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const arg
   Tcl_SetObjResult(interp, Tcl_NewIntObj(np));
 
   return TCL_OK;
+}
+
+
+static int
+opsBarrier(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+{
+  return MPI_Barrier(MPI_COMM_WORLD);
 }
