@@ -328,7 +328,7 @@ sensSectionForce(ClientData clientData, Tcl_Interp *interp, int argc,
   theResponse->getResponseSensitivity(gradIndex);
   Information &info = theResponse->getInformation();
 
-  const Vector &theVec = *(info.theVector);
+  const Vector &theVec = info.theVector;
 
   Tcl_SetObjResult(interp, Tcl_NewDoubleObj(theVec(dof - 1)));
 

@@ -1086,28 +1086,29 @@ StainlessECThermal::getVariable(const char *variable, Information &info)  // is 
     info.theDouble = ThermalElongation;
     return 0;
   } else if (strcmp(variable,"ElongTangent") == 0) {
-    Vector *theVector = info.theVector;
-    if (theVector != 0) {
+    Vector &theVector = info.theVector;
+    if (true) {
       double tempT, ET, Elong, TempTmax;
-      tempT = (*theVector)(0);
-	  ET = (*theVector)(1);
-	  Elong = (*theVector)(2);
-      TempTmax = (*theVector)(3);
+      tempT = (theVector)(0);
+	  ET = (theVector)(1);
+	  Elong = (theVector)(2);
+      TempTmax = (theVector)(3);
       this->getElongTangent(tempT, ET, Elong, TempTmax);
-	  (*theVector)(0) = tempT;
-      (*theVector)(1) = ET;
-      (*theVector)(2) = Elong;
-	  (*theVector)(3) = TempTmax;
+	  (theVector)(0) = tempT;
+      (theVector)(1) = ET;
+      (theVector)(2) = Elong;
+	  (theVector)(3) = TempTmax;
     }
     return 0;
-  }else if (strcmp(variable,"TempAndElong") == 0) {
-    Vector *theVector = info.theVector;
-	if (theVector!= 0) {
-		(*theVector)(0) = Ttemp;
-        (*theVector)(1) = ThermalElongation;
-	}else{
-		opserr<<"null Vector in EC"<<endln;
-	}
+  } 
+  else if (strcmp(variable,"TempAndElong") == 0) {
+    Vector& theVector = info.theVector;
+	// if (theVector!= 0) {
+		(theVector)(0) = Ttemp;
+        (theVector)(1) = ThermalElongation;
+	// } else{
+	// 	opserr<<"null Vector in EC"<<endln;
+	// }
 
 	return 0;
   }

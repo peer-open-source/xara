@@ -1042,70 +1042,68 @@ ZeroLength::setResponse(const char **argv, int argc, OPS_Stream &output)
 
 
 int 
-ZeroLength::getResponse(int responseID, Information &eleInformation)
+ZeroLength::getResponse(int responseID, Information &info)
 {
-    const Vector& disp1 = theNodes[0]->getTrialDisp();
-    const Vector& disp2 = theNodes[1]->getTrialDisp();
-    const Vector  diff  = disp2-disp1;
+  const Vector& disp1 = theNodes[0]->getTrialDisp();
+  const Vector& disp2 = theNodes[1]->getTrialDisp();
+  const Vector  diff  = disp2-disp1;
 
-    switch (responseID) {
-    case -1:
-        return -1;
+  switch (responseID) {
+  case -1:
+    return -1;
 
-    case 1:
-        return eleInformation.setVector(this->getResistingForce());
+  case 1:
+    return info.setVector(this->getResistingForce());
 
-    case 15:
-      theVector->Zero();
-      if (useRayleighDamping == 1) {
-        if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
-            *theVector += this->getRayleighDampingForces();      
-      } else if (useRayleighDamping == 2) {
-        for (int mat=0; mat<numMaterials1d; mat++) {
-          
-          // get resisting force for material
-          double force = theMaterial1d[mat+numMaterials1d]->getStress();
-
-          // compute residual due to resisting force
-          for (int i=0; i<numDOF; i++)
-            (*theVector)(i)  += (*t1d)(mat,i) * force;
-        }
-      }
-      return eleInformation.setVector(*theVector);
-
-    case 2:
-        if (eleInformation.theVector != 0) {
-            for (int i = 0; i < numMaterials1d; i++)
-                (*(eleInformation.theVector))(i) = theMaterial1d[i]->getStress();
-        }
-        return 0;
-
-    case 3:
-        if (eleInformation.theVector != 0) {
-            for (int i = 0; i < numMaterials1d; i++)
-                (*(eleInformation.theVector))(i) = theMaterial1d[i]->getStrain();
-        }
-        return 0;
-
-    case 13:
-        if (eleInformation.theMatrix != 0) {
-            for (int i = 0; i < numMaterials1d; i++)
-              (*(eleInformation.theMatrix))(i,i) = theMaterial1d[i]->getTangent();
-        }
-        return 0;
-
-    case 4:
-        if (eleInformation.theVector != 0) {
-            for (int i = 0; i < numMaterials1d; i++) {
-                (*(eleInformation.theVector))(i) = theMaterial1d[i]->getStrain();
-                (*(eleInformation.theVector))(i+numMaterials1d) = theMaterial1d[i]->getStress();
-            }
-        }
-        return 0;      
-
-    default:
-        return -1;
+  case 15:
+    theVector->Zero();
+    if (useRayleighDamping == 1) {
+      if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
+          *theVector += this->getRayleighDampingForces();      
     }
+    else if (useRayleighDamping == 2) {
+      for (int mat=0; mat<numMaterials1d; mat++) {
+        
+        // get resisting force for material
+        double force = theMaterial1d[mat+numMaterials1d]->getStress();
+
+        // compute residual due to resisting force
+        for (int i=0; i<numDOF; i++)
+          (*theVector)(i)  += (*t1d)(mat,i) * force;
+      }
+    }
+    return info.setVector(*theVector);
+
+  case 2:
+    for (int i = 0; i < numMaterials1d; i++)
+        ((info.theVector))(i) = theMaterial1d[i]->getStress();
+    return 0;
+
+  case 3:
+    {
+      for (int i = 0; i < numMaterials1d; i++)
+        ((info.theVector))(i) = theMaterial1d[i]->getStrain();
+    }
+    return 0;
+
+  case 13:
+    if (info.theMatrix != 0) {
+      for (int i = 0; i < numMaterials1d; i++)
+        (*(info.theMatrix))(i,i) = theMaterial1d[i]->getTangent();
+    }
+    return 0;
+
+  case 4: {
+    for (int i = 0; i < numMaterials1d; i++) {
+      ((info.theVector))(i) = theMaterial1d[i]->getStrain();
+      ((info.theVector))(i+numMaterials1d) = theMaterial1d[i]->getStress();
+    }
+    return 0;      
+  }
+  default: {
+    return -1;
+  }
+  }
 }
 
 int

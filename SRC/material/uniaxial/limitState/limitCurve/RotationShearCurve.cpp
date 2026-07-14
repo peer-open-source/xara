@@ -504,11 +504,8 @@ RotationShearCurve::getElemForces(void)
 	theForces =  theElement->setResponse(forceType2, 1, dummy); 
 	trash = theForces->getResponse();		
 	Information &theInfo = theForces->getInformation();
-	Vector *forceVec = (theInfo.theVector);	
-	if (forceVec == 0) {
-		opserr << "FATAL ERROR RotationShearCurve -- unable to assign force vector\n" << endln;
-		exit(-1);
-	}
-	P = fabs((*forceVec)(0));
-	M = fabs((*forceVec)(2));
+	Vector &forceVec = (theInfo.theVector);	
+
+	P = fabs((forceVec)(0));
+	M = fabs((forceVec)(2));
 }

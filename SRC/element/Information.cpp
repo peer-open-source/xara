@@ -32,14 +32,14 @@ Information::Information()
   :theType(UnknownType),
    theID(0), theVector(0), theMatrix(0), theString(0)
 {
-    // does nothing
+  // does nothing
 }
 
 Information::Information(int val) 
   :theType(IntType), theInt(val),
   theID(0), theVector(0), theMatrix(0), theString(0)
 {
-    // does nothing
+  // does nothing
 }
 
 Information::Information(double val) 
@@ -62,7 +62,13 @@ Information::Information(const Vector &val)
   theID(0), theVector(0), theMatrix(0), theString(0)
 {
   // Make a copy
-  theVector = new Vector(val);
+  // theVector = new Vector(val);
+  if (val.Size() <= small_vector_size) {
+    theVector.setData(small_vector, val.Size());
+  } else {
+    theVector.resize(val.Size());
+  }
+  theVector = val;
 }
 
 Information::Information(const Matrix &val) 
@@ -71,9 +77,6 @@ Information::Information(const Matrix &val)
 {
   // Make a copy
   theMatrix = new Matrix(val);
-  
-  if (theMatrix == 0)
-    opserr << "Information::Information -- failed to allocate Matrix\n";
 }
 
 Information::Information(const ID &val1, const Vector &val2) 
@@ -82,7 +85,12 @@ Information::Information(const ID &val1, const Vector &val2)
 {
   // Make a copy
   theID = new ID(val1);
+#if 0
   theVector = new Vector(val2);
+#else
+  theVector.resize(val2.Size());
+  theVector = val2;
+#endif
 }
 
 
@@ -91,8 +99,8 @@ Information::~Information()
   if (theID != 0)
     delete theID;
   
-  if (theVector != 0)
-    delete theVector;
+  // if (theVector != 0)
+  //   delete theVector;
   
   if (theMatrix != 0)
     delete theMatrix;
@@ -116,7 +124,7 @@ Information::setDouble(double newDouble)
 int 
 Information::setID(const ID &newID)
 {
-  if (theID != 0) {
+  if (theID != nullptr) {
     *theID = newID;
   } else {
     theID = new ID(newID);
@@ -127,24 +135,65 @@ Information::setID(const ID &newID)
 int 
 Information::setVector(const Vector &newVector)
 {
-  if (theVector != 0) {
+#if 0
+  if (theVector != nullptr) {
     *theVector = newVector;
   } else {
     theVector = new Vector(newVector);
   }
-    
+#else
+  if (newVector.Size() != theVector.Size()) {
+    theVector.resize(newVector.Size());
+  }
+  theVector = newVector;
+#endif
   return 0;
 }
+
+int
+Information::setVector(int i, double value)
+{
+  if (i < 0 || i >= theVector.Size())
+    return -1;
+
+  theVector(i) = value;
+  return 0;
+}
+
+int
+Information::setVectorAt(const Vector &newVector, int startIndex)
+{
+  if (startIndex < 0 || startIndex + newVector.Size() > theVector.Size())
+    return -1;
+
+
+  for (int i = 0; i < newVector.Size(); ++i)
+    theVector(startIndex + i) = newVector(i);
+
+  return 0;
+}
+
 
 int 
 Information::setMatrix(const Matrix &newMatrix)
 {
   if (theMatrix != 0) {
     *theMatrix = newMatrix;
-  } else {
+  }
+  else {
     theMatrix = new Matrix(newMatrix);
   }
 
+  return 0;
+}
+
+int 
+Information::setMatrix(int i, int j, double value)
+{
+  if (theMatrix == nullptr)
+    return -1;
+
+  theMatrix->operator()(i,j) = value;
   return 0;
 }
 
@@ -181,8 +230,8 @@ Information::Print(OPS_Stream &s, int flag)
     for (int i=0; i<theID->Size(); i++)
       s << (*theID)(i) << " ";
   else if (theType == VectorType && theVector != 0)
-    for (int i=0; i<theVector->Size(); i++)
-      s << (*theVector)(i) << " ";
+    for (int i=0; i<theVector.Size(); i++)
+      s << (theVector)(i) << " ";
   else if (theType == MatrixType && theMatrix != 0) {
     for (int i=0; i<theMatrix->noRows(); i++) {
       for (int j=0; j<theMatrix->noCols(); j++)
@@ -190,13 +239,12 @@ Information::Print(OPS_Stream &s, int flag)
       s << "\n";
     }
   }
-
   return;
 }
 
 
 void 
-Information::Print(ofstream &s, int flag)
+Information::Print(std::ofstream &s, int flag)
 {
   if (theType == IntType)
     s << theInt << " ";
@@ -206,8 +254,8 @@ Information::Print(ofstream &s, int flag)
     for (int i=0; i<theID->Size(); i++)
       s << (*theID)(i) << " ";
   else if (theType == VectorType && theVector != 0)
-    for (int i=0; i<theVector->Size(); i++)
-      s << (*theVector)(i) << " ";
+    for (int i=0; i<theVector.Size(); i++)
+      s << (theVector)(i) << " ";
   else if (theType == MatrixType && theMatrix != 0) {
     for (int i=0; i<theMatrix->noRows(); i++) {
       for (int j=0; j<theMatrix->noCols(); j++)
@@ -215,7 +263,6 @@ Information::Print(ofstream &s, int flag)
       s << "\n";
     }
   }
-  
   return;
 }
 
@@ -223,28 +270,61 @@ const Vector &
 Information::getData() 
 {
   if (theType == IntType) {
+#if 0
     if (theVector == 0) 
       theVector = new Vector(1);
     (*theVector)(0) = theInt;
+#else
+    if (theVector.Size() != 1) {
+      theVector.setData(small_vector, 1);
+    }
+    theVector(0) = theInt;
+#endif
   } else if (theType == DoubleType) {
+    #if 0
     if (theVector == 0) 
       theVector = new Vector(1);
     (*theVector)(0) = theDouble;
-  } else if (theType == IdType && theID != 0) {
+    #else
+    if (theVector.Size() != 1) {
+      theVector.setData(small_vector, 1);
+    }
+    theVector(0) = theDouble;
+    #endif
+  }
+  else if (theType == IdType && theID != 0) {
+#if 0
     if (theVector == 0) 
       theVector = new Vector(theID->Size());
     for (int i=0; i<theID->Size(); i++)
       (*theVector)(i) =  (*theID)(i);
+#else
+    if (theVector.Size() != theID->Size()) {
+      theVector.resize(theID->Size());
+    }
+    for (int i=0; i<theID->Size(); i++)
+      theVector(i) =  (*theID)(i);
+#endif
   } else if (theType == MatrixType && theMatrix != 0) {
     int noRows = theMatrix->noRows();
     int noCols = theMatrix->noCols();
+#if 0
     if (theVector == 0) 
       theVector = new Vector(noRows * noCols);
     int count = 0;
     for (int i=0; i<noRows; i++)
       for (int j=0; j<noCols; j++)
-	(*theVector)(count++) = (*theMatrix)(i,j);
+        (*theVector)(count++) = (*theMatrix)(i,j);
+#else
+    if (theVector.Size() != noRows * noCols) {
+      theVector.resize(noRows * noCols);
+    }
+    int count = 0;
+    for (int i=0; i<noRows; i++)
+      for (int j=0; j<noCols; j++)
+        theVector(count++) = (*theMatrix)(i,j);
+#endif
   }
   
-  return *theVector;
+  return theVector;
 }

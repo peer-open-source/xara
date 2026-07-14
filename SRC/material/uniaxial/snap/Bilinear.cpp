@@ -616,12 +616,12 @@ int Bilinear::getResponse(int responseID, Information &matInfo)
 		return matInfo.setDouble( hsTrial[3] );
 
 	case 6:
-		(*(matInfo.theVector))(0) = 0.0;
-		(*(matInfo.theVector))(1) = 0.0;
-		(*(matInfo.theVector))(2) = 0.0;
-		if ( StrDamage != NULL ) (*(matInfo.theVector))(0) = StrDamage->getDamage();
-		if ( StfDamage != NULL ) (*(matInfo.theVector))(1) = StfDamage->getDamage();
-		if ( CapDamage != NULL ) (*(matInfo.theVector))(2) = CapDamage->getDamage();
+		((matInfo.theVector))(0) = 0.0;
+		((matInfo.theVector))(1) = 0.0;
+		((matInfo.theVector))(2) = 0.0;
+		if ( StrDamage != NULL ) ((matInfo.theVector))(0) = StrDamage->getDamage();
+		if ( StfDamage != NULL ) ((matInfo.theVector))(1) = StfDamage->getDamage();
+		if ( CapDamage != NULL ) ((matInfo.theVector))(2) = CapDamage->getDamage();
 	return 0;
 			
     default:

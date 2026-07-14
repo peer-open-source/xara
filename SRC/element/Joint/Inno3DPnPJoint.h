@@ -150,23 +150,20 @@ class Inno3DPnPJoint : public Element
     int addInertiaLoadToUnbalance(const Vector &accel);
     
     // get converged residual
-    const Vector &getResistingForce(void);
+    const Vector &getResistingForce();
     
     // get converged residual with inertia terms
-    const Vector &getResistingForceIncInertia(void);                        
+    const Vector &getResistingForceIncInertia();                        
     
     // public methods for element output for parallel and database processing
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     // print out element data
     void Print(OPS_Stream &, int flag) final;
 	
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
-    int getResponse(int responseID, Information &eleInformation);
-    
-    int setParameter (char **argv, int argc, Information &info);
-    int updateParameter (int parameterID, Information &info);
+    int getResponse(int responseID, Information &);
     
   
 private:

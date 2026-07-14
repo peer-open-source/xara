@@ -1288,45 +1288,45 @@ ZeroLengthVG_HG::getResponse(int responseID, Information &eleInformation)
         if (alphaM != 0.0 || betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
             *theVector += this->getRayleighDampingForces();      
       } else if (useRayleighDamping == 2) {
-	for (int mat=0; mat<numMaterials1d; mat++) {
-	  
-	  // get resisting force for material
-	  double force = theMaterial1d[mat+numMaterials1d]->getStress();
-	  
-	  // compute residual due to resisting force
-	  for (int i=0; i<numDOF; i++)
-	    (*theVector)(i)  += (*t1d)(mat,i) * force;
-	}
+        for (int mat=0; mat<numMaterials1d; mat++) {
+          
+          // get resisting force for material
+          double force = theMaterial1d[mat+numMaterials1d]->getStress();
+          
+          // compute residual due to resisting force
+          for (int i=0; i<numDOF; i++)
+            (*theVector)(i)  += (*t1d)(mat,i) * force;
+        }
       }
       return eleInformation.setVector(*theVector);
 
     case 2:
-        if (eleInformation.theVector != 0) {
-            for (int i = 0; i < numMaterials1d; i++)
-                (*(eleInformation.theVector))(i) = theMaterial1d[i]->getStress();
+        if (eleInformation.theVector.Size() != 0) {
+          for (int i = 0; i < numMaterials1d; i++)
+              ((eleInformation.theVector))(i) = theMaterial1d[i]->getStress();
         }
         return 0;
 
     case 3:
-        if (eleInformation.theVector != 0) {
-            for (int i = 0; i < numMaterials1d; i++)
-                (*(eleInformation.theVector))(i) = theMaterial1d[i]->getStrain();
+        if (eleInformation.theVector.Size() != 0) {
+          for (int i = 0; i < numMaterials1d; i++)
+              ((eleInformation.theVector))(i) = theMaterial1d[i]->getStrain();
         }
         return 0;
 
     case 13:
-        if (eleInformation.theMatrix != 0) {
-            for (int i = 0; i < numMaterials1d; i++)
-	      (*(eleInformation.theMatrix))(i,i) = theMaterial1d[i]->getTangent();
+        if (eleInformation.theMatrix != nullptr) {
+          for (int i = 0; i < numMaterials1d; i++)
+            (*(eleInformation.theMatrix))(i,i) = theMaterial1d[i]->getTangent();
         }
         return 0;
 
     case 4:
-        if (eleInformation.theVector != 0) {
-            for (int i = 0; i < numMaterials1d; i++) {
-                (*(eleInformation.theVector))(i) = theMaterial1d[i]->getStrain();
-                (*(eleInformation.theVector))(i+numMaterials1d) = theMaterial1d[i]->getStress();
-            }
+        if (eleInformation.theVector.Size() != 0) {
+          for (int i = 0; i < numMaterials1d; i++) {
+            ((eleInformation.theVector))(i) = theMaterial1d[i]->getStrain();
+            ((eleInformation.theVector))(i+numMaterials1d) = theMaterial1d[i]->getStress();
+          }
         }
         return 0;      
 
@@ -1338,19 +1338,19 @@ ZeroLengthVG_HG::getResponse(int responseID, Information &eleInformation)
 int
 ZeroLengthVG_HG::setParameter(const char **argv, int argc, Parameter &param)
 {
-  int result = -1;  
+  int result = -1;
 
   if (argc < 1)
     return -1;
 
   if (strcmp(argv[0], "material") == 0) {
-      if (argc > 2) {
-	int matNum = atoi(argv[1]);
-	if (matNum >= 1 && matNum <= numMaterials1d)    
-	  return theMaterial1d[matNum-1]->setParameter(&argv[2], argc-2, param);
-      } else {
-	return -1;
-      }
+    if (argc > 2) {
+      int matNum = atoi(argv[1]);
+      if (matNum >= 1 && matNum <= numMaterials1d)    
+        return theMaterial1d[matNum-1]->setParameter(&argv[2], argc-2, param);
+    } else {
+      return -1;
+    }
   }
 
   for (int i=0; i<numMaterials1d; i++) {

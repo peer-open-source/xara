@@ -70,7 +70,7 @@ basicDeformation(ClientData clientData, Tcl_Interp *interp, int argc,
   theResponse->getResponse();
   Information &info = theResponse->getInformation();
 
-  const Vector &theVec = *(info.theVector);
+  const Vector &theVec = (info.theVector);
   int nbf = theVec.Size();
 
   Tcl_Obj* result = Tcl_NewListObj(nbf, NULL);
@@ -131,7 +131,7 @@ basicForce(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** cons
   theResponse->getResponse();
   Information &info = theResponse->getInformation();
 
-  const Vector &theVec = *(info.theVector);
+  const Vector &theVec = info.theVector;
   int nbf = theVec.Size();
 
   Tcl_Obj* result = Tcl_NewListObj(nbf, NULL);
@@ -274,7 +274,7 @@ sectionForce(ClientData clientData, Tcl_Interp *interp, int argc,
   theResponse->getResponse();
   Information &info = theResponse->getInformation();
 
-  const Vector &theVec = *(info.theVector);
+  const Vector &theVec = info.theVector;
   Tcl_SetObjResult(interp, Tcl_NewDoubleObj(theVec(dof-1)));
 
   delete theResponse;
@@ -338,7 +338,7 @@ sectionDeformation(ClientData clientData, Tcl_Interp *interp, int argc,
   theResponse->getResponse();
   Information &info = theResponse->getInformation();
 
-  const Vector &theVec = *(info.theVector);
+  const Vector &theVec = info.theVector;
 
   Tcl_SetObjResult(interp, Tcl_NewDoubleObj(theVec(dof-1)));
 
@@ -392,7 +392,7 @@ sectionLocation(ClientData clientData, Tcl_Interp *interp, int argc,
   theResponse->getResponse();
   Information &info = theResponse->getInformation();
 
-  const Vector &theVec = *(info.theVector);
+  const Vector &theVec = info.theVector;
 
   Tcl_SetObjResult(interp, Tcl_NewDoubleObj(theVec(secNum - 1)));
 
@@ -448,7 +448,7 @@ sectionWeight(ClientData clientData, Tcl_Interp *interp, int argc,
   theResponse->getResponse();
   Information &info = theResponse->getInformation();
 
-  const Vector &theVec = *(info.theVector);
+  const Vector &theVec = info.theVector;
 
   Tcl_SetObjResult(interp, Tcl_NewDoubleObj(theVec(secNum - 1)));
 

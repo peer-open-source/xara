@@ -621,20 +621,20 @@ Steel02Thermal::getVariable(const char *variable, Information &info)
   if (strcmp(variable,"ThermalElongation") == 0) {
     info.theDouble = ThermalElongation;    
     return 0;
-  } else if (strcmp(variable,"ElongTangent") == 0) {
-    Vector *theVector = info.theVector;
-    if (theVector != 0) {
-      double tempT, ET, Elong, TempTmax;
-      tempT = (*theVector)(0);
-	  ET = (*theVector)(1);
-	  Elong = (*theVector)(2);
-      TempTmax = (*theVector)(3);
-      this->getElongTangent(tempT, ET, Elong, TempTmax);
-	  (*theVector)(0) = tempT;
-      (*theVector)(1) = ET;
-      (*theVector)(2) = Elong;
-	  (*theVector)(3) = TempTmax;
-    }
+  } 
+  else if (strcmp(variable,"ElongTangent") == 0) {
+    Vector &theVector = info.theVector;
+
+    double tempT, ET, Elong, TempTmax;
+    tempT = (theVector)(0);
+    ET = (theVector)(1);
+    Elong = (theVector)(2);
+    TempTmax = (theVector)(3);
+    this->getElongTangent(tempT, ET, Elong, TempTmax);
+    (theVector)(0) = tempT;
+    (theVector)(1) = ET;
+    (theVector)(2) = Elong;
+    (theVector)(3) = TempTmax;
     return 0;
   }
 

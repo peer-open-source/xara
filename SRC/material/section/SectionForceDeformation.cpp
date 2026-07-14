@@ -118,7 +118,7 @@ SectionForceDeformation::setResponse(const char **argv, int argc,
   const ID &type = this->getType();
   int typeSize = this->getOrder();
   
-  Response *theResponse =0;
+  Response *theResponse = nullptr;
 
   output.tag("SectionOutput");
   output.attr("secType", this->getClassType());
@@ -360,7 +360,7 @@ SectionForceDeformation::getResponse(int responseID, Information &secInfo)
     return secInfo.setVector(this->getStressResultant());
     
   case 4: {
-    Vector &theVec = *(secInfo.theVector);
+    Vector &theVec = (secInfo.theVector);
     const Vector &e = this->getSectionDeformation();
     const Vector &s = this->getStressResultant();
     int order = this->getOrder();
@@ -387,7 +387,7 @@ int
 SectionForceDeformation::getResponseSensitivity(int responseID, int gradIndex,
                                                 Information &secInfo)
 {
-  Vector &theVec = *(secInfo.theVector);
+  Vector &theVec = secInfo.theVector;
 
   switch (responseID) {
   case 1:

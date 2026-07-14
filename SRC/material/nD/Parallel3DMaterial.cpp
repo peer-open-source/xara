@@ -476,20 +476,20 @@ int Parallel3DMaterial::getResponse(int responseID, Information& matInformation)
 	auto iter = m_response_map.find(responseID);
 	if (iter != m_response_map.end()) {
 		auto wres = iter->second;
-		if (matInformation.theVector) {
-			matInformation.theVector->Zero();
+		if (matInformation.theVector.Size() > 0) {
+			matInformation.theVector.Zero();
 			double wsum = 0.0;
 			for (std::size_t i = 0; i < m_materials.size(); ++i) {
 				if (wres->responses[i] == nullptr) continue;
 				if (wres->responses[i]->getResponse() < 0) continue;
 				const Vector& idata = wres->responses[i]->getInformation().getData();
-				if (idata.Size() == matInformation.theVector->Size()) {
-					matInformation.theVector->addVector(1.0, idata, m_weights[i]);
+				if (idata.Size() == matInformation.theVector.Size()) {
+					matInformation.theVector.addVector(1.0, idata, m_weights[i]);
 				}
 				wsum += m_weights[i];
 			}
 			if (wsum > 0.0)
-				(*matInformation.theVector) /= wsum;
+				(matInformation.theVector) /= wsum;
 			return 0;
 		}
 	}

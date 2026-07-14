@@ -986,12 +986,12 @@ ConcreteZ01::getResponse(int responseID, Information& matInfo)
   if (responseID == 100) {
     matInfo.theDouble = this->getPD();
   } else if (responseID == 101) {
-    Vector* theVector = matInfo.theVector;
-    X                 = (*theVector)(0);
-    K                 = (*theVector)(1);
-    D                 = (*theVector)(2);
-    itap              = (*theVector)(3);
-    epslonTP          = (*theVector)(4);
+    Vector& theVector = matInfo.theVector;
+    X                 = (theVector)(0);
+    K                 = (theVector)(1);
+    D                 = (theVector)(2);
+    itap              = (theVector)(3);
+    epslonTP          = (theVector)(4);
   } else
     return this->UniaxialMaterial::getResponse(responseID, matInfo);
 
@@ -1002,16 +1002,21 @@ ConcreteZ01::getResponse(int responseID, Information& matInfo)
 void
 ConcreteZ01::Print(OPS_Stream& s, int flag)
 {
-  s << "ConcreteZ01, tag: " << this->getTag() << endln;
-  //s << "  fpc: " << fpc << endln;
-  //s << "  epsc0: " << epsc0 << endln;
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << "{}"; // TODO(JSON)
+  } 
+  else {
+    s << "ConcreteZ01, tag: " << this->getTag() << endln;
+    //s << "  fpc: " << fpc << endln;
+    //s << "  epsc0: " << epsc0 << endln;
 
-  s << " strain: " << this->getStrain() << endln;
-  s << " stress: " << this->getStress() << endln;
-  s << " tangent: " << this->getTangent() << endln;
-  //s << " PD: " << this->getPD() << endln;
-  s << " zeta: " << zeta << endln;
-  s << " D: " << D << endln;
-  s << " TloadingState: " << TloadingState << endln;
-  s << " reverseFromFourStrain: " << reverseFromFourStrain << endln;
+    s << " strain: " << this->getStrain() << endln;
+    s << " stress: " << this->getStress() << endln;
+    s << " tangent: " << this->getTangent() << endln;
+    //s << " PD: " << this->getPD() << endln;
+    s << " zeta: " << zeta << endln;
+    s << " D: " << D << endln;
+    s << " TloadingState: " << TloadingState << endln;
+    s << " reverseFromFourStrain: " << reverseFromFourStrain << endln;
+  }
 }

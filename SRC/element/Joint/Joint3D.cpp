@@ -30,7 +30,6 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include <stdio.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <Information.h>
@@ -42,143 +41,11 @@
 #include <ElementResponse.h>
 #include <UniaxialMaterial.h>
 #include <Joint3D.h>
-#include <elementAPI.h>
 
 
 Matrix Joint3D::K(45, 45);
 Vector Joint3D::V(45);
 
-
-void * OPS_ADD_RUNTIME_VPV(OPS_Joint3D)
-{
-    if (OPS_GetNDM() != 3 || OPS_GetNDF() != 6) {
-  opserr << "WARNING -- model dimensions and/or nodal DOF not compatible with Joint3D element\n";
-  return 0;
-    }
-
-    // check the number of arguments is correct
-    if (OPS_GetNumRemainingInputArgs() != 12 && OPS_GetNumRemainingInputArgs() != 16 ) {
-  opserr << "WARNING incorrect number of arguments\n";
-  //printCommand(argc, argv);
-  opserr << "Want:\n";
-  opserr << "element Joint3D Tag? NodI? NodJ? NodK? NodL? NodM? NodN? NodC? MatX? MatY? MatZ? LrgDsp?\n";
-  opserr << "or:\n";
-  opserr << "element Joint3D Tag? NodI? NodJ? NodK? NodL? NodM? NodN? NodC? MatX? MatY? MatZ? LrgDsp? -damage DmgX DmgY DmgZ\n";
-  return 0;
-    }
-
-    // get the id and end nodes
-    int idata[8];
-    int num = 8;
-    if (OPS_GetIntInput(&num, idata) < 0) {
-  opserr << "WARNING invalid Joint3D int inputs" << endln;
-  return 0;
-    }
-    int Joint3DId = idata[0];
-    int iNode = idata[1];
-    int jNode = idata[2];
-    int kNode = idata[3];
-    int lNode = idata[4];
-    int mNode = idata[5];
-    int nNode = idata[6];;
-
-    // Get the center node
-    int CenterNodeTag = idata[7];
-
-    // check domain for existence of internal node tag
-    Domain* theDomain = OPS_GetDomain();
-    if (theDomain == 0) return 0;
-    Node *CenterNode = theDomain->getNode(CenterNodeTag);
-    if (CenterNode != 0) {
-  opserr << "WARNING node tag specified for the center node already exists.\n";
-  opserr << "Use a new node tag.\n";
-  opserr << "Joint3D element: " << Joint3DId << endln;
-  return 0;
-    }
-
-    UniaxialMaterial *MatX = NULL;
-    int MatXid;
-    num = 1;
-    if (OPS_GetIntInput(&num, &MatXid) < 0) {
-  opserr << "WARNING invalid material ID for spring X\n";
-  opserr << "Joint3D element: " << Joint3DId << endln;
-  return 0;
-    }
-
-    MatX = OPS_getUniaxialMaterial(MatXid);
-    if ( MatX == NULL )
-    {
-  opserr << "WARNING material not found\n";
-  opserr << "Material: " << MatXid;
-  opserr << "\nJoint3D element: " << Joint3DId << endln;
-  return 0;
-    }
-
-    UniaxialMaterial *MatY = NULL;
-    int MatYid;
-    num = 1;
-    if (OPS_GetIntInput(&num, &MatYid) < 0) {
-  opserr << "WARNING invalid material ID for spring Y\n";
-  opserr << "Joint3D element: " << Joint3DId << endln;
-  return 0;
-    }
-
-    MatY = OPS_getUniaxialMaterial(MatYid);
-    if ( MatY == NULL )
-    {
-  opserr << "WARNING material not found\n";
-  opserr << "Material: " << MatYid;
-  opserr << "\nJoint3D element: " << Joint3DId << endln;
-  return 0;
-    }
-
-    UniaxialMaterial *MatZ = NULL;
-    int MatZid;
-    num = 1;
-    if (OPS_GetIntInput(&num, &MatZid) < 0) {
-  opserr << "WARNING invalid material ID for spring Z\n";
-  opserr << "Joint3D element: " << Joint3DId << endln;
-  return 0;
-    }
-
-    MatZ = OPS_getUniaxialMaterial(MatZid);
-    if ( MatZ == NULL )
-    {
-  opserr << "WARNING material not found\n";
-  opserr << "Material: " << MatZid;
-  opserr << "\nJoint3D element: " << Joint3DId << endln;
-  return 0;
-    }
-
-    int LargeDisp;
-    num = 1;
-    if (OPS_GetIntInput(&num, &LargeDisp) < 0) {
-  // use 0 as default
-  LargeDisp = 0;
-    }
-
-
-    Joint3D *theJoint3D;
-    // Decide to use which constructor, based on the number of arguments
-    if (OPS_GetNumRemainingInputArgs() == 12 ) {
-
-  // Using Joint3D constructor without damage
-      UniaxialMaterial* springModels[3] = { MatX, MatY, MatZ };
-  theJoint3D = new Joint3D( Joint3DId,
-          iNode,jNode,kNode,lNode,mNode,nNode,CenterNodeTag,
-          springModels, theDomain, LargeDisp);
-
-  // if get here we have successfully created the element and added it to the domain
-  return theJoint3D;
-    }
-
-    else 			// if ( (argc-argStart) == 16  )
-    {
-  opserr<< "WARNING Using Joint3D constructor with damage not implemented in this version\n";
-  return 0;
-    }
-    return 0;
-}
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -199,13 +66,13 @@ Joint3D::Joint3D()
 
 
 
-Joint3D::Joint3D(int tag, int nd1, int nd2, int nd3, int nd4, int nd5, int nd6, int IntNodeTag,
+Joint3D::Joint3D(int tag, int nd1, int nd2, int nd3, int nd4, int nd5, int nd6, 
+                 int IntNodeTag,
   UniaxialMaterial* springModels[],
   Domain* theDomain, int LrgDisp)
   :Element(tag, ELE_TAG_Joint3D), ExternalNodes(7), InternalConstraints(6),
   TheDomain(0), numDof(0), nodeDbTag(0), dofDbTag(0)
 {
-  int i;
   numDof = 45;
 
   K.Zero();
@@ -228,7 +95,7 @@ Joint3D::Joint3D(int tag, int nd1, int nd2, int nd3, int nd4, int nd5, int nd6, 
 
 
   // get  the external nodes
-  for (i = 0; i < 6; i++)
+  for (int i = 0; i < 6; i++)
   {
     theNodes[i] = NULL;
     theNodes[i] = TheDomain->getNode(ExternalNodes(i));
@@ -318,13 +185,9 @@ Joint3D::Joint3D(int tag, int nd1, int nd2, int nd3, int nd4, int nd5, int nd6, 
 
   // Generate internal node and add it up to domain
   theNodes[6] = new Node(IntNodeTag, 9, Center1(0), Center1(1), Center1(2));
-  if (theNodes[6] == NULL) {
-    opserr << "Joint3D::Joint3D - Unable to generate new nodes , out of memory\n";
-  }
-  else {
-    if (TheDomain->addNode(theNodes[6]) == false)		// add intenal nodes to domain
-      opserr << "Joint3D::Joint3D - unable to add internal nodeto domain\n";
-  }
+
+  if (TheDomain->addNode(theNodes[6]) == false)		// add intenal nodes to domain
+    opserr << "Joint3D::Joint3D - unable to add internal nodeto domain\n";
 
   // make copy of the uniaxial materials for the element
 
@@ -344,9 +207,11 @@ Joint3D::Joint3D(int tag, int nd1, int nd2, int nd3, int nd4, int nd5, int nd6, 
     opserr << "ERROR Joint3D::Joint3D(): The rotational spring in x'y' plane does not exist ";
     exit(-1);
   }
-  else { theSprings[2] = springModels[2]->getCopy(); }
+  else {
+    theSprings[2] = springModels[2]->getCopy();
+  }
 
-  for (i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++)
   {
     if (theSprings[i] == NULL) {
       opserr << "ERROR Joint3D::Joint3D(): Can not make copy of uniaxial materials, out of memory ";
@@ -432,11 +297,13 @@ Joint3D::~Joint3D()
 
 
 
-void Joint3D::setDomain(Domain* theDomain)
+void
+Joint3D::setDomain(Domain* theDomain)
 {
   //Ckeck domain not null - invoked when object removed from a domain
   if (theDomain == 0) {
-    for (int i = 0; i < 7; i++) theNodes[i] = NULL;
+    for (int i = 0; i < 7; i++)
+      theNodes[i] = nullptr;
   }
   else {
 
@@ -652,7 +519,8 @@ Joint3D::getResistingForceIncInertia()
 
 
 //most-probably requires to be overridden
-Response* Joint3D::setResponse(const char** argv, int argc, OPS_Stream& output)
+Response* 
+Joint3D::setResponse(const char** argv, int argc, OPS_Stream& output)
 {
   //
   // we compare argv[0] for known response types for the Truss
@@ -694,16 +562,9 @@ int Joint3D::getResponse(int responseID, Information& eleInformation)
     return -1;
 
   case 1:
-    if (eleInformation.theVector != 0)
-    {
-      const Vector& disp = theNodes[6]->getTrialDisp();
-      for (int i = 0; i < 9; i++)
-        (*(eleInformation.theVector))(i) = disp(i);
-    }
-    return 0;
+    return eleInformation.setVector(theNodes[6]->getTrialDisp());
 
   case 2:
-    if (eleInformation.theVector != 0)
     {
       const Vector& node1Crd = theNodes[0]->getCrds();
       const Vector& node2Crd = theNodes[1]->getCrds();
@@ -744,45 +605,44 @@ int Joint3D::getResponse(int responseID, Information& eleInformation)
       v1(1) = sqrt(v4(0) * v4(0) + v4(1) * v4(1) + v4(2) * v4(2));
       v1(2) = sqrt(v6(0) * v6(0) + v6(1) * v6(1) + v6(2) * v6(2));
 
-      *(eleInformation.theVector) = v1;
+      return eleInformation.setVector(v1);
     }
-    return 0;
 
   case 3:
-    if (eleInformation.theVector != 0)
+    if (eleInformation.theVector.Size() != 0)
     {
       for (int i = 0; i < 3; i++)
       {
-        (*(eleInformation.theVector))(i) = 0.0;
+        ((eleInformation.theVector))(i) = 0.0;
         if (theSprings[i] != NULL)
-          (*(eleInformation.theVector))(i) = theSprings[i]->getStress();
+          ((eleInformation.theVector))(i) = theSprings[i]->getStress();
       }
     }
     return 0;
 
   case 4:
-    if (eleInformation.theVector != 0)
+    if (eleInformation.theVector.Size() != 0)
     {
       for (int i = 0; i < 3; i++)
       {
-        (*(eleInformation.theVector))(i) = 0.0;
+        ((eleInformation.theVector))(i) = 0.0;
         if (theSprings[i] != NULL)
-          (*(eleInformation.theVector))(i) = theSprings[i]->getStrain();
+          ((eleInformation.theVector))(i) = theSprings[i]->getStrain();
       }
     }
     return 0;
 
   case 5:
-    if (eleInformation.theVector != 0)
+    if (eleInformation.theVector.Size() != 0)
     {
       for (int i = 0; i < 3; i++)
       {
-        (*(eleInformation.theVector))(i) = 0.0;
-        (*(eleInformation.theVector))(i + 3) = 0.0;
+        ((eleInformation.theVector))(i) = 0.0;
+        ((eleInformation.theVector))(i + 3) = 0.0;
         if (theSprings[i] != NULL)
         {
-          (*(eleInformation.theVector))(i) = theSprings[i]->getStrain();
-          (*(eleInformation.theVector))(i + 3) = theSprings[i]->getStress();
+          ((eleInformation.theVector))(i)     = theSprings[i]->getStrain();
+          ((eleInformation.theVector))(i + 3) = theSprings[i]->getStress();
         }
       }
     }
@@ -792,15 +652,15 @@ int Joint3D::getResponse(int responseID, Information& eleInformation)
     return eleInformation.setMatrix(this->getTangentStiff());
 
   case 7:
-    if (eleInformation.theVector != 0)
+    if (eleInformation.theVector.Size() != 0)
     {
       for (int i = 0; i < 3; i++)
       {
-        (*(eleInformation.theVector))(i) = 0.0;
+        ((eleInformation.theVector))(i) = 0.0;
         if (theSprings[i] != NULL && theSprings[i]->getInitialTangent() != 0.0)
         {
-          (*(eleInformation.theVector))(i) =
-            theSprings[i]->getStrain() - theSprings[i]->getStress() / theSprings[i]->getInitialTangent();
+          ((eleInformation.theVector))(i) =
+            theSprings[i]->getStrain() - theSprings[i]->getStress()/theSprings[i]->getInitialTangent();
         }
 
       }

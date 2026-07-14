@@ -51,13 +51,13 @@ setElementResponse(Domain& domain, int eleTag, const char **argv, Tcl_Size argc)
 
 
 int 
-setResponse(ClientData clientData, 
-            Tcl_Interp *interp, 
-            Tcl_Size argc,
-            TCL_Char** const argv)
+XaraCmd_setResponse(ClientData context, 
+                    Tcl_Interp *interp, 
+                    ArgSize argc,
+                    TCL_Char** const argv)
 {
-  assert(clientData != nullptr);
-  ModelRegistry *theRegistry = (ModelRegistry*)clientData;
+  assert(context != nullptr);
+  ModelRegistry *theRegistry = static_cast<ModelRegistry*>(context);
   Domain *theDomain = theRegistry->getDomain();
 
   if (argc < 3) {
@@ -110,11 +110,13 @@ setResponse(ClientData clientData,
 
 
 int
-getResponse(ClientData clientData, Tcl_Interp *interp, int argc,
-            TCL_Char** const argv)
+XaraCmd_getResponse(ClientData context, 
+                    Tcl_Interp *interp,
+                    ArgSize argc,
+                    TCL_Char** const argv)
 {
-  assert(clientData != nullptr);
-  ModelRegistry *theRegistry = (ModelRegistry*)clientData;
+  assert(context != nullptr);
+  ModelRegistry *theRegistry = static_cast<ModelRegistry*>(context);
 
   if (argc < 2) {
     opserr << OpenSees::PromptValueError << "want - getResponse responseID? \n";
