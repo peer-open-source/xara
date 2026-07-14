@@ -22,7 +22,7 @@
 // Description: This file contains the implementation for the Borja material class.
 // MultiaxialCyclicPlasticity for class
 //
-// Borja R.I, Amies, A.P.Multiaxial Cyclic Plasticity Model for Clays,
+// Borja R.I, Amies, A.P. "Multiaxial Cyclic Plasticity Model for Clays",
 // ASCE J.Geotech.Eng.Vol 120, No 6, 1051 - 1070
 //            
 
@@ -73,15 +73,13 @@ public:
 	//destructor
 	virtual ~J2CyclicBoundingSurface();
 
-	virtual const char *getClassType(void) const { return "J2CyclicBoundingSurface"; }
+	const char *getClassType() const override { return "J2CyclicBoundingSurface"; }
 
-	virtual NDMaterial* getCopy(const char *type);
+	NDMaterial* getCopy(const char *type) override;
 
-	//swap history variables
-	virtual int commitState();
-
+	// swap history variables
+	int commitState() override;
 	virtual int revertToLastCommit();
-
 	virtual int revertToStart();
 
 	int setTrialStrain(const Vector &v) override {
@@ -199,5 +197,6 @@ protected:
 	double small;
 	bool debugFlag;
 
-}; //end of J2CyclicBoundingSurface declarations
+};
+
 #endif

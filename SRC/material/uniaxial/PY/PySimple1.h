@@ -18,7 +18,7 @@
 ** Permission to incorporate this software into products for commercial distribution may be obtained 
 ** by contacting the University of California 
 ** Office of Technology Licensing 
-** 2150 Shattuck Avenue #510, 
+** 2150 Shattuck Avenue # 510, 
 ** Berkeley, CA 94720-1620, 
 ** (510) 643-7201.
 **
@@ -41,10 +41,6 @@
 **
 ** ****************************************************************** */
 
-// $Revision: 1.0
-// $Date: 2001/10/15
-// $Source: /OpenSees/SRC/material/uniaxial/PySimple1.h
-
 #ifndef PYSIMPLE1_H
 #define PYSIMPLE1_H
 
@@ -59,35 +55,34 @@
 
 class PySimple1 : public UniaxialMaterial
 {
-  public:
-    PySimple1(int tag, int classtag, int soilType, double pult, double y50, 
-	      double drag, double dashpot);
-  PySimple1(int tag, int classtag);
-    PySimple1();
-    ~PySimple1();
+public:
+	PySimple1(int tag, int classtag, int soilType, double pult, double y50, 
+		double drag, double dashpot);
+	PySimple1(int tag, int classtag);
+	PySimple1();
+	~PySimple1();
 
 
-    virtual const char *getClassType(void) const {return "PySimple1";};
+    virtual const char *getClassType() const {return "PySimple1";}
 
     int setTrialStrain(double y, double yRate); 
-    double getStrain(void);          
-    double getStress(void);
-    double getTangent(void);
-    double getInitialTangent(void);
-    double getStrainRate(void);
-    double getDampTangent(void);
+    double getStrain();
+    double getStress();
+    double getTangent();
+    double getInitialTangent();
+    double getStrainRate();
+    double getDampTangent();
 
-    int commitState(void);
-    int revertToLastCommit(void);    
-    int revertToStart(void);        
+    int commitState();
+    int revertToLastCommit();    
+    int revertToStart();        
 
-    UniaxialMaterial *getCopy(void);
+    UniaxialMaterial *getCopy();
     
-    int sendSelf(int commitTag, Channel &theChannel);  
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &theChannel);
+    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &);    
     
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
    
   protected:

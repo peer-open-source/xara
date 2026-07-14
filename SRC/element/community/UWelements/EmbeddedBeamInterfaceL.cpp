@@ -27,7 +27,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -776,29 +775,9 @@ EmbeddedBeamInterfaceL::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectB
         return -3;
     } 
 
-
-
-    // for (int i =0; i<EBIL_numNodes;i++) {  
-    //     if (i<=m_numSolidNodes) {
-    //         opserr << "solid: " << externalNodes[i]<< " "<< m_solidNodeMap[externalNodes[i]]<< " \n";
-    //     } else {
-    //         opserr << "beam:  " << externalNodes[i]<< " "<< m_beamNodeMap[externalNodes[i]] << " \n";
-    //     }
-    // }
-
-
-    // int arrSize = sizeof(theNodes)/sizeof(theNodes[0]);
-    // opserr << "theNodes size is equal to: " << arrSize<< "\n"; 
-
-
     return 0;
 }
 
-int
-EmbeddedBeamInterfaceL::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    return 0;
-}
 
 void
 EmbeddedBeamInterfaceL::Print(OPS_Stream &s, int flag)

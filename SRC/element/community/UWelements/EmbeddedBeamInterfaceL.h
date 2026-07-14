@@ -68,23 +68,23 @@ public:
     void setDomain(Domain *);
 
     // public methods to set the state of the element    
-    int commitState(void);
-    int revertToLastCommit(void);
-    int revertToStart(void);
-    int update(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
+    int update();
 
     // public methods to obtain stiffness, mass, damping and residual information    
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();
 
-    const Vector &getResistingForce(void);
+    const Vector &getResistingForce();
 
     // public methods for element output
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
         &theBroker);
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
-    void Print(OPS_Stream &s, int flag = 0);
+
+    void Print(OPS_Stream &s, int flag);
 
     Response *setResponse(const char **argv, int argc,
         OPS_Stream &s);

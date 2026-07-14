@@ -27,7 +27,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -354,11 +353,6 @@ EmbeddedBeamInterfaceP::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectB
     return 0;
 }
 
-int
-EmbeddedBeamInterfaceP::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    return 0;
-}
 
 void
 EmbeddedBeamInterfaceP::Print(OPS_Stream &s, int flag)

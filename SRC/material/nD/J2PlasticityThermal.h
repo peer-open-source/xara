@@ -67,7 +67,7 @@ class J2PlasticityThermal : public NDMaterial {
 
   //full constructor
   J2PlasticityThermal(    int    tag,
-					int    classTag,
+                   int    classTag,
                    double K,
                    double G,
                    double yield0,
@@ -75,7 +75,7 @@ class J2PlasticityThermal : public NDMaterial {
                    double d,
                    double H,
                    double viscosity = 0,
-				   double rho = 0.0) ;
+                   double rho = 0.0) ;
 
   //elastic constructor
   J2PlasticityThermal( int tag, int classTag, double K, double G ) ;
@@ -83,7 +83,7 @@ class J2PlasticityThermal : public NDMaterial {
   //destructor
   virtual ~J2PlasticityThermal( ) ;
 
-  virtual const char *getClassType(void) const {return "J2PlasticityThermal";};
+  const char *getClassType() const override {return "J2PlasticityThermal";}
 
   virtual NDMaterial* getCopy (const char *type);
 
@@ -102,11 +102,11 @@ class J2PlasticityThermal : public NDMaterial {
 
   void Print(OPS_Stream &s, int flag) ;
 
-  virtual NDMaterial *getCopy (void) ;
-  virtual const char *getType (void) const ;
-  virtual int getOrder (void) const ;
+  virtual NDMaterial *getCopy () ;
+  virtual const char *getType () const ;
+  virtual int getOrder () const ;
 
-  double getRho(void) {return rho;}
+  double getRho() {return rho;}
 
 private:
   double setThermalTangentAndElongation(double &TempT, double &, double &);//Liming add

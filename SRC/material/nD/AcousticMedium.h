@@ -30,11 +30,11 @@ class AcousticMedium : public NDMaterial
     AcousticMedium (int tag, double k, double rho, double gamma = 0.0);
 
     // For parallel processing
-    AcousticMedium (void);
+    AcousticMedium();
 
-    virtual ~AcousticMedium (void);
+    virtual ~AcousticMedium();
 
-    virtual const char *getClassType(void) const {
+    const char *getClassType() const override {
       return "AcousticMedium";
     }
 
