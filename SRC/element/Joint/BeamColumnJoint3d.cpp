@@ -1268,44 +1268,11 @@ BeamColumnJoint3d::getResponse(int responseID, Information &eleInfo)
 	double bsFac, bsFbd, isFac, isFbd; 
 
 	switch (responseID) {
-	case 1:       
-		if(eleInfo.theVector!=0)
-		{
-			(*(eleInfo.theVector))(0) =  UeprCommit(0);
-			(*(eleInfo.theVector))(1) =  UeprCommit(1);
-			(*(eleInfo.theVector))(2) =  UeprCommit(2);
-			(*(eleInfo.theVector))(3) =  UeprCommit(3);
-			(*(eleInfo.theVector))(4) =  UeprCommit(4);
-			(*(eleInfo.theVector))(5) =  UeprCommit(5);
-			(*(eleInfo.theVector))(6) =  UeprCommit(6);
-			(*(eleInfo.theVector))(7) =  UeprCommit(7);
-			(*(eleInfo.theVector))(8) =  UeprCommit(8);
-			(*(eleInfo.theVector))(9) =  UeprCommit(9);
-			(*(eleInfo.theVector))(10) = UeprCommit(10);
-			(*(eleInfo.theVector))(11) = UeprCommit(11);
-			(*(eleInfo.theVector))(12) = UeprCommit(12);
-			(*(eleInfo.theVector))(13) = UeprCommit(13);
-			(*(eleInfo.theVector))(14) = UeprCommit(14);
-			(*(eleInfo.theVector))(15) = UeprCommit(15);
-			(*(eleInfo.theVector))(16) = UeprCommit(16);
-			(*(eleInfo.theVector))(17) = UeprCommit(17);
-			(*(eleInfo.theVector))(18) = UeprCommit(18);
-			(*(eleInfo.theVector))(19) = UeprCommit(19);
-			(*(eleInfo.theVector))(20) = UeprCommit(20);
-			(*(eleInfo.theVector))(21) = UeprCommit(21);
-			(*(eleInfo.theVector))(22) = UeprCommit(22);
-			(*(eleInfo.theVector))(23) = UeprCommit(23);
-		}
-		return 0;
+	case 1:
+		return eleInfo.setVector(UeprCommit);
 
 	case 2:
-		if (eleInfo.theVector !=0) {
-			(*(eleInfo.theVector))(0) = UeprIntCommit(0);
-			(*(eleInfo.theVector))(1) = UeprIntCommit(1);
-			(*(eleInfo.theVector))(2) = UeprIntCommit(2);
-			(*(eleInfo.theVector))(3) = UeprIntCommit(3);
-		}
-		return 0;
+		return eleInfo.setVector(UeprIntCommit);
 
 	case 3:
 
