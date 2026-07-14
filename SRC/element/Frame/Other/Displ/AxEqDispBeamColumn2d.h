@@ -76,39 +76,38 @@ public:
 	~AxEqDispBeamColumn2d(); // Destructor
 
 					  // METHODS TO RETRIEVE MAIN ELEMENT TYPE AND CONNECTIVITY
-	const char *getClassType(void) const { return "AxEqDispBeamColumn2d"; };
+	const char *getClassType() const { return "AxEqDispBeamColumn2d"; }
 
-	int getNumExternalNodes(void) const;
-	const ID &getExternalNodes(void);
-	Node **getNodePtrs(void);
+	int getNumExternalNodes() const;
+	const ID &getExternalNodes();
+	Node **getNodePtrs();
 
-	int getNumDOF(void);
+	int getNumDOF();
 	void setDomain(Domain *theDomain);
 
 	// public methods to set the state of the element    
-	int commitState(void);
-	int revertToLastCommit(void);
-	int revertToStart(void);
+	int commitState();
+	int revertToLastCommit();
+	int revertToStart();
 
 	// public methods to obtain stiffness, mass, damping and residual information    
-	int update(void);
-	const Matrix &getTangentStiff(void);
-	const Matrix &getInitialStiff(void);
-	const Matrix &getMass(void);
+	int update();
+	const Matrix &getTangentStiff();
+	const Matrix &getInitialStiff();
+	const Matrix &getMass();
 
 	void zeroLoad();
 	int addLoad(ElementalLoad *theLoad, double loadFactor);
 	int addInertiaLoadToUnbalance(const Vector &accel);
 
-	const Vector &getResistingForce(void);
-	const Vector &getResistingForceIncInertia(void);
+	const Vector &getResistingForce();
+	const Vector &getResistingForceIncInertia();
 
 	// public methods for element output
-	int sendSelf(int commitTag, Channel &theChannel);
-	int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
-		&theBroker);
-	int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **displayModes = 0, int numModes = 0);
-	void Print(OPS_Stream &s, int flag = 0);
+	int sendSelf(int commitTag, Channel &);
+	int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+
+	void Print(OPS_Stream &s, int flag);
 
 	Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 	int getResponse(int responseID, Information &eleInfo);
@@ -128,7 +127,7 @@ public:
 protected:
 	// PRIVATE METHODS
 private:
-	const Matrix &getInitialBasicStiff(void);
+	const Matrix &getInitialBasicStiff();
 	void getBasicStiff(Matrix &kb, int initial = 0);
 	double getSectionalAxialForceUnbalance(); // METHOD ADDED BY DANILO, returns the axial force unbalance
 	Vector getAxialStrainIncrement(); // METHOD ADDED BY DANILO, returns the axial strain increment vector

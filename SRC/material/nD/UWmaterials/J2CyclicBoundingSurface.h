@@ -22,7 +22,7 @@
 // Description: This file contains the implementation for the Borja material class.
 // MultiaxialCyclicPlasticity for class
 //
-// Borja R.I, Amies, A.P.Multiaxial Cyclic Plasticity Model for Clays,
+// Borja R.I, Amies, A.P. "Multiaxial Cyclic Plasticity Model for Clays",
 // ASCE J.Geotech.Eng.Vol 120, No 6, 1051 - 1070
 //            
 
@@ -73,25 +73,23 @@ public:
 	//destructor
 	virtual ~J2CyclicBoundingSurface();
 
-	virtual const char *getClassType(void) const { return "J2CyclicBoundingSurface"; };
+	const char *getClassType() const override { return "J2CyclicBoundingSurface"; }
 
-	virtual NDMaterial* getCopy(const char *type);
+	NDMaterial* getCopy(const char *type) override;
 
-	//swap history variables
-	virtual int commitState();
-
+	// swap history variables
+	int commitState() override;
 	virtual int revertToLastCommit();
-
 	virtual int revertToStart();
+
 	int setTrialStrain(const Vector &v) override {
 	  assert(false);
 	  return -1;
 	}
 
 	//sending and receiving
-	virtual int sendSelf(int commitTag, Channel &theChannel);
-	virtual int recvSelf(int commitTag, Channel &theChannel,
-		FEM_ObjectBroker &theBroker);
+	virtual int sendSelf(int commitTag, Channel &);
+	virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
 	//print out material data
 	void Print(OPS_Stream &s, int flag);
@@ -104,8 +102,8 @@ public:
 
 
 
-	virtual int setParameter(const char **argv, int argc, Parameter &param);
-	virtual int updateParameter(int responseID, Information &info);
+	virtual int setParameter(const char **argv, int argc, Parameter &);
+	virtual int updateParameter(int responseID, Information &);
 	virtual int activateParameter(int paramID);
 
 	virtual const Matrix& getDampTangent();
@@ -199,5 +197,6 @@ protected:
 	double small;
 	bool debugFlag;
 
-}; //end of J2CyclicBoundingSurface declarations
+};
+
 #endif

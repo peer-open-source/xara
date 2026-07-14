@@ -69,7 +69,6 @@
 #include <Domain.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <math.h>
 #include <string>
 #include <fstream>
@@ -2483,17 +2482,6 @@ OPS_Stream &operator<<(OPS_Stream &s, ForceBeamColumn3d &E)
   return s;
 }
 
-int
-ForceBeamColumn3d::displaySelf(Renderer &theViewer, int displayMode, float fact, const char** displayModes, int numModes)
-{
-  static Vector v1(3);
-  static Vector v2(3);
-
-  theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-  theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-  return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 Response*
 ForceBeamColumn3d::setResponse(const char **argv, int argc, OPS_Stream &output)

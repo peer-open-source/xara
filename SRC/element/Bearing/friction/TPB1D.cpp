@@ -116,11 +116,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_TPB1D)
 		     &dData[12],
 		     dData[15]);
 
-  if (theEle == 0) {
-    opserr << "WARNING ran out of memory creating element type TPB1D with tag " << eleTag << "\n";
-    return 0;
-  }
-
   return theEle;
 }
 
@@ -636,77 +631,72 @@ TPB1D::Print(OPS_Stream &s, int flag)
 Response*
 TPB1D::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
-    Response *theResponse = 0;
+  Response *theResponse = nullptr;
 
-    output.tag("ElementOutput");
-    output.attr("eleType","TPB1D");
-    output.attr("eleTag",this->getTag());
-    output.attr("node1",connectedExternalNodes[0]);
-    output.attr("node2",connectedExternalNodes[1]);
+  output.tag("ElementOutput");
+  output.attr("eleType","TPB1D");
+  output.attr("eleTag",this->getTag());
+  output.attr("node1",connectedExternalNodes[0]);
+  output.attr("node2",connectedExternalNodes[1]);
 
 
-    if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0) 
-        || (strcmp(argv[0],"globalForces") == 0) || (strcmp(argv[0],"globalforces") == 0)) {
+  if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0) 
+      || (strcmp(argv[0],"globalForces") == 0) || (strcmp(argv[0],"globalforces") == 0)) {
 
-      char outputData[256];
-      int numDOFperNode = numDOF/2;
-      for (int i=0; i<numDOFperNode; i++) {
-        sprintf(outputData,"P1_%d", i+1);
-        output.tag("ResponseType", outputData);
-      }
-      for (int j=0; j<numDOFperNode; j++) {
-        sprintf(outputData,"P2_%d", j+1);
-        output.tag("ResponseType", outputData);
-      }
-      theResponse = new ElementResponse(this, 1, Vector(numDOF));
+    char outputData[256];
+    int numDOFperNode = numDOF/2;
+    for (int i=0; i<numDOFperNode; i++) {
+      sprintf(outputData,"P1_%d", i+1);
+      output.tag("ResponseType", outputData);
     }
-
-    // a material quantity
-    else if (strcmp(argv[0],"material") == 0) {
-      theResponse =  theMaterial->setResponse(&argv[1], argc-1, output);
+    for (int j=0; j<numDOFperNode; j++) {
+      sprintf(outputData,"P2_%d", j+1);
+      output.tag("ResponseType", outputData);
     }
+    theResponse = new ElementResponse(this, 1, Vector(numDOF));
+  }
 
-    output.endTag();
+  // a material quantity
+  else if (strcmp(argv[0],"material") == 0) {
+    theResponse =  theMaterial->setResponse(&argv[1], argc-1, output);
+  }
 
-    return theResponse;
+  output.endTag();
+
+  return theResponse;
 }
 
 int 
 TPB1D::getResponse(int responseID, Information &eleInformation)
 {
-    const Vector& disp1 = theNodes[0]->getTrialDisp();
-    const Vector& disp2 = theNodes[1]->getTrialDisp();
-    const Vector  diff  = disp2-disp1;
+  const Vector& disp1 = theNodes[0]->getTrialDisp();
+  const Vector& disp2 = theNodes[1]->getTrialDisp();
+  const Vector  diff  = disp2-disp1;
 
-    switch (responseID) {
+  switch (responseID) {
     case -1:
-        return -1;
+      return -1;
 
     case 1:
-        return eleInformation.setVector(this->getResistingForce());
+      return eleInformation.setVector(this->getResistingForce());
 
     case 2:
-        if (eleInformation.theVector != 0) {
-	  (*(eleInformation.theVector))(0) = theMaterial->getStress();
-        }
-        return 0;
+      return eleInformation.setDouble(theMaterial->getStress());
 
-    case 3:
-        if (eleInformation.theVector != 0) {
-	  (*(eleInformation.theVector))(0) = theMaterial->getStrain();
-        }
-        return 0;
 
-    case 4:
-        if (eleInformation.theVector != 0) {
-	  (*(eleInformation.theVector))(0) = theMaterial->getStrain();
-	  (*(eleInformation.theVector))(1) = theMaterial->getStress();
-	}
-	return 0;      
+    case 3: {
+      return eleInformation.setDouble(theMaterial->getStrain());
+    }
+
+    case 4: {
+      double data[2] = {theMaterial->getStrain(), theMaterial->getStress()};
+      return eleInformation.setVector(Vector(data, 2));
+    }
     
-    default:
+    default: {
       return -1;
     }
+  }
 }
 
 int

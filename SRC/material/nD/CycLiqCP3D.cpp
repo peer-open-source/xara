@@ -45,9 +45,11 @@ Vector CycLiqCP3D :: stress_vec(6) ;
 Matrix CycLiqCP3D :: tangent_matrix(6,6) ;
 
 //null constructor
-CycLiqCP3D :: CycLiqCP3D() :
+CycLiqCP3D::CycLiqCP3D() :
 CycLiqCP()
-{}
+{
+
+}
 
 CycLiqCP3D :: CycLiqCP3D(    int    tag,
 	           double G01,
@@ -67,12 +69,14 @@ CycLiqCP(tag, ND_TAG_CycLiqCP3D, G01, kappa1, h1, Mfc1, dre11, Mdc1, dre21, rdr1
 
 }
 
-CycLiqCP3D :: ~CycLiqCP3D( ) 
+CycLiqCP3D::~CycLiqCP3D() 
 {
+
 }
 
 //make a clone of this material
-NDMaterial* CycLiqCP3D :: getCopy( ) 
+NDMaterial* 
+CycLiqCP3D::getCopy() 
 { 
   CycLiqCP3D  *clone;
   clone = new CycLiqCP3D( ) ;   //new instance of this class
@@ -90,14 +94,15 @@ CycLiqCP3D::getType( ) const
 
 
 //send back order of strain in vector form
-int CycLiqCP3D :: getOrder( ) const 
+int 
+CycLiqCP3D::getOrder( ) const 
 { 
   return 6 ; 
 } 
 
 
 //get the strain and integrate plasticity equations
-int CycLiqCP3D :: setTrialStrain( const Vector &strain_from_element) 
+int CycLiqCP3D::setTrialStrain( const Vector &strain_from_element) 
 {
   strain_nplus1.Zero( ) ;
 
@@ -121,12 +126,14 @@ int CycLiqCP3D :: setTrialStrain( const Vector &strain_from_element)
 
 
 //unused trial strain functions
-int CycLiqCP3D :: setTrialStrain( const Vector &v, const Vector &r )
+int
+CycLiqCP3D::setTrialStrain( const Vector &v, const Vector &r )
 { 
-   return this->setTrialStrain( v ) ;
+  return this->setTrialStrain( v ) ;
 } 
 
-int CycLiqCP3D :: setTrialStrainIncr( const Vector &v ) 
+int
+CycLiqCP3D::setTrialStrainIncr( const Vector &v ) 
 {
   static Vector newStrain(6);
   newStrain(0) = strain_nplus1(0,0) + v(0);

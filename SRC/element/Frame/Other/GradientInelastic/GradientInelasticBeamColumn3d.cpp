@@ -20,17 +20,18 @@
 
 /* Written by: Mohammad Salehi (mohammad.salehi@tamu.edu)
 ** Created: 07/19
-** Description: The source code for the 3D gradient inelastic (GI) force-based beam-column element formulation
+** Description: The source code for the 3D gradient inelastic (GI) 
+** force-based beam-column element formulation
 **
 **
 ** References:
 **
 ** Mohammad Salehi and Petros Sideris (2017)
-** “Refined Gradient Inelastic Flexibility-Based Formulation for Members Subjected to Arbitrary Loading”
+** "Refined Gradient Inelastic Flexibility-Based Formulation for Members Subjected to Arbitrary Loading"
 ** ASCE Journal of Engineering Mechanics, 143(9): 04017090
 **
 ** Petros Sideris and Mohammad Salehi (2016)
-** “A Gradient Inelastic Flexibility-Based Frame Element Formulation”
+** "A Gradient Inelastic Flexibility-Based Frame Element Formulation"
 ** ASCE Journal of Engineering Mechanics, 142(7): 04016039
 */
 
@@ -41,7 +42,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 
@@ -711,32 +711,32 @@ GradientInelasticBeamColumn3d::setDomain(Domain *theDomain)
 
 // Definition of Methods Dealing with Nodes Information
 int
-GradientInelasticBeamColumn3d::getNumExternalNodes(void) const
+GradientInelasticBeamColumn3d::getNumExternalNodes() const
 {
 	return 2;
 }
 
 const ID &
-GradientInelasticBeamColumn3d::getExternalNodes(void)
+GradientInelasticBeamColumn3d::getExternalNodes()
 {
 	return connectedExternalNodes;
 }
 
 Node **
-GradientInelasticBeamColumn3d::getNodePtrs(void)
+GradientInelasticBeamColumn3d::getNodePtrs()
 {
 	return theNodes;
 }
 
 int
-GradientInelasticBeamColumn3d::getNumDOF(void)
+GradientInelasticBeamColumn3d::getNumDOF()
 {
 	return 12;
 }
 
 // Definition of Methods Dealing with Element's State
 int
-GradientInelasticBeamColumn3d::commitState(void)
+GradientInelasticBeamColumn3d::commitState()
 {
 	int err = 0;
 
@@ -1547,18 +1547,6 @@ GradientInelasticBeamColumn3d::getResponse(int responseID, Information &eleInfo)
 	}
 }
 
-// Definition of Method to Display Element
-int
-GradientInelasticBeamColumn3d::displaySelf(Renderer& theViewer, int displayMode, float fact, const char** displayModes, int numModes)
-{
-	static Vector v1(3);
-	static Vector v2(3);
-
-	theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-	theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-	return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 // Definition of Methods Dealing with Parallel Processing
 int

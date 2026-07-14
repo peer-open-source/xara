@@ -174,6 +174,8 @@ class SSPquadUP : public Element
     Matrix mSolidM;                            // mass matrix for solid phase
     Matrix mPerm;                              // permeability matrix H
 };
+
 } // namespace OpenSees
+
 #endif
  

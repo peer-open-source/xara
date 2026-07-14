@@ -17,9 +17,6 @@
 // additional namespacing.
 //
 #include <string.h>
-#ifdef WIN32
-  #define strdup _strdup
-#endif
 #include <assert.h>
 #include <set>
 #include <vector>

@@ -17,9 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-#ifndef SparseGenColLinSOE_h
-#define SparseGenColLinSOE_h
+#pragma once
 
 // Written: fmk
 // Created: 04/98
@@ -62,22 +60,14 @@ public:
   virtual void setX(int loc, double value);
   virtual void setX(const Vector& x);
 
-  virtual int sendSelf(int commitTag, Channel& theChannel);
-  virtual int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
-#ifdef _PARALLEL_PROCESSING
+  virtual int sendSelf(int commitTag, Channel&);
+  virtual int recvSelf(int commitTag, Channel&, FEM_ObjectBroker& theBroker);
+
+
   friend class SuperLU;
   friend class ThreadedSuperLU;
   friend class DistributedSuperLU;
-#else
-#  ifdef _PARALLEL_INTERPRETERS
-  friend class SuperLU;
-  friend class ThreadedSuperLU;
-  friend class DistributedSuperLU;
-#  else
-  friend class SuperLU;
-#  endif
-#endif
-  friend class PFEMSolver;
+
 
 protected:
   int size;              // order of A
@@ -90,6 +80,3 @@ protected:
 
 private:
 };
-
-
-#endif

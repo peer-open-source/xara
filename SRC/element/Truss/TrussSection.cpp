@@ -192,8 +192,8 @@ TrussSection::setDomain(Domain* theDomain)
   theNodes[1] = theDomain->getNode(Nd2);
 
   // if nodes not in domain, warning message & set default numDOF as 2
-  if ((theNodes[0] == 0) || (theNodes[1] == 0)) {
-    if (theNodes[0] == 0)
+  if ((theNodes[0] == nullptr) || (theNodes[1] == nullptr)) {
+    if (theNodes[0] == nullptr)
       opserr << "TrussSection::setDomain() - Nd1: " << Nd1 << " does not exist in Domain\n";
     else
       opserr << "TrussSection::setDomain() - Nd1: " << Nd2 << " does not exist in Domain\n";
@@ -504,7 +504,8 @@ TrussSection::getMass()
   mass.Zero();
 
   // check for quick return
-  if (L == 0.0 || rho == 0.0) { // - problem in setDomain() no further warnings
+  if (L == 0.0 || rho == 0.0) {
+    // problem in setDomain(), no further warnings
     return mass;
   }
 
@@ -546,38 +547,6 @@ TrussSection::addLoad(ElementalLoad* theLoad, double loadFactor)
 }
 
 
-int
-TrussSection::addInertiaLoadToUnbalance(const Vector& accel)
-{
-  // check for a quick return
-  if (L == 0.0 || rho == 0.0)
-    return 0;
-
-  // get R * accel from the nodes
-  const Vector& Raccel1 = theNodes[0]->getRV(accel);
-  const Vector& Raccel2 = theNodes[1]->getRV(accel);
-
-  int nodalDOF = numDOF / 2;
-
-  // want to add ( - fact * M R * accel ) to unbalance
-  if (cMass == 0) {
-    double m = 0.5 * rho * L;
-    for (int i = 0; i < dimension; i++) {
-      (*theLoad)(i) -= m * Raccel1(i);
-      (*theLoad)(i + nodalDOF) -= m * Raccel2(i);
-    }
-  } else {
-    double m = rho * L / 6.0;
-    for (int i = 0; i < dimension; i++) {
-      (*theLoad)(i) -= 2.0 * m * Raccel1(i) + m * Raccel2(i);
-      (*theLoad)(i + nodalDOF) -= m * Raccel1(i) + 2.0 * m * Raccel2(i);
-    }
-  }
-
-  return 0;
-}
-
-
 const Vector&
 TrussSection::getResistingForce()
 {
@@ -593,17 +562,16 @@ TrussSection::getResistingForce()
   const Vector& s = theSection->getStressResultant();
   double force    = 0.0;
   int i;
-  for (i = 0; i < order; i++) {
+  for (int i = 0; i < order; i++) {
     if (code(i) == SECTION_RESPONSE_P)
       force += s(i);
   }
 
   int numDOF2 = numDOF / 2;
-  double temp;
-  for (i = 0; i < dimension; i++) {
-    temp                      = cosX[i] * force;
-    (*theVector)(i)           = -temp;
-    (*theVector)(i + numDOF2) = temp;
+  for (int i = 0; i < dimension; i++) {
+    const double F            = cosX[i] * force;
+    (*theVector)(i)           = -F;
+    (*theVector)(i + numDOF2) =  F;
   }
 
   // subtract external load
@@ -776,7 +744,7 @@ TrussSection::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& the
   int sectDb    = (int)data(4);
 
   // Get new section if null
-  if (theSection == 0)
+  if (theSection == nullptr)
     theSection = theBroker.getNewFrameSection(sectClass);
 
   // Check that section is of right type
@@ -952,7 +920,8 @@ TrussSection::setResponse(const char** argv, int argc, OPS_Stream& output)
     theResponse = new ElementResponse(this, 4, Matrix(1, 1));
 
     // a section quantity
-  } else if (strcmp(argv[0], "section") == 0) {
+  }
+  else if ((strcmp(argv[0], "section") == 0)) {
     if (argc > 1) {
       // we need at least one more argument otherwise
       // there is no need to forward this call to the material
@@ -977,6 +946,37 @@ TrussSection::setResponse(const char** argv, int argc, OPS_Stream& output)
         output.attr("eta", 0.0);
         theResponse = theSection->setResponse(&argv[offset], argc - offset, output);
         output.endTag();
+      }
+    }
+  }
+  else if ((strcmp(argv[0], "material") == 0)) {
+    if (argc > 1) {
+      // we need at least one more argument otherwise
+      // there is no need to forward this call to the material
+      // by default assume the old call style for backward compatibility "material result"
+      int offset    = 0;
+      bool is_valid = true;
+      // in case the user specifies the gauss point id... "section 1 result"
+      if (argc > 2) {
+        int sectionNum = atoi(argv[1]);
+        if (sectionNum > 1) {
+          // this is a number, but not within the valid range
+          is_valid = false;
+        }
+        // if it is 0, then it is not a number, forward it as usual...
+      }
+      if (is_valid) {
+        argv[0] = "fiber";
+        argv[1] = "0";
+        output.tag("GaussPointOutput");
+        output.attr("number", 1);
+        output.attr("eta", 0.0);
+        theResponse = theSection->setResponse(&argv[offset], argc - offset, output);
+        output.endTag();
+      }
+      else {
+        opserr << "invalid material number " << argv[1] << OpenSees::SignalMessageEnd;
+        return nullptr;
       }
     }
   }
@@ -1032,7 +1032,7 @@ TrussSection::getResponse(int responseID, Information& eleInfo)
     fVec(0) = force;
     return eleInfo.setVector(fVec);
 
-  case 3:
+  case 3: // deformations
     if (L == 0.0) {
       strain = 0.0;
     } else {
@@ -1041,10 +1041,11 @@ TrussSection::getResponse(int responseID, Information& eleInfo)
     sVec(0) = L * strain;
     return eleInfo.setVector(sVec);
 
-  case 4:
+  case 4: // basic stiffness
     if (L == 0.0) {
       force = 0.0;
-    } else {
+    }
+    else {
 
       int order      = theSection->getOrder();
       const ID& code = theSection->getType();
@@ -1059,7 +1060,8 @@ TrussSection::getResponse(int responseID, Information& eleInfo)
     kVec(0, 0) = force / L;
     return eleInfo.setMatrix(kVec);
 
-  default: return -1;
+  default:
+    return -1;
   }
 }
 

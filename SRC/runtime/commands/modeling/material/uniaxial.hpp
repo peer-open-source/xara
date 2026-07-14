@@ -492,8 +492,8 @@ UniaxialLibrary {
 
     {"ASD_SMA_3K",             dispatch<OPS_ASD_SMA_3K>                },
 
-    // {"ASDConcrete1D",          dispatch<TclCommand_addASDConcrete1D>   },
-    {"ASDConcrete1D",          dispatch<OPS_ASDConcrete1DMaterial>     },
+    {"ASDConcrete1D",          dispatch<TclCommand_addASDConcrete1D>   },
+    // {"ASDConcrete1D",          dispatch<OPS_ASDConcrete1DMaterial>     },
 
     {"HystereticPoly",         dispatch<OPS_HystereticPoly>            },
 

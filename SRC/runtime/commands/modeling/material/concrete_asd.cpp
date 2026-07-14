@@ -32,7 +32,6 @@ namespace {
     return (y0 - 2.0 * y1 + y2) * t * t + 2.0 * (y1 - y0) * t + y0;
   }
 
-
 struct ConcreteBackbone {
   std::vector<double> Te;
   std::vector<double> Ts;
@@ -493,7 +492,8 @@ TclCommand_addASDConcrete1D(ClientData clientData, Tcl_Interp* interp, int argc,
   }
 
   if (backbone.Ce.size() < 1) {
-    opserr << OpenSees::PromptValueError << "'Ce' list is empty. At least 1 non-zero value should be provided.\n";
+    opserr << OpenSees::PromptValueError 
+           << "'Ce' list is empty. At least 1 non-zero value should be provided.\n";
     return TCL_ERROR;
   }
 
@@ -963,9 +963,9 @@ TclCommand_addASDConcrete3D(ClientData clientData, Tcl_Interp* interp, int argc,
     backbone.Cd.resize(backbone.Ce.size(), 0.0);
   }
   else if (backbone.Cd.size() != backbone.Ce.size()) {
-    opserr << OpenSees::PromptValueError << "'Ce' (size = " <<
-      static_cast<int>(backbone.Ce.size()) << ") and 'Cd' (size = " <<
-      static_cast<int>(backbone.Cd.size()) << ") lists should have the same size.\n";
+    opserr << OpenSees::PromptValueError << "'Ce' (size = " 
+           << static_cast<int>(backbone.Ce.size()) << ") and 'Cd' (size = " 
+           << static_cast<int>(backbone.Cd.size()) << ") lists should have the same size.\n";
     return TCL_ERROR;
   }
 

@@ -39,7 +39,7 @@ DistributedProfileSPDLinSOE::DistributedProfileSPDLinSOE(ProfileSPDLinSolver &th
    processID(0), numChannels(0), theChannels(0), 
    localCol(0), sizeLocal(0), workArea(0), sizeWork(0), myVectB(0), myB(0)
 {
-    theSolvr.setLinearSOE(*this);
+  theSolvr.setLinearSOE(*this);
 }
 
 
@@ -60,7 +60,7 @@ DistributedProfileSPDLinSOE::~DistributedProfileSPDLinSOE()
   if (localCol != 0)
     for (int i=0; i<numChannels; i++)
       if (localCol[i] != 0)
-	delete localCol[i];
+        delete localCol[i];
   delete [] localCol;
 
   if (sizeLocal != 0)
@@ -97,9 +97,9 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
     size = data(0);
 
     if (size > Bsize) { 
-	if (iDiagLoc != 0) 
-          delete [] iDiagLoc;
-	iDiagLoc = new int[size];
+      if (iDiagLoc != 0) 
+        delete [] iDiagLoc;
+      iDiagLoc = new int[size];
     }
     
     // receive my iDiagLoad
@@ -117,11 +117,11 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
       (*subMap)(cnt) = vertexTag;
       int colHeight =0;
       if (vertexTag == 0) {
-	myProfileSize++;
-	colHeight= 1;
+        myProfileSize++;
+        colHeight= 1;
       } else {
-	colHeight = iLoc[vertexTag] - iLoc[vertexTag-1];	    
-	myProfileSize += colHeight;
+        colHeight = iLoc[vertexTag] - iLoc[vertexTag-1];	    
+        myProfileSize += colHeight;
       }
       loc += colHeight;
       iDiagLoc[cnt++] = loc;	      
@@ -157,7 +157,7 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
       ID *subMap = new ID(numSubVertex);
       localCol[j] = subMap;
       if (numSubVertex > maxNumSubVertex)
-	maxNumSubVertex = numSubVertex;
+        maxNumSubVertex = numSubVertex;
     }
 
     size = theGraph.getNumVertex();
@@ -165,14 +165,14 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
     // check we have enough space in iDiagLoc and iLastCol
     // if not delete old and create new
     if (size != Bsize) { 
-	if (iDiagLoc != nullptr)
-          delete [] iDiagLoc;
-	iDiagLoc = new int[size];
+      if (iDiagLoc != nullptr)
+        delete [] iDiagLoc;
+      iDiagLoc = new int[size];
     }
 
     // zero out iDiagLoc 
     for (int i=0; i<size; i++) {
-	iDiagLoc[i] = 0;
+      iDiagLoc[i] = 0;
     }
 
     // now we go through the vertices to find the height of each col and
@@ -181,37 +181,37 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
     Vertex *vertexPtr;
     VertexIter &theVertices = theGraph.getVertices();
 
-    while ((vertexPtr = theVertices()) != 0) {
-	int vertexNum = vertexPtr->getTag();
-	const ID &theAdjacency = vertexPtr->getAdjacency();
-	int iiDiagLoc = iDiagLoc[vertexNum];
-	int *iiDiagLocPtr = &(iDiagLoc[vertexNum]);
+    while ((vertexPtr = theVertices()) != nullptr) {
+      int vertexNum = vertexPtr->getTag();
+      const ID &theAdjacency = vertexPtr->getAdjacency();
+      int iiDiagLoc = iDiagLoc[vertexNum];
+      int *iiDiagLocPtr = &(iDiagLoc[vertexNum]);
 
-	for (int i=0; i<theAdjacency.Size(); i++) {
-	    int otherNum = theAdjacency(i);
-	    int diff = vertexNum-otherNum;
-	    if (diff > 0) {
-		if (iiDiagLoc < diff) {
-		    iiDiagLoc = diff;
-		    *iiDiagLocPtr = diff;
-		}
-	    } 
-	}
+      for (int i=0; i<theAdjacency.Size(); i++) {
+        int otherNum = theAdjacency(i);
+        int diff = vertexNum - otherNum;
+        if (diff > 0) {
+          if (iiDiagLoc < diff) {
+            iiDiagLoc = diff;
+            *iiDiagLocPtr = diff;
+          }
+        }
+      }
     }
 
 
     // now go through iDiagLoc, adding 1 for the diagonal element
     // and then adding previous entry to give current location.
     if (iDiagLoc != 0)
-	iDiagLoc[0] = 1; // NOTE FORTRAN ARRAY LOCATION - 1 of solvers uses library
+      iDiagLoc[0] = 1; // NOTE FORTRAN ARRAY LOCATION - 1 of solvers uses library
 
     for (int j=1; j<size; j++)
-	iDiagLoc[j] = iDiagLoc[j] + 1 + iDiagLoc[j-1];
+      iDiagLoc[j] = iDiagLoc[j] + 1 + iDiagLoc[j-1];
 
     static ID data(1);
     data(0) = size;
 
-    ID iLoc(iDiagLoc, size);
+    ID iLoc(iDiagLoc, size, false);
 
     // to each distributed soe send the size data
     // and merge them into primary graph
@@ -254,7 +254,7 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
     // create some space for storing data sent from processes
     if (processID == 0) {
       if (workArea != 0)
-	delete [] workArea;
+        delete [] workArea;
 
       workArea = new double [profileSize];
       sizeWork = profileSize;
@@ -276,30 +276,26 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
   isAfactored = false;
   isAcondensed = false;    
   
-  if (size > Bsize) { // we have to get another space for A
+  if (size != Bsize) { // we have to get another space for A
     
     // delete the old
-    if (myB != 0) delete [] myB;
+    if (myB != 0)
+      delete [] myB;
     
     // create the new	
-    B   = new double[size];
-    X   = new double[size];
+    B.resize(size);
+    X.resize(size);
     myB = new double[size];
   }
 
   // zero the vectors
+  B.Zero();
+  X.Zero();
   for (int l=0; l<size; l++) {
-    B[l]   = 0;
-    X[l]   = 0;
     myB[l] = 0;
   }
   
-  if (size != oldSize) { 
-    if (vectX != 0)
-      delete vectX;
-
-    if (vectB != 0)
-      delete vectB;
+  if (size != oldSize) {
 
     if (myVectB != 0)
       delete myVectB;
@@ -307,8 +303,8 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
     if (myVectB != 0)
       delete myVectB;
 
-    vectX   = new Vector(X,size);
-    vectB   = new Vector(B,size);
+    X.resize(size);
+    B.resize(size);
     myVectB = new Vector(myB, size);
     
     if (size > Bsize)
@@ -348,55 +344,55 @@ DistributedProfileSPDLinSOE::addA(const Matrix &m, const ID &id, double fact)
     for (int i=0; i<idSize; i++) {
       int col = id(i);
       if (col < size && col >= 0) {
-	//	double *coliiPtr = &A[iDiagLoc[col] -1]; // -1 as fortran indexing 
-	double *coliiPtr;
-	if (processID == 0)
-	  coliiPtr = &A[iDiagLoc[col] -1]; // -1 as fortran indexing 
-	else
-	  coliiPtr = &A[iDiagLoc[(*theMap)(col)] -1];
+        //	double *coliiPtr = &A[iDiagLoc[col] -1]; // -1 as fortran indexing 
+        double *coliiPtr;
+        if (processID == 0)
+          coliiPtr = &A[iDiagLoc[col] -1]; // -1 as fortran indexing 
+        else
+          coliiPtr = &A[iDiagLoc[(*theMap)(col)] -1];
 
-	for (int j=0; j<idSize; j++) {
-	  int row = id(j);
-	  if (row <size && row >= 0 && 
-	      row <= col) { 
-	    
-	    // we only add upper and inside profile
-	    double *APtr = coliiPtr + (row-col);
-	    *APtr += m(j,i);
-	  }
-	}  // for j
+        for (int j=0; j<idSize; j++) {
+          int row = id(j);
+          if (row <size && row >= 0 && 
+              row <= col) { 
+            
+            // we only add upper and inside profile
+            double *APtr = coliiPtr + (row-col);
+            *APtr += m(j,i);
+          }
+        }  // for j
       } 
     }  // for i
-  } else {
+  }
+  else {
     for (int i=0; i<idSize; i++) {
       int col = id(i);
       if (col < size && col >= 0) {
-	//  ydouble *coliiPtr = &A[iDiagLoc[col] -1]; // -1 as fortran indexing 		
-	double *coliiPtr;
-	if (processID == 0)
-	  coliiPtr = &A[iDiagLoc[col] -1]; // -1 as fortran indexing 
-	else
-	  coliiPtr = &A[iDiagLoc[(*theMap)(col)] -1];
-			
-	for (int j=0; j<idSize; j++) {
-	  int row = id(j);
-	  if (row <size && row >= 0 && 
-	      row <= col) { 
-	    
-	    // we only add upper and inside profile
-	    double *APtr = coliiPtr + (row-col);
-	    *APtr += m(j,i) * fact;
-	  }
-	}  // for j
+        //  ydouble *coliiPtr = &A[iDiagLoc[col] -1]; // -1 as fortran indexing 		
+        double *coliiPtr;
+        if (processID == 0)
+          coliiPtr = &A[iDiagLoc[col] -1]; // -1 as fortran indexing 
+        else
+          coliiPtr = &A[iDiagLoc[(*theMap)(col)] -1];
+            
+        for (int j=0; j<idSize; j++) {
+          int row = id(j);
+          if (row <size && row >= 0 && 
+              row <= col) { 
+            
+            // we only add upper and inside profile
+            double *APtr = coliiPtr + (row-col);
+            *APtr += m(j,i) * fact;
+          }
+        }  // for j
       } 
     }  // for i
-    
   }
   return 0;
 }
 
 int 
-DistributedProfileSPDLinSOE::solve(void)
+DistributedProfileSPDLinSOE::solve()
 {
   static ID result(1);
 
@@ -416,8 +412,8 @@ DistributedProfileSPDLinSOE::solve(void)
       theChannel->sendVector(0, 0, vectA);
     }
     // receive X,B and result
-    theChannel->recvVector(0, 0, *vectX);
-    theChannel->recvVector(0, 0, *vectB);
+    theChannel->recvVector(0, 0, X);
+    theChannel->recvVector(0, 0, B);
     theChannel->recvID(0, 0, result);
     isAfactored = true;
   } 
@@ -425,44 +421,43 @@ DistributedProfileSPDLinSOE::solve(void)
   //
   // if main process, recv B & A from all, solve and send back X, B & result
   //
-
   else {
     
     // add P0 contribution to B
-    *vectB = *myVectB;
+    B = *myVectB;
     
     // receive X and A contribution from subprocess & add them in
     for (int j=0; j<numChannels; j++) {
 
       // get X & add
       Channel *theChannel = theChannels[j];
-      theChannel->recvVector(0, 0, *vectX);
-      *vectB += *vectX;
+      theChannel->recvVector(0, 0, X);
+      B += X; // TODO(cmp): This correct??
 
       // get A & add using local map
       if (isAfactored == false) {
-	const ID &localMap = *(localCol[j]);
-	int localSize = (*sizeLocal)(j);
-	Vector vectA(workArea, localSize);    
-	theChannel->recvVector(0, 0, vectA);
-	
-	int loc = 0;
-	for (int i=0; i<localMap.Size(); i++) {
-	  int col = localMap(i);
-	  int colSize, pos;
-	  
-	  if (col == 0) {
-	    colSize = 1;
-	    pos = 0;
-	  }
-	  else {
-	    pos = iDiagLoc[col-1];
-	    colSize = iDiagLoc[col] - iDiagLoc[col-1];
-	  }
-	  for (int k=0; k<colSize; k++) {
-	    A[pos++] += workArea[loc++];
-	  }
-	}
+        const ID &localMap = *(localCol[j]);
+        int localSize = (*sizeLocal)(j);
+        Vector vectA(workArea, localSize);    
+        theChannel->recvVector(0, 0, vectA);
+        
+        int loc = 0;
+        for (int i=0; i<localMap.Size(); i++) {
+          int col = localMap(i);
+          int colSize, pos;
+          
+          if (col == 0) {
+            colSize = 1;
+            pos = 0;
+          }
+          else {
+            pos = iDiagLoc[col-1];
+            colSize = iDiagLoc[col] - iDiagLoc[col-1];
+          }
+          for (int k=0; k<colSize; k++) {
+            A[pos++] += workArea[loc++];
+          }
+        }
       }    
     }
 
@@ -472,8 +467,8 @@ DistributedProfileSPDLinSOE::solve(void)
     // send results back
     for (int j=0; j<numChannels; j++) {
       Channel *theChannel = theChannels[j];
-      theChannel->sendVector(0, 0, *vectX);
-      theChannel->sendVector(0, 0, *vectB);
+      theChannel->sendVector(0, 0, X);
+      theChannel->sendVector(0, 0, B);
       theChannel->sendID(0, 0, result);      
     }
   } 
@@ -485,63 +480,64 @@ DistributedProfileSPDLinSOE::solve(void)
 int 
 DistributedProfileSPDLinSOE::addB(const Vector &v, const ID &id, double fact)
 {
-    assert(id.Size() == v.Size());
-    
-    // check for a quick return 
-    if (fact == 0.0)  return 0;
+  assert(id.Size() == v.Size());
+  
+  // check for a quick return 
+  if (fact == 0.0)  return 0;
 
-    // check that m and id are of similar size
-    int idSize = id.Size();        
+  // check that m and id are of similar size
+  int idSize = id.Size();        
 
-    if (fact == 1.0) { // do not need to multiply if fact == 1.0
-	for (int i=0; i<id.Size(); i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		myB[pos] += v(i);
-	}
-    } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
-	for (int i=0; i<id.Size(); i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		myB[pos] -= v(i);
-	}
-    } else {
-	for (int i=0; i<id.Size(); i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		myB[pos] += v(i) * fact;
-	}
-    }	
-    return 0;
+  if (fact == 1.0) { // do not need to multiply if fact == 1.0
+    for (int i=0; i<id.Size(); i++) {
+      int pos = id(i);
+      if (pos < size && pos >= 0)
+        myB[pos] += v(i);
+    }
+  } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
+    for (int i=0; i<id.Size(); i++) {
+      int pos = id(i);
+      if (pos <size && pos >= 0)
+        myB[pos] -= v(i);
+    }
+  } else {
+    for (int i=0; i<id.Size(); i++) {
+      int pos = id(i);
+      if (pos <size && pos >= 0)
+        myB[pos] += v(i) * fact;
+    }
+  }
+  return 0;
 }
+
 
 int
 DistributedProfileSPDLinSOE::setB(const Vector &v, double fact)
 {
-    assert(v.Size() == size);
+  assert(v.Size() == size);
 
-    // check for a quick return 
-    if (fact == 0.0)
-      return 0;
-
-    if (fact == 1.0) { // do not need to multiply if fact == 1.0
-	for (int i=0; i<size; i++) {
-	    myB[i] = v(i);
-	}
-    } else if (fact == -1.0) {
-	for (int i=0; i<size; i++) {
-	    myB[i] = -v(i);
-	}
-    } else {
-	for (int i=0; i<size; i++) {
-	    myB[i] = v(i) * fact;
-	}
-    }	
+  // check for a quick return 
+  if (fact == 0.0)
     return 0;
+
+  if (fact == 1.0) { // do not need to multiply if fact == 1.0
+    for (int i=0; i<size; i++) {
+        myB[i] = v(i);
+    }
+  } else if (fact == -1.0) {
+    for (int i=0; i<size; i++) {
+        myB[i] = -v(i);
+    }
+  } else {
+    for (int i=0; i<size; i++) {
+        myB[i] = v(i) * fact;
+    }
+  }	
+  return 0;
 }
 
 void
-DistributedProfileSPDLinSOE::zeroB(void)
+DistributedProfileSPDLinSOE::zeroB()
 {
   double *Bptr = myB;
   for (int i=0; i<size; i++)
@@ -550,7 +546,7 @@ DistributedProfileSPDLinSOE::zeroB(void)
 
 
 const Vector &
-DistributedProfileSPDLinSOE::getB(void)
+DistributedProfileSPDLinSOE::getB()
 {
 
   if (processID != 0) {
@@ -558,7 +554,7 @@ DistributedProfileSPDLinSOE::getB(void)
 
     // send B & recv merged B
     theChannel->sendVector(0, 0, *myVectB);
-    theChannel->recvVector(0, 0, *vectB);
+    theChannel->recvVector(0, 0,  B);
   } 
 
   //
@@ -569,31 +565,31 @@ DistributedProfileSPDLinSOE::getB(void)
 
     // receive X and A contribution from subprocess & add them in
 
-    *vectB = *myVectB;
+    B = *myVectB;
     Vector remoteB(workArea, size);    
 
     for (int j=0; j<numChannels; j++) {
 
       Channel *theChannel = theChannels[j];
       theChannel->recvVector(0, 0, remoteB);
-      *vectB += remoteB;
+      B += remoteB;
     }
   
     // send results back
     for (int j=0; j<numChannels; j++) {
       Channel *theChannel = theChannels[j];
-      theChannel->sendVector(0, 0, *vectB);
+      theChannel->sendVector(0, 0, B);
     }
   } 
 
-  return *vectB;
+  return B;
 }	
 
   
 int 
 DistributedProfileSPDLinSOE::sendSelf(int commitTag, Channel &theChannel)
 {
-  int sendID =0;
+  int sendID = 0;
 
   // if P0 check if already sent. If already sent use old processID; if not allocate a new process 
   // id for remote part of object, enlarge channel * to hold a channel * for this remote object.
@@ -606,8 +602,8 @@ DistributedProfileSPDLinSOE::sendSelf(int commitTag, Channel &theChannel)
     bool found = false;
     for (int i=0; i<numChannels; i++)
       if (theChannels[i] == &theChannel) {
-	sendID = i+1;
-	found = true;
+        sendID = i+1;
+        found = true;
       }
 
     // if new object, enlarge Channel pointers to hold new channel * & allocate new ID
@@ -616,25 +612,25 @@ DistributedProfileSPDLinSOE::sendSelf(int commitTag, Channel &theChannel)
       Channel **nextChannels = new Channel *[nextNumChannels];
 
       for (int i=0; i<numChannels; i++)
-	nextChannels[i] = theChannels[i];
+        nextChannels[i] = theChannels[i];
       nextChannels[numChannels] = &theChannel;
       
       numChannels = nextNumChannels;
       
-      if (theChannels != 0)
-	delete [] theChannels;
+      if (theChannels != nullptr)
+        delete [] theChannels;
       
       theChannels = nextChannels;
       
       if (localCol != 0)
-	delete [] localCol;
+        delete [] localCol;
       localCol = new ID *[numChannels];
 
       for (int i=0; i<numChannels; i++)
-	localCol[i] = 0;    
+        localCol[i] = 0;
 
       if (sizeLocal != 0)
-	delete sizeLocal;
+        delete sizeLocal;
       
       sizeLocal = new ID(numChannels);
 
@@ -642,7 +638,7 @@ DistributedProfileSPDLinSOE::sendSelf(int commitTag, Channel &theChannel)
       sendID = numChannels;
     }
 
-  } else 
+  } else
     sendID = processID;
 
 

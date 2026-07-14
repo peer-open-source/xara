@@ -47,16 +47,15 @@ class MPI_MachineBroker : public MachineBroker
     ~MPI_MachineBroker();
 
     // methods to return info about local process id and num processes
-    int getPID(void);
-    int getNP(void);
+    int getPID();
+    int getNP();
 
     // methods to get and free Channels (processes)
-    Channel *getMyChannel(void);
-    Channel *getRemoteProcess(void);
+    Channel *getMyChannel();
+    Channel *getRemoteProcess();
     int freeProcess(Channel *);
 
 
-    
   private:
     int rank;
     int size;

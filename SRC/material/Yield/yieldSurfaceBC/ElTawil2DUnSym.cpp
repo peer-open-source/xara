@@ -209,14 +209,13 @@ void ElTawil2DUnSym::getGradient(double &gx, double &gy, double x, double y)
 		}
 	}
 
-//	opserr << "gx = " << gx << "gy = " << gy << "\n";
-//	opserr << "\a";
 }
 
-double ElTawil2DUnSym::getSurfaceDrift(double x, double y)
+double
+ElTawil2DUnSym::getSurfaceDrift(double x, double y)
 {
-double phi;
-double a = 5;//10.277; //3.043;//4.29293; --> effects convergence
+  double phi;
+  double a = 5;//10.277; //3.043;//4.29293; --> effects convergence
 // why isn't a = 10.77 here or 5 in getGradient
      double capx = capX;
      double capy = capY;
@@ -249,18 +248,19 @@ double a = 5;//10.277; //3.043;//4.29293; --> effects convergence
 		{
 		 	phi = fabs(xVal/xNegBal) + pow((yVal - yNegBal)/(yPosCap - yNegBal), czNeg);
 		}
-		else if(xVal < 0 && yVal < yNegBal)	// quad 2 or 3
+		else // if(xVal < 0 && yVal < yNegBal)	// quad 2 or 3
 		{
 		
 		 	phi = fabs(xVal/xNegBal) + pow(fabs((yVal - yNegBal)/(yNegCap - yNegBal)), tyNeg);
 		}
-		else
-		{
-			opserr << "ElTawil2DUnSym::getSurfaceDrift(..) - cond not possible\n";
-			opserr << "x=" << x << ", y=" << y << ", capx=" << capx << ", capy=" << capy << endln;
-			opserr << "xVal = " << xVal << ", yVal = " << yVal << endln;
-			opserr << "\a";
-		}
+// 		else
+// 		{
+// 			opserr << "ElTawil2DUnSym::getSurfaceDrift(..) - cond not possible\n";
+// 			opserr << "x=" << x << ", y=" << y << ", capx=" << capx << ", capy=" << capy << endln;
+// 			opserr << "xVal = " << xVal << ", yVal = " << yVal << endln;
+// 			opserr << "\a";
+// 		}
+
 		/*	
 		if(y < 0)
 			phi = fabs(xVal/xBal) + pow(fabs(yVal/yNegCap), ty);

@@ -47,7 +47,7 @@ class PressureDependentElastic3D : public ElasticIsotropicMaterial
     PressureDependentElastic3D ();
     ~PressureDependentElastic3D ();
 
-    const char *getClassType(void) const {return "PressureDependentElastic";};
+    const char *getClassType(void) const {return "PressureDependentElastic";}
 
     int setTrialStrain (const Vector &v);
     int setTrialStrain (const Vector &v, const Vector &r);
@@ -71,7 +71,7 @@ class PressureDependentElastic3D : public ElasticIsotropicMaterial
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
   private:
     double exp0;                 // exponent usually 0.6

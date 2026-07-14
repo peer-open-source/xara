@@ -20,7 +20,7 @@ extern "C" {
 // #include "commands.h"
 #include <ID.h>
 #include <stdio.h>
-
+#include <Parsing.h>
 #include "G3_Runtime.h"
 #include <MPI_MachineBroker.h>
 #include <TclPackageClassBroker.h>
@@ -36,8 +36,8 @@ void Init_Communication(Tcl_Interp* interp, MachineBroker* theMachineBroker);
 
 extern int init_g3_tcl_utils(Tcl_Interp*);
 
-static int 
-doNothing(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
+static int
+doNothing(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char **argv)
 {
   return TCL_OK;
 }
@@ -75,7 +75,6 @@ Libopenseesmp_Init(Tcl_Interp* interp)
   // to some SOE constructors
   Channel **theChannels = nullptr;
   int numChannels;
-
   if (pid == 0) {
     theChannels = new Channel *[np-1];
     numChannels = np-1;
@@ -141,7 +140,6 @@ Libopenseesmp_Init(Tcl_Interp* interp)
     Message msgChar(dataArgs, sizeArg);
     
     myChannel->recvMsg(0,0,msgChar);
-
   }
 
   args = new char *[numArg];
@@ -163,7 +161,6 @@ Libopenseesmp_Init(Tcl_Interp* interp)
   init_g3_tcl_utils(interp);
 
   Tcl_CreateCommand(interp, "partition", &doNothing, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
-
 
   return 0;
 }

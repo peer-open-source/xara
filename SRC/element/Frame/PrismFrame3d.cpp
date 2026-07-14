@@ -830,7 +830,7 @@ PrismFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
 
   else if (strcmp(argv[0],"sectionX") == 0) {
     if (argc > 2) {
-      float xL = atof(argv[1]);
+      double xL = atof(argv[1]);
       if (xL < 0.0)
         xL = 0.0;
       if (xL > 1.0)

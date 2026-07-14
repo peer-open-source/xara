@@ -13,8 +13,7 @@
 // Written: cmp
 // Created: Jan. 2026
 //
-#ifndef MixedFrameSection_h
-#define MixedFrameSection_h
+#pragma once
 #include <array>
 #include <memory>
 #include <FrameSection.h>
@@ -32,6 +31,8 @@ class MaterialBuilder;
 class Response;
 
 namespace OpenSees {
+
+
 class MixedFrameSection : public FrameSection
 {
   public:
@@ -118,7 +119,7 @@ class MixedFrameSection : public FrameSection
       OpenSees::VectorND<2> r;
     };
 
-    int formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) ;//const;
+    int formShapeWeights(Matrix3D& Lr, Matrix3D& Lw) ;//const;
 
     int solveMixed(const VectorND<nsr>& e, MatrixND<6,6>& Kee, Tangent& Ks);
   
@@ -136,7 +137,7 @@ class MixedFrameSection : public FrameSection
                               Matrix3D& diow, Matrix3D& diodw,
                               int i) const noexcept;
     void
-    formMixedUniformLSensitivity(Matrix3D& dGr, Matrix3D& dGw,
+    formShapeWeightsSensitivity(Matrix3D& dGr, Matrix3D& dGw,
                                  Vector3D& dcentroid, double& dnubar) const noexcept;
 
     int solveMixedSensitivity(int gradIndex,
@@ -407,6 +408,5 @@ class MixedFrameSection : public FrameSection
     }
 };
 
-#endif
 
 } // namespace OpenSees

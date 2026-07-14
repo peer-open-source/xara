@@ -46,6 +46,7 @@ PDeltaFrameTransf<nn,ndf>::~PDeltaFrameTransf()
 
 }
 
+
 template <int nn, int ndf>
 int
 PDeltaFrameTransf<nn,ndf>::commit()

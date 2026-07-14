@@ -27,7 +27,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -66,7 +65,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_EmbeddedBeamInterfaceL)
     int iData[1];
     int numData = 1;
     if (OPS_GetIntInput(&numData, iData) != 0) {
-        opserr << "WARNING invalid integer data: element EmbeddedBeamInterfaceL" << endln;
+        opserr << "WARNING invalid integer data: element EmbeddedBeamInterfaceL" << "\n";
         return 0;
     }
 
@@ -91,7 +90,10 @@ EmbeddedBeamInterfaceL::EmbeddedBeamInterfaceL(int tag) :
 
 }
 
-EmbeddedBeamInterfaceL::EmbeddedBeamInterfaceL(int tag, std::vector <int> beamTag, std::vector <int> solidTag, int crdTransfTag,
+EmbeddedBeamInterfaceL::EmbeddedBeamInterfaceL(int tag, 
+    std::vector <int> beamTag, 
+    std::vector <int> solidTag, 
+    CrdTransf &theCrdTransf,
     std::vector <double>  beamRho,
     std::vector <double>  beamTheta,
     std::vector <double>  solidXi, 
@@ -100,9 +102,9 @@ EmbeddedBeamInterfaceL::EmbeddedBeamInterfaceL(int tag, std::vector <int> beamTa
     double radius, 
     std::vector <double> area, 
     std::vector <double> length, 
+    Domain& theDomain,
     bool writeConnectivity,
-    const char * connectivityFN,
-    Domain& theDomain
+    const char * connectivityFN
 ) : 
     Element(tag, ELE_TAG_EmbeddedBeamInterfaceL),
     m_beam_radius(radius), mQa(3, 3), mQb(3, 3), mQc(3, 3),
@@ -153,7 +155,7 @@ EmbeddedBeamInterfaceL::EmbeddedBeamInterfaceL(int tag, std::vector <int> beamTa
         }
         uniqueBeamTags.insert(beamTag[ii]);
         theElement = theDomain.getElement(beamTag[ii]);
-        // opserr << "Point " << ii +1 << " : element " << solidTag[ii] << " at (" << solidXi[ii] << "," << solidEta[ii] << "," << solidZeta[ii] << ") , beam: " << beamTag << " at (" << beamRho[ii] << "," << beamTheta[ii] << ")" << endln;
+
         for (int jj = 0; jj < 2; jj++)
         {
             uniqueBeamNodeTags.insert(theElement->getNodePtrs()[jj]->getTag());
@@ -240,8 +242,8 @@ EmbeddedBeamInterfaceL::EmbeddedBeamInterfaceL(int tag, std::vector <int> beamTa
 
     // get the coordinate transformation object
     // TODO: Wont this segfault on a bad transform tag? do it before constructor - cmp
-    crdTransf = G3_getSafeBuilder(rt)->getTypedObject<CrdTransf>(crdTransfTag)->getCopy3d();
-
+    crdTransf = theCrdTransf.getCopy3d();
+#if 0
     if (writeConnectivity)
     {
         FileStream connFile(connectivityFN, APPEND);
@@ -261,7 +263,7 @@ EmbeddedBeamInterfaceL::EmbeddedBeamInterfaceL(int tag, std::vector <int> beamTa
         connFile << endln;
         connFile.close();
     }
-
+#endif
 }
 
 EmbeddedBeamInterfaceL::EmbeddedBeamInterfaceL()
@@ -773,29 +775,9 @@ EmbeddedBeamInterfaceL::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectB
         return -3;
     } 
 
-
-
-    // for (int i =0; i<EBIL_numNodes;i++) {  
-    //     if (i<=m_numSolidNodes) {
-    //         opserr << "solid: " << externalNodes[i]<< " "<< m_solidNodeMap[externalNodes[i]]<< " \n";
-    //     } else {
-    //         opserr << "beam:  " << externalNodes[i]<< " "<< m_beamNodeMap[externalNodes[i]] << " \n";
-    //     }
-    // }
-
-
-    // int arrSize = sizeof(theNodes)/sizeof(theNodes[0]);
-    // opserr << "theNodes size is equal to: " << arrSize<< "\n"; 
-
-
     return 0;
 }
 
-int
-EmbeddedBeamInterfaceL::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    return 0;
-}
 
 void
 EmbeddedBeamInterfaceL::Print(OPS_Stream &s, int flag)
@@ -927,7 +909,6 @@ EmbeddedBeamInterfaceL::setDomain(Domain *theDomain)
             // opserr << "NEW MEMORY ALLOCATED to theNodes pointer";
         }
         theNodes[i] = theDomain->getNode(externalNodes(i));
-        // opserr << theNodes[i]->getNumberDOF() << "\n";
     }
 
 
@@ -1065,13 +1046,13 @@ EmbeddedBeamInterfaceL::setDomain(Domain *theDomain)
             m_InterfaceStiffness(m_numSolidDOF * m_numSolidNodes + 6 * m_numBeamNodes + jj, m_numSolidDOF * m_numSolidNodes + ii) = -mB(ii, jj);
         }
 
-    if (in != nullptr)
-      this->Element::link(*in);
+    if (theDomain != nullptr)
+      this->Element::link(*theDomain);
     return;
 }
 
 int
-EmbeddedBeamInterfaceL::update(void)
+EmbeddedBeamInterfaceL::update()
 {
     for (int ii = 0; ii < m_numBeamNodes; ii++)
     {

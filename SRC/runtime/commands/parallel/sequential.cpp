@@ -20,8 +20,11 @@ Tcl_CmdProc opsPartitionSequential;
 
 void G3_InitTclSequentialAPI(Tcl_Interp* interp)
 {
+  // NOTE: These will get clobbered by Init_MachineRuntime or ProcessContext::setup
   Tcl_CreateCommand(interp, "getNP",     &getNPSequential, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
   Tcl_CreateCommand(interp, "getPID",    &getPIDSequential, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
+
+
   Tcl_CreateCommand(interp, "barrier",   &opsBarrierSequential, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
 //Tcl_CreateCommand(interp, "send",      &opsSendSequential, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
   Tcl_CreateCommand(interp, "recv",      &opsRecvSequential, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);

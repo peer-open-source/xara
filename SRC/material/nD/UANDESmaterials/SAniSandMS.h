@@ -50,7 +50,6 @@
 #include <string.h>
 
 
-#include <elementAPI.h>
 
 class SAniSandMS : public NDMaterial
 {

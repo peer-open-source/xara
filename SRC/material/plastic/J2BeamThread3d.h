@@ -1,26 +1,20 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-**                                                                    **
-**                                                                    **
-** (C) Copyright 1999, The Regents of the University of California    **
-** All Rights Reserved.                                               **
-**                                                                    **
-** Commercial use of this program without express permission of the   **
-** University of California, Berkeley, is strictly prohibited.  See   **
-** file 'COPYRIGHT'  in main directory for information on usage and   **
-** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
-**                                                                    **
-** Developed by:                                                      **
-**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
-**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
 //
 //
-#ifndef J2BeamThread3d_h
-#define J2BeamThread3d_h
+#pragma once
 
 #define ND_TAG_J2BeamThread3d 92516
 
@@ -34,13 +28,18 @@
 #include <Matrix3D.h>
 #include <VectorND.h>
 #include <Vector3D.h>
-
+#include <domain/DomainStatus.h>
+class Response;
 
 namespace OpenSees {
 
 class J2BeamThread3d : public NDMaterial {
 public:
-  J2BeamThread3d(int tag, double E, double nu, double sigY, double Hi, double Hk, double density);
+  J2BeamThread3d(int tag, 
+                 double E, double nu, 
+                 double sigY, double Hi, double Hk,
+                 double density
+                );
   J2BeamThread3d();
   ~J2BeamThread3d();
 
@@ -65,6 +64,9 @@ public:
   const char* getType() const override;
   int getOrder() const;
 
+  // Response *setResponse (const char **argv, int argc, OPS_Stream &);
+  // int getResponse (int responseID, Information &);
+
   int sendSelf(int commitTag, Channel& ) override;
   int recvSelf(int commitTag, Channel& , FEM_ObjectBroker&) override;
 
@@ -79,7 +81,7 @@ public:
 
 
 private:
-  int returnMap();
+  DomainStatus returnMap() noexcept;
   double E;
   double nu;
   double sigmaY;
@@ -103,6 +105,10 @@ private:
   double alphan;
   double alphan1;
 
+  // enum class Request : int {
+  //   PlasticStrain = 1,
+  // };
+
   double epsPn[3];
   double epsPn1[3];
   // Vector3D xsi;
@@ -110,5 +116,3 @@ private:
   double dg_n1;
 };
 } // namespace OpenSees
-
-#endif

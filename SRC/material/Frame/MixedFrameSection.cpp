@@ -304,7 +304,7 @@ MixedFrameSection::getFrameCopy()
 
 
 int 
-MixedFrameSection::formMixedUniformL(Matrix3D& Lr, Matrix3D& Lw) //const
+MixedFrameSection::formShapeWeights(Matrix3D& Lr, Matrix3D& Lw) //const
 {
   constexpr static Matrix3D oneS {{
     0.0, 0.0, 0.0,
@@ -406,7 +406,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
 
   Matrix3D Gr{}, Gw{};
-  this->formMixedUniformL(Gr, Gw);
+  this->formShapeWeights(Gr, Gw);
 
 
   const int nf = fibers->size();
@@ -639,7 +639,7 @@ MixedFrameSection::stateDetermination(Tangent& Ks,
   }
 
   Matrix3D Gr{}, Gw{};
-  this->formMixedUniformL(Gr, Gw);
+  this->formShapeWeights(Gr, Gw);
 
   //
   if (s_trial != nullptr)
@@ -1309,8 +1309,8 @@ MixedFrameSection::getStressResultantSensitivity(int gradIndex, bool conditional
   double dnubar = 0.0;
   {
     double dnubar = 0.0;
-    this->formMixedUniformL(Gr, Gw);
-    this->formMixedUniformLSensitivity(dGr, dGw, dcentroid, dnubar);
+    this->formShapeWeights(Gr, Gw);
+    this->formShapeWeightsSensitivity(dGr, dGw, dcentroid, dnubar);
 
     const Vector3D eta = eta_past;
 
@@ -1408,7 +1408,7 @@ MixedFrameSection::commitSensitivity(const Vector& de,
 
 
 inline void
-MixedFrameSection::formMixedUniformLSensitivity(Matrix3D& dGr, Matrix3D& dGw,
+MixedFrameSection::formShapeWeightsSensitivity(Matrix3D& dGr, Matrix3D& dGw,
                              Vector3D& dcentroid, double& dnubar) const noexcept
 {
   dGr.zero();

@@ -54,34 +54,34 @@ class BeamContact2Dp : public Element
     ~BeamContact2Dp();
 
     // public methods to obtain information about dof and connectivity
-    int getNumExternalNodes(void) const; 
-    const ID &getExternalNodes(void);
-	Node **getNodePtrs(void);
-	int getNumDOF(void);
+    int getNumExternalNodes() const; 
+    const ID &getExternalNodes();
+	Node **getNodePtrs();
+	int getNumDOF();
 	void setDomain(Domain *theDomain);
 
 	// public methods to set the state of the element
-	int commitState(void);
-	int revertToLastCommit(void);
-	int revertToStart(void);
-	int update(void);
+	int commitState();
+	int revertToLastCommit();
+	int revertToStart();
+	int update();
 
 	// public methods to obtain stiffness, mass, damping, and residual info
-	const Matrix &getTangentStiff(void);
-	const Matrix &getInitialStiff(void);
+	const Matrix &getTangentStiff();
+	const Matrix &getInitialStiff();
 
-	void zeroLoad(void);
+	void zeroLoad();
 	int addLoad(ElementalLoad *theLoad, double loadFactor);
 	int addInertiaLoadToUnbalance(const Vector &accel);
-	const Vector &getResistingForce(void);
-	const Vector &getResistingForceIncInertia(void);
+	const Vector &getResistingForce();
+	const Vector &getResistingForceIncInertia();
 
 	// public methods for element output
 	int sendSelf(int commitTag, Channel &theChannel);
 	int recvSelf(int commitTag, Channel &theChannel,
 	             FEM_ObjectBroker &theBroker);
-	int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
-	void Print(OPS_Stream &s, int flag =0);
+
+	void Print(OPS_Stream &s, int flag);
 
 	Response *setResponse(const char **argv, int argc, OPS_Stream &eleInfo);
 	int getResponse(int responseID, Information &eleInformation);
@@ -94,13 +94,13 @@ class BeamContact2Dp : public Element
 
     // member functions
 	double Project(double xi);       // method to determine centerline projection
-	void ComputeB(void);             // method to compute Bn and Bs @ step n
+	void ComputeB();             // method to compute Bn and Bs @ step n
 	int UpdateBase(double xi);       // method to update base vector g_xi
-	void UpdateEndFrames(void);      // method to update end node tangent vectors 
+	void UpdateEndFrames();      // method to update end node tangent vectors 
 	Vector Get_dxc_xi(double xi);    // returns dx_c/dxi
 	Vector Get_dxc_xixi(double xi);  // returns d^2(x_c)/dxi^2
-	Vector Geta1(void);              // returns last converged a_1
-	Vector Getb1(void);              // returns last converged b_1
+	Vector Geta1();              // returns last converged a_1
+	Vector Getb1();              // returns last converged b_1
 
     // objects
     ContactMaterial2D *theMaterial;  // contact material object

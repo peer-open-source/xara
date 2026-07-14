@@ -134,20 +134,23 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   }
 
   else if (((strcmp(argv[1], "VariableTimeStepTransient") == 0) ||
-          (strcmp(argv[1], "TransientWithVariableTimeStep") == 0) ||
-          (strcmp(argv[1], "VariableTransient") == 0))) {
-    opserr << OpenSees::PromptValueError << "Unimplemented\n";
-    return TCL_ERROR;
-
+            (strcmp(argv[1], "TransientWithVariableTimeStep") == 0) ||
+            (strcmp(argv[1], "VariableTransient") == 0))) {
+    // opserr << OpenSees::PromptValueError << "Unimplemented\n";
+    // return TCL_ERROR;
+    builder->setTransientAnalysis();
+    return TCL_OK;
   }
   else {
-    opserr << OpenSees::PromptValueError << "Analysis type '" << argv[1]
+    opserr << OpenSees::PromptValueError
+           << "Analysis type '" << argv[1]
            << "' does not exists (Static or Transient only). \n";
     return TCL_ERROR;
   }
 
   return TCL_OK;
 }
+
 
 //
 // Command invoked to build the model, i.e. to invoke analyze()
@@ -181,6 +184,13 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       else if (strcmp(argv[i], "iteration") == 0) {
         commit = BasicAnalysisBuilder::Iterate;
       }
+      else if (strcmp(argv[i], "update") == 0) {
+        commit = BasicAnalysisBuilder::Update;
+      }
+      else {
+        opserr << OpenSees::PromptValueError << "invalid operation key: " << argv[i] << "\n";
+        return TCL_ERROR;
+      }
     }
   }
 
@@ -188,7 +198,9 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     case BasicAnalysisBuilder::STATIC_ANALYSIS: {
       int numIncr;
       if (argc < 2) {
-        opserr << OpenSees::PromptValueError << "static analysis: analysis numIncr?\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing required arguments for static analysis"
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
@@ -199,10 +211,12 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       break;
     }
     case BasicAnalysisBuilder::TRANSIENT_ANALYSIS: {
+      // analysis numIncr? deltaT? <dtMin? dtMax? Jd?>
       double dT;
       int numIncr;
       if (argc < 3) {
-        opserr << OpenSees::PromptValueError << "transient analysis: analysis numIncr? deltaT?\n";
+        opserr << OpenSees::PromptValueError 
+               << "Missing required arguments for transient analysis\n";
         return TCL_ERROR;
       }
       if (Tcl_GetInt(interp, argv[1], &numIncr) != TCL_OK)
@@ -233,8 +247,8 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
         }
 
         result = builder->analyzeVariable(numIncr, dT, dtMin, dtMax, Jd);
-
-      } else {
+      }
+      else {
         result = builder->analyze(numIncr, dT, commit);
       }
       break;
@@ -401,7 +415,8 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   if (argc < 2) {
     opserr
-        << OpenSees::PromptValueError << argv[0] << " ?factor - not enough arguments to command\n";
+        << OpenSees::PromptValueError 
+        << argv[0] << " ?factor - not enough arguments to command\n";
     return TCL_ERROR;
   }
 
@@ -475,6 +490,106 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   return TCL_OK;
 }
 
+
+static int
+CreateDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+             TCL_Char ** const argv)
+{
+  assert(clientData != nullptr);
+  BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
+  if (argc < 2) {
+    opserr << OpenSees::PromptValueError
+           << "Missing required argument: damping type\n";
+    return TCL_ERROR;
+  }
+
+  if (strcmp(argv[1], "Modal") == 0) {
+    int numEigen = builder->getNumEigen();
+
+    if (argc < 3) {
+      opserr
+          << OpenSees::PromptValueError 
+          << argv[0] << " ?factor - not enough arguments to command\n";
+      return TCL_ERROR;
+    }
+
+    int numModes = argc - 2;
+
+    if (numEigen == 0) {
+      opserr << G3_WARN_PROMPT 
+            << "- " << argv[0] << " - eigen command should be called first\n";
+
+      numEigen = numModes;
+      builder->newEigenAnalysis(EigenSOE_TAGS_ArpackSOE, 0.0);
+      builder->eigen(numModes, true, true);
+      // return TCL_ERROR;
+    }
+
+    /* 
+     * "quick" modal damping adds modal damping forces to the right-hand side,
+     * but does not add modal damping terms to the dynamic tangent.
+     *
+     * see https://portwooddigital.com/2022/11/08/quick-and-dirty-modal-damping/
+     */
+    bool do_tangent = true;
+    if (strcmp(argv[0], "modalDampingQ") == 0)
+      do_tangent = false;
+
+    double factor = 0;
+    Vector modalDampingValues(numEigen);
+
+    if (numModes != 1 && numModes != numEigen) {
+      // TODO: Just call eigen again?
+      opserr << OpenSees::PromptValueError 
+            << "same number of damping factors as modes must be "
+                "specified\n";
+  //  opserr << " same damping ratio will be applied to all\n";
+      return TCL_ERROR;
+    }
+
+    //
+    // read in values and set factors
+    //
+    if (numModes == numEigen) {
+
+      // read in all factors one at a time
+      for (int i = 0; i < numEigen; ++i) {
+        if (Tcl_GetDouble(interp, argv[1 + i], &factor) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "could not read factor at position "
+                << i << "\n";
+          return TCL_ERROR;
+        }
+        modalDampingValues[i] = factor;
+      }
+
+    } else {
+      //  read in one & set all factors to that value
+      if (Tcl_GetDouble(interp, argv[1], &factor) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+              << "rayleigh alphaM? betaK? betaK0? betaKc? - could not "
+                  "read betaK? \n";
+        return TCL_ERROR;
+      }
+
+      for (int i = 0; i < numEigen; ++i)
+        modalDampingValues[i] = factor;
+    }
+
+    // set factors in domain
+    Domain *theDomain = builder->getDomain();
+    assert(theDomain != nullptr);
+
+    theDomain->setModalDampingFactors(&modalDampingValues, do_tangent);
+    return TCL_OK;
+  }
+  else {
+    opserr << OpenSees::PromptValueError
+           << "Unknown damping type: " << argv[1] << "\n";
+    return TCL_ERROR;
+  }
+}
+
+
 static int
 resetModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
@@ -511,7 +626,8 @@ printIntegrator(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   int flag = 0;
   if (argc > 2) {
     if (Tcl_GetInt(interp, argv[eleArg], &flag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "print algorithm failed to get integer flag: \n";
+      opserr << OpenSees::PromptValueError 
+             << "print algorithm failed to get integer flag: \n";
       opserr << argv[eleArg] << "\n";
       return TCL_ERROR;
     }
@@ -561,7 +677,7 @@ printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
         (strcmp(argv[currentArg], "-file") == 0)) {
       currentArg++;
       if (currentArg == argc) {
-        opserr << G3_WARN_PROMPT << "-file missing argument\n";
+        opserr << OpenSees::PromptValueError << "-file missing argument\n";
         return TCL_ERROR;
       }
 
@@ -709,7 +825,8 @@ printB(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
         (strcmp(argv[currentArg], "-file") == 0)) {
       currentArg++;
       if (currentArg == argc) {
-        opserr << G3_WARN_PROMPT << "-file missing argument\n";
+        opserr << OpenSees::PromptValueError
+               << "-file missing argument\n";
         return TCL_ERROR;
       }
 
@@ -733,7 +850,8 @@ printB(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
     builder->formUnbalance();
 
     if (theSOE->getNumEqn() == 0) {
-      opserr << OpenSees::PromptValueError << "System of equations is empty\n";
+      opserr << OpenSees::PromptValueError 
+             << "System of equations is empty\n";
       return TCL_ERROR;
     }
 

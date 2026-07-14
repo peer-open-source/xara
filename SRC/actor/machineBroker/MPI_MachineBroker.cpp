@@ -22,10 +22,10 @@
 // $Date: 2009-05-11 21:14:56 $
 // $Source: /usr/local/cvs/OpenSees/SRC/actor/machineBroker/MPI_MachineBroker.cpp,v $
                                                                         
-                                                                        
+//
 // Written: fmk
 // Revision: A
-
+//
 
 #include <FEM_ObjectBroker.h>
 #include <MPI_MachineBroker.h>
@@ -40,8 +40,9 @@ MPI_MachineBroker::MPI_MachineBroker(FEM_ObjectBroker *theBroker, int argc, char
   int flag = 0;
   MPI_Initialized(&flag);
   if (!flag) {
-      MPI_Init(&argc, &argv);
+    MPI_Init(&argc, &argv);
   }
+
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
@@ -57,25 +58,25 @@ MPI_MachineBroker::MPI_MachineBroker(FEM_ObjectBroker *theBroker, int argc, char
 MPI_MachineBroker::~MPI_MachineBroker()
 {
   for (int i=0; i<size; i++) {
-      delete theChannels[i]; 
+    delete theChannels[i]; 
   }
 
   delete [] theChannels;
   delete usedChannels;
 
-  MPI_Finalize();
+  // MPI_Finalize();
 }
 
 
 int 
-MPI_MachineBroker::getPID(void)
+MPI_MachineBroker::getPID()
 {
   return rank;
 }
 
 
 int 
-MPI_MachineBroker::getNP(void)
+MPI_MachineBroker::getNP()
 {
   return size;
 }
@@ -83,7 +84,7 @@ MPI_MachineBroker::getNP(void)
 
 
 Channel *
-MPI_MachineBroker::getMyChannel(void)
+MPI_MachineBroker::getMyChannel()
 {
   return theChannels[0];
 }
@@ -91,34 +92,33 @@ MPI_MachineBroker::getMyChannel(void)
 
 
 Channel *
-MPI_MachineBroker::getRemoteProcess(void)
+MPI_MachineBroker::getRemoteProcess()
 {
   if (rank != 0) {
     opserr << "MPI_MachineBroker::getRemoteProcess() - child process cannot not yet allocate processes\n";
     return 0;
   }
       
-  for (int i=0; i<size; i++)
+  for (int i=0; i<size; i++) {
     if (i != rank)
       if ((*usedChannels)(i) == 0) {
-	(*usedChannels)(i) = 1;
-	return theChannels[i];
+        (*usedChannels)(i) = 1;
+        return theChannels[i];
       }
-  
+  }
   // no processes available
   return 0;
 }
 
 
 int 
-MPI_MachineBroker::freeProcess
-(Channel *theChannel)
+MPI_MachineBroker::freeProcess(Channel *theChannel)
 {
   for (int i=0; i<size; i++)
     if (i != rank)
       if (theChannels[i] == theChannel) {
-	(*usedChannels)(i) = 0;
-	return 0;
+        (*usedChannels)(i) = 0;
+        return 0;
       }
   
   // channel not found!

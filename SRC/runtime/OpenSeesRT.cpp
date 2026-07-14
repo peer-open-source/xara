@@ -99,7 +99,7 @@ Openseesrt_Init(Tcl_Interp *interp)
     G3_SetStreamColor(nullptr, G3_LevelWarn, 1);
 
 
-  // Set some variables with package information
+  // Set variables with package information
   Tcl_SetVar(interp, "opensees::copyright", copyright,      TCL_LEAVE_ERR_MSG);
   Tcl_SetVar(interp, "opensees::license",   license,        TCL_LEAVE_ERR_MSG);
   Tcl_SetVar(interp, "opensees::banner",    unicode_banner, TCL_LEAVE_ERR_MSG);

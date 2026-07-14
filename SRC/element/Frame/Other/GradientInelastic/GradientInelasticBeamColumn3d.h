@@ -66,39 +66,37 @@ public:
 	~GradientInelasticBeamColumn3d();
 
 	// Method to Get Class Type
-	const char *getClassType() const { return "GradientInelasticBeamColumn3d"; };
+	const char *getClassType() const { return "GradientInelasticBeamColumn3d"; }
 
 	// Method to Initialize the Domain; base class: DomainComponent
 	void setDomain(Domain *theDomain);
 
 	// Methods to Obtain Information about DOFs and Connectivity; base class: Element
-	int getNumExternalNodes(void) const;
-	const ID &getExternalNodes(void);
-	Node **getNodePtrs(void);
-	int getNumDOF(void);
+	int getNumExternalNodes() const;
+	const ID &getExternalNodes();
+	Node **getNodePtrs();
+	int getNumDOF();
 
 	// Methods to Set the State of Element; base class: Element
-	int commitState(void);
-	int revertToLastCommit(void);
-	int revertToStart(void);
-	int update(void);
+	int commitState();
+	int revertToLastCommit();
+	int revertToStart();
+	int update();
 
 	// Methods to Obtain Stiffness Matrices; base class: Element
-	const Matrix &getTangentStiff(void);
-	const Matrix &getInitialStiff(void);
-	const Matrix &getMass(void);
+	const Matrix &getTangentStiff();
+	const Matrix &getInitialStiff();
+	const Matrix &getMass();
 
 	// Methods to Obtain Resisting Forces; base class: Element
-	const Vector &getResistingForce(void);
-	const Vector &getResistingForceIncInertia(void);
+	const Vector &getResistingForce();
+	const Vector &getResistingForceIncInertia();
 
 	// Methods to Obtain Information Specific to Element; base class: Element
 	void Print(OPS_Stream &s, int flag = 0);
 	Response *setResponse(const char **argv, int argc, OPS_Stream &output);
 	int getResponse(int responseID, Information &eleInfo);
 
-	// Method to Display Element
-	int displaySelf(Renderer& theViewer, int displayMode, float fact, const char** displayModes = 0, int numModes = 0);
 
 	// Methods to Do Parallel Processing; base class: Channel
 	int sendSelf(int commitTag, Channel &theChannel);
@@ -179,8 +177,8 @@ private:
 	void getSectionsTangentStiff(Matrix &tStiff);
 	void getSectionsInitialStiff(Matrix &iStiff);
 
-	const Matrix &getBasicStiff(void);
-	const Matrix &getInitialBasicStiff(void);
+	const Matrix &getBasicStiff();
+	const Matrix &getInitialBasicStiff();
 
 	double weightedNorm(const Vector &W, const Vector &V, bool sqRt = true);
 

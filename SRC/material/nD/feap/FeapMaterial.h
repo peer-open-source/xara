@@ -41,33 +41,32 @@ class FeapMaterial : public NDMaterial
   FeapMaterial(int classTag);
   virtual ~FeapMaterial();
 
-  virtual const char *getClassType(void) const {return "FeapMaterial";};
+  virtual const char *getClassType() const {return "FeapMaterial";}
   
   virtual int setTrialStrain(const Vector &strain);
-  virtual const Vector &getStrain(void);
-  virtual const Vector &getStress(void);
-  virtual const Matrix &getTangent(void);
-  virtual double getRho(void);
+  virtual const Vector &getStrain();
+  virtual const Vector &getStress();
+  virtual const Matrix &getTangent();
+  virtual double getRho();
   
-  virtual int commitState(void);
-  virtual int revertToLastCommit(void);    
-  virtual int revertToStart(void);        
+  virtual int commitState();
+  virtual int revertToLastCommit();    
+  virtual int revertToStart();        
   
-  virtual NDMaterial *getCopy(void);
+  virtual NDMaterial *getCopy();
   virtual NDMaterial *getCopy(const char *type);
-  virtual const char *getType(void) const;
-  virtual int getOrder(void) const;
+  virtual const char *getType() const;
+  virtual int getOrder() const;
   
-  virtual int sendSelf(int commitTag, Channel &theChannel);  
-  virtual int recvSelf(int commitTag, Channel &theChannel, 
-		       FEM_ObjectBroker &theBroker);    
+  virtual int sendSelf(int commitTag, Channel &);  
+  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
   
-  virtual void Print(OPS_Stream &s, int flag = 0);
+  virtual void Print(OPS_Stream &s, int flag);
   
  protected:
   // Invokes the Feap subroutine
   virtual int invokeSubroutine(int isw);
-  virtual int fillDArray(void);
+  virtual int fillDArray();
   
   double *ud;	// Material parameters array
   double *hstv;	// History array: first half is committed, second half is trial

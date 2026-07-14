@@ -21,8 +21,9 @@
 // 
 // Description: This file contains the implementation for the Borja material class.
 // MultiaxialCyclicPlasticity for clays 
+//
 // Borja R.I, Amies, A.P.Multiaxial Cyclic Plasticity Model for Clays,
-// ASCE J.Geotech.Eng.Vol 120, No 6, 1051 - 1070
+//   ASCE J.Geotech.Eng.Vol 120, No 6, 1051 - 1070
 //            
 
 #include <J2CyclicBoundingSurface.h>
@@ -73,10 +74,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2CyclicBoundingSurfaceMaterial)
 	}
 
 	NDMaterial* mat = new J2CyclicBoundingSurface(tag, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]);
-	if (mat == 0) {
-		opserr << "WARNING: failed to create J2CyclicBoundingSurface material\n";
-		return 0;
-	}
 
 	return mat;
 }
@@ -199,7 +196,8 @@ void J2CyclicBoundingSurface::zero()
 {
 }
 
-void J2CyclicBoundingSurface::integrate()
+void
+J2CyclicBoundingSurface::integrate()
 {
 	if (m_ElastFlag == 0) // Force elastic response
 		elastic_integrator();
@@ -209,14 +207,16 @@ void J2CyclicBoundingSurface::integrate()
 		viscoElastic_integrator();
 }
 
-void J2CyclicBoundingSurface::elastic_integrator()
+void
+J2CyclicBoundingSurface::elastic_integrator()
 {
 	Vector dStrain = m_strain_np1 - m_strain_n; //delta strain for the step
 	m_stress_np1 = m_stress_n + m_Ce * dStrain;
 	m_stress_t_n1 = m_stress_np1;
 }
 
-void J2CyclicBoundingSurface::viscoElastic_integrator()
+void
+J2CyclicBoundingSurface::viscoElastic_integrator()
 {
 	// Update using strain rate from element
 	//Vector dStrain = m_strain_np1 - m_strain_n; //delta strain for the step
@@ -235,8 +235,9 @@ void J2CyclicBoundingSurface::viscoElastic_integrator()
 }
 
 
-//plastic integration routine
-void J2CyclicBoundingSurface::plastic_integrator()
+// plastic integration routine
+void
+J2CyclicBoundingSurface::plastic_integrator()
 {  
 	const double tol_rel = (1.0e-10);
 	Vector eye(6);
