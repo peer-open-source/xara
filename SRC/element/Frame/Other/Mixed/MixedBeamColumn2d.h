@@ -56,30 +56,32 @@ class MixedBeamColumn2d : public Element
     // destructor
     ~MixedBeamColumn2d();
 
+    const char *getClassType() const {return "MixedBeamColumn2d";}
+
     // public methods to obtain information about dof & connectivity
     int getNumExternalNodes() const;
-    const ID &getExternalNodes(void);
+    const ID &getExternalNodes();
     Node **getNodePtrs();
     int getNumDOF();
     void setDomain(Domain *);
 
     // public methods to set the state of the element
-    int commitState(void);
-    int revertToLastCommit(void);
-    int revertToStart(void);
-    int update(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
+    int update();
 
     // public methods to obtain stiffness, mass, damping and residual information
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
-    const Matrix &getMass(void);
-    const Matrix &getDamp(void);
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();
+    const Matrix &getMass();
+    const Matrix &getDamp();
 
-    void zeroLoad(void);
+    void zeroLoad();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
 
-    const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);
+    const Vector &getResistingForce();
+    const Vector &getResistingForceIncInertia();
 
     // public methods for output
     int sendSelf(int cTag, Channel &theChannel);
@@ -90,8 +92,6 @@ class MixedBeamColumn2d : public Element
     Response* setResponse(const char **argv, int argc, OPS_Stream &output);
     int getResponse(int responseID, Information &eleInfo);
 
-    const char *getClassType(void) const {return "MixedBeamColumn2d";}
-    int displaySelf(Renderer&, int mode, float fact, const char** displayModes = 0, int numModes = 0);
   
   private:
     // private member functions - only available to objects of the class

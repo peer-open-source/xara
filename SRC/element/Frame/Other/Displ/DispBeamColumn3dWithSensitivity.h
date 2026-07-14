@@ -54,40 +54,37 @@ class DispBeamColumn3dWithSensitivity : public Element
 				   CrdTransf &coordTransf, double r);
     DispBeamColumn3dWithSensitivity();
     virtual ~DispBeamColumn3dWithSensitivity();
-    const char *getClassType(void) const {return "DispBeamColumn3d";};
-    static constexpr const char* class_name = "DispBeamColumn3d";
+    const char *getClassType() const {return "DispBeamColumn3d";}
 
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
 
-    int getNumDOF(void);
+    int getNumDOF();
     void setDomain(Domain *theDomain);
 
     // public methods to set the state of the element    
-    int commitState(void);
-    int revertToLastCommit(void);
-    int revertToStart(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
 
     // public methods to obtain stiffness, mass, damping and residual information    
-    int update(void);
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
-    const Matrix &getMass(void);
+    int update();
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();
+    const Matrix &getMass();
 
     void zeroLoad();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
-    const Vector &getResistingForce(void);
-    const Vector &getResistingForceIncInertia(void);            
+    const Vector &getResistingForce();
+    const Vector &getResistingForceIncInertia();            
 
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker 
-		  &theBroker);
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **displayModes=0, int numModes=0);
-    void Print(OPS_Stream &s, int flag =0);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker);
+    void Print(OPS_Stream &s, int flag);
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &output);
     int getResponse(int responseID, Information &eleInfo);
@@ -104,7 +101,7 @@ class DispBeamColumn3dWithSensitivity : public Element
 
 
   private:
-    const Matrix &getInitialBasicStiff(void);
+    const Matrix &getInitialBasicStiff();
 
     int numSections;
     SectionForceDeformation **theSections; // pointer to the ND material objects
