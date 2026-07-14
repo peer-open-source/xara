@@ -691,7 +691,7 @@ AnalysisModel::setNumEigenvectors(int numEigenvectors)
 {
   Node *theNode;
   NodeIter &theNodes = myDomain->getNodes();
-  while ((theNode = theNodes()) != 0)
+  while ((theNode = theNodes()) != nullptr)
     theNode->setNumEigenvectors(numEigenvectors);
 }
 
