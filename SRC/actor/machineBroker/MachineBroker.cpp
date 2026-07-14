@@ -63,11 +63,11 @@ MachineBroker::shutdown()
       idData(0) = 0;
       Channel *theChannel = actorChannels[i];
       if (theChannel->sendID(0, 0, idData) < 0) {
-        opserr << "MachineBroker::shutdown(void) - failed to send ID\n";
+        opserr << "MachineBroker::shutdown() - failed to send ID\n";
       }
       
       if (theChannel->recvID(0, 0, idData) < 0) {
-        opserr << "MachineBroker::shutdown(void) - failed to recv ID\n";
+        opserr << "MachineBroker::shutdown() - failed to recv ID\n";
       }
       
       this->freeProcess(theChannel);
@@ -124,19 +124,19 @@ MachineBroker::runActors()
       // create an actor of approriate type
       Actor *theActor = theObjectBroker->getNewActor(actorType, theChannel);
       if (theActor == 0) {
-        opserr << "MachineBroker::run(void) - invalid actor type\n";
+        opserr << "MachineBroker::run() - invalid actor type\n";
         idData(0) = 1;
       } else
         idData(0) = 0;
 
       // send ID back indicating wheter actor was created 
       if (theChannel->sendID(0, 0, idData) < 0) {
-        opserr << "MachineBroker::run(void) - failed to send ID\n";
+        opserr << "MachineBroker::run() - failed to send ID\n";
       }
 	 
       // run the actor object
       if (theActor->run() != 0) {
-        opserr << "MachineBroker::run(void) - actor failed while running\n";
+        opserr << "MachineBroker::run() - actor failed while running\n";
       }
 
       // destroying theActor
