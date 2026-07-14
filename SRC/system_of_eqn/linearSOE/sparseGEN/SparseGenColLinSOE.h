@@ -64,20 +64,15 @@ public:
 
   virtual int sendSelf(int commitTag, Channel& theChannel);
   virtual int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
-#ifdef _PARALLEL_PROCESSING
+
+
+// #ifdef _PARALLEL_INTERPRETERS
   friend class SuperLU;
   friend class ThreadedSuperLU;
   friend class DistributedSuperLU;
-#else
-#  ifdef _PARALLEL_INTERPRETERS
-  friend class SuperLU;
-  friend class ThreadedSuperLU;
-  friend class DistributedSuperLU;
-#  else
-  friend class SuperLU;
-#  endif
-#endif
-  friend class PFEMSolver;
+// #else
+//   friend class SuperLU;
+// #endif
 
 protected:
   int size;              // order of A
