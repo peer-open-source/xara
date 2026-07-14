@@ -238,41 +238,8 @@ int main(int argc, char **argv)
 
     theDatabase->commitState(0);
 
-    /*  */
+    
 
-    /*
-    theDb.sendID(2,2,id1);
-    theDb.sendID(2,1,id2);
-    theDb.sendID(1,2,id3);
-    theDb.sendID(1,1,id4);
-
-    theDb.recvID(1,1,id5);
-    opserr << id5;
-    theDb.recvID(1,2,id5);
-    opserr << id5;
-    theDb.recvID(2,1,id5);
-    opserr << id5;
-    theDb.recvID(2,2,id5);
-    opserr << id5;
-
-    theDb.sendID(4,4,id5);
-    theDb.recvID(4,4,id5);
-    opserr << id5;
-
-    theDb.recvID(5,5,id5);
-    opserr << id5;
-    */
-  
-    /**************************
-
-    **************************/
-    /*
-
-    */
-
-//  theModelBuilder->buildFE_Model();
-//  theDb.commitState(0);
-//  theDb.restoreState(0);
 
 
     // theDb.restoreElements(0);
