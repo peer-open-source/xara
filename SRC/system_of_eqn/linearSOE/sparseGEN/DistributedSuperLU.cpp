@@ -132,7 +132,7 @@ DistributedSuperLU::solve()
   // if subprocess recv A & B from p0
   if (processID != 0) {
     Channel *theChannel = theChannels[0];
-    theChannel->recvVector(0, 0, (*theSOE->vectB));
+    theChannel->recvVector(0, 0, theSOE->B);
     Vector vectA(theSOE->A, theSOE->nnz);    
     theChannel->recvVector(0, 0, vectA);
   } 
@@ -147,7 +147,7 @@ DistributedSuperLU::solve()
     // send B & A to p1 through n-1
     for (int j=0; j<numChannels; j++) {
       Channel *theChannel = theChannels[j];
-      theChannel->sendVector(0, 0, *(theSOE->vectB));
+      theChannel->sendVector(0, 0, theSOE->B);
       theChannel->sendVector(0, 0, vectA);
     }
   }
@@ -169,7 +169,7 @@ DistributedSuperLU::solve()
 
     for (int i=0; i<n; i++)
       *(Xptr++) = *(Bptr++);
-    Xptr = theSOE->X;
+    Xptr = &theSOE->X[0];
 
     //
     // set the Fact options:
