@@ -57,9 +57,8 @@
 #include <Channel.h>
 #include <ID.h>
 
-nDarray::nDarray(const char*) {}
 
-//##############################################################################
+
 nDarray::nDarray(int rank_of_nDarray, double initval)
 {
  // create the structure:
@@ -91,7 +90,7 @@ nDarray::nDarray(int rank_of_nDarray, double initval)
 
 }
 
-//##############################################################################
+
 nDarray::nDarray(int rank_of_nDarray, const int *pdim, double *values)
 {
  // create the structure:
