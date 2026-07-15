@@ -64,10 +64,13 @@ BJmatrix::BJmatrix(int rank, int rows, int columns, double *initvalues):
 //##############################################################################
 //  special for vector
 BJmatrix::BJmatrix(int rank, int rows, int columns, double initvalues):
-  nDarray( rank, rows, columns, initvalues){ } // calling the appropriate
-                                             // base constructor
+  nDarray( rank, rows, columns, initvalues)
+{
+
+} 
+
 //##############################################################################
-BJmatrix::BJmatrix(char *flag, int dimension ): // create an ident BJmatrix
+BJmatrix::BJmatrix(const char *flag, int dimension): // create an ident BJmatrix
   nDarray("NO")           // with base class constructor cancelation
   {
     if ( flag[0] != 'I' && flag[0] != 'e' )
