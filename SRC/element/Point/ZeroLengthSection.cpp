@@ -218,10 +218,9 @@ ZeroLengthSection::update() // MSN: added to allow error identification in setTr
   this->computeSectionDefs();
 
   // Set trial section deformation
-  if (theSection->setTrialSectionDeformation(*v) < 0) {
-    opserr << "WARNING! ZeroLengthSection::update() - element: "
-           << this->getTag() << " failed in setTrialSectionDeformation\n";
-    return -1;
+  int status = 0;
+  if ((status = theSection->setTrialSectionDeformation(*v)) < 0) {
+    return status;
   }
 
   return 0;
