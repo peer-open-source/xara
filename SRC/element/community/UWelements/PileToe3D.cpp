@@ -37,7 +37,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <Parameter.h>
