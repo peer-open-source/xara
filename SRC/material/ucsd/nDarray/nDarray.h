@@ -126,8 +126,8 @@ class nDarray
     nDarray(int rank_of_nDarray, int rows, int cols, double initvalue);
 
 // special case when I don't want any initialization at all
-    nDarray(char *){};
-    nDarray(const char*);
+    nDarray(char *) {};
+    nDarray(const char *) {};
 
     nDarray(const char *flag, int rank_of_nDarray, const int *pdim); // create a unit nDarray
     nDarray(const nDarray & x);  // copy-initializer
