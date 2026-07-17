@@ -26,8 +26,7 @@
 // Created: 11/96
 // Revision: A
 //
-#ifndef TaggedObject_h
-#define TaggedObject_h
+#pragma once
 //
 #define OPS_PRINT_CURRENTSTATE 0
 #define OPS_PRINT_PRINTMODEL_SECTION  1
@@ -38,35 +37,33 @@
 #define OPS_PRINT_JSON_NODE_INDENT "       "
 #define OPS_PRINT_JSON_MATE_INDENT "       "
 
+#include "Tag.h"
 class OPS_Stream;
 
 class TaggedObject 
 {
   public:
-    TaggedObject(int tag);
+    TaggedObject(Xara::Tag tag);
     virtual ~TaggedObject();
 
-    inline int getTag() const;
+    inline Xara::Tag getTag() const;
 
     virtual void inline Print(OPS_Stream &, [[maybe_unused]] int flag =0) {}
 
     friend OPS_Stream &operator<<(OPS_Stream &s, TaggedObject &m);        
 
   protected:
-    void setTag(int newTag);  // CAUTION: this is a dangerous method to call
+    void setTag(Xara::Tag newTag);  // CAUTION: this is a dangerous method to call
     
     constexpr static char JsonGeometryIndent[] = "       ";
     constexpr static char JsonPropertyIndent[] = "       ";
 
   private:    
-    int theTag;    
+    Xara::Tag theTag;    
 };
 
-inline int 
+inline Xara::Tag 
 TaggedObject::getTag() const
 {
   return theTag;
 }
-
-#endif
-
