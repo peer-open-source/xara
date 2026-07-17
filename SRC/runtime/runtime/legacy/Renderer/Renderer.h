@@ -88,9 +88,6 @@ class Renderer
     ColorMap *theMap;
 
   private:
-    static int numRenderers;
-    static char **theTitles;
-    static Renderer **theRenderers;
 };
 
 #endif
