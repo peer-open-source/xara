@@ -380,21 +380,22 @@ PlateRebarMaterialThermal::getResponse(int responseID, Information& matInfo)
   static Information infoData(tempData);
   switch (responseID) {
   case -1: return -1;
-  case 1:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = theMat->getStress();
-    return 0;
-  case 2:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = theMat->getStrain();
-    return 0;
-  case 3:
-    if (matInfo.theVector != 0)
-      *(matInfo.theVector) = theMat->getTangent();
-    return 0;
+  // case 1:
+  //   if (matInfo.theVector != 0)
+  //     *(matInfo.theVector) = theMat->getStress();
+  //   return 0;
+  // case 2:
+  //   return matInfo.setVector(theMat->getStrain());
+  //   if (matInfo.theVector != 0)
+  //     *(matInfo.theVector) = theMat->getStrain();
+  //   return 0;
+  // case 3:
+  //   if (matInfo.theVector != 0)
+  //     *(matInfo.theVector) = theMat->getTangent();
+  //   return 0;
   case 4:
     if ((theMat->getVariable("TempAndElong", infoData)) != 0) {
-      opserr << "Warning: invalid tag in uniaxialMaterial:getVariable" << endln;
+      opserr << "Warning: invalid tag in uniaxialMaterial:getVariable" << "\n";
       return -1;
     }
     tempData = infoData.getData();
