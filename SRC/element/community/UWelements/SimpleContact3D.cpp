@@ -42,7 +42,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <Parameter.h>
@@ -1129,15 +1128,6 @@ SimpleContact3D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &
   return 0;
 }
 
-
-int
-SimpleContact3D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-#ifdef DEBUG
-        opserr << "SimpleContact3D::displaySelf(Renderer &theViewer, int displayMode, float fact)" << endln;
-#endif
-  return 0;
-}
 
 
 void
