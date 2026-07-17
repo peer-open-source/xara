@@ -34,7 +34,6 @@
 #include <Channel.h>
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <ContactMaterial2D.h>
@@ -976,11 +975,6 @@ BeamContact2D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &th
 	return 0;
 }
 
-int
-BeamContact2D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	return 0;
-}
 
 void
 BeamContact2D::Print(OPS_Stream &s, int flag)
