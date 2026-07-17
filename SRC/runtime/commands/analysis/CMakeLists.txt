@@ -20,7 +20,10 @@ target_link_libraries(XaraCmds_Analysis PRIVATE
 )
 
 target_include_directories(XaraCmds_Analysis PRIVATE 
+  # library
   ${OPS_SRC_DIR}/analysis/algorithm/equiSolnAlgo
+  # interpreter
+  ${OPS_SRC_DIR}/runtime/interpreter
 )
 
 target_sources(XaraCmds_Analysis
