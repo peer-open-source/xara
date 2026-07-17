@@ -74,30 +74,7 @@ namespace {
 			return false;
 		}
 	}
-	bool string_to_list_of_doubles(const std::string& text, char sep, std::vector<double>& out) {
-		if (out.size() > 0) out.clear();
-		std::size_t start = 0, end = 0;
-		double value;
-		while (true) {
-			end = text.find(sep, start);
-			if (end == std::string::npos) {
-				if (start < text.size()) {
-					if (!string_to_double(text.substr(start), value))
-						return false;
-					out.push_back(value);
-				}
-				break;
-			}
-			std::string subs = text.substr(start, end - start);
-			if (subs.size() > 0) {
-				if (!string_to_double(subs, value))
-					return false;
-				out.push_back(value);
-			}
-			start = end + 1;
-		}
-		return true;
-	}
+
 
 	// Heavyside function
 	inline double Heavyside(double X) { return X > 0.0 ? 1.0 : (X < 0.0 ? 0.0 : 0.5); }
@@ -340,7 +317,7 @@ namespace {
 		}
 	};
 
-  
+#if 0
   double bezier3(double xi,
 		 double x0, double x1, double x2,
 		 double y0, double y1, double y2)
@@ -362,10 +339,10 @@ namespace {
     
     return (y0 - 2.0*y1 + y2)*t*t + 2.0*(y1 - y0)*t + y0;
   }
-
-  
+#endif  
 }
 
+#if 0
 void *OPS_ADD_RUNTIME_VPV(OPS_ASDConcrete3DMaterial)
 {
 	// some kudos
@@ -771,6 +748,7 @@ void *OPS_ADD_RUNTIME_VPV(OPS_ASDConcrete3DMaterial)
 		HT, HC,
 		cdf, nct, ncc, smoothing_angle);
 }
+#endif
 
 int ASDConcrete3DMaterial::StressDecomposition::compute(const Vector& S, double cdf)
 {
@@ -846,7 +824,8 @@ int ASDConcrete3DMaterial::StressDecomposition::compute(const Vector& S, double 
 }
 
 
-void ASDConcrete3DMaterial::StressDecomposition::recompose(const Vector& S, Vector& Sv) const
+void
+ASDConcrete3DMaterial::StressDecomposition::recompose(const Vector& S, Vector& Sv) const
 {
 	Sv(0) = S(0) * std::pow(V(0, 0), 2) + S(1) * std::pow(V(0, 1), 2) + S(2) * std::pow(V(0, 2), 2);
 	Sv(1) = S(0) * std::pow(V(1, 0), 2) + S(1) * std::pow(V(1, 1), 2) + S(2) * std::pow(V(1, 2), 2);
@@ -1299,6 +1278,10 @@ ASDConcrete3DMaterial::HardeningLawStorage::recover(int tag, HardeningLawType ty
 	return nullptr;
 }
 
+//
+//
+//
+
 ASDConcrete3DMaterial::CrackPlanesStorage& 
 ASDConcrete3DMaterial::CrackPlanesStorage::instance()
 {
@@ -1618,7 +1601,8 @@ double ASDConcrete3DMaterial::getRho()
 	return rho;
 }
 
-int ASDConcrete3DMaterial::setTrialStrain(const Vector& v)
+int
+ASDConcrete3DMaterial::setTrialStrain(const Vector& v)
 {
 	// return value
 	int retval = 0;
@@ -2327,30 +2311,30 @@ int ASDConcrete3DMaterial::getResponse(int responseID, Information& matInformati
 	case 2008: return matInformation.setVector(getCrackPattern());
 	case 2009: return matInformation.setVector(getCrushPattern());
 	case 2010:
-		if (matInformation.theVector && matInformation.theVector->Size() == 2) {
-			std::size_t Npos = static_cast<std::size_t>(matInformation.theVector->operator()(0));
-			matInformation.theVector->operator()(1) = svt.getEquivalentStrainAtNormal(Npos);
+		if (matInformation.theVector.Size() && matInformation.theVector.Size() == 2) {
+			std::size_t Npos = static_cast<std::size_t>(matInformation.theVector(0));
+			matInformation.theVector(1) = svt.getEquivalentStrainAtNormal(Npos);
 			return 0;
 		}
 		break;
 	case 2011:
-		if (matInformation.theVector && matInformation.theVector->Size() == 2) {
-			std::size_t Npos = static_cast<std::size_t>(matInformation.theVector->operator()(0));
-			matInformation.theVector->operator()(1) = svc.getEquivalentStrainAtNormal(Npos);
+		if (matInformation.theVector.Size() && matInformation.theVector.Size() == 2) {
+			std::size_t Npos = static_cast<std::size_t>(matInformation.theVector(0));
+			matInformation.theVector(1) = svc.getEquivalentStrainAtNormal(Npos);
 			return 0;
 		}
 		break;
 	case 2012:
-		if (matInformation.theVector && matInformation.theVector->Size() == 2) {
-			double lch_ref = matInformation.theVector->operator()(1);
-			matInformation.theVector->operator()(0) = getMaxCrackWidth()(0) / lch_ref;
+		if (matInformation.theVector.Size() && matInformation.theVector.Size() == 2) {
+			double lch_ref = matInformation.theVector(1);
+			matInformation.theVector(0) = getMaxCrackWidth()(0) / lch_ref;
 			return 0;
 		}
 		break;
 	case 2013:
-		if (matInformation.theVector && matInformation.theVector->Size() == 2) {
-			double lch_ref = matInformation.theVector->operator()(1);
-			matInformation.theVector->operator()(0) = getMaxCrushWidth()(0) / lch_ref;
+		if (matInformation.theVector.Size() && matInformation.theVector.Size() == 2) {
+			double lch_ref = matInformation.theVector(1);
+			matInformation.theVector(0) = getMaxCrushWidth()(0) / lch_ref;
 			return 0;
 		}
 		break;
