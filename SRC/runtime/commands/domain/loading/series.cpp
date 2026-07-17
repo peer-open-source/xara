@@ -23,11 +23,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <set>
 #include <vector>
 #include <string.h>
 #include <Logging.h>
 #include <Parsing.h>
 #include <ModelRegistry.h>
+#include <ArgumentTracker.h>
 
 #include <Domain.h>
 #include <LinearSeries.h>
@@ -127,12 +129,241 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
 
   else if (strcmp(argv[0],"Trig") == 0 || 
              strcmp(argv[0],"Sine") == 0) {
-     // LoadPattern and TrigSeries - read args & create TrigSeries object
-     int tag = 0;
-     double cFactor = 1.0;
-     double tStart, tFinish, period;
-     double shift = 0.0;
-       
+
+    // Trig tStart tFinish period <-shift shift> <-factor cFactor>
+    enum class Args {
+      Tag,
+      TStart,
+      TFinish,
+      Period,
+      EndRequired,
+      EndPositional,
+      Shift,
+      Factor,
+      End
+    };
+    ArgumentTracker<Args> tracker;
+    std::set<int> positions;
+    int tag = 0;
+    double cFactor = 1.0;
+    double tStart, tFinish, period;
+    double shift = 0.0;
+#if 1
+    
+    for (int i = 1; i < argc; i++) {
+      if (strcmp(argv[i], "-shift") == 0) {
+        if (i + 1 == argc) {
+          opserr << OpenSees::PromptValueError 
+                 << "Missing value for -shift" 
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        if (Tcl_GetDouble(interp, argv[i + 1], &shift) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "Invalid value for -shift: " << argv[i + 1] << "\n";
+          return nullptr;
+        }
+        tracker.consume(Args::Shift);
+        i++; // Skip the next argument since it's the value for -shift
+      } 
+      else if (strcmp(argv[i], "-factor") == 0) {
+        if (i + 1 == argc) {
+          opserr << OpenSees::PromptValueError 
+                << "Missing value for -factor" 
+                << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        if (Tcl_GetDouble(interp, argv[i + 1], &cFactor) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                << "Invalid value for -factor: " << argv[i + 1] 
+                << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        tracker.consume(Args::Factor);
+        i++; // Skip the next argument since it's the value for -factor
+      }
+      else if (strcmp(argv[i], "-tag") == 0) {
+        if (i + 1 == argc) {
+          opserr << OpenSees::PromptValueError 
+                 << "Missing value for -tag" 
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        if (Tcl_GetInt(interp, argv[i + 1], &tag) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                 << "Invalid value for -tag: " << argv[i + 1] 
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        tracker.consume(Args::Tag);
+        i++; // Skip the next argument since it's the value for -tag
+      }
+      else if (strcmp(argv[i], "-tStart") == 0) {
+        if (i + 1 == argc) {
+          opserr << OpenSees::PromptValueError 
+                 << "Missing value for -tStart" 
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        if (Tcl_GetDouble(interp, argv[i + 1], &tStart) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                 << "Invalid value for -tStart: " << argv[i + 1] 
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        tracker.consume(Args::TStart);
+        i++; // Skip the next argument since it's the value for -tStart
+      }
+      else if (strcmp(argv[i], "-tFinish") == 0) {
+        if (i + 1 == argc) {
+          opserr << OpenSees::PromptValueError 
+                 << "Missing value for -tFinish" 
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        if (Tcl_GetDouble(interp, argv[i + 1], &tFinish) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                 << "Invalid value for -tFinish: " << argv[i + 1] 
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        tracker.consume(Args::TFinish);
+        i++; // Skip the next argument since it's the value for -tFinish
+      }
+      else if (strcmp(argv[i], "-period") == 0) {
+        if (i + 1 == argc) {
+          opserr << OpenSees::PromptValueError 
+                 << "Missing value for -period" 
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        if (Tcl_GetDouble(interp, argv[i + 1], &period) != TCL_OK) {
+          opserr << OpenSees::PromptValueError 
+                 << "Invalid value for -period: " << argv[i + 1] 
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+        }
+        tracker.consume(Args::Period);
+        i++; // Skip the next argument since it's the value for -period
+      }
+      else {
+        positions.insert(i);
+      }
+    }
+  
+    int missing = 0;
+    missing += tracker.contains(Args::TStart);
+    missing += tracker.contains(Args::TFinish);
+    missing += tracker.contains(Args::Period);
+
+    bool hasPositionalTag = false;
+
+    if (tracker.contains(Args::Tag)) {
+      if ((int)positions.size() == missing + 1) {
+        hasPositionalTag = true;
+      } else if ((int)positions.size() == missing) {
+        tracker.consume(Args::Tag); // no tag supplied; default tag = 0
+      } else {
+        opserr << OpenSees::PromptValueError
+              << "wrong number of positional arguments for Trig series"
+              << OpenSees::SignalMessageEnd;
+        return nullptr;
+      }
+    } else {
+      if ((int)positions.size() != missing) {
+        opserr << OpenSees::PromptValueError
+              << "unexpected positional argument after -tag"
+              << OpenSees::SignalMessageEnd;
+        return nullptr;
+      }
+    }
+
+    // Parse positional arguments
+    for (int i : positions) {
+      switch (tracker.current()) {
+        case Args::Tag:
+          if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
+            opserr << OpenSees::PromptValueError 
+                   << "Invalid series tag in Trig tag?" 
+                   << OpenSees::SignalMessageEnd;
+            return nullptr;
+          }
+          tracker.consume(Args::Tag);
+          break;
+        case Args::TStart:
+          if (Tcl_GetDouble(interp, argv[i], &tStart) != TCL_OK) {
+            opserr << OpenSees::PromptValueError 
+                   << "Invalid tStart: " << argv[i] 
+                   << OpenSees::SignalMessageEnd;
+            return nullptr;
+          }
+          tracker.consume(Args::TStart);
+          break;
+        case Args::TFinish:
+          if (Tcl_GetDouble(interp, argv[i], &tFinish) != TCL_OK) {
+            opserr << OpenSees::PromptValueError 
+                   << "Invalid tFinish: " << argv[i] 
+                   << OpenSees::SignalMessageEnd;
+            return nullptr;
+          }
+          tracker.consume(Args::TFinish);
+          break;
+        case Args::Period:
+          if (Tcl_GetDouble(interp, argv[i], &period) != TCL_OK) {
+            opserr << OpenSees::PromptValueError 
+                   << "Invalid period: " << argv[i] 
+                   << OpenSees::SignalMessageEnd;
+            return nullptr;
+          }
+          tracker.consume(Args::Period);
+          break;
+        default:
+          opserr << OpenSees::PromptValueError 
+                 << "Unexpected argument: " << argv[i] 
+                 << OpenSees::SignalMessageEnd;
+          return nullptr;
+      }
+    }
+
+    if ((tracker.current() < Args::EndRequired)) {
+      opserr << OpenSees::PromptValueError 
+             << "Missing required arguments for Trig series: " ;
+      while (tracker.current() != Args::EndRequired) {
+        switch (tracker.current()) {
+          case Args::Tag:
+            opserr << "tag ";
+            break;
+          case Args::TStart:
+            opserr << "tStart ";
+            break;
+          case Args::TFinish:
+            opserr << "tFinish ";
+            break;
+          case Args::Period:
+            opserr << "period ";
+            break;
+          default:
+            break;
+        }
+        tracker.increment();
+      }
+      opserr << OpenSees::SignalMessageEnd;
+      return nullptr;
+    }
+
+    // Validation
+    if (tFinish < tStart) {
+      opserr << OpenSees::PromptValueError 
+             << "tFinish must be greater than or equal to tStart" 
+             << OpenSees::SignalMessageEnd;
+      return nullptr;
+    }
+    if (period <= 0.0) {
+      opserr << OpenSees::PromptValueError 
+             << "period must be greater than 0" 
+             << OpenSees::SignalMessageEnd;
+      return nullptr;
+    }
+#else
      if (argc < 3) {
        opserr << "WARNING not enough TimeSeries args - ";
        opserr << " Trig <tag?> tStart tFinish period <-shift shift> <-factor cFactor>\n";
@@ -149,7 +380,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
 
      if (Tcl_GetDouble(interp, argv[argi++], &tStart) != TCL_OK) {
        opserr << "WARNING invalid tStart " << argv[argi-1] << " - ";
-       opserr << " Trig tStart tFinish period <-shift shift> <-factor cFactor>\n";
+       opserr << " \n";
        return nullptr;
      }
 
@@ -194,7 +425,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
        }
        argi++;
      }
- 
+ #endif
      theSeries = new TrigSeries(tag, tStart, tFinish, period, shift, cFactor);
          
    }
