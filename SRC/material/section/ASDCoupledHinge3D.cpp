@@ -155,13 +155,6 @@ int ASDCoupledHinge3DDomainData::getMyMzForNAndDirection(double N, double theta,
     opserr << "N = " << N << " between " << i1 << " and " << i2 << " with N1 = " << N1 << " and N2 = " << N2 << "\n";
 #endif
 
-    //opserr << "found N between " << N1 << "(" << i1 << ") and " << N2 << "(" << i2 << ")\n";
-    //opserr << "My-Mz domain for N1:\n";
-    //for (int k = 0; k < numberTheta; k++) {
-    //    opserr << "(" << this->getValue(i1, k, 1) << ", " << this->getValue(i1, k, 2) << ") ";
-    //}
-    //opserr << "\n";
-
     // Find My and Mz for given "theta"
     double My1_j, My2_j, My_j, Mz1_j, Mz2_j, Mz_j;
     double My1_jp1, My2_jp1, My_jp1, Mz1_jp1, Mz2_jp1, Mz_jp1;
@@ -461,7 +454,8 @@ void* OPS_ADD_RUNTIME_VPV(OPS_ASDCoupledHinge3D)
     double Kv_z = data[2];
     double Kax = data[3];
 
-    //opserr << "Parsed mandatory data\n";
+    // Parsed mandatory data
+
 
     // start parsing all optional parameters:
     // string tcl expression for initial stiffness: supported parameters for expressions:
