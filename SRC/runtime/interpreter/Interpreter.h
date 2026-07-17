@@ -13,12 +13,10 @@
 //
 //===----------------------------------------------------------------------===//
 //
-#include <runtime/parsing/Parsing.h>
+#include <tcl.h>
 // typedef const char** const ArgList;
 
-namespace OpenSees {
+namespace Xara {
 typedef Tcl_Interp Interpreter;
 }
 
-// template <typename T>
-// typedef int (*StrCmd)(T&, Interpreter&, ArgSize, ArgList);
