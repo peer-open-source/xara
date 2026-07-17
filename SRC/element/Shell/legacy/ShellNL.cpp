@@ -36,7 +36,6 @@
 #include <ErrorHandler.h>
 #include <ShellNL.h>
 #include <R3vectors.h>
-#include <Renderer.h>
 #include <ElementResponse.h>
 
 #include <Channel.h>
@@ -1733,66 +1732,3 @@ int  ShellNL::recvSelf (int commitTag,Channel &theChannel,
   return res;
 }
 //**************************************************************************
-
-int
-ShellNL::displaySelf(Renderer &theViewer, int displayMode, float fact)
-{
-  // first determine the end points of the quad based on
-  // the display factor (a measure of the distorted image)
-  // store this information in 4 3d vectors v1 through v4
-  const Vector &end1Crd = nodePointers[0]->getCrds();
-  const Vector &end2Crd = nodePointers[1]->getCrds();	
-  const Vector &end3Crd = nodePointers[2]->getCrds();	
-  const Vector &end4Crd = nodePointers[3]->getCrds();
-  static Matrix coords(4,3);
-  static Vector values(4);
-  static Vector P(54) ;
-
-  for (int j=0; j<9; j++)
-    values(j) = 0.0;
-
-  if (displayMode >= 0) {
-    const Vector &end1Disp = nodePointers[0]->getDisp();
-    const Vector &end2Disp = nodePointers[1]->getDisp();
-    const Vector &end3Disp = nodePointers[2]->getDisp();
-    const Vector &end4Disp = nodePointers[3]->getDisp();
-
-    if (displayMode < 8 && displayMode > 0) {
-      for (int i=0; i<4; i++) {
-        const Vector &stress = materialPointers[i]->getStressResultant();
-        values(i) = stress(displayMode-1);
-	  }
-    }
-
-    for (int i = 0; i < 3; i++) {
-	  coords(0,i) = end1Crd(i) + end1Disp(i)*fact;
-	  coords(1,i) = end2Crd(i) + end2Disp(i)*fact;    
-	  coords(2,i) = end3Crd(i) + end3Disp(i)*fact;    
-	  coords(3,i) = end4Crd(i) + end4Disp(i)*fact;
-    }
-  } else {
-    int mode = displayMode * -1;
-    const Matrix &eigen1 = nodePointers[0]->getEigenvectors();
-    const Matrix &eigen2 = nodePointers[1]->getEigenvectors();
-    const Matrix &eigen3 = nodePointers[2]->getEigenvectors();
-    const Matrix &eigen4 = nodePointers[3]->getEigenvectors();
-	if (eigen1.noCols() >= mode) {
-	  for (int i = 0; i < 3; i++) {
-	    coords(0,i) = end1Crd(i) + eigen1(i,mode-1)*fact;
-	    coords(1,i) = end2Crd(i) + eigen2(i,mode-1)*fact;
-	    coords(2,i) = end3Crd(i) + eigen3(i,mode-1)*fact;
-	    coords(3,i) = end4Crd(i) + eigen4(i,mode-1)*fact;
-	  }    
-	} else {
-	  for (int i = 0; i < 3; i++) {
-	    coords(0,i) = end1Crd(i);
-	    coords(1,i) = end2Crd(i);
-	    coords(2,i) = end3Crd(i);
-	    coords(3,i) = end4Crd(i);
-	  }    
-	}
-  }
-  int error = 0;
-  error += theViewer.drawPolygon (coords, values);
-  return error;
-}
