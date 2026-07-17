@@ -42,7 +42,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <Parameter.h>
@@ -751,13 +750,6 @@ SimpleContact2D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &
     return -3;    
   }
 
-  return 0;
-}
-
-
-int
-SimpleContact2D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
   return 0;
 }
 
