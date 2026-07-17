@@ -656,9 +656,10 @@ J2BeamThread3d::Print(OPS_Stream& s, int flag)
     s << "\"type\": \"J2BeamFiber\", ";
     s << "\"E\": " << E << ", ";
     s << "\"nu\": " << nu << ", ";
-    s << "\"sigmaY\": " << sigmaY << ", ";
+    s << "\"Fy\": "   << sigmaY << ", ";
     s << "\"Hiso\": " << Hiso << ", ";
-    s << "\"Hkin\": " << Hkin;
+    s << "\"Hkin\": " << Hkin << ", ";
+    s << "\"density\": " << density;
     s << "}";
   }
 }
