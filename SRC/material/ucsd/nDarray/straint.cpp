@@ -36,7 +36,7 @@
 //##############################################################################
 straintensor::straintensor (int rank_of_tensor, double initval):
   tensor(rank_of_tensor, def_dim_2, initval)
-    {   } // default constructor
+    {   }
 
 //##############################################################################
 straintensor::straintensor ( double *values ):
@@ -525,17 +525,19 @@ double straintensor::theta()  const             // Chen W.F. "plasticity for
     return ( temp9 );
   }
 
-//##############################################################################
-double straintensor::thetaPI() const
-  {
-    double thetaPI = theta() / PI;
-    return thetaPI;
-  }
+
+double
+straintensor::thetaPI() const
+{
+  double thetaPI = theta() / PI;
+  return thetaPI;
+}
 
 
 
-//##############################################################################
-straintensor straintensor::pqtheta2strain( double p, double q, double theta)
+
+straintensor 
+straintensor::pqtheta2strain( double p, double q, double theta)
   {
     straintensor ret;
 

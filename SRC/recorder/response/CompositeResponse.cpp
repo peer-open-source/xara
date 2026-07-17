@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1 $
-// $Date: 2010-05-13 00:15:36 $
-// $Source: /usr/local/cvs/OpenSees/SRC/recorder/response/CompositeResponse.cpp,v $
-                                                                        
+//
 // Written: fmk
 // Created: 05/10
 //
@@ -33,7 +29,8 @@
 #include <ID.h>
 
 CompositeResponse::CompositeResponse()
-  :Response(), theResponses(0), numResponses(0)
+ : Response(), theResponses(nullptr), 
+   numResponses(0)
 {
 
 }
@@ -51,7 +48,7 @@ int
 CompositeResponse::addResponse(Response *nextResponse)
 {
 
-  if (nextResponse == 0)
+  if (nextResponse == nullptr)
     return 0;
 
   //
@@ -66,7 +63,7 @@ CompositeResponse::addResponse(Response *nextResponse)
 
     if (myInfo.theType == UnknownType) {
       myInfo.theType = VectorType;
-      myInfo.theVector = new Vector();
+      // myInfo.theVector = new Vector();
     }
     
     if (myInfo.theType != VectorType) {
@@ -74,17 +71,17 @@ CompositeResponse::addResponse(Response *nextResponse)
       return -1;
     }
     
-    int curSize = myInfo.theVector->Size();
+    int curSize = myInfo.theVector.Size();
 
     if (otherType.theType == DoubleType)
       curSize++;
     else
-      curSize += otherType.theVector->Size();
+      curSize += otherType.theVector.Size();
 
-    myInfo.theVector->resize(curSize);
-
-  } else if (otherType.theType == IntType || 
-	     otherType.theType == IdType) {
+    myInfo.theVector.resize(curSize);
+  }
+  else if (otherType.theType == IntType || 
+           otherType.theType == IdType) {
 
     if (myInfo.theType == UnknownType) {
       myInfo.theID = new ID();
@@ -111,14 +108,11 @@ CompositeResponse::addResponse(Response *nextResponse)
   //
 
   Response **theNextResponses = new Response *[numResponses+1];
-  if (theNextResponses == 0) {
-    opserr << "WARNING: CompositeResponse::addResponse() - out of memory, no responses will be added\n";
-    return -1;
-  }
-   
+
   for (int i=0; i<numResponses; i++)
     theNextResponses[i] = theResponses[i];
-  if (theResponses != 0)
+
+  if (theResponses != nullptr)
     delete [] theResponses;
   theResponses = theNextResponses;
   theResponses[numResponses] = nextResponse;
@@ -146,13 +140,14 @@ CompositeResponse::getResponse()
 
     if (otherType.theType == DoubleType || otherType.theType == VectorType) {
       if (otherType.theType == DoubleType)
-        (*myInfo.theVector)(currentLoc++) = otherType.theDouble;
+        myInfo.theVector(currentLoc++) = otherType.theDouble;
       else {
-        int otherSize = otherType.theVector->Size();
+        int otherSize = otherType.theVector.Size();
         for (int i=0; i<otherSize; i++, currentLoc++) 
-          (*myInfo.theVector)(currentLoc) = (*otherType.theVector)(i);
+          myInfo.theVector(currentLoc) = otherType.theVector(i);
       }
-    } else if (otherType.theType == IntType || otherType.theType == IdType) {
+    }
+    else if (otherType.theType == IntType || otherType.theType == IdType) {
       if (otherType.theType == IntType) {
         (*myInfo.theID)(currentLoc++) = otherType.theInt;
       }
@@ -166,5 +161,3 @@ CompositeResponse::getResponse()
   
   return res;
 }
-
-

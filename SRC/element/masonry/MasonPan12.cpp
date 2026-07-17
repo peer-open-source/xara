@@ -1286,34 +1286,34 @@ MasonPan12::getResponse(int responseID, Information &eleInformation)
         return eleInformation.setVector(this->getResistingForce());
 
     case 2:
-        if (eleInformation.theVector != 0) {
+        if (eleInformation.theVector.Size() != 0) {
             for (int i = 0; i < 6; i++)
-                (*(eleInformation.theVector))(i) = trans(i,3)*theMaterial[i]->getStress();
+                ((eleInformation.theVector))(i) = trans(i,3)*theMaterial[i]->getStress();
   //               (*(eleInformation.theVector))(6) = trans(6,0)*theMaterial2->getStress();              			 
         }
         return 0;
 
     case 3:
-        if (eleInformation.theVector != 0) {
+        if (eleInformation.theVector.Size() != 0) {
             for (int i = 0; i < 6; i++)
-                (*(eleInformation.theVector))(i) = theMaterial[i]->getStrain();
+                ((eleInformation.theVector))(i) = theMaterial[i]->getStrain();
   //            (*(eleInformation.theVector))(6) = theMaterial2->getStrain();
         }
         return 0;
 
     case 13:
-        if (eleInformation.theMatrix != 0) {
+        if (eleInformation.theMatrix != nullptr) {
             for (int i = 0; i < 6; i++)
 	      (*(eleInformation.theMatrix))(i,i) = theMaterial[i]->getTangent();
         }
         return 0;
 
     case 4:
-        if (eleInformation.theVector != 0) {
-            for (int i = 0; i < 6; i++) {
-                (*(eleInformation.theVector))(i) = theMaterial[i]->getStrain();
-                (*(eleInformation.theVector))(i+6) = trans(i,3)*theMaterial[i]->getStress();
-			}
+        if (eleInformation.theVector.Size() != 0) {
+          for (int i = 0; i < 6; i++) {
+              ((eleInformation.theVector))(i) = theMaterial[i]->getStrain();
+              ((eleInformation.theVector))(i+6) = trans(i,3)*theMaterial[i]->getStress();
+          }
 	//		     (*(eleInformation.theVector))(6) = theMaterial2->getStrain();
   //              (*(eleInformation.theVector))(13) = trans(6,0)*theMaterial2->getStress();
 		}

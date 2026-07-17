@@ -608,18 +608,18 @@ ConcreteECThermal::getVariable(const char *varName, Information &theInfo)
     theInfo.theDouble = epsc0;
     return 0;
   } else if (strcmp(varName,"ElongTangent") == 0) {
-    Vector *theVector = theInfo.theVector;
-    if (theVector != 0) {
+    Vector &theVector = theInfo.theVector;
+    if (true) {
       double tempT, ET, Elong, TempTmax;
-      tempT = (*theVector)(0);
-	  ET = (*theVector)(1);
-	  Elong = (*theVector)(2);
-      TempTmax = (*theVector)(3);
+      tempT = (theVector)(0);
+      ET = (theVector)(1);
+      Elong = (theVector)(2);
+      TempTmax = (theVector)(3);
       this->getElongTangent(tempT, ET, Elong, TempTmax);
-	  (*theVector)(0) = tempT;
-      (*theVector)(1) = ET;
-      (*theVector)(2) = Elong;
-	  (*theVector)(3) = TempTmax;
+      (theVector)(0) = tempT;
+      (theVector)(1) = ET;
+      (theVector)(2) = Elong;
+      (theVector)(3) = TempTmax;
     }
     return 0;
   }
@@ -628,12 +628,10 @@ ConcreteECThermal::getVariable(const char *varName, Information &theInfo)
 		return 0;
 	}
   else if (strcmp(varName,"TempAndElong") == 0) {
-    Vector *theVector = theInfo.theVector;
-	if (theVector!= 0) {
-		(*theVector)(0) = Temp;
-        (*theVector)(1) = ThermalElongation;
-	}else{
-		opserr<<"null Vector in EC"<<endln;
+    Vector &theVector = theInfo.theVector;
+	if (true) {
+    (theVector)(0) = Temp;
+    (theVector)(1) = ThermalElongation;
 	}
 
 	return 0;

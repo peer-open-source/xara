@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.7 $
-// $Date: 2009-05-18 22:01:17 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/zeroLength/ZeroLengthND.cpp,v $
-                                                                        
+//
 // Written: MHS
 // Created: Sept 2000
 //
@@ -168,19 +164,9 @@ end1Ptr(0), end2Ptr(0), theNDMaterial(0), the1DMaterial(0), order(0)
 {
 	// Obtain copy of Nd material model
 	theNDMaterial = theNDmat.getCopy();
-	
-	if (theNDMaterial == 0) {
-		opserr << "ZeroLengthND::  -- failed to get copy of NDMaterial\n";
-		exit(-1);
-	}
 
 	// Obtain copy of 1d material model
 	the1DMaterial = the1Dmat.getCopy();
-	
-	if (the1DMaterial == 0) {
-		opserr << "ZeroLengthND""ZeroLengthND -- failed to get copy of UniaxialMaterial\n";
-		exit(-1);	
-	}	
 
 	// Get the material order
 	order = theNDMaterial->getOrder();
@@ -749,13 +735,14 @@ ZeroLengthND::Print(OPS_Stream &s, int flag)
     }
     
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
+        s << OPS_PRINT_JSON_ELEM_INDENT << "{";
         s << "\"name\": " << this->getTag() << ", ";
         s << "\"type\": \"ZeroLengthND\", ";
         s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
         s << "\"ndMaterial\": \"" << theNDMaterial->getTag() << "\", ";
-        if (the1DMaterial != 0)
-            s << "\"uniaxialMaterial\": \"" << the1DMaterial->getTag() << "\", ";
+        if (the1DMaterial != nullptr)
+            s << "\"uniaxialMaterial\": " << the1DMaterial->getTag() << ", ";
+
         s << "\"transMatrix\": [[";
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -773,75 +760,77 @@ ZeroLengthND::Print(OPS_Stream &s, int flag)
 Response*
 ZeroLengthND::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
-    Response *theResponse = 0;
+  Response *theResponse = nullptr;
 
-    output.tag("ElementOutput");
-    output.attr("eleType","ZeroLength");
-    output.attr("eleTag",this->getTag());
-    output.attr("node1",connectedExternalNodes[0]);
-    output.attr("node2",connectedExternalNodes[1]);
+  output.tag("ElementOutput");
+  output.attr("eleType","ZeroLength");
+  output.attr("eleTag",this->getTag());
+  output.attr("node1",connectedExternalNodes[0]);
+  output.attr("node2",connectedExternalNodes[1]);
 
-    char outputData[64];
+  char outputData[64];
 
-    if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0) 
-        || (strcmp(argv[0],"globalForces") == 0) || (strcmp(argv[0],"globalforces") == 0)) {
+  if ((strcmp(argv[0],"force") == 0) || (strcmp(argv[0],"forces") == 0) 
+      || (strcmp(argv[0],"globalForces") == 0) || (strcmp(argv[0],"globalforces") == 0)) {
 
-            char outputData[256];
-            int numDOFperNode = numDOF/2;
-            for (int i=0; i<numDOFperNode; i++) {
-                sprintf(outputData,"P1_%d", i+1);
-                output.tag("ResponseType", outputData);
-            }
-            for (int j=0; j<numDOFperNode; j++) {
-                sprintf(outputData,"P2_%d", j+1);
-                output.tag("ResponseType", outputData);
-            }
-            theResponse =  new ElementResponse(this, 1, *P);
+    char outputData[256];
+    int numDOFperNode = numDOF/2;
+    for (int i=0; i<numDOFperNode; i++) {
+        sprintf(outputData,"P1_%d", i+1);
+        output.tag("ResponseType", outputData);
+    }
+    for (int j=0; j<numDOFperNode; j++) {
+        sprintf(outputData,"P2_%d", j+1);
+        output.tag("ResponseType", outputData);
+    }
+    theResponse =  new ElementResponse(this, 1, *P);
 
-    } else if (strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0) {
+  } else if (strcmp(argv[0],"basicForce") == 0 || strcmp(argv[0],"basicForces") == 0) {
 
-        if (the1DMaterial != 0) {
-            for (int i=0; i<3; i++) {
-                sprintf(outputData,"P%d",i+1);
-                output.tag("ResponseType",outputData);
-            }
-            theResponse = new ElementResponse(this, 2, Vector(3));
-        } else {
-            for (int i=0; i<order; i++) {
-                sprintf(outputData,"P%d",i+1);
-                output.tag("ResponseType",outputData);
-            }
-            theResponse = new ElementResponse(this, 2, Vector(order));
+    if (the1DMaterial != 0) {
+      for (int i=0; i<3; i++) {
+          sprintf(outputData,"P%d",i+1);
+          output.tag("ResponseType",outputData);
+      }
+      theResponse = new ElementResponse(this, 2, Vector(3));
+    }
+    else {
+      for (int i=0; i<order; i++) {
+          sprintf(outputData,"P%d",i+1);
+          output.tag("ResponseType",outputData);
+      }
+      theResponse = new ElementResponse(this, 2, Vector(order));
+    }
+  }
+  else if (strcmp(argv[0],"defo") == 0 || strcmp(argv[0],"deformations") == 0 ||
+          strcmp(argv[0],"deformation") == 0) {
+
+    if (the1DMaterial != 0) {
+        for (int i=0; i<3; i++) {
+            sprintf(outputData,"e%d",i+1);
+            output.tag("ResponseType",outputData);
         }
-
-    } else if (strcmp(argv[0],"defo") == 0 || strcmp(argv[0],"deformations") == 0 ||
-        strcmp(argv[0],"deformation") == 0) {
-
-            if (the1DMaterial != 0) {
-                for (int i=0; i<3; i++) {
-                    sprintf(outputData,"e%d",i+1);
-                    output.tag("ResponseType",outputData);
-                }
-                theResponse = new ElementResponse(this, 3, Vector(3));
-            } else {
-                for (int i=0; i<order; i++) {
-                    sprintf(outputData,"e%d",i+1);
-                    output.tag("ResponseType",outputData);
-                }
-                theResponse = new ElementResponse(this, 3, Vector(order));
-            }
-
-    // a material quantity
-    } else if (strcmp(argv[0],"material") == 0) {
-        // See if NDMaterial can handle request ...
-        theResponse = theNDMaterial->setResponse(&argv[1], argc-1, output);
-
-        if ((theResponse == 0) && (the1DMaterial != 0))
-            theResponse = the1DMaterial->setResponse(&argv[1], argc-1, output);
+        theResponse = new ElementResponse(this, 3, Vector(3));
+    } else {
+        for (int i=0; i<order; i++) {
+            sprintf(outputData,"e%d",i+1);
+            output.tag("ResponseType",outputData);
+        }
+        theResponse = new ElementResponse(this, 3, Vector(order));
     }
 
-    output.endTag();
-    return theResponse;
+  // a material quantity
+  }
+  else if (strcmp(argv[0],"material") == 0) {
+    // See if NDMaterial can handle request ...
+    theResponse = theNDMaterial->setResponse(&argv[1], argc-1, output);
+
+    if ((theResponse == 0) && (the1DMaterial != 0))
+        theResponse = the1DMaterial->setResponse(&argv[1], argc-1, output);
+  }
+
+  output.endTag();
+  return theResponse;
 }
 
 int 
@@ -852,9 +841,9 @@ ZeroLengthND::getResponse(int responseID, Information &eleInfo)
         return eleInfo.setVector(this->getResistingForce());
 
     case 2:
-        if (eleInfo.theVector != 0) {
+        if (eleInfo.theVector.Size() != 0) {
             const Vector &tmp = theNDMaterial->getStress();
-            Vector &force = *(eleInfo.theVector);
+            Vector &force = (eleInfo.theVector);
             for (int i = 0; i < order; i++)
                 force(i) = tmp(i);
             if (the1DMaterial != 0)
@@ -863,10 +852,10 @@ ZeroLengthND::getResponse(int responseID, Information &eleInfo)
         return 0;
 
     case 3:
-        if (eleInfo.theVector != 0) {
+        if (eleInfo.theVector.Size() != 0) {
             this->computeStrain();
             const Vector &tmp = *v;	// NDMaterial strains
-            Vector &def = *(eleInfo.theVector);
+            Vector &def = (eleInfo.theVector);
             for (int i = 0; i < order; i++)
                 def(i) = tmp(i);
             if (the1DMaterial != 0)
@@ -886,56 +875,50 @@ ZeroLengthND::getResponse(int responseID, Information &eleInfo)
 // for orientation
 void
 ZeroLengthND::setUp(int Nd1, int Nd2, const Vector &x, const Vector &yp)
-{ 
-    // ensure the connectedExternalNode ID is of correct size & set values
-	if (connectedExternalNodes.Size() != 2) {
-		opserr << "ZeroLengthND::setUp -- failed to create an ID of correct size\n";
-		exit(-1);
-	}
-    
-    connectedExternalNodes(0) = Nd1;
-    connectedExternalNodes(1) = Nd2;
-    
-    // check that vectors for orientation are correct size
-	if ( x.Size() != 3 || yp.Size() != 3 ) {
-		opserr << "ZeroLengthND -- incorrect dimension of orientation vectors\n";
-	exit(-1);
-	}
-    // establish orientation of element for the transformation matrix
-    // z = x cross yp
-    static Vector z(3);
-    z(0) = x(1)*yp(2) - x(2)*yp(1);
-    z(1) = x(2)*yp(0) - x(0)*yp(2);
-    z(2) = x(0)*yp(1) - x(1)*yp(0);
+{
+  connectedExternalNodes(0) = Nd1;
+  connectedExternalNodes(1) = Nd2;
 
-    // y = z cross x
-    static Vector y(3);
-    y(0) = z(1)*x(2) - z(2)*x(1);
-    y(1) = z(2)*x(0) - z(0)*x(2);
-    y(2) = z(0)*x(1) - z(1)*x(0);
+  // check that vectors for orientation are correct size
+  if ( x.Size() != 3 || yp.Size() != 3 ) {
+    opserr << "ZeroLengthND -- incorrect dimension of orientation vectors\n";
+    exit(-1);
+  }
+  // establish orientation of element for the transformation matrix
+  // z = x cross yp
+  static Vector z(3);
+  z(0) = x(1)*yp(2) - x(2)*yp(1);
+  z(1) = x(2)*yp(0) - x(0)*yp(2);
+  z(2) = x(0)*yp(1) - x(1)*yp(0);
 
-    // compute length(norm) of vectors
-    double xn = x.Norm();
-    double yn = y.Norm();
-    double zn = z.Norm();
+  // y = z cross x
+  static Vector y(3);
+  y(0) = z(1)*x(2) - z(2)*x(1);
+  y(1) = z(2)*x(0) - z(0)*x(2);
+  y(2) = z(0)*x(1) - z(1)*x(0);
 
-    // check valid x and y vectors, i.e. not parallel and of zero length
-	if (xn == 0 || yn == 0 || zn == 0){
-		opserr << "ZeroLengthND::setUP -- invalid vectors to constructor\n";
-		exit(-1);
-	}
-    
-    // create transformation matrix of direction cosines
-    for (int i = 0; i < 3; i++) {
-		transformation(0,i) = x(i)/xn;
-		transformation(1,i) = y(i)/yn;
-		transformation(2,i) = z(i)/zn;
-	}
+  // compute length(norm) of vectors
+  double xn = x.Norm();
+  double yn = y.Norm();
+  double zn = z.Norm();
+
+  // check valid x and y vectors, i.e. not parallel and of zero length
+  if (xn == 0 || yn == 0 || zn == 0) {
+    opserr << "ZeroLengthND::setUP -- invalid vectors to constructor\n";
+    exit(-1);
+  }
+
+  // create transformation matrix of direction cosines
+  for (int i = 0; i < 3; i++) {
+    transformation(0,i) = x(i)/xn;
+    transformation(1,i) = y(i)/yn;
+    transformation(2,i) = z(i)/zn;
+  }
 }
 
 // Set basic deformation-displacement transformation matrix for the materials
 void 
-ZeroLengthND::setTransformation(void)
+ZeroLengthND::setTransformation()
 {
 	// Allocate transformation matrix
 	if (A != 0)
@@ -943,10 +926,6 @@ ZeroLengthND::setTransformation(void)
 
 	A = (the1DMaterial == 0) ? new Matrix(order, numDOF) : new Matrix(order+1, numDOF);
 
-	if (A == 0) {
-		opserr << "ZeroLengthND::setTransformation -- failed to allocate transformation Matrix\n";
-			exit(-1);
-	}
 	if (numDOF == 6) {
 		K = &K6;
 		P = &P6;
@@ -1011,7 +990,7 @@ ZeroLengthND::setTransformation(void)
 }
 		     
 void
-ZeroLengthND::computeStrain(void)
+ZeroLengthND::computeStrain()
 {
 	// Get nodal displacements
 	const Vector &u1 = end1Ptr->getTrialDisp();

@@ -27,7 +27,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -38,16 +37,17 @@
 #include <elementAPI.h>
 #include <cmath>
 
-static int num_QuadBeamEmbedContact = 0;
 Matrix QuadBeamEmbedContact::m_ContactStiffness(QBEC_NUM_DOF,QBEC_NUM_DOF);
 Vector QuadBeamEmbedContact::m_ContactForces(QBEC_NUM_DOF);
 const double QuadBeamEmbedContact::m_Pi = 3.14159265359;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_QuadBeamEmbedContact)  
 {
+
+	static int num_QuadBeamEmbedContact = 0;
 	if (num_QuadBeamEmbedContact == 0) {
         num_QuadBeamEmbedContact++;
-	opserr<<"QuadBeamEmbedContact element - Written: A.Ghofrani, P.Arduino, U.Washington\n";
+	  opslog << "QuadBeamEmbedContact element - Written: A.Ghofrani, P.Arduino, U.Washington\n";
 	}
 	
 	Element *theElement = 0;
@@ -472,11 +472,6 @@ QuadBeamEmbedContact::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBro
 	return 0;
 }
 
-int 
-QuadBeamEmbedContact::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	return 0;
-}
  
 void 
 QuadBeamEmbedContact::Print(OPS_Stream &s, int flag)

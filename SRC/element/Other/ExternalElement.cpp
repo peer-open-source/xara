@@ -29,7 +29,6 @@
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <UniaxialMaterial.h>
-#include <Renderer.h>
 
 #include <Parameter.h>
 #include <math.h>
@@ -84,19 +83,19 @@ ExternalElement::~ExternalElement()
 }
 
 int
-ExternalElement::getNumExternalNodes(void) const
+ExternalElement::getNumExternalNodes() const
 {
     return  _Ele_GetNumExternalNodes();
 }
 
 const ID &
-ExternalElement::getExternalNodes(void) 
+ExternalElement::getExternalNodes() 
 {
 	return *_Ele_GetExternalNodes();
 }
 
 Node **
-ExternalElement::getNodePtrs(void) 
+ExternalElement::getNodePtrs() 
 {
   return _Ele_GetNodePtrs();
 }
@@ -209,11 +208,6 @@ ExternalElement::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &
     return 0;
 }
 
-int
-ExternalElement::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	return 0;
-}
 
 void
 ExternalElement::Print(OPS_Stream &s, int flag)

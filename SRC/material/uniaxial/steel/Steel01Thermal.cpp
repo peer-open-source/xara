@@ -1161,31 +1161,28 @@ Steel01Thermal::getVariable(const char *variable, Information &info)
     return 0;
   }
   else if (strcmp(variable,"ElongTangent") == 0) {
-    Vector *theVector = info.theVector;
-    if (theVector != 0) {
-      double tempT    = (*theVector)(0);
-      double ET       = (*theVector)(1);
-      double Elong    = (*theVector)(2);
-      double TempTmax = (*theVector)(3);
+    Vector &theVector = info.theVector;
+    if (true) {
+      double tempT    = (theVector)(0);
+      double ET       = (theVector)(1);
+      double Elong    = (theVector)(2);
+      double TempTmax = (theVector)(3);
       this->getElongTangent(tempT, ET, Elong, TempTmax);
-      (*theVector)(0) = tempT;
-      (*theVector)(1) = ET;
-      (*theVector)(2) = Elong;
-      (*theVector)(3) = TempTmax;
+      (theVector)(0) = tempT;
+      (theVector)(1) = ET;
+      (theVector)(2) = Elong;
+      (theVector)(3) = TempTmax;
     }
     return 0;
   }
   else if (strcmp(variable,"TempAndElong") == 0) {
-    Vector *theVector = info.theVector;
-    if (theVector!= 0) {
-      (*theVector)(0) = Temp;//Ttemperature;
-      (*theVector)(1) = ThermalElongation;
-    }else{
-      opserr<<"null Vector in Steel01Thermal"<<endln;
+    Vector &theVector = info.theVector;
+    if (true) {
+      (theVector)(0) = Temp;//Ttemperature;
+      (theVector)(1) = ThermalElongation;
     }
 	return 0;
  }
- //end of adding "TempAndElong"
   return -1;
 }
 

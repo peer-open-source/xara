@@ -21,8 +21,7 @@
 // $Revision: 1.3 $
 // $Date: 2003-08-29 07:19:26 $
 // $Source: /usr/local/cvs/OpenSees/SRC/actor/machineBroker/MillMachineBroker.cpp,v $
-                                                                        
-                                                                        
+
 // File: ~/actor/broker/MillMachineBroker.h
 //
 // Written: fmk

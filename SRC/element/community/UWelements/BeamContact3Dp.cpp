@@ -32,7 +32,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <Parameter.h>
@@ -1682,11 +1681,6 @@ BeamContact3Dp::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &t
 }
 
 
-int
-BeamContact3Dp::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    return 0;
-}
 
 
 void

@@ -282,7 +282,6 @@ AxialCurve::checkElementState(double springForce)
 
 			const char *r[1] = {"basicDeformation"}; // must be implemented in element
 
-			Vector *rotVec; //vector of chord rotations at beam-column ends
 
 			// set type of beam-column element response desired
 			theRotations = theElement->setResponse(r, 1, dummy);
@@ -297,10 +296,11 @@ AxialCurve::checkElementState(double springForce)
 
 			// access the myInfo vector containing the response (new for Version 1.2)
 			Information &theInfo = theRotations->getInformation();
-			rotVec = (theInfo.theVector);
+			 //vector of chord rotations at beam-column ends
+			Vector& rotVec = (theInfo.theVector);
 
-			deform = (fabs((*rotVec)(1)) > fabs((*rotVec)(2))) ? 
-				fabs((*rotVec)(1)) : fabs((*rotVec)(2));  //use larger of two end rotations
+			deform = (fabs((rotVec)(1)) > fabs((rotVec)(2))) ? 
+				fabs((rotVec)(1)) : fabs((rotVec)(2));  //use larger of two end rotations
 		}
 		else if (defType == 2) // interstory drift
 		{
@@ -320,30 +320,30 @@ AxialCurve::checkElementState(double springForce)
 //			g3ErrorHandler->fatal("WARNING AxialCurve - deformation type flag %i not implemented",defType);
 		}
 		
-			Response *theForces =0;
+		Response *theForces =0;
 
-			const char *f[1] = {"localForce"}; // does not include influence of P-delta
-										 // for P-delta use forType = 0
+		const char *f[1] = {"localForce"}; // does not include influence of P-delta
+										// for P-delta use forType = 0
 
-			Vector *forceVec; //vector of basic forces from beam column
 
-			// set type of beam-column element response desired
-			theForces    = theElement->setResponse(f, 1, dummy);
+		// set type of beam-column element response desired
+		theForces    = theElement->setResponse(f, 1, dummy);
 
-			// put element response in the vector of "myInfo"
-			result += theForces->getResponse();
+		// put element response in the vector of "myInfo"
+		result += theForces->getResponse();
 
-			// access the myInfo vector containing the response (new for Version 1.2)
-			Information &theInfo = theForces->getInformation();
-			forceVec = (theInfo.theVector);
+		// access the myInfo vector containing the response (new for Version 1.2)
+		Information &theInfo = theForces->getInformation();
+		//vector of basic forces from beam column
+		Vector& forceVec = (theInfo.theVector);
 
 		// Local forces (assuming no element loads)
 		if (forType == 0)
 			force = springForce;			//force in associated hysteretic material
 		else if (forType == 1) 
-			force = fabs((*forceVec)(1));	// shear 
+			force = fabs((forceVec)(1));	// shear 
 		else if (forType == 2) 
-			force = (*forceVec)(0);			//axial - positive for compression 
+			force = (forceVec)(0);			//axial - positive for compression 
 		else {
 //			g3ErrorHandler->fatal("WARNING AxialMaterial - force type flag %i not implemented",forType);
 		}
@@ -357,10 +357,6 @@ AxialCurve::checkElementState(double springForce)
 		
 		
 		
-		
-		
-		
-		//cout << "force = " << force << ", forceSurface = " << forceSurface << endln;
 
 		if (stateFlag == 0) //prior to failure
 		{

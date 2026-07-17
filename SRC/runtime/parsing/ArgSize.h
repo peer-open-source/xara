@@ -14,5 +14,10 @@
 //===----------------------------------------------------------------------===//
 //
 #pragma once 
+namespace Xara {
 
 typedef int ArgSize;
+
+}
+
+using namespace Xara;

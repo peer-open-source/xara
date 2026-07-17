@@ -15,8 +15,6 @@
 
 // #  include <DistributedDisplacementControl.h>
 // #  include <ShedHeaviest.h>
-// #  include <MPIDiagonalSOE.h>
-// #  include <MPIDiagonalSolver.h>
 #include <ShadowSubdomain.h>
 #include <Metis.h>
 #include <FEM_ObjectBroker.h>
@@ -43,7 +41,6 @@
    int  num_subdomains    = 0;
    bool partitioned       = false;
    bool using_main_domain = false;
-   bool setMPIDSOEFlag    = false;
    int  main_partition    = 0;
    PartitionedDomain     theDomain;
  };

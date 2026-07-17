@@ -40,28 +40,14 @@
 #include <cassert>
 #include <TaggedObject.h>
 #include <MovableObject.h>
+#include <MaterialBuilder.h>
 class Matrix;
 class ID;
 class Vector;
 class Information;
 class Response;
-namespace OpenSees {
-class FrameMaterial;
-}
 
 using namespace OpenSees;
-class NDMaterial;
-
-class MaterialBuilder: public TaggedObject
-{
-  public:
-    MaterialBuilder(int tag): TaggedObject(tag) {};
-    virtual ~MaterialBuilder() {};
-
-    virtual NDMaterial *getCopy(const char *type) =0;
-    virtual FrameMaterial* getFrameFiber() {return nullptr;}
-};
-
 
 class NDMaterial : public MaterialBuilder, public MovableObject
 {
@@ -101,8 +87,10 @@ class NDMaterial : public MaterialBuilder, public MovableObject
     virtual const char *getType() const = 0;
     virtual int getOrder() const {return 0;};  //??
 
-    virtual Response *setResponse (const char **argv, int argc, OPS_Stream &);
-    virtual int getResponse (int responseID, Information &);
+    virtual Response *setResponse(const char **argv, int argc, OPS_Stream &);
+    virtual int getResponse(int responseID, Information &);
+
+    void Print(OPS_Stream &s, int flag) override;
 
     // Sensitivity
     virtual const Vector & getStressSensitivity         (int gradIndex, bool conditional);
@@ -113,9 +101,20 @@ class NDMaterial : public MaterialBuilder, public MovableObject
     virtual double         getRhoSensitivity            (int gradIndex);
     virtual int            commitSensitivity            (const Vector & strainGradient, int gradIndex, int numGrads);
 
+  
+
+  protected:
+    int getCharacteristicLength(double& l) const { l = c_length; return c_length_set ? 0 : -1;}
+    int getTimeStep(double& dt) const { dt = timeStep; return timeStep_set ? 0 : -1;}
+
   private:
     static Matrix errMatrix;
     static Vector errVector;
+    double c_length = 0.0;     // characteristic length for nonlocal damage models
+    bool c_length_set = false; // flag to indicate if characteristic length has been set
+
+    double timeStep = 0.0;     //
+    bool timeStep_set = false; //
 };
 
 #endif

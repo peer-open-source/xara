@@ -229,7 +229,8 @@ Joint2D::Joint2D(int tag, int nd1, int nd2, int nd3, int nd4, int IntNodeTag,
   }
 
   // Zero the damage models
-  for (i = 0; i < 5; i++) theDamages[i] = NULL;
+  for (i = 0; i < 5; i++)
+    theDamages[i] = NULL;
 }
 
 
@@ -262,7 +263,7 @@ Joint2D::Joint2D(int tag, int nd1, int nd2, int nd3, int nd4, int IntNodeTag,
 
 
   // get  the external nodes
-  for (i = 0; i < 4; i++)
+  for (int i = 0; i < 4; i++)
   {
     theNodes[i] = NULL;
     theNodes[i] = TheDomain->getNode(ExternalNodes(i));
@@ -432,17 +433,19 @@ Joint2D::~Joint2D()
   }
 
   for (int i = 0; i < 5; i++) {
-    if (theSprings[i] != NULL) delete theSprings[i];
-    if (theDamages[i] != NULL) delete theDamages[i];
+    if (theSprings[i] != nullptr) delete theSprings[i];
+    if (theDamages[i] != nullptr) delete theDamages[i];
   }
 }
 
 
-void Joint2D::setDomain(Domain* theDomain)
+void 
+Joint2D::setDomain(Domain* theDomain)
 {
   //Ckeck domain not null - invoked when object removed from a domain
-  if (theDomain == 0) {
-    for (int i = 0; i < 4; i++) theNodes[i] = NULL;
+  if (theDomain == nullptr) {
+    for (int i = 0; i < 4; i++)
+      theNodes[i] = NULL;
   }
   else {
 
@@ -454,7 +457,7 @@ void Joint2D::setDomain(Domain* theDomain)
       if (theNodes[i] == 0)  theNodes[i] = TheDomain->getNode(ExternalNodes(i));
   }
 
-}//setDomain
+}
 
 
 int Joint2D::addMP_Joint(Domain* theDomain,
@@ -487,7 +490,7 @@ int Joint2D::addMP_Joint(Domain* theDomain,
 // Public methods called, taken care of for 2D element subclasses
 //////////////////////////////////////////////////////////////////////
 
-int Joint2D::update(void)
+int Joint2D::update()
 {
   const Vector& disp1 = theNodes[0]->getTrialDisp();
   const Vector& disp2 = theNodes[1]->getTrialDisp();
@@ -504,8 +507,10 @@ int Joint2D::update(void)
 
   for (int i = 0; i < 5; i++)
   {
-    if (theSprings[i] != NULL) result = theSprings[i]->setTrialStrain(Delta[i]);
-    if (result != 0) break;
+    if (theSprings[i] != NULL)
+      result = theSprings[i]->setTrialStrain(Delta[i]);
+    if (result != 0)
+      break;
   }
 
   return result;
@@ -520,7 +525,6 @@ int Joint2D::commitState()
 
   Vector InforForDamage(3);
 
-
   for (int i = 0; i < 5; i++)
   {
     if (theSprings[i] != NULL) result = theSprings[i]->commitState();
@@ -533,11 +537,10 @@ int Joint2D::commitState()
 
       theDamages[i]->setTrial(InforForDamage);
       result = theDamages[i]->commitState();
-      if (result != 0) break;
+      if (result != 0)
+        break;
     }
-
   }
-
   return result;
 }
 
@@ -556,7 +559,7 @@ int Joint2D::revertToLastCommit()
   return result;
 }
 
-int Joint2D::revertToStart(void)
+int Joint2D::revertToStart()
 {
   int result = 0;
 
@@ -572,17 +575,18 @@ int Joint2D::revertToStart(void)
 }
 
 
-int Joint2D::getNumExternalNodes(void) const
+int Joint2D::getNumExternalNodes() const
 {
   return 5;
 }
 
-const ID& Joint2D::getExternalNodes(void)
+const ID& Joint2D::getExternalNodes()
 {
   return ExternalNodes;
 }
 
-Node** Joint2D::getNodePtrs(void)
+Node** 
+Joint2D::getNodePtrs()
 {
   return theNodes;
 }
@@ -592,13 +596,15 @@ int Joint2D::getNumDOF(void)
   return numDof;
 }
 
-const Matrix& Joint2D::getTangentStiff(void)
+const Matrix& 
+Joint2D::getTangentStiff()
 {
   double Ktangent[5];
   for (int i = 0; i < 5; i++)
   {
     Ktangent[i] = 0;
-    if (theSprings[i] != NULL) Ktangent[i] = theSprings[i]->getTangent();
+    if (theSprings[i] != NULL)
+      Ktangent[i] = theSprings[i]->getTangent();
   }
 
   K.Zero();
@@ -624,7 +630,7 @@ const Matrix& Joint2D::getTangentStiff(void)
 }
 
 
-const Matrix& Joint2D::getInitialStiff(void)
+const Matrix& Joint2D::getInitialStiff()
 {
   double Kintial[5];
   for (int i = 0; i < 5; i++)
@@ -656,19 +662,20 @@ const Matrix& Joint2D::getInitialStiff(void)
 }
 
 
-const Matrix& Joint2D::getDamp(void)
+const Matrix& Joint2D::getDamp()
 {
   K.Zero();
   return K;
 }
 
-const Matrix& Joint2D::getMass(void)
+const Matrix& Joint2D::getMass()
 {
   K.Zero();
   return K;
 }
 
-void Joint2D::Print(OPS_Stream& s, int flag)
+void
+Joint2D::Print(OPS_Stream& s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_ELEM_INDENT << "{";
@@ -696,7 +703,7 @@ void Joint2D::Print(OPS_Stream& s, int flag)
 // methods for applying and returning loads
 //////////////////////////////////////////////////////////////////////
 
-void Joint2D::zeroLoad(void)
+void Joint2D::zeroLoad()
 {
 
 }
@@ -713,7 +720,8 @@ int Joint2D::addInertiaLoadToUnbalance(const Vector& accel)
 
 
 
-const Vector& Joint2D::getResistingForce()
+const Vector& 
+Joint2D::getResistingForce()
 {
   double Force[5];
   for (int i = 0; i < 5; i++)
@@ -744,7 +752,7 @@ Joint2D::getResistingForceIncInertia()
 
 
 
-//most-probably requires to be overridden
+// most-probably requires to be overridden
 Response* Joint2D::setResponse(const char** argv, int argc, OPS_Stream& output)
 {
   //
@@ -796,25 +804,26 @@ Response* Joint2D::setResponse(const char** argv, int argc, OPS_Stream& output)
 
 }
 
-int Joint2D::getResponse(int responseID, Information& eleInformation)
+int
+Joint2D::getResponse(int responseID, Information& eleInformation)
 {
   switch (responseID) {
   case -1:
     return -1;
 
   case 1:
-    if (eleInformation.theVector != 0)
+    if (eleInformation.theVector.Size() != 0)
     {
       const Vector& disp = theNodes[4]->getTrialDisp();
-      (*(eleInformation.theVector))(0) = disp(0);
-      (*(eleInformation.theVector))(1) = disp(1);
-      (*(eleInformation.theVector))(2) = disp(2);
-      (*(eleInformation.theVector))(3) = disp(3);
+      ((eleInformation.theVector))(0) = disp(0);
+      ((eleInformation.theVector))(1) = disp(1);
+      ((eleInformation.theVector))(2) = disp(2);
+      ((eleInformation.theVector))(3) = disp(3);
     }
     return 0;
 
   case 2:
-    if (eleInformation.theVector != 0)
+    if (eleInformation.theVector.Size() != 0)
     {
       const Vector& node1Crd = theNodes[0]->getCrds();
       const Vector& node2Crd = theNodes[1]->getCrds();
@@ -846,7 +855,8 @@ int Joint2D::getResponse(int responseID, Information& eleInformation)
       v1(0) = v3.Norm();
       v1(1) = v4.Norm();
 
-      *(eleInformation.theVector) = v1;
+      // *(eleInformation.theVector) = v1;
+      return eleInformation.setVector(v1);
     }
     return 0;
 
@@ -855,9 +865,9 @@ int Joint2D::getResponse(int responseID, Information& eleInformation)
     {
       for (int i = 0; i < 5; i++)
       {
-        (*(eleInformation.theVector))(i) = 0.0;
+        ((eleInformation.theVector))(i) = 0.0;
         if (theSprings[i] != NULL)
-          (*(eleInformation.theVector))(i) = theSprings[i]->getStress();
+          ((eleInformation.theVector))(i) = theSprings[i]->getStress();
       }
     }
     return 0;
@@ -867,9 +877,9 @@ int Joint2D::getResponse(int responseID, Information& eleInformation)
     {
       for (int i = 0; i < 5; i++)
       {
-        (*(eleInformation.theVector))(i) = 0.0;
+        ((eleInformation.theVector))(i) = 0.0;
         if (theSprings[i] != NULL)
-          (*(eleInformation.theVector))(i) = theSprings[i]->getStrain();
+          ((eleInformation.theVector))(i) = theSprings[i]->getStrain();
       }
     }
     return 0;
@@ -879,12 +889,12 @@ int Joint2D::getResponse(int responseID, Information& eleInformation)
     {
       for (int i = 0; i < 5; i++)
       {
-        (*(eleInformation.theVector))(i) = 0.0;
-        (*(eleInformation.theVector))(i + 5) = 0.0;
+        ((eleInformation.theVector))(i) = 0.0;
+        ((eleInformation.theVector))(i + 5) = 0.0;
         if (theSprings[i] != NULL)
         {
-          (*(eleInformation.theVector))(i) = theSprings[i]->getStrain();
-          (*(eleInformation.theVector))(i + 5) = theSprings[i]->getStress();
+          ((eleInformation.theVector))(i) = theSprings[i]->getStrain();
+          ((eleInformation.theVector))(i + 5) = theSprings[i]->getStress();
         }
       }
     }
@@ -898,10 +908,10 @@ int Joint2D::getResponse(int responseID, Information& eleInformation)
     {
       for (int i = 0; i < 5; i++)
       {
-        (*(eleInformation.theVector))(i) = 0.0;
+        ((eleInformation.theVector))(i) = 0.0;
         if (theSprings[i] != NULL && theSprings[i]->getInitialTangent() != 0.0)
         {
-          (*(eleInformation.theVector))(i) =
+          ((eleInformation.theVector))(i) =
             theSprings[i]->getStrain() - theSprings[i]->getStress() / theSprings[i]->getInitialTangent();
         }
 
@@ -914,9 +924,9 @@ int Joint2D::getResponse(int responseID, Information& eleInformation)
     {
       for (int i = 0; i < 5; i++)
       {
-        (*(eleInformation.theVector))(i) = 0.0;
+        ((eleInformation.theVector))(i) = 0.0;
         if (theDamages[i] != NULL) {
-          (*(eleInformation.theVector))(i) = theDamages[i]->getDamage();
+          ((eleInformation.theVector))(i) = theDamages[i]->getDamage();
         }
       }
     }
@@ -928,10 +938,10 @@ int Joint2D::getResponse(int responseID, Information& eleInformation)
     {
       for (int i = 0; i < 5; i++)
       {
-        (*(eleInformation.theVector))(i) = 0.0;
+        ((eleInformation.theVector))(i) = 0.0;
         if (theSprings[i] != NULL)
         {
-          (*(eleInformation.theVector))(i) =
+          ((eleInformation.theVector))(i) =
             theSprings[i]->getEnergy();
         }
 
@@ -1020,7 +1030,8 @@ int Joint2D::sendSelf(int commitTag, Channel& theChannel)
   return 0;
 }
 
-int Joint2D::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
+int
+Joint2D::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
 {
 
   int res;

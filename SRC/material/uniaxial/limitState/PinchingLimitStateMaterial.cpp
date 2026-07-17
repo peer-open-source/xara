@@ -1151,12 +1151,9 @@ PinchingLimitStateMaterial::getAxialForce()
 	theForces =  theElement->setResponse(forceType2, 1, dummy);
 	trash = theForces->getResponse();
 	Information &theInfo = theForces->getInformation();
-	Vector *forceVec = (theInfo.theVector);	
-	if (forceVec == 0) {
-		opserr << "FATAL ERROR RotationShearCurve -- unable to assign force vector\n" << endln;
-		exit(-1);
-	}
-	double P = fabs((*forceVec)(0));
+	Vector &forceVec = theInfo.theVector;
+
+	double P = fabs((forceVec)(0));
 	return P;
 }
 

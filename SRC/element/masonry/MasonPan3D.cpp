@@ -1399,17 +1399,17 @@ MasonPan3D::getResponse(int responseID, Information &eleInformation)
       return eleInformation.setVector(this->getResistingForce());
 
     case 2:
-      if (eleInformation.theVector != 0) {
+      if (eleInformation.theVector.Size() != 0) {
         for (int i = 0; i < 6; i++)
-            (*(eleInformation.theVector))(i) = trans(i,3)*theMaterial[i]->getStress();
+            ((eleInformation.theVector))(i) = trans(i,3)*theMaterial[i]->getStress();
                       
       }
       return 0;
 
     case 3:
-      if (eleInformation.theVector != 0) {
+      if (eleInformation.theVector.Size() != 0) {
         for (int i = 0; i < 6; i++)
-            (*(eleInformation.theVector))(i) = theMaterial[i]->getStrain();
+            ((eleInformation.theVector))(i) = theMaterial[i]->getStrain();
 
       }
       return 0;
@@ -1422,10 +1422,10 @@ MasonPan3D::getResponse(int responseID, Information &eleInformation)
       return 0;
 
     case 4:
-      if (eleInformation.theVector != 0) {
+      if (eleInformation.theVector.Size() != 0) {
           for (int i = 0; i < 6; i++) {
-              (*(eleInformation.theVector))(i) = theMaterial[i]->getStrain();
-              (*(eleInformation.theVector))(i+6) = trans(i,3)*theMaterial[i]->getStress();
+              ((eleInformation.theVector))(i) = theMaterial[i]->getStrain();
+              ((eleInformation.theVector))(i+6) = trans(i,3)*theMaterial[i]->getStress();
           }
       }
       return 0;      
