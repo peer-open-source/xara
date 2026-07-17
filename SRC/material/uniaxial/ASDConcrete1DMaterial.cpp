@@ -105,426 +105,8 @@ namespace {
 			return false;
 		}
 	}
-
-#if 0
-	/**
-	Converts a string into a vector of doubles using whitespace as delimiter
-	*/
-	bool string_to_list_of_doubles(const std::string& text, char sep, std::vector<double>& out) {
-		if (out.size() > 0) out.clear();
-		std::size_t start = 0, end = 0;
-		double value;
-		while (true) {
-			end = text.find(sep, start);
-			if (end == std::string::npos) {
-				if (start < text.size()) {
-					if (!string_to_double(text.substr(start), value))
-						return false;
-					out.push_back(value);
-				}
-				break;
-			}
-			std::string subs = text.substr(start, end - start);
-			if (subs.size() > 0) {
-				if (!string_to_double(subs, value))
-					return false;
-				out.push_back(value);
-			}
-			start = end + 1;
-		}
-		return true;
-	}
-
-
-	double bezier3(double xi,
-		double x0, double x1, double x2,
-		double y0, double y1, double y2)
-	{
-		double A = x0 - 2.0 * x1 + x2;
-		double B = 2.0 * (x1 - x0);
-		double C = x0 - xi;
-		if (fabs(A) < 1.0e-12) {
-			x1 = x1 + 1.0E-6 * (x2 - x0);
-			A = x0 - 2.0 * x1 + x2;
-			B = 2.0 * (x1 - x0);
-			C = x0 - xi;
-		}
-		if (A == 0.0)
-			return 0.0;
-
-		double D = B * B - 4.0 * A * C;
-		double t = (sqrt(D) - B) / (2.0 * A);
-
-		return (y0 - 2.0 * y1 + y2) * t * t + 2.0 * (y1 - y0) * t + y0;
-	}
-#endif
 }
 
-#if 0
-void* OPS_ADD_RUNTIME_VPV(OPS_ASDConcrete1DMaterial)
-{
-	// some kudos
-	static bool first_done = false;
-	if (!first_done) {
-		opslog << "Using ASDConcrete1D - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
-		first_done = true;
-	}
-
-	// check arguments
-	int numArgs = OPS_GetNumRemainingInputArgs();
-	if (numArgs < 2) {
-		opserr <<
-			"nDMaterial ASDConcrete1D Error: Few arguments (< 2).\n"
-			"nDMaterial ASDConcrete1D $tag $E "
-			"<-fc $fc> <-ft $ft> "
-			"<-Te $Te -Ts $Ts <-Td $Td>> <-Ce $Ce -Cs $Cs <-Cd $Cd>> "
-			"<-implex> <-implexControl $implexErrorTolerance $implexTimeReductionLimit> <-implexAlpha $alpha>"
-			"<-eta $eta> <-tangent> <-autoRegularization $lch_ref>\n";
-		return nullptr;
-	}
-
-	// numData
-	int numData = 1;
-
-	// data
-	int tag;
-	double E;
-	bool implex = false;
-	bool implex_control = false;
-	double implex_error_tolerance = 0.05;
-	double implex_time_redution_limit = 0.01;
-	double implex_alpha = 1.0;
-	double eta = 0.0;
-	bool tangent = false;
-	bool auto_regularization = false;
-	double lch_ref = 1.0;
-	std::vector<double> Te, Ts, Td, Ce, Cs, Cd;
-
-	// get tag
-	if (OPS_GetInt(&numData, &tag) != 0) {
-		opserr << "nDMaterial ASDConcrete1D Error: invalid 'tag'.\n";
-		return nullptr;
-	}
-
-	// get Elasticity arguments
-	if (OPS_GetDouble(&numData, &E) != 0) {
-		opserr << "nDMaterial ASDConcrete1D Error: invalid 'E'.\n";
-		return nullptr;
-	}
-	if (E <= 0.0) {
-		opserr << "nDMaterial ASDConcrete1D Error: invalid value for 'E' (" << E << "). It should be strictly positive.\n";
-		return nullptr;
-	}
-
-	// utilities (code re-use)
-	auto lam_optional_int = [&numData](const char* variable, int& value) -> bool {
-		if (OPS_GetNumRemainingInputArgs() > 0) {
-			if (OPS_GetInt(&numData, &value) < 0) {
-				opserr << "nDMaterial ASDConcrete1D Error: failed to get '" << variable << "'.\n";
-				return false;
-			}
-		}
-		else {
-			opserr << "nDMaterial ASDConcrete1D Error: '" << variable << "' requested but not provided.\n";
-			return false;
-		}
-		return true;
-	};
-	auto lam_optional_double = [&numData](const char* variable, double& value) -> bool {
-		if (OPS_GetNumRemainingInputArgs() > 0) {
-			if (OPS_GetDouble(&numData, &value) < 0) {
-				opserr << "nDMaterial ASDConcrete1D Error: failed to get '" << variable << "'.\n";
-				return false;
-			}
-		}
-		else {
-			opserr << "nDMaterial ASDConcrete1D Error: '" << variable << "' requested but not provided.\n";
-			return false;
-		}
-		return true;
-	};
-
-	auto lam_optional_list = [&numData](const char* variable, std::vector<double>& value) -> bool {
-		// first try expanded list like {*}$the_list,
-		// also used in python like *the_list
-		value.clear();
-		while (OPS_GetNumRemainingInputArgs() > 0) {
-			double item;
-			auto old_num_rem = OPS_GetNumRemainingInputArgs();
-			if (OPS_GetDoubleInput(&numData, &item) < 0) {
-				auto new_num_rem = OPS_GetNumRemainingInputArgs();
-				if (new_num_rem < old_num_rem)
-					OPS_ResetCurrentInputArg(-1);
-				break;
-			}
-			value.push_back(item);
-		}
-		// try Tcl list (it's a string after all...)
-		if (value.size() == 0 && OPS_GetNumRemainingInputArgs() > 0) {
-			std::string list_string = OPS_GetString();
-			if (!string_to_list_of_doubles(list_string, ' ', value)) {
-				opserr << "nDMaterial ASDConcrete1D Error: cannot parse the '" << variable << "' list.\n";
-				return false;
-			}
-		}
-		return true;
-	};
-
-	double fc;
-	double ft;
-	bool have_fc = false;
-	bool have_ft = false;
-	bool have_lch_ref = false;
-
-	// optional parameters
-	while (OPS_GetNumRemainingInputArgs() > 0) {
-		const char* value = OPS_GetString();
-		if (strcmp(value, "-fc") == 0) {
-			if (!lam_optional_double("fc", fc))
-				return nullptr;
-			have_fc = true;
-		}
-		else if (strcmp(value, "-ft") == 0) {
-			if (!lam_optional_double("ft", ft))
-				return nullptr;
-			have_ft = true;
-		}
-		else if (strcmp(value, "-implex") == 0) {
-			implex = true;
-		}
-		else if (strcmp(value, "-implexControl") == 0) {
-			implex_control = true;
-			if (OPS_GetNumRemainingInputArgs() < 2) {
-				opserr << "nDMaterial ASDConcrete1D Error: '-implexControl' given without the next 2 arguments $implexErrorTolerance $implexTimeReductionLimit.\n";
-				return nullptr;
-			}
-			if (!lam_optional_double("implexErrorTolerance", implex_error_tolerance))
-				return nullptr;
-			if (!lam_optional_double("implexTimeReductionLimit", implex_time_redution_limit))
-				return nullptr;
-		}
-		else if (strcmp(value, "-implexAlpha") == 0) {
-			if (!lam_optional_double("alpha", implex_alpha))
-				return nullptr;
-		}
-		else if (strcmp(value, "-eta") == 0) {
-			if (!lam_optional_double("eta", eta))
-				return nullptr;
-		}
-		else if (strcmp(value, "-tangent") == 0) {
-			tangent = true;
-		}
-		else if (strcmp(value, "-autoRegularization") == 0) {
-			auto_regularization = true;
-			if (OPS_GetNumRemainingInputArgs() < 1) {
-				opserr << "nDMaterial ASDConcrete1D Error: '-autoRegularization' given without the next 1 argument $lch_ref.\n";
-				return nullptr;
-			}
-			if (!lam_optional_double("lch_ref", lch_ref))
-				return nullptr;
-			have_lch_ref = true;
-		}
-		else if (strcmp(value, "-Te") == 0) {
-			if (!lam_optional_list("Te", Te))
-				return nullptr;
-		}
-		else if (strcmp(value, "-Ts") == 0) {
-			if (!lam_optional_list("Ts", Ts))
-				return nullptr;
-		}
-		else if (strcmp(value, "-Td") == 0) {
-			if (!lam_optional_list("Td", Td))
-				return nullptr;
-		}
-		else if (strcmp(value, "-Ce") == 0) {
-			if (!lam_optional_list("Ce", Ce))
-				return nullptr;
-		}
-		else if (strcmp(value, "-Cs") == 0) {
-			if (!lam_optional_list("Cs", Cs))
-				return nullptr;
-		}
-		else if (strcmp(value, "-Cd") == 0) {
-			if (!lam_optional_list("Cd", Cd))
-				return nullptr;
-		}
-	}
-
-	// Set a default value of tension strength if none specified
-	if (have_fc && !have_ft)
-		ft = 0.1 * fc;
-
-	if (have_fc) {
-		double ec = 2 * fc / E;
-		double Gt = 0.073 * pow(fc, 0.18);
-		double Gc = 2 * Gt * (fc * fc) / (ft * ft);
-
-
-		if (!have_lch_ref) {
-			//
-			// _get_lch_ref from ASDConcrete1D_MakeLaws.py
-			//
-
-			// min lch for tension
-			double et_el = ft / E;
-			double Gt_min = 0.5 * ft * et_el;
-			double hmin_t = 0.01 * Gt / Gt_min;
-
-			// min lch for compression
-			double ec1 = fc / E;
-			double ec_pl = (ec - ec1) * 0.4 + ec1;
-			double Gc_min = 0.5 * fc * (ec - ec_pl);
-			double hmin_c = 0.01 * Gc / Gc_min;
-
-			lch_ref = std::min(hmin_c, hmin_t);
-		}
-
-		//
-		// _make_tension from ASDConcrete1D_MakeLaws.py
-		//
-
-		Gt = Gt / lch_ref;
-
-		double f0 = 0.9 * ft;
-		double f1 = ft;
-		double e0 = f0 / E;
-		double e1 = 1.5 * f1 / E;
-		double ep = e1 - f1 / E;
-		double f2 = 0.2 * ft;
-		double f3 = 1.0e-3 * ft;
-		double w2 = Gt / ft;
-		double w3 = 5.0 * w2;
-		double e2 = w2 + f2 / E + ep;
-		if (e2 <= e1)
-			e2 = 1.001 * e1;
-		double e3 = w3 + f3 / E + ep;
-		if (e3 <= e2)
-			e3 = 1.001 * e2;
-		double e4 = 10.0 * e3;
-		Te.resize(6); Te = { 0.0, e0, e1, e2, e3, e4 };
-		Ts.resize(6); Ts = { 0.0, f0, f1, f2, f3, f3 };
-		Td.resize(6); Td = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-		double Tpl[6] = { 0.0, 0.0, ep, 0.9 * e2, 0.8 * e3, 0.8 * e3 };
-
-		for (int i = 2; i < 6; i++) {
-			double xi = Te[i];
-			double si = Ts[i];
-			double xipl = Tpl[i];
-			double xipl_max = xi - si / E;
-			xipl = std::min(xipl, xipl_max);
-			double qi = (xi - xipl) * E;
-			Td[i] = 1.0 - si / qi;
-		}
-
-		//
-		// _make_compression from ASDConcrete1D_MakeLaws.py
-		//
-
-		Gc = Gc / lch_ref;
-
-		double fc0 = 0.5 * fc;
-		double ec0 = fc0 / E;
-		double ec1 = fc / E;
-		double fcr = 0.1 * fc;
-		double ec_pl = (ec - ec1) * 0.4 + ec1;
-		double Gc1 = 0.5 * fc * (ec - ec_pl);
-		double Gc2 = std::max(0.01 * Gc1, Gc - Gc1);
-		double ecr = ec + 2.0 * Gc2 / (fc + fcr);
-		const int nc = 10;
-		Ce.resize(nc + 3); Ce[0] = 0.0; Ce[1] = ec0;
-		Cs.resize(nc + 3); Cs[0] = 0.0; Cs[1] = fc0;
-		double Cpl[nc + 3]; Cpl[0] = 0.0; Cpl[1] = 0.0;
-		double dec = (ec - ec0) / (nc - 1);
-		for (int i = 0; i < nc - 1; i++) {
-			double iec = ec0 + (i + 1) * dec;
-			Ce[i + 2] = iec;
-			Cs[i + 2] = bezier3(iec, ec0, ec1, ec, fc0, fc, fc);
-			Cpl[i + 2] = Cpl[i + 1] + 0.7 * (iec - Cpl[i + 1]);
-		}
-		Ce[nc + 1] = ecr;
-		Cs[nc + 1] = fcr;
-		Cpl[nc + 1] = Cpl[nc] + 0.7 * (ecr - Cpl[nc]);
-		Ce[nc + 2] = ecr + ec0;
-		Cs[nc + 2] = fcr;
-		Cpl[nc + 2] = Cpl[nc + 1];
-		Cd.resize(nc + 3); Cd[0] = 0.0; Cd[1] = 0.0;
-		for (int i = 2; i < nc + 3; i++) {
-			double xi = Ce[i];
-			double si = Cs[i];
-			double xipl = Cpl[i];
-			double xipl_max = xi - si / E;
-			xipl = std::min(xipl, xipl_max);
-			double qi = (xi - xipl) * E;
-			Cd[i] = 1.0 - si / qi;
-		}
-	}
-
-	// check lists
-	if (Te.size() < 1) {
-		opserr << "nDMaterial ASDConcrete1D Error: 'Te' list is empty. At least 1 non-zero value should be provided.\n";
-		return nullptr;
-	}
-	if (Ts.size() != Te.size()) {
-		opserr << "nDMaterial ASDConcrete1D Error: 'Te' (size = " <<
-			static_cast<int>(Te.size()) << ") and 'Ts' (size = " <<
-			static_cast<int>(Ts.size()) << ") lists should have the same size.\n";
-		return nullptr;
-	}
-	if (Td.size() == 0) {
-		Td.resize(Te.size(), 0.0);
-	}
-	else if (Td.size() != Te.size()) {
-		opserr << "nDMaterial ASDConcrete1D Error: 'Te' (size = " <<
-			static_cast<int>(Te.size()) << ") and 'Td' (size = " <<
-			static_cast<int>(Td.size()) << ") lists should have the same size.\n";
-		return nullptr;
-	}
-	if (Ce.size() < 1) {
-		opserr << "nDMaterial ASDConcrete1D Error: 'Tc' list is empty. At least 1 non-zero value should be provided.\n";
-		return nullptr;
-	}
-	if (Cs.size() != Ce.size()) {
-		opserr << "nDMaterial ASDConcrete1D Error: 'Ce' (size = " <<
-			static_cast<int>(Ce.size()) << ") and 'Cs' (size = " <<
-			static_cast<int>(Cs.size()) << ") lists should have the same size.\n";
-		return nullptr;
-	}
-	if (Cd.size() == 0) {
-		Cd.resize(Ce.size(), 0.0);
-	}
-	else if (Cd.size() != Ce.size()) {
-		opserr << "nDMaterial ASDConcrete1D Error: 'Ce' (size = " <<
-			static_cast<int>(Ce.size()) << ") and 'Cd' (size = " <<
-			static_cast<int>(Cd.size()) << ") lists should have the same size.\n";
-		return nullptr;
-	}
-
-	// build the hardening laws
-	ASDConcrete1DMaterial::HardeningLaw HT(tag, ASDConcrete1DMaterial::HardeningLawType::Tension, E, Te, Ts, Td);
-	if (!HT.isValid()) {
-		opserr << "nDMaterial ASDConcrete1D Error: Tensile hardening law is not valid.\n";
-		return nullptr;
-	}
-	ASDConcrete1DMaterial::HardeningLaw HC(tag, ASDConcrete1DMaterial::HardeningLawType::Compression, E, Ce, Cs, Cd);
-	if (!HC.isValid()) {
-		opserr << "nDMaterial ASDConcrete1D Error: Compressive hardening law is not valid.\n";
-		return nullptr;
-	}
-
-	// create the material
-	UniaxialMaterial* instance = new ASDConcrete1DMaterial(
-		tag,
-		E, eta,
-		implex, implex_control, implex_error_tolerance, implex_time_redution_limit, implex_alpha,
-		tangent, auto_regularization, lch_ref,
-		HT, HC);
-	if (instance == nullptr) {
-		opserr << "UniaxialMaterial ASDConcrete1D Error: failed to allocate a new material.\n";
-		return nullptr;
-	}
-	return instance;
-}
-#endif
 
 ASDConcrete1DMaterial::HardeningLaw::HardeningLaw(
 	int tag, HardeningLawType type,
@@ -1183,15 +765,44 @@ int ASDConcrete1DMaterial::revertToStart(void)
 	return 0;
 }
 
-UniaxialMaterial* ASDConcrete1DMaterial::getCopy(void)
+UniaxialMaterial* ASDConcrete1DMaterial::getCopy()
 {
 	// we can safely use the default copy-constructor according to the member variables we're using
 	return new ASDConcrete1DMaterial(*this);
 }
 
-void ASDConcrete1DMaterial::Print(OPS_Stream& s, int flag)
+
+void
+ASDConcrete1DMaterial::Print(OPS_Stream& s, int flag)
 {
-	s << "ASDConcrete1D Material, tag: " << this->getTag() << "\n";
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+		s << OPS_PRINT_JSON_MATE_INDENT << "{";
+		s << "\"name\": \"" << this->getTag() << "\", ";
+		s << "\"type\": \"ASDConcrete1DMaterial\", ";
+		s << "\"E\": " << E << ", ";
+		s << "\"eta\": " << eta << ", ";
+		s << "\"implex\": " << implex << ", ";
+		s << "\"implex_control\": " << implex_control << ", ";
+		s << "\"implex_error_tolerance\": " << implex_error_tolerance << ", ";
+		s << "\"implex_time_redution_limit\": " << implex_time_redution_limit << ", ";
+		s << "\"implex_alpha\": " << implex_alpha << ", ";
+		s << "\"tangent\": " << tangent << ", ";
+		s << "\"auto_regularize\": " << auto_regularize << ", ";
+		s << "\"lch_ref\": " << lch_ref << "}";	 
+		// s << "\"hardening_law\": {\n";
+		// s << OPS_PRINT_JSON_MATE_INDENT << "  ";
+		// s << "\"tension\" : ";
+		// ht.Print(s, flag);
+		// s << ",\n";
+		// s << OPS_PRINT_JSON_MATE_INDENT << "  ";
+		// s << "\"compression\" : ";
+		// hc.Print(s, flag);
+		// s << "\n";
+		// s << OPS_PRINT_JSON_MATE_INDENT << "}";
+		// s << "}";
+	}
+	else 
+		s << "ASDConcrete1D Material, tag: " << this->getTag() << "\n";
 }
 
 int ASDConcrete1DMaterial::sendSelf(int commitTag, Channel &theChannel)
@@ -1399,7 +1010,8 @@ ASDConcrete1DMaterial::updateParameter(int parameterID, Information& info)
 	}
 }
 
-Response* ASDConcrete1DMaterial::setResponse(const char** argv, int argc, OPS_Stream& output)
+Response* 
+ASDConcrete1DMaterial::setResponse(const char** argv, int argc, OPS_Stream& output)
 {
 	// utils
 	auto make_resp = [&output, this](int rid, const Vector& v, const std::vector<std::string>* labels = nullptr) -> MaterialResponse<UniaxialMaterial>* {
@@ -1446,12 +1058,16 @@ Response* ASDConcrete1DMaterial::setResponse(const char** argv, int argc, OPS_St
 		// 2000 - damage variables
 		if (strcmp(argv[0], "damage") == 0 || strcmp(argv[0], "Damage") == 0)
 			return make_resp(2000, getDamage(), &lb_damage);
+
 		if (strcmp(argv[0], "equivalentPlasticStrain") == 0 || strcmp(argv[0], "EquivalentPlasticStrain") == 0)
 			return make_resp(2001, getEquivalentPlasticStrain(), &lb_eqpl_strain);
+
 		if (strcmp(argv[0], "equivalentTotalStrain") == 0 || strcmp(argv[0], "EquivalentTotalStrain") == 0)
 			return make_resp(2002, getStrainMeasure(), &lb_tot_strain);
+
 		if (strcmp(argv[0], "cw") == 0 || strcmp(argv[0], "crackWidth") == 0 || strcmp(argv[0], "CrackWidth") == 0)
 			return make_resp(2003, getCrackWidth(), &lb_cw);
+
 		if (strcmp(argv[0], "crackStrain") == 0 || strcmp(argv[0], "CrackStrain") == 0) {
 			if (argc > 2 && strcmp(argv[1], "-lchRef") == 0) {
 				double lch_ref = 0.0;
@@ -1503,16 +1119,16 @@ int ASDConcrete1DMaterial::getResponse(int responseID, Information& matInformati
 	case 2002: return matInformation.setVector(getStrainMeasure());
 	case 2003: return matInformation.setVector(getCrackWidth());
 	case 2004:
-		if (matInformation.theVector && matInformation.theVector->Size() == 2) {
-			double lch_ref = matInformation.theVector->operator()(1);
-			matInformation.theVector->operator()(0) = getCrackWidth()(0) / lch_ref;
+		{
+			double lch_ref = matInformation.theVector(1);
+			matInformation.theVector(0) = getCrackWidth()(0) / lch_ref;
 			return 0;
 		}
 		break;
 	case 2005:
-		if (matInformation.theVector && matInformation.theVector->Size() == 2) {
-			double lch_ref = matInformation.theVector->operator()(1);
-			matInformation.theVector->operator()(0) = getCrushWidth()(0) / lch_ref;
+		{
+			double lch_ref = matInformation.theVector(1);
+			matInformation.theVector(0) = getCrushWidth()(0) / lch_ref;
 			return 0;
 		}
 		break;
@@ -1526,7 +1142,8 @@ int ASDConcrete1DMaterial::getResponse(int responseID, Information& matInformati
 	return UniaxialMaterial::getResponse(responseID, matInformation);
 }
 
-double ASDConcrete1DMaterial::getEnergy()
+double 
+ASDConcrete1DMaterial::getEnergy()
 {
 	return energy;
 }
