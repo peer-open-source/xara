@@ -23,18 +23,14 @@ extern "C" {
 #include <Parsing.h>
 #include "G3_Runtime.h"
 #include <MPI_MachineBroker.h>
-#include <TclPackageClassBroker.h>
 
 #include <Channel.h>
 #include <Message.h>
 
-int Init_OpenSees(Tcl_Interp *interp);
-
-void Init_MachineRuntime(Tcl_Interp* interp, MachineBroker* theMachineBroker);
+int XaraInit_InterpreterCommands(Tcl_Interp *interp);
 
 void Init_Communication(Tcl_Interp* interp, MachineBroker* theMachineBroker);
-
-extern int init_g3_tcl_utils(Tcl_Interp*);
+extern int XaraInit_UtilityCommands(Tcl_Interp*);
 
 static int
 doNothing(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char **argv)
@@ -62,7 +58,7 @@ Libopenseesmp_Init(Tcl_Interp* interp)
   int argc = 0; 
   char **argv = nullptr;
 
-  FEM_ObjectBroker* theBroker = new TclPackageClassBroker();
+  FEM_ObjectBroker* theBroker = new XaraClassBroker();
   MachineBroker* theMachineBroker = new MPI_MachineBroker(theBroker, argc, argv);
 
   
@@ -152,13 +148,12 @@ Libopenseesmp_Init(Tcl_Interp* interp)
     }
 
 
-  Init_OpenSees(interp);
+  XaraInit_InterpreterCommands(interp);
 
   // Add machine commands (getPID, getNP, etc);
-  Init_MachineRuntime(interp, theMachineBroker);
   Init_Communication(interp,  theMachineBroker);
   // Add utility commands (linspace, range, etc.)
-  init_g3_tcl_utils(interp);
+  XaraInit_UtilityCommands(interp);
 
   Tcl_CreateCommand(interp, "partition", &doNothing, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
 

@@ -19,21 +19,26 @@
 #include <runtime/interpreter/Interpreter.h>
 #include <MPI_MachineBroker.h>
 
-class TclPackageClassBroker;
+class XaraClassBroker;
 class Channel;
 
 #define MODEL_CHANNELS
+#define PARALLEL_OFF
 
-namespace OpenSees {
+namespace Xara {
 // struct Interpreter;
 
 class ProcessContext {
 public:
   ProcessContext();
   ~ProcessContext();
-
+#if !defined(PARALLEL_OFF)
   int getProcessID() {return theMachine.getPID();}
   int getProcessCount() {return theMachine.getNP();}
+#else 
+  int getProcessID() {return 0;}
+  int getProcessCount() {return 1;}
+#endif
 
   Channel** getChannels() const {return theChannels;}
   int getNumChannels() const {return numChannels;}
@@ -42,8 +47,10 @@ public:
   int clean(Interpreter&) {return 0;}
 
 private:
-  TclPackageClassBroker *m_obroker;
+  XaraClassBroker *m_obroker;
+#if !defined(PARALLEL_OFF)
   MPI_MachineBroker theMachine;
+#endif
   Channel** theChannels;
   int numChannels;
 };

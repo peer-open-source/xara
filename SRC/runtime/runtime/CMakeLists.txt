@@ -9,16 +9,20 @@ target_sources(OPS_Runtime
   PRIVATE
     BasicAnalysisBuilder.cpp
     ModelRegistry.cpp
-    interpreter.cpp
     InterpreterResponse.cpp
     # analysis/EigenSolve.cpp
-    TclPackageClassBroker.cpp
+    XaraClassBroker.cpp
 
   PUBLIC
     BasicAnalysisBuilder.h
     ModelRegistry.h
-    TclPackageClassBroker.h
+    XaraClassBroker.h
 )
+
+if (TRUE)
+  target_sources(OPS_Runtime PRIVATE ProcessContext.cpp)
+  target_link_libraries(OPS_Runtime PUBLIC OPS_Parallel)
+endif()
 
 add_subdirectory(modeling/section)
 add_subdirectory(legacy/Renderer)

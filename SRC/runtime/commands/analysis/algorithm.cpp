@@ -101,7 +101,9 @@ std::unordered_map<std::string, Tcl_CmdProc*> Algorithms {
 // command invoked to allow the SolnAlgorithm object to be built
 //
 int
-TclCommand_specifyAlgorithm(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_algorithm(ClientData clientData, 
+                 Tcl_Interp *interp, 
+                 ArgSize argc,
                  TCL_Char ** const argv)
 {
 

@@ -9,7 +9,7 @@
 
 return()
 
-find_package(MPI)
+
 if (NOT MPI_FOUND)
   return()
 endif()

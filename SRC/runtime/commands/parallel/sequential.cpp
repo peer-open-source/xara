@@ -11,14 +11,15 @@
 #include <tcl.h>
 #define TCL_Char CONST84 char
 
-Tcl_CmdProc getPIDSequential;
+static Tcl_CmdProc getPIDSequential;
 Tcl_CmdProc getNPSequential;
 Tcl_CmdProc opsBarrierSequential;
 Tcl_CmdProc opsSendSequential;
 Tcl_CmdProc opsRecvSequential;
 Tcl_CmdProc opsPartitionSequential;
 
-void G3_InitTclSequentialAPI(Tcl_Interp* interp)
+void 
+XaraInit_SequentialCommands(Tcl_Interp* interp)
 {
   // NOTE: These will get clobbered by Init_MachineRuntime or ProcessContext::setup
   Tcl_CreateCommand(interp, "getNP",     &getNPSequential, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);
@@ -32,7 +33,7 @@ void G3_InitTclSequentialAPI(Tcl_Interp* interp)
 }
 
 
-int
+static int
 getPIDSequential(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   int pid = 0;

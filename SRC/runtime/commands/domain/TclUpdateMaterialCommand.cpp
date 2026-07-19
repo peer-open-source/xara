@@ -83,7 +83,8 @@ TclCommand_UpdateMaterialsCommand(ClientData clientData, Tcl_Interp *interp,
   if (Tcl_GetInt(interp, argv[4], &value) != TCL_OK) {
 
     if (Tcl_GetDouble(interp, argv[4], &valueD) != TCL_OK) {
-      opserr << "WARNING UpdateMaterialStage: could not read value" << "\n";
+      opserr << "WARNING UpdateMaterialStage: could not read value" 
+             << "\n";
       return TCL_ERROR;
     } else {
 

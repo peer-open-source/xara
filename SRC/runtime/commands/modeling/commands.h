@@ -19,12 +19,16 @@
 
 // modeling/model.cpp
 extern Tcl_CmdProc  TclCommand_wipeModel;
-extern Tcl_CmdProc  buildModel;
+extern Tcl_CmdProc  XaraCmd_build;
+
+// response.cpp
+extern Tcl_CmdProc  XaraCmd_setResponse;
+extern Tcl_CmdProc  XaraCmd_getResponse;
 
 // modeling/nodes.cpp
 extern Tcl_CmdProc  TclCommand_getNDM;
 extern Tcl_CmdProc  TclCommand_getNDF;
-extern Tcl_CmdProc  TclCommand_addNode;
+extern Tcl_CmdProc  XaraCmd_node;
 extern Tcl_CmdProc  TclCommand_addNodalMass;
 extern Tcl_CmdProc  TclCommand_addNodalLoad;
 // 
@@ -108,11 +112,11 @@ struct CommandTableEntry {
   Tcl_CmdProc*  func;
 }
 constexpr ModelBuilderCommands[] =  {
-  {"build",                buildModel},
+  {"build",                XaraCmd_build},
 
   {"getNDM",               TclCommand_getNDM},
   {"getNDF",               TclCommand_getNDF},
-  {"node",                 TclCommand_addNode},
+  {"node",                 XaraCmd_node},
   {"mass",                 TclCommand_addNodalMass},
   {"element",              TclCommand_addElement},
 
@@ -133,6 +137,9 @@ constexpr ModelBuilderCommands[] =  {
   {"nDMaterial",           TclCommand_addNDMaterial},
   {"material",             TclCommand_addMaterial},
   {"beamIntegration",      TclCommand_addBeamIntegration},
+
+  {"setResponse",          XaraCmd_setResponse},
+  {"getResponse",          XaraCmd_getResponse},
 
   {"section",              TclCommand_addSection},
   {"patch",                TclCommand_addPatch},
@@ -204,6 +211,7 @@ constexpr ModelBuilderCommands[] =  {
 #endif
 
 };
+
 } // namespace OpenSees
 
 Tcl_CmdProc TclCommand_Package;

@@ -17,14 +17,43 @@
 // experience of the interpreter. This file should not reference
 // any analysis or modeling classes.
 //
+// Provides:
+// - XaraInit_InterpreterCommands
+//
 #include <assert.h>
 #include <runtimeAPI.h>
 #include <G3_Runtime.h>
 #include <Logging.h>
 #include <Parsing.h>
 #include <Timer.h>
-#include "interpreter.h"
 #include <cmath>
+
+
+#include <Parsing.h>
+
+extern Tcl_CmdProc TclCommand_wipeModel;
+Tcl_CmdProc TclCommand_clearAnalysis;
+Tcl_CmdProc TclCommand_specifyModel;
+// nodes.cpp
+Tcl_CmdProc TclCommand_wipeNodes;
+// formats.cpp
+Tcl_CmdProc XaraCmd_convertBinaryToText;
+Tcl_CmdProc XaraCmd_convertTextToBinary;
+Tcl_CmdProc XaraCmd_stripOpenSeesXML;
+// domain/peri/commands.cpp
+Tcl_CmdProc Tcl_Peri;
+
+struct char_cmd {
+  const char* name; Tcl_CmdProc*  func;
+}
+const InterpreterCommands[] =  {
+  {"peri",                 Tcl_Peri},
+
+  {"stripXML",             XaraCmd_stripOpenSeesXML    },
+  {"convertBinaryToText",  XaraCmd_convertBinaryToText },
+  {"convertTextToBinary",  XaraCmd_convertTextToBinary },
+};
+
 
 static Tcl_ObjCmdProc *Tcl_putsCommand = nullptr;
 static Timer *theTimer = nullptr;
@@ -261,8 +290,8 @@ getInterpPWD(Tcl_Interp *interp)
   return pwd;
 }
 
-int
-OPS_SourceCmd(ClientData dummy,      /* Not used. */
+static int
+XaraCmd_source(ClientData dummy,      /* Not used. */
               Tcl_Interp *interp,    /* Current interpreter. */
               int objc,              /* Number of arguments. */
               Tcl_Obj *CONST objv[]) /* Argument objects. */
@@ -348,12 +377,12 @@ maxOpenFiles(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   return TCL_OK;
 #endif
 
-  opserr << "setMaxOpenFiles FAILED: - command not available on this machine\n";
+  opserr << "setMaxOpenFiles not available on this machine\n";
   return TCL_OK;
 }
 
 int
-Init_OpenSees(Tcl_Interp *interp)
+XaraInit_InterpreterCommands(Tcl_Interp *interp)
 {
 
   // redo puts command so we can capture puts into std:cerr
@@ -403,7 +432,7 @@ Init_OpenSees(Tcl_Interp *interp)
   
 
   Tcl_CreateObjCommand(interp, "pset",             OPS_SetObjCmd, nullptr, nullptr);
-  Tcl_CreateObjCommand(interp, "source",           OPS_SourceCmd, nullptr, nullptr);
+  Tcl_CreateObjCommand(interp, "source",           XaraCmd_source, nullptr, nullptr);
   Tcl_CreateObjCommand(interp, "pragma",           TclObjCommand_pragma, nullptr, nullptr);
   Tcl_CreateObjCommand(interp, "progress",         TclObjCommand_progress, (ClientData)&progress_bar_ptr, nullptr);
 

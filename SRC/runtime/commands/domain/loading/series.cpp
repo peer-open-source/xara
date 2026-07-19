@@ -41,9 +41,6 @@
 #include <PulseSeries.h>
 #include <TriangleSeries.h>
 
-// extern OPS_Routine OPS_LinearSeries;
-// extern OPS_Routine OPS_PulseSeries;
-// extern OPS_Routine OPS_PeerMotion;
 
 extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, 
                                        Tcl_Interp *interp,
@@ -94,6 +91,7 @@ TclDispatch_newLinearSeries(ClientData clientData,
   return new LinearSeries(tag, cFactor);
 }
 
+
 static TimeSeries *
 TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
@@ -127,8 +125,10 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
     theSeries = new ConstantSeries(cFactor);
   }
 
-  else if (strcmp(argv[0],"Trig") == 0 || 
-             strcmp(argv[0],"Sine") == 0) {
+  else if ((strcmp(argv[0],"Trig") == 0 )|| 
+           (strcmp(argv[0],"TrigSeries") == 0) ||
+           (strcmp(argv[0],"SineSeries") == 0) ||
+           (strcmp(argv[0],"Sine") == 0)) {
 
     // Trig tStart tFinish period <-shift shift> <-factor cFactor>
     enum class Args {
@@ -148,8 +148,7 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
     double cFactor = 1.0;
     double tStart, tFinish, period;
     double shift = 0.0;
-#if 1
-    
+
     for (int i = 1; i < argc; i++) {
       if (strcmp(argv[i], "-shift") == 0) {
         if (i + 1 == argc) {
@@ -363,85 +362,8 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
              << OpenSees::SignalMessageEnd;
       return nullptr;
     }
-#else
-     if (argc < 3) {
-       opserr << "WARNING not enough TimeSeries args - ";
-       opserr << " Trig <tag?> tStart tFinish period <-shift shift> <-factor cFactor>\n";
-       return nullptr;
-     }
-     int argi = 1;
-
-     if (argc == 5 || argc == 7 || argc == 9 || argc == 11) {
-      if (Tcl_GetInt(interp, argv[argi++], &tag) != TCL_OK) {
-        opserr << OpenSees::PromptValueError << "invalid series tag in Trig tag?" << "\n";
-        return nullptr;
-      }
-     }
-
-     if (Tcl_GetDouble(interp, argv[argi++], &tStart) != TCL_OK) {
-       opserr << "WARNING invalid tStart " << argv[argi-1] << " - ";
-       opserr << " \n";
-       return nullptr;
-     }
-
-     if (Tcl_GetDouble(interp, argv[argi++], &tFinish) != TCL_OK) {
-       opserr << "WARNING invalid tFinish " << argv[argi-1] << " - ";
-       opserr << " Trig tStart tFinish period <-shift shift> <-factor cFactor>\n";
-       return nullptr; 
-     }
-
-     if (Tcl_GetDouble(interp, argv[argi++], &period) != TCL_OK) {
-       opserr << "WARNING invalid period " << argv[argi-1] << " - ";
-       opserr << " Trig tStart tFinish period <-shift shift> <-factor cFactor>\n";
-       return nullptr; 
-
-     } else if (period == 0.0) {
-       opserr << G3_WARN_PROMPT << "Period for '" << argv[0] << "' is zero.\n";
-     }
-      
-     while (argi < argc) {
-       if (strcmp(argv[argi], "-factor") == 0) {
-         // scaling factor
-         argi++;
-         if (argi == argc || 
-             Tcl_GetDouble(interp, argv[argi], &cFactor) != TCL_OK) {
-           
-           opserr << "WARNING invalid cFactor " << argv[argi] << " -";
-           opserr << " Trig  tStart tFinish period -factor cFactor\n";
-           return nullptr;
-         }
-       }
- 
-       else if (strcmp(argv[argi],"-shift") == 0) {
-         // phase shift
-         argi++;
-         if (argi == argc || 
-             Tcl_GetDouble(interp, argv[argi], &shift) != TCL_OK) {
-             
-           opserr << "WARNING invalid phase shift " << argv[argi] << " - ";
-           opserr << " Trig tStart tFinish period -shift shift\n";
-           return nullptr;
-         }
-       }
-       argi++;
-     }
- #endif
-     theSeries = new TrigSeries(tag, tStart, tFinish, period, shift, cFactor);
-         
+    theSeries = new TrigSeries(tag, tStart, tFinish, period, shift, cFactor);     
    }
-
-#if 0
-   else if ((strcmp(argv[0], "Trig") == 0) ||
-             (strcmp(argv[0], "TrigSeries") == 0) ||
-             (strcmp(argv[0], "Sine") == 0) ||
-             (strcmp(argv[0], "SineSeries") == 0)) {
-
-    void *theResult = OPS_TrigSeries(rt, argc, argv);
-    if (theResult != nullptr)
-      theSeries = (TimeSeries *)theResult;
-
-  }
-#endif
 
   else if ((strcmp(argv[0], "Linear") == 0) ||
            (strcmp(argv[0], "LinearSeries") == 0)) {
@@ -475,14 +397,12 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
       return 0;                         
     }
     if (Tcl_GetDouble(interp, argv[2], &tFinish) != TCL_OK) {
-      opserr << "WARNING invalid tFinish " << argv[2] << " - ";
-      opserr << " Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>\n";
+      opserr << "WARNING invalid tFinish " << argv[2] << "\n";
       Tcl_Free((char*)argv);
       return 0; 
     }
     if (Tcl_GetDouble(interp, argv[3], &period) != TCL_OK) {
-      opserr << "WARNING invalid period " << argv[3] << " - ";
-      opserr << " Pulse tStart tFinish period <-width pulseWidth> <-shift shift> <-factor cFactor>\n";
+      opserr << "WARNING invalid period " << argv[3] << "\n";
       Tcl_Free((char*)argv);
       return 0; 
     }

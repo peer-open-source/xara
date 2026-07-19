@@ -25,15 +25,18 @@
 #include <RCM.h>
 #include <AMDNumberer.h>
 
-#if defined(_PARALLEL_PROCESSING) || defined(_PARALLEL_INTERPRETERS)
-#  include <ParallelNumberer.h>
+#if defined(XARA_HAVE_PARALLEL_NUMBERING) // defined(_PARALLEL_PROCESSING) || defined(_PARALLEL_INTERPRETERS)
+#  include <numberer/ParallelNumberer.h>
 #endif
 
 //
 // command that sets the Numberer object
 //
 int
-TclCommand_setNumberer(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char ** const argv)
+XaraCmd_numberer(ClientData clientData, 
+                 Tcl_Interp* interp, 
+                 ArgSize argc, 
+                 TCL_Char ** const argv)
 {
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
   assert(builder != nullptr);
@@ -47,48 +50,26 @@ TclCommand_setNumberer(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
     return TCL_ERROR;
   }
 
-#if defined(_PARALLEL_PROCESSING)
-  // check argv[1] for type of Numberer and create the object
-  if (strcmp(argv[1], "Plain") == 0) {
-    theNumberer = new ParallelNumberer();
-  } else if (strcmp(argv[1], "RCM") == 0) {
-    RCM *theRCM = new RCM(false);
-    theNumberer = new ParallelNumberer(*theRCM);
-  } else {
-    opserr << "WARNING No Numberer type exists (Plain, RCM only) \n";
-    return TCL_ERROR;
-  }
-#else
 
   // check argv[1] for type of Numberer and create the object
   if (strcmp(argv[1], "Plain") == 0) {
     theNumberer = new PlainNumberer();
 
   } else if (strcmp(argv[1], "RCM") == 0) {
-    RCM *theRCM = new RCM(false);
-    theNumberer = new DOF_Numberer(*theRCM);
+    theNumberer = new DOF_Numberer(*new RCM(false));
 
   } else if (strcmp(argv[1], "AMD") == 0) {
-    AMD *theAMD = new AMD();
-    theNumberer = new DOF_Numberer(*theAMD);
+    theNumberer = new DOF_Numberer(*new AMD());
   }
 
-#  ifdef _PARALLEL_INTERPRETERS
+#if defined(XARA_HAVE_PARALLEL_NUMBERING)
   else if ((strcmp(argv[1], "ParallelPlain") == 0) ||
            (strcmp(argv[1], "Parallel") == 0)) {
-    ParallelNumberer *theParallelNumberer = new ParallelNumberer;
-    theNumberer = theParallelNumberer;
-    theParallelNumberer->setProcessID(OPS_rank);
-    theParallelNumberer->setChannels(numChannels, theChannels);
+    theNumberer = new ParallelNumberer;
 
   } else if (strcmp(argv[1], "ParallelRCM") == 0) {
-    RCM *theRCM = new RCM(false);
-    ParallelNumberer *theParallelNumberer = new ParallelNumberer(*theRCM);
-    theNumberer = theParallelNumberer;
-    theParallelNumberer->setProcessID(OPS_rank);
-    theParallelNumberer->setChannels(numChannels, theChannels);
+    theNumberer = new ParallelNumberer(*new RCM(false));
   }
-#  endif
 #endif
 
   else {
@@ -104,7 +85,7 @@ TclCommand_setNumberer(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
 }
 
 int
-TclCommand_runNumberer(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char ** const argv)
+XaraCmd_number(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char ** const argv)
 {
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
   assert(builder != nullptr);

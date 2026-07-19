@@ -24,13 +24,12 @@ extern "C" {
 #include <MPI_MachineBroker.h>
 #include <ShadowSubdomain.h>
 #include <ActorSubdomain.h>
-#include <TclPackageClassBroker.h>
+#include <XaraClassBroker.h>
 #include <DomainPartitioner.h>
 
 #include <mpi.h>
 
-int Init_OpenSees(Tcl_Interp *interp);
-
+int XaraInit_InterpreterCommands(Tcl_Interp *interp);
 void Init_MachineRuntime(Tcl_Interp* interp, MachineBroker* theMachineBroker);
 void Init_PartitionRuntime(Tcl_Interp* interp, MachineBroker*, FEM_ObjectBroker*);
 
@@ -61,7 +60,7 @@ Libopenseessp_Init(Tcl_Interp* interp)
   char **argv = nullptr;
 
   MachineBroker* theMachineBroker = new MPI_MachineBroker(0, argc, argv);
-  FEM_ObjectBroker* theBroker = new TclPackageClassBroker();
+  FEM_ObjectBroker* theBroker = new XaraClassBroker();
   theMachineBroker->setObjectBroker(theBroker);
 
   int pid = theMachineBroker->getPID();
@@ -88,7 +87,7 @@ Libopenseessp_Init(Tcl_Interp* interp)
 
     // Add machine commands (getPID, getNP, etc);
     Init_MachineRuntime(interp, theMachineBroker);
-    Init_OpenSees(interp);
+    XaraInit_InterpreterCommands(interp);
     Init_PartitionRuntime(interp, theMachineBroker, theBroker);
 
     Tcl_CreateCommand(interp, "barrier",   &doNothing, (ClientData)NULL, (Tcl_CmdDeleteProc *)NULL);

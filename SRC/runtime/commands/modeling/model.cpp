@@ -1,9 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
 //
 // Description: This file implements commands that configure a 
@@ -21,15 +28,13 @@
 #include <Domain.h>
 #include <FE_Datastore.h>
 
-#include "ModelRegistry.h"
+#include <ModelRegistry.h>
 #include <modeling/commands.h>
+#include <runtime/interpreter/Interpreter.h>
 
-#ifdef _PARALLEL_PROCESSING
-#  include <PartitionedDomain.h>
-   extern PartitionedDomain theDomain;
-#endif
 
 using namespace OpenSees;
+
 bool builtModel = false;
 
 FE_Datastore *theDatabase = nullptr;
@@ -64,7 +69,9 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
       }
       else {
         opserr << OpenSees::PromptValueError 
-               << "invalid rotation type in environment variable XARA_ROTATE: '" << rotation_name << "'\n";
+               << "invalid rotation type in environment variable XARA_ROTATE: '" 
+               << rotation_name 
+               << "'\n";
         return TCL_ERROR;
       }
     }
@@ -128,7 +135,9 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
         argPos++;
         if (argPos < argc)
           if (Tcl_GetInt(interp, argv[argPos], &ndf) != TCL_OK) {
-            opserr << OpenSees::PromptValueError << "invalid parameter ndf";
+            opserr << OpenSees::PromptValueError 
+                   << "invalid parameter ndf"
+                   << OpenSees::SignalMessageEnd;
             return TCL_ERROR;
           }
         argPos++;
@@ -137,7 +146,9 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
       else if (strcmp(argv[argPos], "-rotation") == 0) {
         argPos++;
         if (argPos >= argc) {
-          opserr << OpenSees::PromptValueError << "missing rotation type after -rotation\n";
+          opserr << OpenSees::PromptValueError 
+                 << "missing rotation type after -rotation"
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         if (strcmp(argv[argPos], "none") == 0) {
@@ -159,7 +170,9 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
       } 
       else if (posArg == 1) {
         if (Tcl_GetInt(interp, argv[argPos], &ndm) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "invalid parameter ndm";
+          opserr << OpenSees::PromptValueError 
+                 << "invalid parameter ndm"
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         argPos++;
@@ -167,7 +180,10 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
       }
       else if (posArg == 2) {
         if (Tcl_GetInt(interp, argv[argPos], &ndf) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "error reading ndf: " << argv[argPos] << "\n";
+          opserr << OpenSees::PromptValueError 
+                 << "error reading ndf: " 
+                 << argv[argPos] 
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         argPos++;
@@ -206,10 +222,15 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     G3_setDomain(rt, theNewDomain);
     // create the model builder
     theNewBuilder = new ModelRegistry(*theNewDomain, ndm, ndf, rotationType);
+
     //
     // Add model commands
     //
-#if 1
+#ifdef MODEL_CHANNELS
+    theNewBuilder->getParallelContext().setup(*static_cast<Interpreter*>(interp));
+#endif 
+
+
     static int ncmd = sizeof(ModelBuilderCommands)/sizeof(decltype(ModelBuilderCommands[0])); // CommandTableEntry);
 
     Tcl_CreateCommand(interp, "wipe", TclCommand_wipeModel, (ClientData)theNewBuilder, nullptr);
@@ -223,7 +244,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     Tcl_SetAssocData(interp, "OPS::theTclBuilder", NULL, (ClientData)theNewBuilder);
     Tcl_SetAssocData(interp, "OPS::theBasicModelBuilder", NULL, (ClientData)theNewBuilder);
     Tcl_SetAssocData(interp, "OPS::theTclDomain", NULL, (ClientData)theNewDomain);
-#endif
+
     G3_setModelBuilder(rt, theNewBuilder);
 
     const char* analysis_option;
@@ -270,10 +291,6 @@ TclCommand_wipeModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
 
   ops_Dt = 0.0;
 
-#ifdef _PARALLEL_PROCESSING
-  OPS_PARTITIONED = false;
-#endif
-
   theDatabase = nullptr;
 
   // the domain deletes the record objects,
@@ -281,28 +298,10 @@ TclCommand_wipeModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
   return TCL_OK;
 }
 
-// command invoked to build the model, i.e. to invoke buildFE_Model()
-// on the ModelBuilder
+// command invoked to invoke buildFE_Model() on the ModelBuilder
 int
-buildModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char *argv[])
+XaraCmd_build(ClientData context, Tcl_Interp *interp, ArgSize argc, TCL_Char *argv[])
 {
-  G3_Runtime *rt = G3_getRuntime(interp);
-  ModelRegistry* builder = (ModelRegistry*)G3_getModelBuilder(rt);
-
-  // TODO: Remove `builtModel` var.
-  // to build the model make sure the ModelBuilder has been constructed
-  // and that the model has not already been constructed
-  if (builder != 0 && builtModel == false) {
-    builtModel = true;
-    return builder->buildFE_Model();
-
-  } else if (builder != nullptr && builtModel == true) {
-    opserr << OpenSees::PromptValueError << "Model has already been built - not built again \n";
-    return TCL_ERROR;
-
-  } else {
-    opserr << OpenSees::PromptValueError << "No ModelBuilder type has been specified \n";
-    return TCL_ERROR;
-  }
+  return TCL_OK;
 }
 

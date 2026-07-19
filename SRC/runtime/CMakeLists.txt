@@ -8,10 +8,12 @@
 
 add_library(OpenSeesRT SHARED)
 add_library(OpenSeesRT_Static STATIC)
+add_library(Xara_Parallel INTERFACE)
+
 
 target_sources(OpenSeesRT PRIVATE "OpenSeesRT.cpp")
 target_sources(OpenSeesRT_Static PRIVATE "OpenSeesRT.cpp")
-target_compile_definitions(OpenSeesRT PUBLIC USE_TCL_STUBS _TCL85)
+target_compile_definitions(OpenSeesRT PUBLIC USE_TCL_STUBS)
 set_property(TARGET OpenSeesRT PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 target_compile_definitions(OPS_Runtime PRIVATE "$<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>")
@@ -29,8 +31,16 @@ target_include_directories(OPS_Runtime PUBLIC
   ${OPS_SRC_DIR}/runtime/runtime/
   ${OPS_Includes}
 )
-target_link_libraries(OPS_Runtime PRIVATE G3 OPS_Algorithm)
 
+target_link_libraries(OPS_Runtime 
+PRIVATE 
+  G3 
+  OPS_Algorithm 
+  # Xara::FastMath commented for git push
+  Xara_InterpreterCore
+)
+
+add_subdirectory(interpreter)
 add_subdirectory(commands)
 add_subdirectory(runtime)
 add_subdirectory(parsing)
@@ -54,19 +64,36 @@ if (${TCL_INCLUDE_PATH})
 endif()
 
 target_link_libraries(OpenSeesRT 
-  PRIVATE 
-  OPS_Runtime 
+PUBLIC
+  OPS_Parallel
+PRIVATE 
   OPS_Renderer 
   OPS_Algorithm 
+  XaraCmds_Analysis
+  OPS_Runtime 
+  Xara_InterpreterCore
   ${TCL_STUB_LIBRARY}
 )
 
 target_link_libraries(OpenSeesRT_Static
   PUBLIC 
-  OPS_Runtime 
   OPS_Renderer 
   OPS_Algorithm
+  OPS_Parallel
+  XaraCmds_Analysis
+  OPS_Runtime 
+  Xara_InterpreterCore
 )
+
+# find_package(pybind11 CONFIG QUIET)
+
+# if(pybind11_FOUND)
+#     message(STATUS "Found pybind11 ${pybind11_VERSION}, building Python bindings")
+#     add_subdirectory(python)
+# else()
+#     message(STATUS "pybind11 not found, skipping Python bindings")
+# endif()
+
 
 if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/packages/UCSD_CompGeoMech/CMakeLists.txt)
   add_subdirectory(packages/UCSD_CompGeoMech)
@@ -94,3 +121,4 @@ if(Git_FOUND)
            "XARA_COMMIT_HASH=\"${GIT_HASH}\""
   )
 endif()
+

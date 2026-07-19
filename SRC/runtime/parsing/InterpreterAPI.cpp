@@ -184,13 +184,13 @@ int OPS_GetDoubleListInput(int* size, Vector* data)
           opserr << OpenSees::PromptValueError 
                  << "Invalid  data value " << strings[i] 
                  << " \n";
-          // free up the array of strings .. see tcl man pages as to why
+          // free the array of strings
           Tcl_Free((char*)strings);
           return -1;
       }
       (*data)(i) = value;
   }
-  // free up the array of strings .. see tcl man pages as to why
+  // free the array of strings
   Tcl_Free((char*)strings);
 
   currentArg++;
@@ -284,6 +284,7 @@ extern "C" int OPS_SetDoubleDictListOutput(
 
 extern bool builtModel;
 extern FE_Datastore *theDatabase;
+
 static ModelRegistry *theModelBuilder = nullptr;
 
 G3_Runtime *
@@ -296,10 +297,16 @@ G3_getRuntime(Tcl_Interp *interp)
 }
 
 Tcl_Interp *
-G3_getInterpreter(G3_Runtime* rt) {return rt->m_interp;}
+G3_getInterpreter(G3_Runtime* rt) 
+{
+  return rt->m_interp;
+}
 
 ModelRegistry *
-G3_getModelBuilder(G3_Runtime *rt) {return rt->m_builder;}
+G3_getModelBuilder(G3_Runtime *rt) 
+{
+  return rt->m_builder;
+}
 
 int
 G3_setModelBuilder(G3_Runtime *rt, ModelRegistry* builder)
@@ -329,13 +336,15 @@ G3_getDomain(G3_Runtime *rt)
   return rt->m_domain;
 }
 
-int G3_addTimeSeries(G3_Runtime *rt, TimeSeries *series)
+#if 0
+int
+G3_addTimeSeries(G3_Runtime *rt, TimeSeries *series)
 {
   assert(series != nullptr);
   ModelRegistry *builder = G3_getSafeBuilder(rt);
   return builder->addTaggedObject<TimeSeries>(*series);
 }
-
+#endif
 
 TimeSeries *
 G3_getTimeSeries(G3_Runtime *rt, int tag)
@@ -426,19 +435,22 @@ G3_getNDM(G3_Runtime *rt)
 }
 
 int
-OPS_GetNDM(void)
+OPS_GetNDM()
 {
   return theModelBuilder->getNDM();
 }
 
 bool *
-OPS_builtModel(void) 
+OPS_builtModel() 
 {
   return &builtModel;
 }
 
 AnalysisModel **
-G3_getAnalysisModelPtr(G3_Runtime *rt){return rt->m_analysis_model_ptr;}
+G3_getAnalysisModelPtr(G3_Runtime *rt)
+{
+  return rt->m_analysis_model_ptr;
+}
 
 FE_Datastore *
 OPS_GetFEDatastore() {return theDatabase;}

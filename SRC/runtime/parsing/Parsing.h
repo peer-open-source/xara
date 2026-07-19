@@ -12,6 +12,11 @@
 // See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
+//
+// Provides:
+// - ArgSize, StrList, ObjList
+// - Helpers: GetDoubleParam, GetNodeTags
+//
 #pragma once
 #include <array>
 #include <string.h>
@@ -67,11 +72,12 @@ typedef int Tcl_Size;
   } // namespace OpenSees
 #else
 # include "InputAPI.h"
+# include <tcl.h>
 #endif
-
 
 class Parameter;
 class Domain;
+
 namespace OpenSees {
 namespace Parsing {
 int
@@ -80,9 +86,20 @@ GetDoubleParam(Tcl_Interp*, Domain&, const char* arg, double* value, Parameter*&
 } // namespace Parsing
 
 
+} // namespace OpenSees
+
+
+
+namespace Xara {
+
+namespace Parsing {
+
 template <int nen>
 static inline int 
-GetNodeTags(Tcl_Interp* interp, Tcl_Size argc, TCL_Char** const argv, std::array<int, nen> &tags) noexcept
+GetNodeTags(Tcl_Interp* interp, 
+            ArgSize argc, 
+            TCL_Char** const argv, 
+            std::array<int, nen> &tags) noexcept
 {
   // argv is one of: 
   //  element Name tag node1 node2 ...
@@ -130,13 +147,7 @@ GetNodeTags(Tcl_Interp* interp, Tcl_Size argc, TCL_Char** const argv, std::array
   }
   return n_parsed;
 }
-} // namespace OpenSees
 
+}
 
-enum class OpenSeesVersion : int {
-  O3 = 300,
-  X1 = 3000,
-  XaraLatest = 9999
-};
-
-OpenSeesVersion GetCompatibilityVersion(Tcl_Interp *interp);
+} // namespace Xara

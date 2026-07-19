@@ -124,7 +124,7 @@ IncrementalIntegrator::formTangent(int statFlag)
 int
 IncrementalIntegrator::formIndependentSensitivityLHS(int statFlag)
 {
-    return this->formTangent(statFlag);
+  return this->formTangent(statFlag);
 }
 
 
@@ -132,27 +132,27 @@ int
 IncrementalIntegrator::getLastResponse(Vector &result, const ID &id)
 {  
   if (theSOE == 0) {
-      opserr << "WARNING IncrementalIntegrator::getLastResponse() -";
-      opserr << "no LineaerSOE object associated with this object\n";        
-      return -1;
+    opserr << "WARNING IncrementalIntegrator::getLastResponse() -";
+    opserr << "no LineaerSOE object associated with this object\n";        
+    return -1;
   }
 
   int res = 0; 
   int size = theSOE->getNumEqn() -1;
   const Vector &X = theSOE->getX();
   for (int i=0; i<id.Size(); i++) {
-      int loc = id(i);
-      if (loc < 0)
-        result(i) = 0.0;
-      else if (loc <= size) {
-        result(i) = X(loc);        
-      }
-      else {
-          opserr << "WARNING IncrementalIntegrator::getLastResponse() -";
-          opserr << "location " << loc << "in ID outside bounds ";
-          opserr << size << "\n";        
-          res = -2;
-      }
+    int loc = id(i);
+    if (loc < 0)
+      result(i) = 0.0;
+    else if (loc <= size) {
+      result(i) = X(loc);        
+    }
+    else {
+      opserr << "WARNING IncrementalIntegrator::getLastResponse() -";
+      opserr << "location " << loc << "in ID outside bounds ";
+      opserr << size << "\n";        
+      res = -2;
+    }
   }            
   return res;
 }
@@ -168,13 +168,13 @@ int
 IncrementalIntegrator::commit() 
 {
   if (theAnalysisModel == 0) {
-      opserr << "WARNING IncrementalIntegrator::commit() -";
-      opserr << "no AnalysisModel object associated with this object\n";        
-      return -1;
+    opserr << "WARNING IncrementalIntegrator::commit() -";
+    opserr << "no AnalysisModel object associated with this object\n";        
+    return -1;
   }    
 
   return theAnalysisModel->commitDomain();
-}   
+}
 
 
 int
