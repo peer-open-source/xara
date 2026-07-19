@@ -15,7 +15,7 @@ if (NOT MPI_FOUND)
 endif()
 
 
-add_library(OpenSeesRT_Parallel OBJECT)
+add_library(OpenSeesRT_Parallel OBJECT EXCLUDE_FROM_ALL)
 
 target_include_directories(OpenSeesRT_Parallel
   PRIVATE

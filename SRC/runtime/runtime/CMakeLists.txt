@@ -19,7 +19,7 @@ target_sources(OPS_Runtime
     XaraClassBroker.h
 )
 
-if (TRUE)
+if (FALSE)
   target_sources(OPS_Runtime PRIVATE ProcessContext.cpp)
   target_link_libraries(OPS_Runtime PUBLIC OPS_Parallel)
 endif()
