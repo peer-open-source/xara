@@ -16,6 +16,7 @@
 #include <InterpreterResponse.h>
 #include <Response.h>
 
-InterpreterResponse::~InterpreterResponse() {
+InterpreterResponse::~InterpreterResponse()
+{
   delete response;
 }

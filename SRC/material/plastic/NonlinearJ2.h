@@ -86,7 +86,7 @@ private:
   // Kinematic hardening
   std::vector<double> Ck_, gammak_;
   // Solver controls
-  double YFtol_;
+  double newton_tolerance;
   int    MaxIter_;
   // Mass density
   double density_;
@@ -133,7 +133,7 @@ private:
 
   // constants for different conventions in scaling the yield check
   static constexpr double SQRT23 = 0.81649658092772603; // sqrt(2/3)
-  static constexpr double mises_scale = SQRT23; 
+  static constexpr double mises_scale = SQRT23;
   static constexpr double norm_unit = 1.0; // /SQRT23; // sqrt(3/2) for J2 norm
   static constexpr double flow_rate = 1.0; // SQRT23;
   // derived
@@ -147,7 +147,7 @@ private:
   enum class BackStressIntegration {
     Exponential, // Hartloper version
     BackwardEuler
-  } bs_integration = BackStressIntegration::BackwardEuler;
+  } bs_integration =  BackStressIntegration::Exponential; // BackStressIntegration::BackwardEuler;
 
 
   static inline double metric(const VectorND<9>& v) noexcept {
@@ -162,26 +162,54 @@ private:
                             double& Dg,
                             double& phi_a) const noexcept {
     double mises_strain = (flow_rate*lambda)*phi_n*mises_scale;
-    // Modified relative stress, Z
+
+    // Partial stress, Z
     m = s_tr;
     m -= Kinematic::A(*this, past, mises_strain);
 
     phi_a  = metric(m); // phi(a)
-    m    *= phi_m/phi_a; // m = a * phi(m)/phi(a)
 
     // Newton residual function
     g = phi_a - 2.0*G*mises_strain*(phi_n/mises_scale)
       - Kinematic::H(*this, past, mises_strain)*(phi_n/mises_scale)
       - Isotropic::Y(*this, past, mises_strain)*phi_n*mises_scale;
 
+    if (phi_a < 1e-16) {
+      m.zero();
+      Dg = 0.0;
+      return;
+    }
+
+    m    *= phi_m/phi_a; // m = a * phi(m)/phi(a)
+
     // Derivative of newton residual
     // Note: d(norm(Z))/d(lamda) == n . X' == dX(n)
+    // const double dphi_a = 
     Dg = Kinematic::dX(*this, past, mises_strain, m)*mises_rate/flow_rate
        - Kinematic::dH(*this, past, mises_strain)*mises_rate*(phi_n/mises_scale)
        - 2.0*G*mises_rate*(phi_n/mises_scale)
        - Isotropic::H(*this, past, mises_strain)*mises_scale*phi_n*mises_rate;
   }
 
+  inline void scale_tolerance(double sig_nrm, double& gtol, double& ftol) const noexcept {
+    const double yieldRadius = Isotropic::Y(*this, past, 0.0) * phi_n * mises_scale;
+
+    const double yieldScale =
+        std::max(
+            1.0,
+            std::max(sig_nrm, std::abs(yieldRadius))
+        );
+
+    double round_tol = 256.0
+            * std::numeric_limits<double>::epsilon()
+            * yieldScale;
+
+    gtol = std::max(
+            newton_tolerance,
+            round_tol
+        );
+    ftol = std::max(1e-10*yieldScale, round_tol);
+  }
 
   // Nonlinear Chaboche kinematic hardening
   struct Kinematic {
@@ -189,7 +217,7 @@ private:
                                 const NonlinearJ2::State &past,
                                 double lamda) noexcept {
       // Return the *partial* back-stress x_phi = sum phi_k x_k
-      // to form the partial stress q = s^tr - x_phi
+      // to form the partial stress Z = s^tr - x_phi
       VectorND<9> x_phi{};
       const size_t nc = past.sig_b.size();
       for (size_t i=0;i<nc;i++) {
@@ -301,7 +329,7 @@ private:
                                   MatrixND<6,6,double> &C) noexcept {
       const size_t nc = past.sig_b.size();
       const VectorND<6> Pn = P * n;
-      for (size_t i=0;i<nc;i++) {
+      for (size_t i=0; i<nc; i++) {
         double phi, dphi;
         switch (m.bs_integration) {
           case BackStressIntegration::BackwardEuler:
@@ -315,9 +343,10 @@ private:
         }
         //
         VectorND<6> Px = P * past.sig_b[i];
-
-        C.addTensorProduct(Px, Pn,  dphi*theta);
-        C.addTensorProduct(Pn, Pn, -dphi*theta*n.dot(past.sig_b[i])*phi_nnmm);
+        
+        static constexpr double cc = -mises_rate;
+        C.addTensorProduct(Px, Pn,  dphi*theta*cc);
+        C.addTensorProduct(Pn, Pn, -dphi*theta*n.dot(past.sig_b[i])*phi_nnmm*cc);
       }
     }
   

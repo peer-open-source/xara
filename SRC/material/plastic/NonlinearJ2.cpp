@@ -28,7 +28,8 @@
 //      "Constitutive Modeling of Structural Steels: Nonlinear Isotropic/Kinematic Hardening"
 //      Material Model and Its Calibration
 //  [3] Suchocki (2022), Acta Mechanica, Vol 233, Issue 1, pp. 83-120
-//      On finite element implementation of cyclic elastoplasticity: theory, coding, and exemplary problems
+//      On finite element implementation of cyclic elastoplasticity: 
+//      theory, coding, and exemplary problems
 //  [4] Simo, Hughes (1998), Computational Inelasticity, Springer
 //
 //
@@ -68,7 +69,7 @@ NonlinearJ2::NonlinearJ2(int tag,
   E(E_), nu(nu_), fy(Fy_),
   Hiso_(Hiso),
   a_(a), DInf_(DInf), b_(b), QInf_(QInf),
-  YFtol_(YFtol*Fy_), MaxIter_(MaxIter),
+  newton_tolerance(YFtol), MaxIter_(MaxIter),
   density_(density),
   retInitialTangent(Ce), retTangent(C),
   retStress(pres.sig), retStrain(eps)
@@ -113,10 +114,15 @@ NonlinearJ2::updateState()
   // Trial yield function
   const double sig_nrm = metric(s_tr - Xn);
 
-  const double yf_tr   = sig_nrm - Isotropic::Y(*this, past, 0.0)*phi_n*mises_scale;
+  const double f_tr   = sig_nrm - Isotropic::Y(*this, past, 0.0)*phi_n*mises_scale;
+
+  double g_tol, f_tol;
+  this->scale_tolerance(sig_nrm, g_tol, f_tol);
+
+  // opserr << " g_tol = " << g_tol << ", f_tol = " << f_tol << "\n";
 
   // Elastic admissible?
-  if (yf_tr <= YFtol_) {
+  if (f_tr <= f_tol) {
     // Stress = P*s_tr + K*eps_v*ivol
     pres.sig = P * s_tr;
     pres.sig.addVector(1.0, Voight::ivol,  K*eps_vol);
@@ -144,126 +150,37 @@ NonlinearJ2::updateState()
   }
 
   //
-  // Plastic correction (Newton on lamda)
+  // Plastic correction, Newton on lamda
   //
   double lamda   = 0.0;
   double g, Dg, phi_a=0.0;
   int iter = 0;
   VectorND<9> m;
 
-  this->newton_update(s_tr,lamda,  m,g,Dg,phi_a);
+  this->newton_update(s_tr,lamda,   m,g,Dg,phi_a);
 
-  // Currently not doing line search
-  if constexpr (false) {
+  // Solve consistency condition
+  while ((std::fabs(g) > g_tol) && (iter < MaxIter_)) {
 
-    // Build a left bracket at lambda=0 for bisection fallback
-    double g_lo, Dg_lo, phi_lo;
-    VectorND<9> m_lo;
-    this->newton_update(s_tr, 0.0, m_lo, g_lo, Dg_lo, phi_lo);
-    double lam_lo = 0.0;
+    Dg = std::abs(Dg)>EPS_DBL ? Dg : ((Dg>=0)?EPS_DBL:-EPS_DBL);
+    // Newton step
+    lamda -= g / Dg;
+    if (lamda < 0.0)
+      lamda = 0.0;
 
-    // Right bracket (unknown at start)
-    double lam_hi = std::numeric_limits<double>::quiet_NaN();
-    double g_hi   = std::numeric_limits<double>::quiet_NaN();
-    bool   have_hi = false;
+    // Recompute Z, n and residual
+    this->newton_update(s_tr,lamda,  m,g,Dg,phi_a);
 
-    const int    MaxBacktrack = 6;       // try at most 6 halvings
-    const double eta          = 1e-4;    // sufficient decrease: |g_new| <= (1-eta)|g|
-    const double EPSgprime    = 1e-14;   // slope floor to avoid divide-by-~0
-
-    while ((std::abs(g) > YFtol_) && (iter < MaxIter_)) {
-
-      // Safeguard slope sign/magnitude (prefer negative; flip tiny values to a usable magnitude)
-      if (std::abs(Dg) < EPSgprime) Dg = (Dg >= 0.0 ? -EPSgprime : -EPSgprime); // prefer descent
-
-      // Newton trial (project to λ >= 0)
-      double delta = - g / Dg;
-      double alpha = 1.0;
-      double lam_trial, g_trial, Dg_trial, phi_trial;
-      VectorND<9> m_trial;
-
-      bool accepted = false;
-      for (int bt = 0; bt <= MaxBacktrack; ++bt) {
-        lam_trial = lamda + alpha * delta;
-        if (lam_trial < 0.0)
-          lam_trial = 0.0;  // projection
-
-        this->newton_update(s_tr, lam_trial, m_trial, g_trial, Dg_trial, phi_trial);
-
-        const bool finite = std::isfinite(g_trial) && std::isfinite(Dg_trial);
-        const bool decr   = std::abs(g_trial) <= (1.0 - eta) * std::abs(g);
-
-        if (finite && decr) {
-          accepted = true;
-          break;  // accept damped step
-        }
-        alpha *= 0.5; // backtrack
-        // opserr << "Backtracking step " << bt+1 << ", alpha = " << alpha << ", |g| = " << std::abs(g_trial) << "\n";
-      }
-
-      if (!accepted) {
-        opserr << "Newton step rejected\n";
-        // Fallback: try a bisection step if we have a right bracket (g changes sign)
-        if (!have_hi && g_trial < 0.0) {
-          have_hi = true;
-          lam_hi = lam_trial;
-          g_hi = g_trial;
-        }
-        if (have_hi) {
-          lam_trial = 0.5 * (lam_lo + lam_hi);
-          this->newton_update(s_tr, lam_trial, m_trial, g_trial, Dg_trial, phi_trial);
-        } else {
-          // No bracket yet: take a conservative half step toward zero
-          lam_trial = 0.5 * std::max(0.0, lamda + delta);
-          this->newton_update(s_tr, lam_trial, m_trial, g_trial, Dg_trial, phi_trial);
-        }
-      }
-
-      // Maintain bracket (g usually decreases with lambda; track sign)
-      if (g_trial < 0.0) {
-        have_hi = true;
-        lam_hi = lam_trial;
-        g_hi = g_trial;
-      } else {
-        lam_lo  = lam_trial; 
-        g_lo = g_trial;
-      }
-
-      // Update iterate
-      lamda = lam_trial;
-      m     = m_trial;
-      g     = g_trial;
-      Dg    = (std::abs(Dg_trial) >= EPSgprime)
-            ? Dg_trial
-            : Dg_trial - std::copysign(EPSgprime, Dg_trial);
-
-      ++iter;
-    }
-  } 
-  else {
-    // standard Newton solve without line search
-    while ((std::fabs(g) > YFtol_) && (iter < MaxIter_)) {
-
-      Dg = std::abs(Dg)>EPS_DBL ? Dg : ((Dg>=0)?EPS_DBL:-EPS_DBL);
-      // Newton step
-      lamda -= g / Dg;
-      if (lamda < 0.0)
-        lamda = 0.0;
-
-      // Recompute Z, n and residual
-      this->newton_update(s_tr,lamda,  m,g,Dg,phi_a);
-
-      iter++;
-    }
+    iter++;
   }
 
-  if (iter == MaxIter_ && std::abs(g) > YFtol_) {
+  if (iter == MaxIter_ && std::abs(g) > g_tol) {
     // Currently cannot print since opserr is not thread safe.
 
     // opserr << "Material failed to converge after ";
     // opserr << MaxIter_ << " iterations, |g| = " 
     // << std::abs(g) 
-    // << " > " << YFtol_
+    // << " > " << newton_tolerance
     // << "\n";
     return -1;
   }
@@ -350,11 +267,6 @@ NonlinearJ2::setTrialStrainIncr(const Vector &dv)
   return updateState();
 }
 
-const Matrix &NonlinearJ2::getTangent() { return retTangent; }
-const Matrix &NonlinearJ2::getInitialTangent() { return retInitialTangent; }
-const Vector &NonlinearJ2::getStress() { return retStress; }
-const Vector &NonlinearJ2::getStrain() { return retStrain; }
-
 
 int 
 NonlinearJ2::commitState()
@@ -401,6 +313,32 @@ NonlinearJ2::revertToStart()
 }
 
 
+const Matrix &
+NonlinearJ2::getTangent() 
+{
+  // return wrapper around C
+  return retTangent;
+}
+
+const Matrix &
+NonlinearJ2::getInitialTangent() 
+{
+  return retInitialTangent; 
+}
+
+const Vector &
+NonlinearJ2::getStress() 
+{ 
+  return retStress;
+}
+
+const Vector &
+NonlinearJ2::getStrain() 
+{ 
+  return retStrain;
+}
+
+
 NDMaterial *
 NonlinearJ2::getCopy()
 {
@@ -409,7 +347,7 @@ NonlinearJ2::getCopy()
                           fy, density_, 
                           Hiso_,
                           a_, DInf_, b_, QInf_,
-                          Ck_, gammak_, YFtol_, MaxIter_);
+                          Ck_, gammak_, newton_tolerance, MaxIter_);
   // constructor assumed Ck without 2/3 and rescales. 
   // We have to undo that here to avoid double rescaling
   for (size_t i=0;i<Ck_.size();i++)
@@ -453,11 +391,11 @@ NonlinearJ2::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
-    s << "\"name\": \"NonlinearJ2\", ";
-    s << "\"tag\": " << this->getTag() << ", ";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
     s << "\"E\": " << E << ", ";
     s << "\"nu\": " << nu << ", ";
-    s << "\"fy\": " << fy << ", ";
+    s << "\"Fy\": " << fy << ", ";
     s << "\"Q\": [" << QInf_ << ", " << DInf_ << "], ";
     s << "\"b\": [" << b_ << ", " << a_ << "], ";
     s << "\"C\": [";
@@ -473,18 +411,19 @@ NonlinearJ2::Print(OPS_Stream &s, int flag)
     }
     s << "], ";
     s << "\"Hiso\": " << Hiso_ << ", ";
-    s << "\"YFtol\": " << YFtol_ << ", ";
+    s << "\"gtol\": " << newton_tolerance << ", ";
     s << "\"MaxIter\": " << MaxIter_ << ", ";
     s << "\"density\": " << density_;
     s << "}";
-  } else {
+  }
+  else {
     s << "NonlinearJ2 tag: " << this->getTag()
       << " E: " << E << " nu: " << nu
       << " fy: " << fy
       << " a: " << a_ << " DInf: " << DInf_
       << " b: " << b_ << " QInf: " << QInf_
       << " m(backstresses): " << int(Ck_.size())
-      << " tol: " << YFtol_ << " iters: " << MaxIter_
+      << " tol: " << newton_tolerance << " iters: " << MaxIter_
       << " rho: " << density_ << "\n";
   }
 }

@@ -65,6 +65,7 @@ struct DamageIndex {
       case Type::Trilinear:
         return dmglib_Trilin(psi_tild, evol, frac);
       case Type::None:
+      default:
         return dmglib_none(psi_tild, evol, frac);
     }
   }
