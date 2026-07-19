@@ -40,9 +40,9 @@
 #endif
 
 // interpreter/runtime.cpp
-extern int Init_OpenSees(Tcl_Interp *interp);
-extern void G3_InitTclSequentialAPI(Tcl_Interp* interp);
-extern int init_g3_tcl_utils(Tcl_Interp*);
+extern int  XaraInit_InterpreterCommands(Tcl_Interp *interp);
+extern void XaraInit_SequentialCommands(Tcl_Interp* interp);
+extern int XaraInit_UtilityCommands(Tcl_Interp*);
 
 //
 // Tcl Command that returns the current OpenSees version
@@ -83,9 +83,9 @@ Openseesrt_Init(Tcl_Interp *interp)
   Tcl_SetAssocData(interp, "G3_Runtime", NULL, (ClientData)rt);
 
   // Initialize OpenSees
-  Init_OpenSees(interp);
-  G3_InitTclSequentialAPI(interp); // Add sequential API
-  init_g3_tcl_utils(interp);       // Add utility commands (linspace, range, etc.)
+  XaraInit_InterpreterCommands(interp);
+  XaraInit_SequentialCommands(interp); // Add sequential API
+  XaraInit_UtilityCommands(interp);    // Add utility commands (linspace, range, etc.)
 
   char* verbosity = getenv("XARA_VERBOSITY"); // Was OPENSEESRT_VERBOSITY
   if (verbosity != nullptr) {
