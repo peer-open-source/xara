@@ -14,6 +14,10 @@ project(OpenSees
         DESCRIPTION "Open System For Earthquake Engineering Simulation"
         LANGUAGES   C CXX Fortran)
 
+
+option(Xara_MumpsSV_Sequential
+  "Include sequential Mumps solver" OFF)
+
 set(OPS_BUNDLED_DIR   "${CMAKE_CURRENT_LIST_DIR}/OTHER/")
 set(OPS_SRC_DIR       "${CMAKE_CURRENT_LIST_DIR}/SRC/")
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}"
@@ -21,11 +25,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}"
 
 enable_testing()
 
-#==============================================================================
-# DEPENDENCIES
-#==============================================================================
-
-set(OPS_Extension_List OPS_ASDEA)
 
 #==============================================================================
 #                            OS Configuration
@@ -229,6 +228,7 @@ set(OPS_Includes
   ${OPS_SRC_DIR}/handler
   ${OPS_SRC_DIR}/actor/actor
   ${OPS_SRC_DIR}/actor/objectBroker
+  ${OPS_SRC_DIR}/actor/machineBroker
   ${OPS_SRC_DIR}/actor/channel
   ${OPS_SRC_DIR}/actor/message
   ${OPS_SRC_DIR}/tagged
@@ -369,7 +369,6 @@ add_library(OPS_Database           OBJECT EXCLUDE_FROM_ALL)
 # Optional Extensions
 add_library(OPS_Parallel           OBJECT EXCLUDE_FROM_ALL)
 add_library(OPS_Partition          OBJECT EXCLUDE_FROM_ALL)
-add_library(OPS_ASDEA              OBJECT EXCLUDE_FROM_ALL)
 
 # Packaged libraries
 add_library(G3)
@@ -468,7 +467,7 @@ target_link_libraries(G3
 # Extensions
 #----------------------------
 message(":: Configuring OpenSees extensions")
-foreach(extension IN LISTS OPS_Element_List OPS_Extension_List)
+foreach(extension IN LISTS OPS_Element_List)
   string(TOUPPER "${extension}" ext_flag) 
   string(REGEX REPLACE "^OPS_" "OPSDEF_" ext_flag "${ext_flag}")
   add_compile_definitions(${ext_flag})
