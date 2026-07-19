@@ -31,6 +31,7 @@
 #include <StaticPattern.h>
 #include <MultiSupportPattern.h>
 #include <Rotations.h>
+#include "ProcessContext.h"
 
 class LoadPattern;
 class StaticPattern;
@@ -40,6 +41,7 @@ class ID;
 class Domain;
 class InterpreterResponse;
 
+using Xara::ProcessContext;
 
 class ModelRegistry {
 public:
@@ -51,7 +53,9 @@ public:
   int getNDM() const;
   int getNDF() const;
   Domain *getDomain() const;
-
+#ifdef MODEL_CHANNELS
+  ProcessContext& getParallelContext() {return m_channels;}
+#endif
   //
   // Managing tagged objects
   //
@@ -142,8 +146,6 @@ public:
          const ID &fixityCodes, 
          double tol=1e-10);
 
-  int buildFE_Model();
-
 //
 private:
   int   addRegistryObject(const char*, const char*, int tag, void* obj); 
@@ -175,6 +177,10 @@ private:
   std::unordered_map<std::string, std::unordered_map<int, TaggedObject*>> m_registry;
   std::unordered_map<std::string, OpenSees::LoadCase> m_cases;
   std::vector<InterpreterResponse*> m_responses;
-};
 
+  // Parallel
+#ifdef MODEL_CHANNELS
+  ProcessContext m_channels;
+#endif
+};
 

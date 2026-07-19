@@ -40,6 +40,7 @@
 
 using OpenSees::LoadCase;
 
+
 ModelRegistry::ModelRegistry(Domain &domain,
                              int NDM, int NDF, 
                              Rotations::Parameters rotation_type)
@@ -49,6 +50,9 @@ ModelRegistry::ModelRegistry(Domain &domain,
     theDomain(&domain),
     tclEnclosingPattern(nullptr),
     next_node_load(0)
+#ifdef MODEL_CHANNELS
+    , m_channels()
+#endif
 {
 
 }
@@ -69,12 +73,6 @@ ModelRegistry::~ModelRegistry()
   tclEnclosingPattern = nullptr;
 }
 
-
-int
-ModelRegistry::buildFE_Model()
-{
-  return 0;
-}
 
 
 int
