@@ -47,7 +47,7 @@ extern Tcl_CmdProc XaraCmd_systemSize;
 
 // commands/analysis/algorithm.cpp
 extern Tcl_CmdProc XaraCmd_algorithm;
-extern Tcl_CmdProc TclCommand_numIter;
+extern Tcl_CmdProc XaraCmd_numIter;
 extern Tcl_CmdProc TclCommand_accelCPU;
 extern Tcl_CmdProc TclCommand_totalCPU;
 extern Tcl_CmdProc TclCommand_solveCPU;
@@ -89,7 +89,7 @@ struct char_cmd {
 
   // From algorithm.cpp
     {"algorithm",           &XaraCmd_algorithm},
-    {"numIter",             &TclCommand_numIter},
+    {"numIter",             &XaraCmd_numIter},
     {"numFact",             &TclCommand_numFact},
     {"accelCPU",            &TclCommand_accelCPU},
     {"totalCPU",            &TclCommand_totalCPU},

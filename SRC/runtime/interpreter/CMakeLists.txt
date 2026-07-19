@@ -11,7 +11,7 @@
 add_library(Xara_InterpreterCore OBJECT)
 
 target_sources(Xara_InterpreterCore PRIVATE 
-  CommandManager.cpp
+  # CommandManager.cpp
   OpenSeesVersion.cpp
 )
 
