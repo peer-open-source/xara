@@ -275,7 +275,7 @@ initializeAnalysis(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
 
 
 static int
-eigenAnalysis(ClientData clientData,
+XaraCmd_eigen(ClientData clientData,
               Tcl_Interp *interp, 
               ArgSize argc,
               TCL_Char ** const argv)
@@ -401,7 +401,7 @@ eigenAnalysis(ClientData clientData,
 // TODO: Move this to commands/modeling/damping.cpp? ...but it uses and
 // AnalysisBuilder
 static int
-modalDamping(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
+XaraCmd_modalDamping(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);

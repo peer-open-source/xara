@@ -20,14 +20,14 @@
 static Tcl_CmdProc wipeAnalysis;
 //
 static Tcl_CmdProc XaraCmd_analysis;
-static Tcl_CmdProc eigenAnalysis;
+static Tcl_CmdProc XaraCmd_analyze;
+static Tcl_CmdProc XaraCmd_eigen;
 static Tcl_CmdProc XaraCmd_printA;
 static Tcl_CmdProc XaraCmd_printB;
 static Tcl_CmdProc initializeAnalysis;
 static Tcl_CmdProc resetModel;
-static Tcl_CmdProc XaraCmd_analyze;
 static Tcl_CmdProc XaraCmd_constraints;
-static Tcl_CmdProc modalDamping;
+static Tcl_CmdProc XaraCmd_modalDamping;
 
 Tcl_CmdProc TclCommand_clearAnalysis;
 extern Tcl_CmdProc XaraCmd_numberer;
@@ -41,8 +41,7 @@ Tcl_CmdProc responseSpectrumAnalysis;
 extern Tcl_CmdProc XaraCmd_integrator;
 
 // commands/analysis/solver.cpp
-extern Tcl_CmdProc specifySOE;
-extern Tcl_CmdProc specifySysOfEqnTable;
+extern Tcl_CmdProc XaraCmd_system;
 extern Tcl_CmdProc XaraCmd_systemSize;
 
 // commands/analysis/algorithm.cpp
@@ -67,7 +66,7 @@ struct char_cmd {
   const char* name;
   Tcl_CmdProc*  func;
 } const tcl_analysis_cmds[] =  {
-    {"system",              &specifySysOfEqnTable},
+    {"system",              &XaraCmd_system},
     {"systemSize",          &XaraCmd_systemSize},
 
     {"test",                &specifyCTest},
@@ -76,13 +75,13 @@ struct char_cmd {
     {"integrator",          &XaraCmd_integrator},
     {"constraints",         &XaraCmd_constraints},
 
-    {"eigen",               &eigenAnalysis},
+    {"eigen",               &XaraCmd_eigen},
     {"analysis",            &XaraCmd_analysis},
 
     {"analyze",             &XaraCmd_analyze},
     {"initialize",          &initializeAnalysis},
-    {"modalDamping",        &modalDamping},
-    {"modalDampingQ",       &modalDamping},
+    {"modalDamping",        &XaraCmd_modalDamping},
+    {"modalDampingQ",       &XaraCmd_modalDamping},
     {"printA",              &XaraCmd_printA},
     {"printB",              &XaraCmd_printB},
     {"reset",               &resetModel},

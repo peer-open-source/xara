@@ -81,7 +81,9 @@ XaraCmd_systemSize(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_
 
 
 int
-specifySysOfEqnTable(ClientData clientData, Tcl_Interp *interp, ArgSize argc, G3_Char ** const argv)
+XaraCmd_system(ClientData clientData, 
+               Tcl_Interp *interp, 
+               ArgSize argc, G3_Char ** const argv)
 {
   // make sure at least one other argument to contain type of system
   if (argc < 2) {
@@ -165,7 +167,8 @@ G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp,
   else {
     opserr << OpenSees::PromptValueError 
            << " system '" 
-           << argv[1] << "' is unknown or not installed"
+           << argv[1] 
+           << "' is unknown or not installed"
            << OpenSees::SignalMessageEnd;
     return nullptr;
   }
