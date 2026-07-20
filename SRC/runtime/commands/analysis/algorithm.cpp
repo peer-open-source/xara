@@ -76,7 +76,7 @@ static Tcl_CmdProc XaraCmd_algorithm_Linear;
 static Tcl_CmdProc XaraCmd_algorithm_Newton;
 Tcl_CmdProc TclCommand_newNewtonHallM;
 static Tcl_CmdProc XaraCmd_algorithm_AcceleratedNewton;
-static Tcl_CmdProc TclCommand_newNewtonLineSearch;
+static Tcl_CmdProc XaraCmd_algorithm_NewtonLineSearch;
 
 namespace  OpenSees {
 std::unordered_map<std::string, Tcl_CmdProc*> Algorithms {
@@ -85,7 +85,7 @@ std::unordered_map<std::string, Tcl_CmdProc*> Algorithms {
   {"Newton",            XaraCmd_algorithm_Newton},
   {"ModifiedNewton",    XaraCmd_algorithm_Newton},
   {"NewtonHall",        TclCommand_newNewtonHallM},
-  {"NewtonLineSearch",  TclCommand_newNewtonLineSearch},
+  {"NewtonLineSearch",  XaraCmd_algorithm_NewtonLineSearch},
 
   {"QuasiNewton",       XaraCmd_algorithm_AcceleratedNewton},
   {"SecantNewton",      XaraCmd_algorithm_AcceleratedNewton},
@@ -204,10 +204,11 @@ XaraCmd_algorithm_Linear(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
   return TCL_OK;
 }
 
+
 static int
 XaraCmd_algorithm_Newton(ClientData clientData, 
-                            Tcl_Interp* interp, 
-                            Tcl_Size argc, TCL_Char**const argv)
+                          Tcl_Interp* interp, 
+                          ArgSize argc, TCL_Char**const argv)
 {
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
   assert(builder != nullptr);
@@ -378,8 +379,10 @@ G3_newBFGS(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char **
 }
 
 static int
-TclCommand_newNewtonLineSearch(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-                       TCL_Char ** const argv)
+XaraCmd_algorithm_NewtonLineSearch(ClientData clientData, 
+                                   Tcl_Interp *interp, 
+                                   ArgSize argc,
+                                   TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
