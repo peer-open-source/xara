@@ -287,7 +287,7 @@ int
 GmshRecorder::write_mesh()
 {
 
-    if(!write_mesh_now)
+    if (!write_mesh_now)
     {
         return 0;
     }
