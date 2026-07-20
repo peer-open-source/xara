@@ -24,6 +24,7 @@
 #include <numberer/PlainNumberer.h>
 #include <RCM.h>
 #include <AMDNumberer.h>
+#define XARA_HAVE_PARALLEL_NUMBERING
 
 #if defined(XARA_HAVE_PARALLEL_NUMBERING) // defined(_PARALLEL_PROCESSING) || defined(_PARALLEL_INTERPRETERS)
 #  include <numberer/ParallelNumberer.h>
