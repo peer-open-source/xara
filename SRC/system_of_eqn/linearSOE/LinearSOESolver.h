@@ -36,19 +36,36 @@
 
 class LinearSOE;
 
+
+struct LinearSolveSpec {
+  enum class Renumber {
+    Natural,
+    RCM,
+    AMD,
+    METIS,
+    Automatic
+  } renumber = Renumber::Automatic;
+
+  enum class Symmetry {
+    General,
+    Symmetric,
+  } symmetry = Symmetry::General;
+
+  enum class Definite {
+    Indefinite,
+    Positive,
+  } definite = Definite::Indefinite;
+};
+
 class LinearSOESolver : public MovableObject
 {
   public:
     LinearSOESolver(int classTag);    
     virtual ~LinearSOESolver();
 
-    virtual int solve(void) = 0;
-    virtual int setSize(void) = 0;
-    virtual double getDeterminant(void) {return 1.0;};
-    
-  protected:
-    
-  private:
+    virtual int solve() = 0;
+    virtual int setSize() = 0;
+    virtual double getDeterminant() {return 1.0;};
 
 };
 
