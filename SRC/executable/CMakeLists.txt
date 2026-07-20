@@ -17,7 +17,7 @@ else()
   target_link_libraries(xara_repl PRIVATE ${TCL_LIBRARY} OpenSeesRT)
 endif()
 
-add_executable(XaraRT static.cpp)
+add_executable(XaraRT XaraMain.cpp)
 set_target_properties(XaraRT PROPERTIES 
   OUTPUT_NAME "xaras"
 )
@@ -26,7 +26,7 @@ target_link_libraries(XaraRT PUBLIC ${TCL_LIBRARY} XaraStaticRT)
 
 
 
-add_executable(XaraMP static.cpp)
+add_executable(XaraMP XaraMain.cpp)
 set_target_properties(XaraMP PROPERTIES 
   OUTPUT_NAME "xaramp"
 )
