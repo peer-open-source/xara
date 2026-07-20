@@ -15,21 +15,16 @@ add_library(XaraStaticMP STATIC)
 add_library(Xara_Parallel INTERFACE)
 
 
-target_sources(OpenSeesRT PRIVATE "OpenSeesRT.cpp")
-target_sources(XaraSharedMP PRIVATE "OpenSeesRT.cpp")
-target_sources(XaraStaticRT PRIVATE "OpenSeesRT.cpp")
-target_sources(XaraStaticMP PRIVATE "OpenSeesRT.cpp")
+target_sources(OpenSeesRT   PRIVATE "XaraInit.cpp")
+target_sources(XaraSharedMP PRIVATE "XaraInit.cpp")
+target_sources(XaraStaticRT PRIVATE "XaraInit.cpp")
+target_sources(XaraStaticMP PRIVATE "XaraInit.cpp")
 
 target_compile_definitions(OpenSeesRT PUBLIC USE_TCL_STUBS)
 set_property(TARGET OpenSeesRT PROPERTY POSITION_INDEPENDENT_CODE 1)
 
 # target_compile_definitions(OPS_Runtime PRIVATE "$<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>")
-# target_compile_options(OPS_Runtime PRIVATE
-#   "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unused-parameter>"
-#   "$<$<CXX_COMPILER_ID:MSVC>:/W3>"
-#   "$<$<CXX_COMPILER_ID:MSVC>:/bigobj>"
-#   "$<$<CXX_COMPILER_ID:MSVC>:/wd4100>"
-# )
+
 
 target_include_directories(Xara_InterpreterCore PUBLIC
   ${OPS_SRC_DIR}/runtime/commands
@@ -52,11 +47,11 @@ add_subdirectory(commands)
 add_subdirectory(runtime)
 
 
-if (DEFINED OPENSEESRT_VERSION)
+if (DEFINED XARA_VERSION)
   set_property(
-    SOURCE OpenSeesRT.cpp
+    SOURCE XaraInit.cpp
     APPEND PROPERTY COMPILE_DEFINITIONS 
-           "OPENSEESRT_VERSION=\"${OPENSEESRT_VERSION}\""
+           "XARA_VERSION=\"${XARA_VERSION}\""
   )
 endif()
 
