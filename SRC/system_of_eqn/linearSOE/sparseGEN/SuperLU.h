@@ -51,21 +51,20 @@
 class SuperLU : public SparseGenColLinSolver
 {
   public:
-    SuperLU(int permSpec = 0, 
-	    double drop_tol = 0.0, 
-	    int panelSize = 6, 
-	    int relax = 6,
-	    char symmetric = 'N');
+    SuperLU(int permSpec,    // = 1, 
+            double drop_tol, // = 0.0, 
+            int panelSize,   // = 6, 
+            int relax,       // = 6,
+            char symmetric,  // ='N',
+            LinearSolveSpec spec);
     ~SuperLU();
 
-    int solve(void);
-    int setSize(void);
+    int solve() override;
+    int setSize() override;
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    
     
-  protected:
-
   private:
     SuperMatrix A,L,U,B,AC;
     int *perm_r;
