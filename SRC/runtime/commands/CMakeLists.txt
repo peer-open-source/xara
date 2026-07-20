@@ -36,30 +36,6 @@ target_sources(XaraCmds_General PRIVATE
 
 add_subdirectory(domain)
 add_subdirectory(general)
-# add_subdirectory(parallel)
 add_subdirectory(analysis)
 add_subdirectory(modeling)
 
-# target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-# target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR}/modeling)
-
-
-target_link_libraries(XaraCmdsRT 
-PRIVATE 
-  Xara_InterpreterCore
-PUBLIC 
-  XaraCmds_General
-  XaraCmds_Modeling
-  XaraCmds_Analysis
-  XaraCmds_AnalysisRT
-)
-
-target_link_libraries(XaraCmdsMP
-PRIVATE 
-  Xara_InterpreterCore
-PUBLIC 
-  XaraCmds_General
-  XaraCmds_Modeling
-  XaraCmds_Analysis
-  XaraCmds_AnalysisMP
-)

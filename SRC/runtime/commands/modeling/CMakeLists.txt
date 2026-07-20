@@ -15,6 +15,16 @@
 
 target_link_libraries(XaraCmds_Modeling PRIVATE Xara_InterpreterCore)
 
+
+# Template heavy commands require /bigobj on MSVC to avoid "fatal error C1128"
+target_compile_options(XaraCmds_Modeling 
+PRIVATE
+  "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unused-parameter>"
+  "$<$<CXX_COMPILER_ID:MSVC>:/W3>"
+  "$<$<CXX_COMPILER_ID:MSVC>:/bigobj>"
+  "$<$<CXX_COMPILER_ID:MSVC>:/wd4100>"
+)
+
 target_sources(XaraCmds_Modeling 
 PRIVATE
     element.cpp
