@@ -34,7 +34,7 @@ target_sources(OPS_Recorder
     RemoveRecorder.cpp
     VTK_Recorder.cpp
     PVDRecorder.cpp
-    MPCORecorder.cpp
+    # MPCORecorder.cpp
   PUBLIC
     DamageRecorder.h
     DatastoreRecorder.h

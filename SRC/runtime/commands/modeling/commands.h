@@ -26,10 +26,10 @@ extern Tcl_CmdProc  XaraCmd_setResponse;
 extern Tcl_CmdProc  XaraCmd_getResponse;
 
 // modeling/nodes.cpp
-extern Tcl_CmdProc  TclCommand_getNDM;
-extern Tcl_CmdProc  TclCommand_getNDF;
+extern Tcl_CmdProc  XaraCmd_getNDM;
+extern Tcl_CmdProc  XaraCmd_getNDF;
 extern Tcl_CmdProc  XaraCmd_node;
-extern Tcl_CmdProc  TclCommand_addNodalMass;
+extern Tcl_CmdProc  XaraCmd_mass;
 extern Tcl_CmdProc  TclCommand_addNodalLoad;
 // 
 extern Tcl_CmdProc  TclCommand_addSeries;
@@ -48,7 +48,7 @@ extern Tcl_CmdProc  TclCommand_doBlock3D;
 extern Tcl_CmdProc  TclCommand_addUniaxialMaterial;
 
 // section.cpp
-extern Tcl_CmdProc  TclCommand_addSection;
+extern Tcl_CmdProc  XaraCmd_section;
 extern Tcl_CmdProc  TclCommand_addPatch;
 extern Tcl_CmdProc  TclCommand_addFiberLayer;
 // extern Tcl_CmdProc  TclCommand_addRemoFiber;
@@ -98,7 +98,7 @@ Tcl_CmdProc TclCommand_addLimitCurve;
 Tcl_CmdProc TclCommand_addNDMaterial;
 
 // invoking.cpp
-Tcl_CmdProc TclCommand_invoke;
+Tcl_CmdProc XaraCmd_invoke;
 
 // printing.cpp
 Tcl_CmdProc TclCommand_print;
@@ -114,10 +114,10 @@ struct CommandTableEntry {
 constexpr ModelBuilderCommands[] =  {
   {"build",                XaraCmd_build},
 
-  {"getNDM",               TclCommand_getNDM},
-  {"getNDF",               TclCommand_getNDF},
+  {"getNDM",               XaraCmd_getNDM},
+  {"getNDF",               XaraCmd_getNDF},
   {"node",                 XaraCmd_node},
-  {"mass",                 TclCommand_addNodalMass},
+  {"mass",                 XaraCmd_mass},
   {"element",              TclCommand_addElement},
 
   {"print",                TclCommand_print},
@@ -130,8 +130,8 @@ constexpr ModelBuilderCommands[] =  {
   {"fixZ",                 TclCommand_addHomogeneousBC_Z},
 
 // 
-  {"with",                 TclCommand_invoke},
-  {"invoke",               TclCommand_invoke},
+  {"with",                 XaraCmd_invoke},
+  {"invoke",               XaraCmd_invoke},
 // Materials & sections
   {"uniaxialMaterial",     TclCommand_addUniaxialMaterial},
   {"nDMaterial",           TclCommand_addNDMaterial},
@@ -141,7 +141,7 @@ constexpr ModelBuilderCommands[] =  {
   {"setResponse",          XaraCmd_setResponse},
   {"getResponse",          XaraCmd_getResponse},
 
-  {"section",              TclCommand_addSection},
+  {"section",              XaraCmd_section},
   {"patch",                TclCommand_addPatch},
   {"fiber",                TclCommand_addFiber},
   {"layer",                TclCommand_addFiberLayer},

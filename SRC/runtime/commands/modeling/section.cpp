@@ -78,7 +78,7 @@ extern OPS_Routine OPS_LayeredMembraneSection; // M. J. Nunez - UChile
 // extern void *OPS_ElasticMembraneSection(); // M. J. Nunez - UChile
 
 Tcl_CmdProc TclCommand_newElasticSection;
-Tcl_CmdProc TclCommand_addFiberSection;
+Tcl_CmdProc XaraCmd_section_Fiber;
 Tcl_CmdProc TclCommand_addFiberIntSection;
 Tcl_CmdProc TclCommand_addUCFiberSection;
 Tcl_CmdProc TclCommand_addSectionAggregator;
@@ -222,7 +222,7 @@ TclCommand_addTrussSection(ClientData clientData, Tcl_Interp *interp,
 
 
 int
-TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
+XaraCmd_section(ClientData clientData, Tcl_Interp *interp,
                               int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -232,7 +232,8 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {
-    opserr << OpenSees::PromptValueError << "insufficient number of arguments\n";
+    opserr << OpenSees::PromptValueError 
+           << "insufficient number of arguments\n";
     return TCL_ERROR;
   }
 
@@ -264,7 +265,7 @@ TclCommand_addSection(ClientData clientData, Tcl_Interp *interp,
       strcmp(argv[1], "FiberAsym") == 0 ||
       strcmp(argv[1], "fiberSecAsym") == 0)
 
-    return TclCommand_addFiberSection(clientData, interp, argc, argv);
+    return XaraCmd_section_Fiber(clientData, interp, argc, argv);
 
 
   else if (strcmp(argv[1], "Truss") == 0 ||

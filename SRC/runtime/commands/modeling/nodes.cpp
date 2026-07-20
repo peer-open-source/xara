@@ -270,7 +270,7 @@ XaraCmd_node(ClientData context,
 
 
 int
-TclCommand_addNodalMass(ClientData context, 
+XaraCmd_mass(ClientData context, 
                         Tcl_Interp *interp, 
                         ArgSize argc,
                         TCL_Char ** const argv)
@@ -370,7 +370,7 @@ TclCommand_addNodalMass(ClientData context,
 
 
 int
-TclCommand_getNDM(ClientData context, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
+XaraCmd_getNDM(ClientData context, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(context != nullptr);
   ModelRegistry* builder = static_cast<ModelRegistry*>(context);
@@ -404,7 +404,7 @@ TclCommand_getNDM(ClientData context, Tcl_Interp *interp, ArgSize argc, TCL_Char
 }
 
 int
-TclCommand_getNDF(ClientData context, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
+XaraCmd_getNDF(ClientData context, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(context != nullptr);
   ModelRegistry* builder = static_cast<ModelRegistry*>(context);
