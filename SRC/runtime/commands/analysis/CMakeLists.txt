@@ -22,7 +22,6 @@ target_link_libraries(XaraCmds_Analysis PRIVATE
 target_link_libraries(XaraCmds_AnalysisRT PRIVATE 
   Xara_InterpreterCore
   OPS_SysOfEqn
-  OPS_Parallel
   OPS_Logging
 )
 

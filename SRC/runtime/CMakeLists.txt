@@ -70,8 +70,6 @@ if (${TCL_INCLUDE_PATH})
 endif()
 
 target_link_libraries(OpenSeesRT 
-# PUBLIC
-#   OPS_Parallel
 PRIVATE 
   OPS_Renderer 
   OPS_Algorithm
