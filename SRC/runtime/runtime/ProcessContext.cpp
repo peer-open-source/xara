@@ -20,7 +20,7 @@
 #include <Parsing.h>
 #include <Interpreter.h>
 
-#if !defined(PARALLEL_OFF)
+#if defined(XARA_ENABLE_MPI)
 # include <mpi.h>
 #endif
 
@@ -31,7 +31,7 @@ static Tcl_CmdProc getNP;
 static Tcl_CmdProc opsBarrier;
 
 
-#if defined(PARALLEL_OFF)
+#if !defined(XARA_ENABLE_MPI)
 ProcessContext::ProcessContext()
 : m_obroker(new XaraClassBroker())
 {
@@ -126,14 +126,13 @@ getNP(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const arg
 static int
 opsBarrier(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
-#if !defined(PARALLEL_OFF)
+#if defined(XARA_ENABLE_MPI)
   if (MPI_Barrier(MPI_COMM_WORLD) != MPI_SUCCESS) {
     opserr << OpenSees::PromptValueError 
            << "MPI_Barrier failed"
             << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
-#else
-  return TCL_OK;
 #endif
+  return TCL_OK;
 }
