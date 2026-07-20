@@ -23,7 +23,6 @@ class XaraClassBroker;
 class Channel;
 
 #define MODEL_CHANNELS
-#define PARALLEL_OFF
 
 namespace Xara {
 // struct Interpreter;
@@ -32,7 +31,7 @@ class ProcessContext {
 public:
   ProcessContext();
   ~ProcessContext();
-#if !defined(PARALLEL_OFF)
+#if defined(XARA_ENABLE_MPI)
   int getProcessID() {return theMachine.getPID();}
   int getProcessCount() {return theMachine.getNP();}
 #else 
@@ -48,7 +47,7 @@ public:
 
 private:
   XaraClassBroker *m_obroker;
-#if !defined(PARALLEL_OFF)
+#if defined(XARA_ENABLE_MPI)
   MPI_MachineBroker theMachine;
 #endif
   Channel** theChannels;
