@@ -5,18 +5,18 @@
 #
 #==============================================================================
 target_sources(OPS_Actor
-    PRIVATE
-      MachineBroker.cpp
-    PUBLIC
-      MachineBroker.h
+  PRIVATE
+    MachineBroker.cpp
+  PUBLIC
+    MachineBroker.h
 )
 
 
 target_sources(OPS_Parallel
-    PRIVATE
-      MPI_MachineBroker.cpp
-    PUBLIC
-      MPI_MachineBroker.h
+  PRIVATE
+    MPI_MachineBroker.cpp
+  PUBLIC
+    MPI_MachineBroker.h
 )
 
 
