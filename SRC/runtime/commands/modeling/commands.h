@@ -90,7 +90,7 @@ Tcl_CmdProc TclCommand_addParameter;
 Tcl_CmdProc TclCommand_mesh;
 Tcl_CmdProc TclCommand_remesh;
 Tcl_CmdProc TclCommand_backgroundMesh; 
-Tcl_CmdProc TclCommand_addBeamIntegration;
+Tcl_CmdProc XaraCmd_beamIntegration;
 
 //
 Tcl_CmdProc TclCommand_addFrictionModel;
@@ -136,7 +136,7 @@ constexpr ModelBuilderCommands[] =  {
   {"uniaxialMaterial",     TclCommand_addUniaxialMaterial},
   {"nDMaterial",           TclCommand_addNDMaterial},
   {"material",             TclCommand_addMaterial},
-  {"beamIntegration",      TclCommand_addBeamIntegration},
+  {"beamIntegration",      XaraCmd_beamIntegration},
 
   {"setResponse",          XaraCmd_setResponse},
   {"getResponse",          XaraCmd_getResponse},

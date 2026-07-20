@@ -1,6 +1,6 @@
 #ifndef LIMIT_CURVE_API_H
 #define LIMIT_CURVE_API_H
-#include <runtime/parsing/Parsing.h>
+#include <Parsing.h>
 #include <LimitCurve.h>
 #include <elementAPI.h>
 #include <OpenSeesFFI.h>

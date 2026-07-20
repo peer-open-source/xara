@@ -51,6 +51,7 @@ MumpsParallelSolver::MumpsParallelSolver(int ICNTL7, int ICNTL14)
   needsSetSize = false;
 }
 
+
 MumpsParallelSolver::MumpsParallelSolver(int mpi_comm, int ICNTL7, int ICNTL14)
   :LinearSOESolver(SOLVER_TAGS_MumpsParallelSolver),
    theMumpsSOE(0), rank(0), np(0)
@@ -70,6 +71,7 @@ MumpsParallelSolver::~MumpsParallelSolver()
   if (init == true)
     dmumps_c(&id); /* Terminate instance */
 }
+
 
 int
 MumpsParallelSolver::initializeMumps()
@@ -151,31 +153,32 @@ MumpsParallelSolver::initializeMumps()
       opserr << " Error " << info << " returned in substitution dmumps()\n";
       switch(info) {
       case -2:
-	opserr << "nz " << info2 << " out of range\n";
-	break;
+        opserr << "nz " << info2 << " out of range\n";
+        break;
       case -5:
-	opserr << " out of memory allocation error\n";
-	break;
+        opserr << " out of memory allocation error\n";
+        break;
       case -6:  
-	opserr << " cause: Matrix is Singular in Structure: check your model\n";
-	break;
+        opserr << " cause: Matrix is Singular in Structure: check your model\n";
+        break;
       case -7:
-	opserr << " out of memory allocation error\n";
-	break;
+        opserr << " out of memory allocation error\n";
+        break;
       case -8:
-	opserr << "Work array too small; use -ICNTL14 option, the default is -ICNTL 20 make 20 larger\n";
-	break;
+        opserr << "Work array too small; use -ICNTL14 option, the default is -ICNTL 20 make 20 larger\n";
+        break;
       case -9:
-	opserr << "Work array too small; use -ICNTL14 option, the default is -ICNTL 20 make 20 larger\n";
-	break;
+        opserr << "Work array too small; use -ICNTL14 option, the default is -ICNTL 20 make 20 larger\n";
+        break;
       case -10:  
-	opserr << " cause: Matrix is Singular Numerically\n";
-	break;
+        opserr << " cause: Matrix is Singular Numerically\n";
+        break;
       case -13:
-	opserr << " out of memory wanted " << info2 << " (if < 0 mult absolute by 1 million)\n";
-	break;
+        opserr << " out of memory wanted " << info2 << " (if < 0 mult absolute by 1 million)\n";
+        break;
       default:
-	opserr << " mumps returned infog[0] and infog[1] error codes: " << info << " and " << info2;
+        opserr << " mumps returned infog[0] and infog[1] error codes: " << info << " and " << info2;
+      }
     }
 
     if (info < 0)
@@ -188,7 +191,7 @@ MumpsParallelSolver::initializeMumps()
 }
 
 int
-MumpsParallelSolver::solveAfterInitialization(void)
+MumpsParallelSolver::solveAfterInitialization()
 {
   int n = theMumpsSOE->size;
   int nnz = theMumpsSOE->nnz;
@@ -289,7 +292,7 @@ MumpsParallelSolver::solveAfterInitialization(void)
 }
 
 int
-MumpsParallelSolver::solve(void)
+MumpsParallelSolver::solve()
 {
 	int initializationResult = initializeMumps();
 
@@ -299,12 +302,14 @@ MumpsParallelSolver::solve(void)
 		return initializationResult;
 }
 
+
 int
-MumpsParallelSolver::setSize(void)
+MumpsParallelSolver::setSize()
 {
   needsSetSize = true;
   return 0;
 }
+
 
 int
 MumpsParallelSolver::sendSelf(int cTag, Channel &theChannel)

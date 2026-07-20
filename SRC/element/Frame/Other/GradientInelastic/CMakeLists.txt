@@ -6,7 +6,7 @@
 #==============================================================================
   # target_include_directories(OPS_Element PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
-target_sources(OPS_Runtime PRIVATE dispatch.cpp)
+target_sources(XaraCmds_Modeling PRIVATE dispatch.cpp)
 target_sources(OPS_Element
     PRIVATE
         GradientInelasticBeamColumn2d.cpp

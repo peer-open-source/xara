@@ -13,13 +13,30 @@
 #
 #===----------------------------------------------------------------------===//
 
-target_link_libraries(OPS_Runtime PRIVATE Xara_InterpreterCore)
+target_link_libraries(XaraCmds_Modeling PRIVATE Xara_InterpreterCore)
 
-target_sources(OPS_Runtime PRIVATE
+target_sources(XaraCmds_Modeling 
+PRIVATE
     element.cpp
     response.cpp
     geomTransf.cpp
+
+    model.cpp
+    nodes.cpp
+    constraint.cpp
+    
+    section.cpp
     section/fiber.cpp
+    "section/shell.cpp"
+    "section/plane.cpp"
+    "section/frame.cpp"
+    "section/truss.cpp"
+
+    "printing.cpp"
+
+    "utilities/blockND.cpp"
+    "utilities/Block2D.cpp"
+    "utilities/Block3D.cpp"
 )
 
 

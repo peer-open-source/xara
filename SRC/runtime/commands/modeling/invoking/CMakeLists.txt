@@ -13,7 +13,7 @@
 #
 #===----------------------------------------------------------------------===//
 
-target_sources(OPS_Runtime PRIVATE
+target_sources(XaraCmds_Modeling PRIVATE
     invoke.cpp
     invoke_uniaxial.cpp
     invoke_section.cpp

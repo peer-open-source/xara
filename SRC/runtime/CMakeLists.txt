@@ -7,24 +7,31 @@
 
 
 add_library(OpenSeesRT SHARED)
-add_library(OpenSeesRT_Static STATIC)
+add_library(XaraSharedMP SHARED)
+
+add_library(XaraStaticRT STATIC)
+add_library(XaraStaticMP STATIC)
+
 add_library(Xara_Parallel INTERFACE)
 
 
 target_sources(OpenSeesRT PRIVATE "OpenSeesRT.cpp")
-target_sources(OpenSeesRT_Static PRIVATE "OpenSeesRT.cpp")
+target_sources(XaraSharedMP PRIVATE "OpenSeesRT.cpp")
+target_sources(XaraStaticRT PRIVATE "OpenSeesRT.cpp")
+target_sources(XaraStaticMP PRIVATE "OpenSeesRT.cpp")
+
 target_compile_definitions(OpenSeesRT PUBLIC USE_TCL_STUBS)
 set_property(TARGET OpenSeesRT PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-target_compile_definitions(OPS_Runtime PRIVATE "$<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>")
-target_compile_options(OPS_Runtime PRIVATE
-  "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unused-parameter>"
-  "$<$<CXX_COMPILER_ID:MSVC>:/W3>"
-  "$<$<CXX_COMPILER_ID:MSVC>:/bigobj>"
-  "$<$<CXX_COMPILER_ID:MSVC>:/wd4100>"
-)
+# target_compile_definitions(OPS_Runtime PRIVATE "$<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>")
+# target_compile_options(OPS_Runtime PRIVATE
+#   "$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wno-unused-parameter>"
+#   "$<$<CXX_COMPILER_ID:MSVC>:/W3>"
+#   "$<$<CXX_COMPILER_ID:MSVC>:/bigobj>"
+#   "$<$<CXX_COMPILER_ID:MSVC>:/wd4100>"
+# )
 
-target_include_directories(OPS_Runtime PUBLIC
+target_include_directories(Xara_InterpreterCore PUBLIC
   ${OPS_SRC_DIR}/runtime/commands
   ${OPS_SRC_DIR}/runtime/parsing/
   ${OPS_SRC_DIR}/runtime/commands/modeling
@@ -32,18 +39,17 @@ target_include_directories(OPS_Runtime PUBLIC
   ${OPS_Includes}
 )
 
-target_link_libraries(OPS_Runtime 
-PRIVATE 
-  G3 
-  OPS_Algorithm 
-  # Xara::FastMath commented for git push
-  Xara_InterpreterCore
-)
+# target_link_libraries(OPS_Runtime 
+# PRIVATE 
+#   G3 
+#   OPS_Algorithm 
+#   # Xara::FastMath commented for git push
+#   Xara_InterpreterCore
+# )
 
 add_subdirectory(interpreter)
 add_subdirectory(commands)
 add_subdirectory(runtime)
-add_subdirectory(parsing)
 
 
 if (DEFINED OPENSEESRT_VERSION)
@@ -60,28 +66,68 @@ endif()
 #
 if (${TCL_INCLUDE_PATH})
   target_include_directories(OpenSeesRT  PUBLIC ${TCL_INCLUDE_PATH})
-  target_include_directories(OPS_Runtime PUBLIC ${TCL_INCLUDE_PATH})
+  # target_include_directories(OPS_Runtime PUBLIC ${TCL_INCLUDE_PATH})
 endif()
 
 target_link_libraries(OpenSeesRT 
-PUBLIC
-  OPS_Parallel
+# PUBLIC
+#   OPS_Parallel
 PRIVATE 
   OPS_Renderer 
-  OPS_Algorithm 
+  OPS_Algorithm
+  XaraCmds_General
   XaraCmds_Analysis
-  OPS_Runtime 
+  XaraCmds_AnalysisRT
+  XaraCmds_Modeling
+  Xara_InterpreterRT
+  G3 
+  # Xara::FastMath commented for git push
   Xara_InterpreterCore
   ${TCL_STUB_LIBRARY}
 )
 
-target_link_libraries(OpenSeesRT_Static
-  PUBLIC 
+target_link_libraries(XaraStaticRT
+PUBLIC 
+  OPS_Renderer 
+  OPS_Algorithm
+  XaraCmds_General
+  XaraCmds_Analysis
+  XaraCmds_AnalysisRT
+  XaraCmds_Modeling
+  Xara_InterpreterRT
+  G3 
+  # Xara::FastMath commented for git push
+  Xara_InterpreterCore
+)
+
+
+target_link_libraries(XaraStaticMP
+PUBLIC 
   OPS_Renderer 
   OPS_Algorithm
   OPS_Parallel
+  XaraCmds_General
   XaraCmds_Analysis
-  OPS_Runtime 
+  XaraCmds_AnalysisMP
+  XaraCmds_Modeling
+  Xara_InterpreterMP
+  G3 
+  # Xara::FastMath commented for git push
+  Xara_InterpreterCore
+)
+
+target_link_libraries(XaraSharedMP
+PUBLIC 
+  OPS_Renderer 
+  OPS_Algorithm
+  OPS_Parallel
+  XaraCmds_General
+  XaraCmds_Analysis
+  XaraCmds_AnalysisMP
+  XaraCmds_Modeling
+  Xara_InterpreterMP
+  G3
+  # Xara::FastMath commented for git push
   Xara_InterpreterCore
 )
 

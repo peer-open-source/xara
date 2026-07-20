@@ -361,9 +361,22 @@ add_library(OPS_Transform "")
 add_library(OPS_Element            OBJECT)
 
 add_library(OPS_SysOfEqn           OBJECT)
+# add_library(OPS_SysOfEqnMP         OBJECT)
 add_library(OPS_Analysis           OBJECT)
 add_library(OPS_Damage             OBJECT)
-add_library(OPS_Runtime            OBJECT)
+# add_library(OPS_Runtime            OBJECT)
+
+add_library(Xara_InterpreterCore   OBJECT)
+add_library(Xara_InterpreterRT     OBJECT)
+add_library(Xara_InterpreterMP     OBJECT)
+add_library(XaraCmdsRT             OBJECT)
+add_library(XaraCmdsMP             OBJECT)
+add_library(XaraCmds_Analysis      OBJECT)
+add_library(XaraCmds_AnalysisRT    OBJECT)
+add_library(XaraCmds_AnalysisMP    OBJECT)
+add_library(XaraCmds_Modeling      OBJECT)
+add_library(XaraCmds_General       OBJECT)
+
 add_library(OPS_Database           OBJECT EXCLUDE_FROM_ALL)
 
 # Optional Extensions
@@ -373,7 +386,7 @@ add_library(OPS_Partition          OBJECT EXCLUDE_FROM_ALL)
 # Packaged libraries
 add_library(G3)
 
-set_property(TARGET OPS_Runtime           PROPERTY POSITION_INDEPENDENT_CODE 1)
+# set_property(TARGET OPS_Runtime           PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET OPS_MaterialFortran   PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET OPS_ElementFortran    PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET G3                    PROPERTY POSITION_INDEPENDENT_CODE 1)
@@ -456,6 +469,7 @@ target_link_libraries(G3
     OPS_Material
     OPS_Damage
     G3_ObjectBroker
+    OPS_Algorithm 
 )
 
 

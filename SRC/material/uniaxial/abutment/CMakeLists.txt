@@ -5,5 +5,5 @@
 #
 #==============================================================================
 
-target_sources(OPS_Runtime PRIVATE TclHyperbolicGapMaterial.cpp)
+target_sources(XaraCmds_Modeling PRIVATE TclHyperbolicGapMaterial.cpp)
 target_sources(OPS_Material PRIVATE HyperbolicGapMaterial.cpp)

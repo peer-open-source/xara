@@ -6,6 +6,7 @@
 #==============================================================================
 #
 
+
 add_library(Xara_CommandInterface INTERFACE)
 
 target_include_directories(Xara_CommandInterface INTERFACE 
@@ -17,34 +18,15 @@ target_include_directories(Xara_CommandInterface INTERFACE
   ${OPS_SRC_DIR}
 )
 
-add_library(XaraCmds_Analysis OBJECT)
 
 
-target_sources(OPS_Runtime PRIVATE
+target_sources(XaraCmds_General PRIVATE
 # Interpreter
-    "interpreter.cpp"
+    "general.cpp"
     "pragma.cpp"
     "packages.cpp"
     "parallel/sequential.cpp"
     # "parallel/machine.cpp"
-
-# Modeling
-    "modeling/model.cpp"
-    "modeling/nodes.cpp"
-    "modeling/constraint.cpp"
-    
-    "modeling/section.cpp"
-    "modeling/section/shell.cpp"
-    "modeling/section/plane.cpp"
-    "modeling/section/frame.cpp"
-    "modeling/section/truss.cpp"
-
-    "modeling/printing.cpp"
-
-    "modeling/utilities/blockND.cpp"
-    "modeling/utilities/Block2D.cpp"
-    "modeling/utilities/Block3D.cpp"
-
 
 # Utilities
     "utilities/utilities.cpp"
@@ -53,12 +35,31 @@ target_sources(OPS_Runtime PRIVATE
 )
 
 add_subdirectory(domain)
-add_subdirectory(parallel)
+add_subdirectory(general)
+# add_subdirectory(parallel)
 add_subdirectory(analysis)
 add_subdirectory(modeling)
 
-target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR}/modeling)
+# target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+# target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR}/modeling)
 
 
-target_link_libraries(OPS_Runtime PUBLIC XaraCmds_Analysis)
+target_link_libraries(XaraCmdsRT 
+PRIVATE 
+  Xara_InterpreterCore
+PUBLIC 
+  XaraCmds_General
+  XaraCmds_Modeling
+  XaraCmds_Analysis
+  XaraCmds_AnalysisRT
+)
+
+target_link_libraries(XaraCmdsMP
+PRIVATE 
+  Xara_InterpreterCore
+PUBLIC 
+  XaraCmds_General
+  XaraCmds_Modeling
+  XaraCmds_Analysis
+  XaraCmds_AnalysisMP
+)

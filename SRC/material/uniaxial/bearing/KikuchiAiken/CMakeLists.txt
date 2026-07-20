@@ -14,4 +14,4 @@ target_sources(OPS_Material
       KikuchiAikenLRB.h
 )
 
-target_sources(OPS_Runtime PRIVATE dispatch.cpp)
+target_sources(XaraCmds_Modeling PRIVATE dispatch.cpp)

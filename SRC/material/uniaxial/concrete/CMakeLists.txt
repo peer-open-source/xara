@@ -7,7 +7,7 @@
 
 target_include_directories(OPS_Material PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
-target_sources(OPS_Runtime PRIVATE
+target_sources(XaraCmds_Modeling PRIVATE
   dispatch.cpp
 )
 

@@ -24,7 +24,7 @@ target_include_directories(OpenSeesPyRT
 
 # set_target_properties(OpenSeesPyRT PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_link_libraries(OpenSeesPyRT PRIVATE ${pybind11_LIBRARIES} ${TCL_STUB_LIBRARY})
-target_link_libraries(OpenSeesPyRT PRIVATE OPS_Runtime OpenSeesRT)
+target_link_libraries(OpenSeesPyRT PRIVATE G3 OpenSeesRT)
 
 target_sources(OpenSeesPyRT PRIVATE
   "OpenSeesPyRT.cpp"

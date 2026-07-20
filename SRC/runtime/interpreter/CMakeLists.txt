@@ -8,7 +8,8 @@
 #   - StrList
 #   - ObjList
 
-add_library(Xara_InterpreterCore OBJECT)
+
+add_library(Xara_Parsing OBJECT)
 
 target_sources(Xara_InterpreterCore PRIVATE 
   # CommandManager.cpp
@@ -21,7 +22,12 @@ target_include_directories(Xara_InterpreterCore
 )
 
 target_link_libraries(Xara_InterpreterCore 
-  PUBLIC 
+  PUBLIC
+    OPS_Recorder
+    G3
     Xara_Parsing
     OPS_Logging
 )
+
+add_subdirectory(legacy)
+add_subdirectory(parsing)

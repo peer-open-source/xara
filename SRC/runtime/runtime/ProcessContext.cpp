@@ -19,7 +19,10 @@
 #include <Logging.h>
 #include <Parsing.h>
 #include <Interpreter.h>
-#include <mpi.h>
+
+#if !defined(PARALLEL_OFF)
+# include <mpi.h>
+#endif
 
 using namespace Xara;
 
