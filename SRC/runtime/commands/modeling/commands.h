@@ -95,7 +95,7 @@ Tcl_CmdProc XaraCmd_beamIntegration;
 //
 Tcl_CmdProc TclCommand_addFrictionModel;
 Tcl_CmdProc TclCommand_addLimitCurve;
-Tcl_CmdProc TclCommand_addNDMaterial;
+Tcl_CmdProc XaraCmd_nDMaterial;
 
 // invoking.cpp
 Tcl_CmdProc XaraCmd_invoke;
@@ -134,7 +134,7 @@ constexpr ModelBuilderCommands[] =  {
   {"invoke",               XaraCmd_invoke},
 // Materials & sections
   {"uniaxialMaterial",     XaraCmd_uniaxialMaterial},
-  {"nDMaterial",           TclCommand_addNDMaterial},
+  {"nDMaterial",           XaraCmd_nDMaterial},
   {"material",             TclCommand_addMaterial},
   {"beamIntegration",      XaraCmd_beamIntegration},
 
