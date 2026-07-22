@@ -17,9 +17,9 @@
 #include <Matrix.h>
 #include "soil/T2Vector.h"
 
-class MultiYieldSurface;
 
 namespace OpenSees {
+class MultiYieldSurface;
 
 class PressureDependMultiYield02 : public NDMaterial
 {
@@ -63,7 +63,7 @@ public:
      // Destructor: clean up memory storage space.
      virtual ~PressureDependMultiYield02 ();
 
-     double getRho(void) {return rhox[matN];} ;
+     double getRho() {return rhox[matN];} ;
 
      // Sets the values of the trial strain tensor.
      int setTrialStrain (const Vector &strain);

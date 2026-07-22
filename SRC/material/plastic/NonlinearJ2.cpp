@@ -90,42 +90,43 @@ NonlinearJ2::~NonlinearJ2() = default;
 // Core state determination
 //
 int
-NonlinearJ2::updateState()
+NonlinearJ2::updateState(const VectorND<6> &eps)
 {
 
   // const double G  = E/2./(1. +    nu);  // Shear modulus
   const double K  = E/3./(1. - 2.*nu);  // Bulk  modulus
 
-  // Deviatoric and volumetric strain
+  // Deviatoric strain
   const VectorND<6> eps_dev = Voight::Dev(eps);
   const double      eps_vol = Voight::Trace(eps);
 
-  // Trial deviatoric stress s_tr = 2G * (eps_d - eps_p_d)
+  // Trial deviatoric stress s_tr = 2G * (eps_dev - eps_p_d)
   const VectorND<6> eps_p_d = Voight::Dev(past.eps_p);
   VectorND<9> s_tr{};
-  s_tr.addVector(0.0, P^eps_dev,  2.0*G);
-  s_tr.addVector(1.0, P^eps_p_d, -2.0*G);
+  s_tr.addVector(0.0, Voight::ExpandVector(eps_dev),  2.0*G);
+  s_tr.addVector(1.0, Voight::ExpandVector(eps_p_d), -2.0*G);
 
   // Sum of back-stresses at last commit
   VectorND<9> Xn{};
   for (const auto &x : past.sig_b)
     Xn.addVector(1.0, x, 1.0);
 
-  // Trial yield function
+  // Yield function at trial
   const double sig_nrm = metric(s_tr - Xn);
 
-  const double f_tr   = sig_nrm - Isotropic::Y(*this, past, 0.0)*phi_n*mises_scale;
+  const double f_tr = sig_nrm - Isotropic::Y(*this, past, 0.0)*phi_n*mises_scale;
 
   double g_tol, f_tol;
   this->scale_tolerance(sig_nrm, g_tol, f_tol);
 
-  // opserr << " g_tol = " << g_tol << ", f_tol = " << f_tol << "\n";
 
   // Elastic admissible?
   if (f_tr <= f_tol) {
     // Stress = P*s_tr + K*eps_v*ivol
-    pres.sig = P * s_tr;
-    pres.sig.addVector(1.0, Voight::ivol,  K*eps_vol);
+    pres.sig = Voight::ReduceVector(s_tr);
+    Voight::AddVol(pres.sig, K*eps_vol);
+    // pres.sig = P * s_tr;
+    // pres.sig.addVector(1.0, Voight::ivol,  K*eps_vol);
 
     pres.eps      = eps;
     pres.eps_p    = past.eps_p;
@@ -134,7 +135,7 @@ NonlinearJ2::updateState()
 
     // Elastic tangent
     C.zero();
-    C.addMatrix(Voight::IoI,      K);
+    C.addMatrix(Voight::IoI,          K);
     C.addMatrix(Voight::IIdevCon, 2.0*G);
 
     // Currently not computing energy
@@ -190,7 +191,8 @@ NonlinearJ2::updateState()
   //
 
   // eps_p += I^{-1} * (P' * lamda*n)
-  const VectorND<6> n6 = P * m;
+  // const VectorND<6> n6 = P * m;
+  const VectorND<6> n6 = Voight::ReduceVector(m);
   // apply I^{-1} (double the shear components)
   VectorND<6> deps_p_Iinv = n6;
   for (int i=3;i<6;i++)
@@ -256,7 +258,7 @@ NonlinearJ2::setTrialStrain(const Vector &v)
 {
   for (int i=0;i<6;i++)
     eps[i] = v(i);
-  return updateState();
+  return updateState(eps);
 }
 
 int
@@ -264,7 +266,7 @@ NonlinearJ2::setTrialStrainIncr(const Vector &dv)
 {
   for (int i=0;i<6;i++)
     eps[i] += dv(i);
-  return updateState();
+  return updateState(eps);
 }
 
 
@@ -305,7 +307,7 @@ NonlinearJ2::revertToStart()
   const double G  = E/2./(1. +    nu);     // Shear modulus
   const double K  = E/3./(1. - 2.*nu);     // Bulk  modulus
   Ce.zero();
-  Ce.addMatrix(Voight::IoI,      K);
+  Ce.addMatrix(Voight::IoI,          K);
   Ce.addMatrix(Voight::IIdevCon, 2.0*G);
   C = Ce;
 

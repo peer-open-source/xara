@@ -9,7 +9,7 @@
 #include <logging/AnsiColors.h>
 
 class OPS_Stream;
-namespace OpenSees {
+namespace Xara::Logging::Internal {
   extern OPS_Stream *opserrPtr;
   extern OPS_Stream *opslogPtr;
   extern OPS_Stream *opswrnPtr;
@@ -17,11 +17,14 @@ namespace OpenSees {
 }
 
 
-#define opsdbg (*OpenSees::opsdbgPtr)
-#define opswrn ((*OpenSees::opswrnPtr) << G3_WARN_PROMPT)
-#define opslog (*OpenSees::opslogPtr)
+
+#define opsdbg (*Xara::Logging::Internal::opsdbgPtr)
+#define opswrn ((*Xara::Logging::Internal::opswrnPtr) << G3_WARN_PROMPT)
+#define opslog (*Xara::Logging::Internal::opslogPtr)
 #ifndef opserr
-#  define opserr (*OpenSees::opserrPtr)
+#  define opserr (*Xara::Logging::Internal::opserrPtr)
+#endif
+#ifndef endln
 #  define endln "\n"
 #endif
 #define LOG_TEST ":: "

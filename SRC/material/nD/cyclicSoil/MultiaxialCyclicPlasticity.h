@@ -111,7 +111,7 @@ class MultiaxialCyclicPlasticity : public NDMaterial {
 
 
   //elastic constructor
-  MultiaxialCyclicPlasticity( int tag, int classTag, double rho, double K, double G ) ;
+  // MultiaxialCyclicPlasticity( int tag, int classTag, double rho, double K, double G ) ;
 
   //destructor
   virtual ~MultiaxialCyclicPlasticity( ) ;
@@ -214,7 +214,7 @@ class MultiaxialCyclicPlasticity : public NDMaterial {
   void initialize( ) ;
 
   //plasticity integration routine, used in MaterialStageID==2
-  void plastic_integrator( ) ;
+  int plastic_integrator( ) ;
   //elasticity integration routine, used in MaterialStageID==1 (K0)
   void elastic_integrator( ) ;
 

@@ -227,7 +227,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     // Add model commands
     //
 #ifdef MODEL_CHANNELS
-    theNewBuilder->getParallelContext().setup(*static_cast<Interpreter*>(interp));
+    theNewBuilder->getParallelContext().setup(interp);
 #endif 
 
 

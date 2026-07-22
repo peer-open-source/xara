@@ -24,7 +24,7 @@
 // saved to file using Domain.sendSelf() and then read from file using
 // Domain.recvSelf()
 
-#include <FileChannel.h>
+#include "FileChannel.h"
 
 FileChannel::FileChannel( int readWrite ) {
   strcpy(fileNameBase,"domain");

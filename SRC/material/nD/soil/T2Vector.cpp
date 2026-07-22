@@ -15,10 +15,12 @@
 #include <Matrix.h>
 #include <Logging.h>
 
+namespace OpenSees {
+
 static double constexpr
 delta(int i,int j) {
-    if (i==j) return 1.0;
-    else return 0.0;
+  if (i==j) return 1.0;
+  else return 0.0;
 }
 
 
@@ -39,7 +41,8 @@ operator && (const Vector & a, const Vector & b)
 
 // ---------------- add by guquan ------------------------------
 // ---------------- c=a:b, c(k,l)=a(i,j)*b(i,j,k,l)-------------
-void doubledotProduct(Vector & c, const Vector & a, const Matrix & b)
+void 
+doubledotProduct(Vector & c, const Vector & a, const Matrix & b)
 {
   assert(c.Size() ==6 && a.Size() ==6 && b.noCols() ==6&& b.noRows() ==6);
 
@@ -55,7 +58,8 @@ void doubledotProduct(Vector & c, const Vector & a, const Matrix & b)
 
 // ---------------- add by guquan ------------------------------
 // ---------------- c=a:b, c(i,j,k,l)=a(i,j,m,n)*b(m,n,k,l)-------------
-void doubledotMatrixProduct (Matrix & c, const Matrix & a, const Matrix & b)
+void 
+doubledotMatrixProduct (Matrix & c, const Matrix & a, const Matrix & b)
 {
   assert(c.noCols() == 6 &&
          c.noRows() == 6 &&
@@ -66,18 +70,19 @@ void doubledotMatrixProduct (Matrix & c, const Matrix & a, const Matrix & b)
 
   c.Zero();
   for(int i=0;i<6;i++){
-	for(int j=0;j<6;j++){
-	  for (int l=0; l<3; l++){
-		c(i,j) += a(i,l)*b(l,j) + 2*a(i,l+3)*b(l+3,j);
-	  }
-	}
+    for(int j=0;j<6;j++){
+      for (int l=0; l<3; l++){
+        c(i,j) += a(i,l)*b(l,j) + 2*a(i,l+3)*b(l+3,j);
+      }
+    }
   }
   return;
 }
  
 // ---------------- add by guquan ------------------------------
 // ---------------- c=a*b, c(i,j,k,l)=a(i,j)*b(k,l)-------------
-void tensorProduct(Matrix & c, const Vector & a, const Vector & b)
+void
+tensorProduct(Matrix & c, const Vector & a, const Vector & b)
 {
   assert(b.Size()   ==6 &&
          a.Size()   ==6 &&
@@ -95,15 +100,25 @@ void tensorProduct(Matrix & c, const Vector & a, const Vector & b)
 
 
 // T2Vector class methods
-T2Vector::T2Vector() 
-: theT2Vector(6), theDeviator(6), theVolume(0.0)
+T2Vector::T2Vector()
+#ifdef DYNAMIC_T2VECTOR
+: theT2Vector(6), theDeviator(6), 
+#else 
+: theT2Vector{}, theDeviator{},
+#endif
+  theVolume(0.0)
 {
 	
 }
 
 
 T2Vector::T2Vector(const Vector &init, int isEngrgStrain)
-: theT2Vector(6), theDeviator(6), theVolume(0)
+#ifdef DYNAMIC_T2VECTOR
+: theT2Vector(6), theDeviator(6), 
+#else
+: theT2Vector{}, theDeviator{},
+#endif
+  theVolume(0)
 {
   assert(init.Size() == 6);
 
@@ -123,7 +138,12 @@ T2Vector::T2Vector(const Vector &init, int isEngrgStrain)
 
 
 T2Vector::T2Vector(const Vector & deviat_init, double volume_init)
- : theT2Vector(6), theDeviator(6), theVolume(volume_init)
+#ifdef DYNAMIC_T2VECTOR
+ : theT2Vector(6), theDeviator(6), 
+#else
+ : theT2Vector{}, theDeviator{},
+#endif
+   theVolume(volume_init)
 {
   assert(deviat_init.Size() == 6);
 
@@ -163,6 +183,23 @@ T2Vector::setData(const Vector &init, int isEngrgStrain)
   }
 }
 
+void 
+T2Vector::setData(const VectorND<6> & init, Basis basis)
+{
+  for (int i=0; i<6; i++)
+    theT2Vector[i] = init[i];
+
+  theVolume = (theT2Vector[0] + theT2Vector[1]+theT2Vector[2])/3.0;
+  for(int i=0; i<3; i++){
+    theDeviator[i] = theT2Vector[i] - theVolume;
+    theDeviator[i+3] = theT2Vector[i+3];
+    if (basis == Basis::Strain) {
+      theDeviator[i+3] /= 2.;
+      theT2Vector[i+3] /= 2.;
+    }
+  }
+}
+
 void
 T2Vector::setData(const Vector & deviat, double volume)
 {
@@ -182,22 +219,23 @@ T2Vector::setData(const Vector & deviat, double volume)
 }
 
 const Vector & 
-T2Vector::t2Vector(int isEngrgStrain) const
+T2Vector::t2Vector(Basis basis) const
 {
-  if (isEngrgStrain==0) return theT2Vector;
+  if (basis == Basis::Stress)
+    return theT2Vector;
 
   engrgStrain = theT2Vector;
   for(int i=0; i<3; i++){
-    engrgStrain[i+3] *= 2.;
+    engrgStrain[i+3] *= 2.0;
   }
   return engrgStrain;
 }
 
 
 const Vector & 
-T2Vector::deviator(int isEngrgStrain) const
+T2Vector::deviator(Basis basis) const
 {
-  if (isEngrgStrain==0)
+  if (basis == Basis::Stress)
     return theDeviator;
 
   engrgStrain = theDeviator;
@@ -327,3 +365,4 @@ T2Vector::Zero()
   return 1;
 }
 
+} // namespace OpenSees

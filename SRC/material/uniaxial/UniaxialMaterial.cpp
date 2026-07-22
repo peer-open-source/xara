@@ -37,14 +37,13 @@
 
 
 UniaxialMaterial::UniaxialMaterial(int tag, int clasTag)
- : TaggedObject(tag), MovableObject(clasTag) // Material(tag,clasTag)
+ : TaggedObject(tag), MovableObject(clasTag)
 {
 
 }
 
 
 UniaxialMaterial::UniaxialMaterial()
- //: Material(0, 0)
  : TaggedObject(0), MovableObject(0)
 {
 
@@ -61,7 +60,6 @@ int
 UniaxialMaterial::setTrialStrain(double strain, double temperature, double strainRate)
 {
   int res = this->setTrialStrain(strain, strainRate);
-
   return res;
 }
 
@@ -136,11 +134,6 @@ return this->getTangent();
 */
 
 
-UniaxialMaterial*
-UniaxialMaterial::getCopy(SectionForceDeformation *s)
-{
-  return this->getCopy();
-}
 
 Response* 
 UniaxialMaterial::setResponse(const char **argv, int argc,
@@ -313,7 +306,7 @@ UniaxialMaterial::getResponse(int responseID, Information &matInfo)
     //Added by Liming, UoE, for temperature and elongation output,[SIF]2017
     case 7:
       if ((this->getVariable("TempAndElong", infoData)) != 0) {
-        opserr << "Warning: invalid tag in uniaxialMaterial:getVariable" << endln;
+        opserr << "Warning: invalid tag in uniaxialMaterial:getVariable" << "\n";
         return -1;
       }
       tempData = infoData.getData();

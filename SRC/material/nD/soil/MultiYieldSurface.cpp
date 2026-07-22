@@ -11,6 +11,7 @@
 #include <Logging.h>
 #include <MultiYieldSurface.h>
 
+namespace OpenSees {
 
 // YieldSurface class methods
 MultiYieldSurface::MultiYieldSurface():
@@ -31,71 +32,74 @@ MultiYieldSurface::~MultiYieldSurface()
 
 }
 
-void MultiYieldSurface::setData(const Vector & theCenter_init, 
-                                double theSize_init, double plas_modul)
+void 
+MultiYieldSurface::setData(const Vector & theCenter_init, 
+                            double theSize_init, double plas_modul)
 {
   theSize = theSize_init;
   theCenter = theCenter_init;
   plastShearModulus = plas_modul;
 }
 
-void MultiYieldSurface::setCenter(const Vector & newCenter)
+
+void
+MultiYieldSurface::setData(const VectorND<6> & theCenter_init, 
+                            double theSize_init, 
+                            double plas_modul)
+{
+  theSize = theSize_init;
+  for (int i=0; i<6; ++i)
+    theCenter(i) = theCenter_init[i];
+
+  plastShearModulus = plas_modul;
+}
+
+
+void
+MultiYieldSurface::setCenter(const Vector & newCenter)
 {
   assert(newCenter.Size() == 6);
   theCenter = newCenter;
 }
 
 
-/**********************************************
-ostream & operator<< (ostream & os, const MultiYieldSurface & a)
-{
-  os << "  theSize = " << a.theSize << endln 
-     << "  theCenter = " << a.theCenter << endln
-     << "  plastShearModulus = " << a.plastShearModulus << endln;
-  
-  return os;
-}
 
-
-istream & operator>> (istream & is, MultiYieldSurface & a)
-{
-  is >> a.theSize >> a.theCenter >> a.plastShearModulus;
-
-  return is;
-}
-*********************************************/
-
-double secondOrderEqn(double A, double B, double C, int i)
+double 
+secondOrderEqn(double A, double B, double C, int i)
 {
   if (A == 0) {
-    opserr << "FATAL:second_order_eqn: A=0." << endln;
-    if(i==0) opserr << " when finding reference point on outer surface." <<endln;
-    else opserr << " when moving active surface." <<endln;
+    opserr << "FATAL:second_order_eqn: A=0." << "\n";
+    if (i==0) 
+      opserr << " when finding reference point on outer surface." << "\n";
+    else 
+      opserr << " when moving active surface." << "\n";
     exit(-1);   
   }
-  if(C == 0) 
+
+  if (C == 0) 
     return 0;
-  if(B == 0){
-    if(C/A > 0){
+
+  if (B == 0) {
+    if (C/A > 0) {
       opserr << "FATAL:second_order_eqn: Complex roots.\n";
       exit(-1);
     } 
     return sqrt(-C/A);
   }
 
-  double determ, val1, val2, val;
-  determ = B*B - 4.*A*C; 
-  if(determ < 0){
+  double determ = B*B - 4.*A*C; 
+  if (determ < 0){
     opserr << "FATAL:second_order_eqn: Complex roots.\n";
     if (i==0) 
-      opserr << " when finding reference point on outer surface." <<endln;
+      opserr << " when finding reference point on outer surface." << endln;
     else 
-      opserr << " when moving active surface." <<endln;
+      opserr << " when moving active surface." << endln;
 
-    opserr << "B2=" << B*B << " 4AC=" << 4.*A*C <<endln; 
+    opserr << "B2=" << B*B << " 4AC=" << 4.*A*C << endln; 
     exit(-1);
   }
-  
+
+  double val1, val2, val;
   if (B > 0) 
     val1 = (-B - sqrt(determ)) / (2.*A);
   else
@@ -104,8 +108,10 @@ double secondOrderEqn(double A, double B, double C, int i)
   val2 = C / (A * val1);
 
   if (val1 < 0 && val2 < 0) {
-		if (fabs(val1) < LOW_LIMIT) val1 = 0.;
-		else if (fabs(val2) < LOW_LIMIT) val2 = 0.;
+		if (fabs(val1) < LOW_LIMIT)
+      val1 = 0.;
+		else if (fabs(val2) < LOW_LIMIT)
+      val2 = 0.;
   }
 
   if (val1 < 0 && val2 < 0){
@@ -114,19 +120,22 @@ double secondOrderEqn(double A, double B, double C, int i)
       opserr << " when finding reference point on outer surface." <<endln;
     else 
       opserr << " when moving active surface." <<endln;
+
     opserr << "A=" << A << " B=" << B << " C=" << C << " det=" << determ << 
             " x1=" << val1 << " x2=" << val2 << endln;  
     exit(-1);   
   }
   
-  if (val1 < 0) 
+  if (val1 < 0)
     return  val2;
-  else if (val2 < 0) 
+  else if (val2 < 0)
     return  val1;
-  else{
+  else {
     val = val1;
-    if(val > val2)
+    if (val > val2)
       val = val2;
     return val;
   }
 }
+
+} // namespace OpenSees

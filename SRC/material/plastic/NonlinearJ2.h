@@ -17,6 +17,7 @@
 //
 #pragma once
 #include <NDMaterial.h>
+#include <Voight.hpp>
 #include <MatrixND.h>
 #include <VectorND.h>
 #include <vector>
@@ -113,7 +114,7 @@ private:
 
 private:
   // Core update
-  int updateState();
+  int updateState(const VectorND<6> &eps);
   bool isLinearHardening() const {return (Ck_.size() == 1 && gammak_[0] == 0.0);}
 
 
@@ -328,7 +329,8 @@ private:
                                   double theta,
                                   MatrixND<6,6,double> &C) noexcept {
       const size_t nc = past.sig_b.size();
-      const VectorND<6> Pn = P * n;
+      // const VectorND<6> Pn = P * n;
+      const VectorND<6> Pn = Voight::ReduceVector(n);
       for (size_t i=0; i<nc; i++) {
         double phi, dphi;
         switch (m.bs_integration) {
@@ -342,7 +344,8 @@ private:
             break;
         }
         //
-        VectorND<6> Px = P * past.sig_b[i];
+        // VectorND<6> Px = P * past.sig_b[i];
+        const VectorND<6> Px = Voight::ReduceVector(past.sig_b[i]);
         
         static constexpr double cc = -mises_rate;
         C.addTensorProduct(Px, Pn,  dphi*theta*cc);

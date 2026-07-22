@@ -54,13 +54,13 @@ class Channel
     virtual ~Channel();
 
     // methods to set up the channel in an actor space
-    virtual char *addToProgram(void) =0;
-    virtual int setUpConnection(void) =0;
-    virtual int setNextAddress(const ChannelAddress &theAddress) =0;
-    virtual ChannelAddress *getLastSendersAddress(void) =0;
+    virtual char *addToProgram() =0;
+    virtual int setUpConnection() =0;
+    virtual int setNextAddress(const ChannelAddress &) =0;
+    virtual ChannelAddress *getLastSendersAddress() =0;
 
-    virtual int isDatastore(void);
-    virtual int getDbTag(void);
+    virtual int isDatastore();
+    virtual int getDbTag();
     int getTag(void);
     
     // methods to send/receive messages and objects on channels.

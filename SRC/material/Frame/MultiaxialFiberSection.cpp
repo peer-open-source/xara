@@ -42,7 +42,7 @@
 #include <Matrix.h>
 #include <MatrixND.h>
 #include <Matrix3D.h>
-#include "MixedFrameSection.h"
+#include "MultiaxialFiberSection.h"
 #include <ID.h>
 #include <FEM_ObjectBroker.h>
 #include <Information.h>
@@ -57,20 +57,20 @@ typedef SensitiveResponse<FrameSection> SectionResponse;
 #include <threads/thread_pool.hpp>
 #define N_FIBER_THREADS 8
 
-#define SEC_TAG_MixedFrameSection 0
+#define SEC_TAG_MultiaxialFiberSection 0
 
 using namespace OpenSees;
 
-ID MixedFrameSection::code(nsr);
+ID MultiaxialFiberSection::code(nsr);
 
-MixedFrameSection::MixedFrameSection(
+MultiaxialFiberSection::MultiaxialFiberSection(
   int tag, 
   int num, 
   MixedType type, 
   bool wagner,
   concurrency_t num_threads
 )
-  : FrameSection(tag, SEC_TAG_MixedFrameSection)
+  : FrameSection(tag, SEC_TAG_MultiaxialFiberSection)
   , s{}, e{}
   , e_wrap(e)
   , s_wrap(s)
@@ -109,7 +109,7 @@ MixedFrameSection::MixedFrameSection(
 
 
 // Used in getCopy to create an element instance from a reference instance
-MixedFrameSection::MixedFrameSection(const MixedFrameSection &other)
+MultiaxialFiberSection::MultiaxialFiberSection(const MultiaxialFiberSection &other)
   : FrameSection(other.getTag(), other.getClassTag()),
     K_pres(other.K_pres),
     K_init(other.K_init),
@@ -138,7 +138,7 @@ MixedFrameSection::MixedFrameSection(const MixedFrameSection &other)
 }
 
 
-MixedFrameSection::~MixedFrameSection()
+MultiaxialFiberSection::~MultiaxialFiberSection()
 {
   for (auto material : materials) {
     if (material != nullptr)
@@ -148,7 +148,7 @@ MixedFrameSection::~MixedFrameSection()
 
 
 int
-MixedFrameSection::getIntegral(Field field, State state, double& value) const
+MultiaxialFiberSection::getIntegral(Field field, State state, double& value) const
 {
   value = 0.0;
 
@@ -220,7 +220,7 @@ MixedFrameSection::getIntegral(Field field, State state, double& value) const
 
 
 int
-MixedFrameSection::addFiber(MaterialBuilder& theMat, 
+MultiaxialFiberSection::addFiber(MaterialBuilder& theMat, 
                               double Area, 
                               double yLoc, 
                               double zLoc)
@@ -237,7 +237,7 @@ MixedFrameSection::addFiber(MaterialBuilder& theMat,
 
   if (!materials.back()->threadSafe()) {
     opserr << "Material " << materials.back()->getClassType()
-           << " cannot be used with MixedFrameSection as it is not thread safe.\n";
+           << " cannot be used with MultiaxialFiberSection as it is not thread safe.\n";
     return -1;
   }
 
@@ -248,7 +248,7 @@ MixedFrameSection::addFiber(MaterialBuilder& theMat,
 
 
 int
-MixedFrameSection::setTrialSectionDeformation(const Vector &e_trial)
+MultiaxialFiberSection::setTrialSectionDeformation(const Vector &e_trial)
 {
   e = e_trial;
   s.zero();
@@ -257,7 +257,7 @@ MixedFrameSection::setTrialSectionDeformation(const Vector &e_trial)
 
 
 int 
-MixedFrameSection::checkFiberState()
+MultiaxialFiberSection::checkFiberState()
 {
   double area = 0.0;
   if (fiber_state == FiberState::Dirty) {
@@ -294,17 +294,17 @@ MixedFrameSection::checkFiberState()
 
 
 FrameSection*
-MixedFrameSection::getFrameCopy()
+MultiaxialFiberSection::getFrameCopy()
 {
   if (fiber_state == FiberState::Dirty)
     this->checkFiberState();
-  return new MixedFrameSection(*this);
+  return new MultiaxialFiberSection(*this);
 }
 
 
 
 int 
-MixedFrameSection::formShapeWeights(Matrix3D& Lr, Matrix3D& Lw) //const
+MultiaxialFiberSection::formShapeWeights(Matrix3D& Lr, Matrix3D& Lw) //const
 {
   constexpr static Matrix3D oneS {{
     0.0, 0.0, 0.0,
@@ -390,7 +390,7 @@ MixedFrameSection::formShapeWeights(Matrix3D& Lr, Matrix3D& Lw) //const
 
 
 int
-MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
+MultiaxialFiberSection::solveMixed(const VectorND<nsr> & e_trial,
                               MatrixND<6,6> & Knne,
                               Tangent & Ks)
 {
@@ -422,6 +422,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
   int iter = 0;
   bool converged = false;
+  double residual = 0.0;
   auto& thread_pool = *pool;
 
   Vector3D eta_u = eta_past;
@@ -521,6 +522,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
     }).wait();
 
     if (res < 0) {
+      opserr << "Failed to converge in material\n";
       return int(DomainStatus::MaterialFailedToConverge);
     }
 
@@ -532,14 +534,16 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
     MatrixND<3,6> Kae{};
     Matrix3D Kav{}, Kaw{};
     VectorND<3> r_mixed{};
+    residual = 0.0;
     for (concurrency_t t = 0; t < num_threads; t++) {
       Knn.addMatrix(thread_data[t].Knn, 1.0);
       Kae.addMatrix(thread_data[t].Kae, 1.0);
       Kav.addMatrix(thread_data[t].Kav, 1.0);
       Kaw.addMatrix(thread_data[t].Kaw, 1.0);
-      r_mixed += thread_data[t].r_mixed;
+      r_mixed  += thread_data[t].r_mixed;
+      // residual += thread_data[t].r_mixed.dot(thread_data[t].r_mixed);
     }
-
+    residual = r_mixed.dot(r_mixed);
 
     Matrix3D Knn_inv{};
     if ((mixed_type == MixedType::None) ||  (mixed_type == MixedType::U02)) {
@@ -581,7 +585,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
       Knn_inv(2,2) = 1.0/Knn(2,2);
 
       Knne.addMatrixTripleProduct( 0.0, Kae, Knn_inv,   -1.0);
-      if (r_mixed.dot(r_mixed) < mixed_tol) {
+      if (residual < mixed_tol) {
         Ks.vv.addMatrixTripleProduct(0.0, Kav, Knn_inv,   -1.0);
         Ks.sv.addMatrixTripleProduct(0.0, Kae, Knn_inv, Kav,  -1.0);
         Ks.sw.addMatrixTripleProduct(0.0, Kae, Knn_inv, Kaw,  -1.0);
@@ -592,7 +596,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
       // break;
     }
 
-    if (r_mixed.dot(r_mixed) < mixed_tol) {
+    if (residual < mixed_tol) {
       converged = true;
       break;
     }
@@ -603,7 +607,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
 
   if (!converged) {
-    opserr << "  Failed to converge in section\n";
+    opserr << "  Failed to converge in section, residual = " << residual << "\n";
     return int(DomainStatus::SectionFailedToConverge);
   }
 
@@ -613,7 +617,7 @@ MixedFrameSection::solveMixed(const VectorND<nsr> & e_trial,
 
 
 int
-MixedFrameSection::stateDetermination(Tangent& Ks, 
+MultiaxialFiberSection::stateDetermination(Tangent& Ks, 
                                       VectorND<nsr>* s_trial, 
                                       const VectorND<nsr> * const e_trial, 
                                       int tangentFlag)
@@ -801,14 +805,14 @@ MixedFrameSection::stateDetermination(Tangent& Ks,
 
 
 const Vector&
-MixedFrameSection::getSectionDeformation()
+MultiaxialFiberSection::getSectionDeformation()
 {
   return e_wrap;
 }
 
 
 MatrixND<12,12>
-MixedFrameSection::getFullTangent(State state) noexcept
+MultiaxialFiberSection::getFullTangent(State state) noexcept
 {
   static MatrixND<12,12> K{};
   K.zero();
@@ -836,7 +840,7 @@ MixedFrameSection::getFullTangent(State state) noexcept
 
 
 const Matrix&
-MixedFrameSection::getSectionTangent()
+MultiaxialFiberSection::getSectionTangent()
 {
   static MatrixND<nsr,nsr> K;
   static Matrix K_wrap(K);
@@ -847,7 +851,7 @@ MixedFrameSection::getSectionTangent()
 
 
 const Matrix&
-MixedFrameSection::getInitialTangent()
+MultiaxialFiberSection::getInitialTangent()
 {
   static MatrixND<nsr,nsr> K;
   static Matrix wrap(K);
@@ -858,7 +862,7 @@ MixedFrameSection::getInitialTangent()
 
 
 const Vector&
-MixedFrameSection::getStressResultant()
+MultiaxialFiberSection::getStressResultant()
 {
   return s_wrap;
 }
@@ -866,21 +870,21 @@ MixedFrameSection::getStressResultant()
 
 
 const ID&
-MixedFrameSection::getType()
+MultiaxialFiberSection::getType()
 {
   return code;
 }
 
 
 int
-MixedFrameSection::getOrder() const
+MultiaxialFiberSection::getOrder() const
 {
   return nsr;
 }
 
 
 int
-MixedFrameSection::commitState()
+MultiaxialFiberSection::commitState()
 {
   int err = 0;
 
@@ -891,7 +895,7 @@ MixedFrameSection::commitState()
 
 
 int
-MixedFrameSection::revertToLastCommit()
+MultiaxialFiberSection::revertToLastCommit()
 {
   int err = 0;
   for (auto& material : materials)
@@ -907,7 +911,7 @@ MixedFrameSection::revertToLastCommit()
 
 
 int
-MixedFrameSection::revertToStart()
+MultiaxialFiberSection::revertToStart()
 {
   int err = 0;
   for (auto& material: materials)
@@ -922,20 +926,20 @@ MixedFrameSection::revertToStart()
 
 
 int
-MixedFrameSection::sendSelf(int commitTag, Channel &)
+MultiaxialFiberSection::sendSelf(int commitTag, Channel &)
 {
   return -1;
 }
 
 int
-MixedFrameSection::recvSelf(int , Channel &,  FEM_ObjectBroker &)
+MultiaxialFiberSection::recvSelf(int , Channel &,  FEM_ObjectBroker &)
 {
   return -1;
 }
 
 
 Response*
-MixedFrameSection::setResponse(const char **argv, int argc,
+MultiaxialFiberSection::setResponse(const char **argv, int argc,
                                  OPS_Stream &output)
 {
   Response *theResponse = nullptr;
@@ -1033,14 +1037,14 @@ MixedFrameSection::setResponse(const char **argv, int argc,
 
 
 int 
-MixedFrameSection::getResponse(int responseID, Information &info)
+MultiaxialFiberSection::getResponse(int responseID, Information &info)
 {
   return FrameSection::getResponse(responseID, info);
 }
 
 
 int
-MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
+MultiaxialFiberSection::setParameter(const char **argv, int argc, Parameter &param)
 {
   if (argc < 1)
     return -1;
@@ -1050,12 +1054,12 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
   if (strcmp(argv[0], "warp") == 0) {
     // ... warp $fiberID $warpField
     if (argc < 3) {
-      opserr << "MixedFrameSection::setParameter - fiberID is required\n";
+      opserr << "MultiaxialFiberSection::setParameter - fiberID is required\n";
       return -1;
     }
     int fiberID = atoi(argv[1]);
     if (fiberID < 0 || fiberID >= fibers->size()) {
-      opserr << "MixedFrameSection::setParameter - fiberID " << fiberID << " out of range\n";
+      opserr << "MultiaxialFiberSection::setParameter - fiberID " << fiberID << " out of range\n";
       return -1;
     }
 
@@ -1067,7 +1071,7 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
   else if (strcmp(argv[0], "fiber") == 0) {
     // ... fiber $fiberID $field
     if (argc < 3) {
-      opserr << "MixedFrameSection::setParameter - fiberID is required\n";
+      opserr << "MultiaxialFiberSection::setParameter - fiberID is required\n";
       return -1;
     }
     int fiberID = atoi(argv[1]);
@@ -1093,7 +1097,7 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
   else if (strcmp(argv[0], "shift_shear") == 0) {
     // ... shift_shear i j
     if (argc < 3) {
-      opserr << "MixedFrameSection::setParameter - i, j, value are required\n";
+      opserr << "MultiaxialFiberSection::setParameter - i, j, value are required\n";
       return -1;
     }
     int i = atoi(argv[1]);
@@ -1107,7 +1111,7 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
     else if ((i == 2) && (j == 1))
       return param.addObject(Param::ShearAlignZY, this);
     else {
-      opserr << "MixedFrameSection::setParameter - invalid i, j: " << i << ", " << j << "\n";
+      opserr << "MultiaxialFiberSection::setParameter - invalid i, j: " << i << ", " << j << "\n";
       return -1;
     }
   }
@@ -1115,7 +1119,7 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
   else if (strcmp(argv[0], "shift_axial") == 0) {
     // ... shift_axial i 
     if (argc < 2) {
-      opserr << "MixedFrameSection::setParameter - i is required\n";
+      opserr << "MultiaxialFiberSection::setParameter - i is required\n";
       return -1;
     }
     int i = atoi(argv[1]);
@@ -1125,7 +1129,7 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
       case 2:
         return param.addObject(Param::ShiftAxialZ, this);
       default:
-        opserr << "MixedFrameSection::setParameter - invalid i: " << i << "\n";
+        opserr << "MultiaxialFiberSection::setParameter - invalid i: " << i << "\n";
         return -1;
     }
   }
@@ -1133,7 +1137,7 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
   else if (strcmp(argv[0], "shift_twist") == 0) {
     // ... shift_twist i 
     if (argc < 2) {
-      opserr << "MixedFrameSection::setParameter - i is required\n";
+      opserr << "MultiaxialFiberSection::setParameter - i is required\n";
       return -1;
     }
     int i = atoi(argv[1]);
@@ -1143,7 +1147,7 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
       case 2:
         return param.addObject(Param::ShiftTwistZ, this);
       default:
-        opserr << "MixedFrameSection::setParameter - invalid i: " << i << "\n";
+        opserr << "MultiaxialFiberSection::setParameter - invalid i: " << i << "\n";
         return -1;
     }
   }
@@ -1177,7 +1181,7 @@ MixedFrameSection::setParameter(const char **argv, int argc, Parameter &param)
 }
 
 int
-MixedFrameSection::updateParameter(int paramID, Information &info)
+MultiaxialFiberSection::updateParameter(int paramID, Information &info)
 {
   fiber_state = FiberState::Dirty;
 
@@ -1279,20 +1283,20 @@ MixedFrameSection::updateParameter(int paramID, Information &info)
 }
 
 int
-MixedFrameSection::activateParameter(int paramID)
+MultiaxialFiberSection::activateParameter(int paramID)
 {
   parameterID = paramID;
   return 0;
 }
 
 const Vector &
-MixedFrameSection::getSectionDeformationSensitivity(int gradIndex)
+MultiaxialFiberSection::getSectionDeformationSensitivity(int gradIndex)
 {
   return dedh;
 }
 
 const Vector &
-MixedFrameSection::getStressResultantSensitivity(int gradIndex, bool conditional)
+MultiaxialFiberSection::getStressResultantSensitivity(int gradIndex, bool conditional)
 {
   VectorND<6> ds{};
   const VectorND<6> e_rigid {
@@ -1368,7 +1372,7 @@ MixedFrameSection::getStressResultantSensitivity(int gradIndex, bool conditional
 }
 
 const Matrix &
-MixedFrameSection::getInitialTangentSensitivity(int gradIndex)
+MultiaxialFiberSection::getInitialTangentSensitivity(int gradIndex)
 {
   static Matrix dksdh(nsr,nsr);
   
@@ -1378,7 +1382,7 @@ MixedFrameSection::getInitialTangentSensitivity(int gradIndex)
 
 
 int
-MixedFrameSection::commitSensitivity(const Vector& de,
+MultiaxialFiberSection::commitSensitivity(const Vector& de,
                                      int gradIndex, int numGrads)
 {
   VectorND<6> de_rigid{}, e_rigid{};
@@ -1408,7 +1412,7 @@ MixedFrameSection::commitSensitivity(const Vector& de,
 
 
 inline void
-MixedFrameSection::formShapeWeightsSensitivity(Matrix3D& dGr, Matrix3D& dGw,
+MultiaxialFiberSection::formShapeWeightsSensitivity(Matrix3D& dGr, Matrix3D& dGw,
                              Vector3D& dcentroid, double& dnubar) const noexcept
 {
   dGr.zero();
@@ -1419,7 +1423,7 @@ MixedFrameSection::formShapeWeightsSensitivity(Matrix3D& dGr, Matrix3D& dGw,
 
 
 inline int
-MixedFrameSection::applyMixedInverse(const Matrix3D& Knn,
+MultiaxialFiberSection::applyMixedInverse(const Matrix3D& Knn,
                                      const Vector3D& rhs,
                                      Vector3D& x) const
 {
@@ -1442,7 +1446,7 @@ MixedFrameSection::applyMixedInverse(const Matrix3D& Knn,
 }
 
 int
-MixedFrameSection::solveMixedSensitivity(int gradIndex,
+MultiaxialFiberSection::solveMixedSensitivity(int gradIndex,
                                          const VectorND<6>& e_rigid,
                                          const Vector3D& dalpha,
                                          const Vector3D& alpha,
@@ -1514,7 +1518,7 @@ MixedFrameSection::solveMixedSensitivity(int gradIndex,
 }
 
 int
-MixedFrameSection::WarpShapeGrad(const FiberData& fiber,
+MultiaxialFiberSection::WarpShapeGrad(const FiberData& fiber,
               Matrix3D& diow, Matrix3D& diodw,
               int i) const noexcept
 {
@@ -1552,7 +1556,7 @@ MixedFrameSection::WarpShapeGrad(const FiberData& fiber,
 
 
 inline void
-MixedFrameSection::MixedShapeGrad(const FiberData& fiber,
+MultiaxialFiberSection::MixedShapeGrad(const FiberData& fiber,
                const Matrix3D& Gr,  const Matrix3D& Gw,
                const Matrix3D& dGr, const Matrix3D& dGw,
                const Vector3D& dcentroid, double dnubar,
@@ -1631,7 +1635,7 @@ MixedFrameSection::MixedShapeGrad(const FiberData& fiber,
 
 
 void
-MixedFrameSection::Print(OPS_Stream &s, int flag)
+MultiaxialFiberSection::Print(OPS_Stream &s, int flag)
 {
   const int nf = fibers->size();
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {

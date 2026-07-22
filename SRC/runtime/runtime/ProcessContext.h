@@ -42,8 +42,8 @@ public:
   Channel** getChannels() const {return theChannels;}
   int getNumChannels() const {return numChannels;}
 
-  int setup(Interpreter&);
-  int clean(Interpreter&) {return 0;}
+  int setup(Tcl_Interp* interp);
+  int clean(Tcl_Interp* interp) {return 0;}
 
 private:
   XaraClassBroker *m_obroker;

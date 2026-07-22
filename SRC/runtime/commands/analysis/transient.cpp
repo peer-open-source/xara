@@ -46,7 +46,7 @@ TclCommand_newNewmarkIntegrator(ClientData clientData,
   double gamma, beta;
   double alphaM = 1.0,
          alphaF = 1.0;
-  bool useGeneralized = true;
+  bool useGeneralized = false; //true;
 
   // Keep track of required arguments
   bool gotBeta  = false,

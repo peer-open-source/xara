@@ -87,7 +87,7 @@ HardeningMaterial2::setTrialStrain (double strain, double strainRate)
   // Plastic step ... perform return mapping algorithm
   else {
     double etadt = 0.0;
-    
+  
     if (eta != 0.0 || ops_Dt != 0)
       etadt = eta/ops_Dt;
     

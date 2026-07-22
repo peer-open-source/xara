@@ -33,26 +33,26 @@ class Response;
 namespace OpenSees {
 
 
-class MixedFrameSection : public FrameSection
+class MultiaxialFiberSection : public FrameSection
 {
   public:
     using MixedType = Frame::Shape::MixedType;
   
-    MixedFrameSection(int tag, 
+    MultiaxialFiberSection(int tag, 
                       int reserve, 
                       MixedType type, 
                       bool wagner, 
                       concurrency_t num_threads );
   private:
-    MixedFrameSection(const MixedFrameSection &);
+    MultiaxialFiberSection(const MultiaxialFiberSection &);
   public:
-    ~MixedFrameSection();
+    ~MultiaxialFiberSection();
 
     int addFiber(MaterialBuilder&, double area, double y, double z=0.0);
 
     //
     const char *getClassType() const {
-      return "MixedFrameSection";
+      return "MultiaxialFiberSection";
     }
 
     int   setTrialSectionDeformation(const Vector &e);

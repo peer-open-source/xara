@@ -506,7 +506,7 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
   // 
   // Values we're parsing for
   //
-  int tag;
+  Xara::Tag tag;
   double density = 0.0;
   // Isotropy
   IsotropicConstants consts {};
@@ -519,11 +519,11 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
   struct {
     std::vector<double> Q{0.0}, b{0.0};
   } isotropic;
+  double Hiso=0.0;
   struct {
     double speed = 0.0,
            limit = 0.0;
   } overstress;
-  double Hiso=0.0;
 
   struct {
     double theta = 1.0;
@@ -534,8 +534,9 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
   double eta=0;
   // Drucker-Prager
   double rho = 0, rho_bar = 0;
-  double atm = 101.0;
+  double atm    = 101.0;
   double delta2 = 0.0;
+  //
   double yield_tol = 1e-16;
   int max_iter = 15;
 
@@ -646,6 +647,12 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
         opserr << "Invalid overstress speed value " << argv[i-1] << "\n";
         return TCL_ERROR;
       }
+      if (overstress.speed < 0.0) {
+        opserr << OpenSees::PromptValueError
+               << "Value for " << argv[i-1] << " must be positive."
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
     }
     else if ((strcmp(argv[i], "-gtol") == 0) || (strcmp(argv[i], "-tol") == 0)) {
       if (++i >= argc) {
@@ -682,7 +689,7 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
         opserr << "Missing value for option " << argv[i-1] << "\n";
         return TCL_ERROR;
       }
-      // Accept either a single value or a list of values for Q. 
+      // Accept either a single value or a list of values for Q.
       int argc_iso;
       TCL_Char** argv_iso;
       if (Tcl_SplitList(interp, argv[i], &argc_iso, &argv_iso) != TCL_OK) {
@@ -740,6 +747,7 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
       }
       tracker.consume(Position::Hsat);
     }
+    // Kinematic hardening
     else if ((strcmp(argv[i], "-C") == 0) || 
              (strcmp(argv[i], "-Hkin") == 0) || 
              (strcmp(argv[i], "-kinematic-hardening") == 0)) {
@@ -747,7 +755,7 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
         opserr << "Missing value for option " << argv[i-1] << "\n";
         return TCL_ERROR;
       }
-      
+
       int argc_kin;
       TCL_Char** argv_kin;
       if (Tcl_SplitList(interp, argv[i], &argc_kin, &argv_kin) != TCL_OK) {
@@ -797,6 +805,7 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
         Tcl_Free((char*)argv_kin);
       }
     }
+
     else if (strcmp(argv[i], "-Hiso") == 0 || 
              strcmp(argv[i], "-isotropic-hardening") == 0) {
       if (++i >= argc) {
@@ -1346,6 +1355,30 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
            << "GeneralizedJ2 material requires Xara to be built with GeneralizedJ2 support.\n";
     return TCL_ERROR;
 #else
+    GeneralizedJ2::HRule h_type = GeneralizedJ2::HRule::GP;
+    if ((overstress.speed == 0.0) && (overstress.limit == 0.0)) {
+      h_type = GeneralizedJ2::HRule::LP;
+    }
+    else if ((overstress.speed > 0.0) && (overstress.limit == 0.0)) {
+      opserr << OpenSees::PromptParseError
+             << "Invalid generalized J2 hardening rule.\n";
+      return TCL_ERROR;
+    }
+    else if ((overstress.speed == 0.0) && (overstress.limit > 0.0)) {
+      opserr << OpenSees::PromptParseError
+             << "Invalid generalized J2 hardening rule.\n";
+      return TCL_ERROR;
+    }
+    else if ((overstress.speed > 0.0) && (overstress.limit > 0.0)) {
+      for (double g : kinematic.gamma) {
+        if (g != 0.0) {
+          opserr << OpenSees::PromptParseError
+                << "Nonlinear kinematic hardening is not supported for generalized J2 with overstress.\n";
+          return TCL_ERROR;
+        }
+      }
+      h_type = GeneralizedJ2::HRule::GP;
+    }
     NDMaterial* theMaterial = new GeneralizedJ2(tag,
                                                consts.E, consts.nu,
                                                Fy,
@@ -1354,7 +1387,7 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
                                                kinematic.C[0],
                                                overstress.speed,
                                                density, 
-                                               GeneralizedJ2::HRule::GP);
+                                               h_type);
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
       delete theMaterial;
       return TCL_ERROR;
@@ -1377,6 +1410,11 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
       Q[0] = isotropic.Q[0];
     if (isotropic.Q.size() > 1)
       Q[1] = isotropic.Q[1];
+    if (isotropic.b.size() > 2 || isotropic.Q.size() > 2) {
+      opserr << OpenSees::PromptParseError
+             << argv[1] << " accepts at most two values for b and Q.\n";
+      return TCL_ERROR;
+    }
 
 
     NDMaterial* theMaterial = nullptr;

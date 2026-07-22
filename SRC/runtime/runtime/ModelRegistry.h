@@ -40,6 +40,8 @@ class OPS_Stream;
 class ID;
 class Domain;
 class InterpreterResponse;
+class UniaxialMaterial;
+class NDMaterial;
 
 using Xara::ProcessContext;
 
@@ -60,12 +62,28 @@ public:
   // Managing tagged objects
   //
   template<class T> int addTypedObject(int tag, T* obj) {
-    return addRegistryObject(typeid(T).name(), nullptr, tag, obj);
+    auto status = addRegistryObject(typeid(T).name(), nullptr, tag, obj);
+    if constexpr (std::is_same<T, NDMaterial>::value) {
+      if (status == TCL_OK)
+        obj->setDomain(theDomain);
+    }
+    return status;
   }
 
   template<class T, const char* specialize=nullptr> int addTaggedObject(T& obj) {
     int tag = obj.getTag();
-    return addRegistryObject(typeid(T).name(), specialize, tag, &obj);
+    auto status =  addRegistryObject(typeid(T).name(), specialize, tag, &obj);
+
+    //
+    if constexpr (std::is_same<T, NDMaterial>::value) {
+      if (status == TCL_OK)
+        obj.setDomain(theDomain);
+    }
+    // else if constexpr (std::is_same<T, UniaxialMaterial>::value) {
+    //   if (status == 0)
+    //     obj.setDomain(theDomain);
+    // }
+    return status;
   }
 
   constexpr static int SilentLookup = 1;

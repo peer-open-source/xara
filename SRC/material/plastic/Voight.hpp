@@ -15,6 +15,7 @@
 //
 #pragma once
 #include <MatrixND.h>
+#include <Matrix3D.h>
 #include <VectorND.h>
 #include <cmath>
 
@@ -33,7 +34,55 @@ Trace(const VectorND<6> &v)
 }
 
 
-static inline VectorND<6> 
+  // // 6x9 Voight mapping used like: (P^vec6) -> 9x1   and   (P*vec9) -> 6x1
+  // static constexpr MatrixND<6,9> P {
+  //   // NOTE: this appears transposed because MatrixND is column-major
+  //   1.0000,        0,        0,        0,        0,        0,
+  //        0,   1.0000,        0,        0,        0,        0,
+  //        0,        0,   1.0000,        0,        0,        0,
+  //        0,        0,        0,   0.5000,        0,        0,
+  //        0,        0,        0,   0.5000,        0,        0,
+  //        0,        0,        0,        0,   0.5000,        0,
+  //        0,        0,        0,        0,   0.5000,        0,
+  //        0,        0,        0,        0,        0,   0.5000,
+  //        0,        0,        0,        0,        0,   0.5000};
+
+static inline VectorND<9>
+ExpandVector(const VectorND<6> &v)
+{
+  // return P^v
+  return VectorND<9> {
+      v(0), v(1), v(2), 
+      0.5*v(3), 0.5*v(3), 
+      0.5*v(4), 0.5*v(4),
+      0.5*v(5), 0.5*v(5)
+  };
+}
+
+static inline Matrix3D
+ExpandTensor(const VectorND<6> &v)
+{
+  return Matrix3D {{
+          v(0), 0.5*v(3), 0.5*v(5),
+      0.5*v(3),     v(1), 0.5*v(4),
+      0.5*v(5), 0.5*v(4),     v(2)
+    }};
+}
+
+static inline VectorND<6>
+ReduceVector(const VectorND<9> &v)
+{
+  // return P*v
+  return VectorND<6> {
+      v(0), v(1), v(2),
+      0.5*(v(3) + v(4)), 
+      0.5*(v(5) + v(6)),
+      0.5*(v(7) + v(8))
+  };
+}
+
+
+static inline VectorND<6>
 Dev(const VectorND<6> &v)
 {
   VectorND<6> dev = v;
@@ -45,12 +94,45 @@ Dev(const VectorND<6> &v)
 }
 
 
-static inline double 
-Dot(const VectorND<6> &a, const VectorND<6> &b)
+// static inline double 
+// Dot(const VectorND<6> &a, const VectorND<6> &b, int type=1)
+// {
+//   switch (type) {
+//   case 3: // stress : strain
+//     return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+//           + 0.5*(a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+
+//   case 2: // strain : strain
+//     return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+//           + 2.0*(a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+
+//   case 1: // stress : stress
+//   default:
+//     return       a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+//           + 2.0*(a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+//   }
+// }
+
+static inline double
+Dot(const VectorND<6>& a, const VectorND<6>& b, int type = 1)
 {
-  // the last 3 components contain the symmetric terms.
-  return       a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
-        + 2.0*(a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+  switch (type) {
+  case 1: // stress : stress
+      return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+            + 2.0 * (a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+
+  case 2: // strain : strain
+      return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+            + 0.5 * (a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+
+  case 3: // stress : strain
+      return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+            +       (a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+
+  default:
+      return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+            +       (a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+  }
 }
 
 // static inline VectorND<6>
@@ -77,22 +159,30 @@ Bun(MatrixND<6,6>& P,
     const VectorND<3>& n4,
     const double scale)
 {
-    const VectorND<6> pi = {
-        n1[0]*n2[0], n1[1]*n2[1], n1[2]*n2[2],
-        n1[0]*n2[1], n1[1]*n2[2], n1[2]*n2[0]
-    };
-    const VectorND<6> pj = {
-        n3[0]*n4[0], n3[1]*n4[1], n3[2]*n4[2],
-        n3[0]*n4[1], n3[1]*n4[2], n3[2]*n4[0]
-    };
-    P.addTensorProduct(pi, pj, scale);
+  const VectorND<6> pi = {
+      n1[0]*n2[0], n1[1]*n2[1], n1[2]*n2[2],
+      n1[0]*n2[1], n1[1]*n2[2], n1[2]*n2[0]
+  };
+  const VectorND<6> pj = {
+      n3[0]*n4[0], n3[1]*n4[1], n3[2]*n4[2],
+      n3[0]*n4[1], n3[1]*n4[2], n3[2]*n4[0]
+  };
+  P.addTensorProduct(pi, pj, scale);
 }
 
+
+static inline void
+AddVol(VectorND<6>& v, const double scale)
+{
+  v(0) += scale;
+  v(1) += scale;
+  v(2) += scale;
+}
 
 static inline double
 J2(const VectorND<6> &v)
 {
-  //J2 = Dot(Dev(v), Dev(v))/2.0 == NormDev(v)/2
+  // J2 = Dot(Dev(v), Dev(v))/2.0 == NormDev(v)/2
   return ( std::pow((v(0) - v(1)),2) 
         +  std::pow((v(0) - v(2)),2)
         +  std::pow((v(1) - v(2)),2))/6.0
@@ -102,19 +192,19 @@ J2(const VectorND<6> &v)
 
 // 2nd order Identity Tensor
 static constexpr MatrixND<3,3> I1 {{
-      1.0, 0.0, 0.0 ,
-      0.0, 1.0, 0.0 ,
-      0.0, 0.0, 1.0 
+    1.0, 0.0, 0.0 ,
+    0.0, 1.0, 0.0 ,
+    0.0, 0.0, 1.0 
 }};
 
 // 4th order mixed variant identity tensor (51b)
 static constexpr MatrixND<6,6> IImix {{
-      1, 0, 0,  0, 0, 0 ,
-      0, 1, 0,  0, 0, 0 ,
-      0, 0, 1,  0, 0, 0 ,
-      0, 0, 0,  1, 0, 0 ,
-      0, 0, 0,  0, 1, 0 ,
-      0, 0, 0,  0, 0, 1 ,
+    1, 0, 0,  0, 0, 0 ,
+    0, 1, 0,  0, 0, 0 ,
+    0, 0, 1,  0, 0, 0 ,
+    0, 0, 0,  1, 0, 0 ,
+    0, 0, 0,  0, 1, 0 ,
+    0, 0, 0,  0, 0, 1 ,
 }};
 
 // 4th order covariant identity tensor (51a)

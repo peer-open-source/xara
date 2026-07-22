@@ -31,6 +31,9 @@
 #include <Parameter.h>
 #include <ParameterIter.h>
 
+// Modal damping
+#include <analysis/damping/ModalDamping.h>
+
 
 GeneralizedNewmark::GeneralizedNewmark(double gamma,  double beta, 
                                        double alphaF, double alphaM,
@@ -342,16 +345,18 @@ GeneralizedNewmark::update(const Vector &deltaX)
   
   // check domainChanged() has been called, i.e. Ut will not be null
   if (Uo == nullptr)  {
-      opserr << "WARNING GeneralizedNewmark::update() - domainChange() failed or not called\n";
-      return -2;
+    opserr << "WARNING GeneralizedNewmark::update() - domainChange() failed or not called\n";
+    return -2;
   }  
 
   // check deltaX is of correct size
   if (deltaX.Size() != Un->Size())  {
-      opserr << "WARNING GeneralizedNewmark::update() - Vectors of incompatible size ";
-      opserr << " expecting " << Un->Size() << " obtained " << deltaX.Size() << endln;
-      return -3;
+    opserr << "WARNING GeneralizedNewmark::update() - Vectors of incompatible size ";
+    opserr << " expecting " << Un->Size() << " obtained " << deltaX.Size() << "\n";
+    return -3;
   }
+
+  ModalDamping* damping = theModel->getModalDamping();
   
   //  determine the response at t+deltaT
   switch (unknown) {

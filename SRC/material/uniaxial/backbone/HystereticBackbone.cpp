@@ -60,7 +60,7 @@ OPS_ADD_RUNTIME_VXV(OPS_clearAllHystereticBackbone)
 
 
 HystereticBackbone::HystereticBackbone (int tag, int classTag):
-  TaggedObject(tag), MovableObject(classTag)
+  TaggedObject(tag)//, MovableObject(classTag)
 {
   
 }

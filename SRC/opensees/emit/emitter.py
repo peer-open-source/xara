@@ -130,7 +130,7 @@ class ScriptBuilder:
             except AttributeError:
                 w.Arg(arg, value=value)
 
-        w.endln();
+        w.endln()
 
         if not self.registry.registered(obj):
             self.registry.register(obj)

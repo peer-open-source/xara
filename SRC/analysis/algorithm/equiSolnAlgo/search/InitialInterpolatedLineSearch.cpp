@@ -24,6 +24,7 @@
 // What: "@(#)InitialInterpolatedLineSearch.h, revA"
 //
 #include <InitialInterpolatedLineSearch.h>
+#include <SolutionAlgorithm.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
 #include <Channel.h>
@@ -122,16 +123,14 @@ InitialInterpolatedLineSearch::search(double s0,
     *x = dU;
     *x *= eta-etaPrev;
             
-    if (theIntegrator.update(*x) < 0) {
-      opserr << "WARNInG InitialInterpolatedLineSearch::search() -";
-      opserr << "the Integrator failed in update()\n";        
-      return -1;
+    if (theIntegrator.update(*x) < 0) { 
+      return SolutionAlgorithm::BadStepUpdate;
     }
     
     if (theIntegrator.formUnbalance() < 0) {
-      opserr << "WARNInG InitialInterpolatedLineSearch::search() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
-      return -2;
+      // opserr << "WARNING InitialInterpolatedLineSearch::search() -";
+      // opserr << "the Integrator failed in formUnbalance()\n";
+      return SolutionAlgorithm::BadFormResidual;
     }        
 
     //new residual
@@ -146,7 +145,8 @@ InitialInterpolatedLineSearch::search(double s0,
     if (printFlag == 0) {
       opserr << "InitialInterpolated Line Search - iteration: " << count 
            << " , eta(j) : " << eta
-           << " , Ratio |sj/s0| = " << r << endln;
+           << " , Ratio |sj/s0| = " << r 
+           << "\n";
     }    
 
     // reset the variables, also check not just hitting bounds over and over
