@@ -13,18 +13,19 @@
 **                                                                    **
 ** ****************************************************************** */
 
-// Written: Diego Turello(*), Alborz Ghofrani and Pedro Arduino
-//			Sep 2017, University of Washington
-//          (*) Universidad Nacional de C�rdoba, FCEFyN. Depto Estructuras.
-//              Universidad Tecnol�gica Nacional, GIMNI.
-//              CONICET
-// 
 // Description: This file contains the implementation for the Borja material class.
 // MultiaxialCyclicPlasticity for class
 //
 // Borja R.I, Amies, A.P. "Multiaxial Cyclic Plasticity Model for Clays",
 // ASCE J.Geotech.Eng.Vol 120, No 6, 1051 - 1070
 //            
+
+// Written: Diego Turello(*), Alborz Ghofrani and Pedro Arduino
+//			Sep 2017, University of Washington
+//          (*) Universidad Nacional de C�rdoba, FCEFyN. Depto Estructuras.
+//              Universidad Tecnol�gica Nacional, GIMNI.
+//              CONICET
+// 
 
 #ifndef J2CyclicBoundingSurface_h
 #define J2CyclicBoundingSurface_h
@@ -47,11 +48,10 @@ class J2CyclicBoundingSurface : public NDMaterial {
 
 public:
 
-	//null constructor
+	// null constructor
 	J2CyclicBoundingSurface();
 
-	//full constructor
-
+	// full constructor
 	J2CyclicBoundingSurface(int tag, 
 		int classTag,
 		double G,
@@ -98,7 +98,7 @@ public:
 protected:
 	static char unsigned m_ElastFlag;	// 1: enforce elastic response
 
-//material parameters
+    // material parameters
 	double m_su;          // undrained shear strength
 	double m_R;           // radius of the bounding surface
 	double m_bulk;        // bulk modulus
