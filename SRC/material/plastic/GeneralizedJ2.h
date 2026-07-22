@@ -78,7 +78,7 @@ private:
 
   // history (past/present)
   struct {
-    VectorND<6> sig;    // Cauchy stress (Voigt 11,22,33,12,13,23)
+    VectorND<6> sig;    // Cauchy stress
     VectorND<6> eps_p;  // plastic strain
     VectorND<9> sig_b;  // back-stress (deviatoric, Voigt)
     double sigdnrm;     // || dev(s) - back-stress || (J2 metric)

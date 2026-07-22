@@ -27,6 +27,43 @@
 #include "J2CyclicBoundingSurface3D.h"
 
 
+
+#include <elementAPI.h>
+
+void * OPS_ADD_RUNTIME_VPV(OPS_J2CyclicBoundingSurfaceMaterial)
+{
+    int numdata = OPS_GetNumRemainingInputArgs();
+
+    if (numdata < 10) {
+        opserr << "WARNING: Insufficient arguements\n";
+        opserr << "Want: nDMaterial J2CyclicBoundingSurface tag? G? K? su? rho? h? m? k_in?  chi? beta?\n";
+        return 0;
+    }
+
+    int tag;
+
+    numdata = 1;
+    if (OPS_GetIntInput(&numdata, &tag) < 0) {
+        opserr << "WARNING invalid J2CyclicBoundingSurface tag\n";
+        return 0;
+    }
+
+    double data[9] = { 0,0,0,0,0,0,0,0,0 };
+    numdata = OPS_GetNumRemainingInputArgs();
+    if (numdata != 9) {
+        opserr << "WARNING error in  J2CyclicBoundingSurface number of arg incorrect\n";
+        return 0;
+    }
+    if (OPS_GetDoubleInput(&numdata, data)) {
+        opserr << "WARNING invalid J2CyclicBoundingSurface double inputs\n";
+        return 0;
+    }
+
+    return new J2CyclicBoundingSurface3D(tag, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]);
+
+}
+
+
 Matrix J2CyclicBoundingSurface3D::tangent(3, 3);
 
 
@@ -50,10 +87,10 @@ J2CyclicBoundingSurface3D::~J2CyclicBoundingSurface3D()
 // make a clone of this material
 NDMaterial* 
 J2CyclicBoundingSurface3D::getCopy()
-{ 
-    J2CyclicBoundingSurface3D *clone;
-    clone = new J2CyclicBoundingSurface3D();
-    *clone = *this;
+{
+    J2CyclicBoundingSurface3D *clone = new J2CyclicBoundingSurface3D(this->getTag(), 
+                        m_shear, m_bulk, m_su, m_density, m_h_par, m_m_par, m_h0_par, m_chi, m_beta);
+    // *clone = *this;
     return clone;
 }
 
@@ -75,7 +112,9 @@ J2CyclicBoundingSurface3D::getOrder() const
 int 
 J2CyclicBoundingSurface3D::setTrialStrain(const Vector &strain_from_element)
 {
-    m_strain_np1 = strain_from_element;
+    for (int i = 0; i < 6; ++i)
+        m_strain_np1(i) = strain_from_element(i);
+    // m_strain_np1 = strain_from_element;
     this->integrate();
 
     return 0;
@@ -105,7 +144,9 @@ const Vector&
 J2CyclicBoundingSurface3D::getStress()
 {
     //return m_stress_np1;
-    return m_stress_t_n1;
+    // return m_stress_t_n1;
+    return_vector.setData(m_stress_t_n1);
+    return return_vector;
 }
 
 // send back the tangent 

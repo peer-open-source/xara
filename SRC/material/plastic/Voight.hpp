@@ -82,7 +82,7 @@ ReduceVector(const VectorND<9> &v)
 }
 
 
-static inline VectorND<6> 
+static inline VectorND<6>
 Dev(const VectorND<6> &v)
 {
   VectorND<6> dev = v;
@@ -94,22 +94,44 @@ Dev(const VectorND<6> &v)
 }
 
 
-static inline double 
-Dot(const VectorND<6> &a, const VectorND<6> &b, int type=1)
+// static inline double 
+// Dot(const VectorND<6> &a, const VectorND<6> &b, int type=1)
+// {
+//   switch (type) {
+//   case 3: // stress : strain
+//     return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+//           + 0.5*(a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+
+//   case 2: // strain : strain
+//     return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+//           + 2.0*(a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+
+//   case 1: // stress : stress
+//   default:
+//     return       a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+//           + 2.0*(a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+//   }
+// }
+
+static inline double
+Dot(const VectorND<6>& a, const VectorND<6>& b, int type = 1)
 {
   switch (type) {
-  case 3: // stress : strain
-    return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
-          + 0.5*(a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+  case 1: // stress : stress
+      return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+            + 2.0 * (a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
 
   case 2: // strain : strain
-    return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
-          + 2.0*(a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+      return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+            + 0.5 * (a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
 
-  case 1: // stress : stress
+  case 3: // stress : strain
+      return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+            +       (a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+
   default:
-    return       a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
-          + 2.0*(a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
+      return a(0)*b(0) + a(1)*b(1) + a(2)*b(2)
+            +       (a(3)*b(3) + a(4)*b(4) + a(5)*b(5));
   }
 }
 
@@ -170,19 +192,19 @@ J2(const VectorND<6> &v)
 
 // 2nd order Identity Tensor
 static constexpr MatrixND<3,3> I1 {{
-      1.0, 0.0, 0.0 ,
-      0.0, 1.0, 0.0 ,
-      0.0, 0.0, 1.0 
+    1.0, 0.0, 0.0 ,
+    0.0, 1.0, 0.0 ,
+    0.0, 0.0, 1.0 
 }};
 
 // 4th order mixed variant identity tensor (51b)
 static constexpr MatrixND<6,6> IImix {{
-      1, 0, 0,  0, 0, 0 ,
-      0, 1, 0,  0, 0, 0 ,
-      0, 0, 1,  0, 0, 0 ,
-      0, 0, 0,  1, 0, 0 ,
-      0, 0, 0,  0, 1, 0 ,
-      0, 0, 0,  0, 0, 1 ,
+    1, 0, 0,  0, 0, 0 ,
+    0, 1, 0,  0, 0, 0 ,
+    0, 0, 1,  0, 0, 0 ,
+    0, 0, 0,  1, 0, 0 ,
+    0, 0, 0,  0, 1, 0 ,
+    0, 0, 0,  0, 0, 1 ,
 }};
 
 // 4th order covariant identity tensor (51a)

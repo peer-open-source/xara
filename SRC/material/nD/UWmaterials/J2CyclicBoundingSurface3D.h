@@ -46,9 +46,9 @@ class J2CyclicBoundingSurface3D : public J2CyclicBoundingSurface
   //destructor
   ~J2CyclicBoundingSurface3D();
 
-  NDMaterial *getCopy(void);
-  const char *getType(void) const;
-  int getOrder(void) const;
+  NDMaterial *getCopy() override;
+  const char *getType() const;
+  int getOrder() const;
 
   int setTrialStrain(const Vector &strain_from_element);
 
