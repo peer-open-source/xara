@@ -63,7 +63,7 @@ G3_TclElementCommand TclBasicBuilder_addBeamGT;
 
 
 int
-TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+XaraCmd_element(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   using OpenSees::Library::ElementLibrary;
 

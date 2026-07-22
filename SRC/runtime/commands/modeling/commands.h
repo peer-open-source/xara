@@ -38,7 +38,7 @@ extern Tcl_CmdProc  TclCommand_addTimeSeries;
 extern Tcl_CmdProc  TclCommand_addGeomTransf;
 
 // element.cpp
-extern Tcl_CmdProc  TclCommand_addElement;
+extern Tcl_CmdProc  XaraCmd_element;
 
 // blockND.cpp
 extern Tcl_CmdProc  TclCommand_doBlock2D;
@@ -118,7 +118,7 @@ constexpr ModelBuilderCommands[] =  {
   {"getNDF",               XaraCmd_getNDF},
   {"node",                 XaraCmd_node},
   {"mass",                 XaraCmd_mass},
-  {"element",              TclCommand_addElement},
+  {"element",              XaraCmd_element},
 
   {"print",                TclCommand_print},
   {"classType",            TclCommand_classType},
