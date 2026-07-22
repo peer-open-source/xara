@@ -9,6 +9,7 @@ target_sources(OPS_Handler
   PRIVATE
     OPS_Stream.cpp
     StandardStream.cpp
+    StringStream.cpp
     FileStream.cpp
     XmlFileStream.cpp
     DataFileStream.cpp
@@ -21,6 +22,7 @@ target_sources(OPS_Handler
   PUBLIC
     OPS_Stream.h
     StandardStream.h
+    StringStream.h
     FileStream.h
     XmlFileStream.h
     DataFileStream.h
