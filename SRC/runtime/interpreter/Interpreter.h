@@ -26,7 +26,7 @@
 namespace Xara {
 
 
-
+#if 0
 class Interpreter {
 public:
   enum class Status : int {
@@ -70,5 +70,5 @@ private:
   Tcl_Interp* const m_interp;
   StringStream m_stream;
 };
-
+#endif
 }
