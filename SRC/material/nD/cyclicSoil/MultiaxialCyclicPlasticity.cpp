@@ -1296,7 +1296,7 @@ LABEL6:
       for ( j = 0; j < 3; j++ ) {
         dottemp6 += temp6(i,j)*temp6(i,j);
       }
-     } //end for i 
+     }
 
     if (dottemp6 >=0) {
       g2=R-sqrt(dottemp6);
@@ -1390,9 +1390,9 @@ LABEL6:
        // we are here when the loading is partially inside BS, partially on BS
        // alp is defined as epstotal=eps(inside)*alp+eps(outside)*(1-alp)
        // value of Psi between kappa (t=n) inside BS and kappa=0 on BS   
-          debugInfo(4)=6;
-  
-       double chichi;
+      debugInfo(4)=6;
+
+      double chichi;
       double chide ;
       chichi=0; chide=0;
       for ( i = 0; i < 3; i++ ){
@@ -1406,9 +1406,9 @@ LABEL6:
       alp = (-chide+sqrt(chide*chide+normde*normde*(R*R-chichi)));
       alp = alp /(Psi_split *normde*normde); 
 
- 
-        double insidesqrt;
-      insidesqrt=chide*chide+normde*normde*(R*R-chichi);
+
+      double insidesqrt;
+      insidesqrt = chide*chide+normde*normde*(R*R-chichi);
 
       if ((alp > 1.0)||(insidesqrt<0)||(alp < 0.0) ){
         debugInfo(4)=7;
@@ -1438,8 +1438,8 @@ LABEL10:
  if (plasticflag==0)  // bounding surface mapping rule
  {  
 
-        debugInfo(5)=1;
-        // update cauchy stresses using incremental strain
+      debugInfo(5)=1;
+      // update cauchy stresses using incremental strain
       twomu=X[1];
 
       s  = s_n ;
@@ -1478,7 +1478,7 @@ LABEL10:
       // a consistent tangent
 
           // compute tangent again
-        for ( ii = 0; ii < 6; ii++ ) {
+      for ( ii = 0; ii < 6; ii++ ) {
         for ( jj = 0; jj < 6; jj++ )  {
           index_map( ii, i, j ) ;
           index_map( jj, k, l ) ;
@@ -1493,18 +1493,18 @@ LABEL10:
    } 
 
    if (plasticflag > 0) // plasticflag = 1,2   plastic loading   pp.15
-   { 
-      
-      if ((X[1]==2.0*shear)&&(unloadflag!=1)&&(zeroloadflag!=1)){
-        opserr<<"MCP::warning...WHY X[1]=2G at plasticflag>0 and not unload?"<<endln;
-        opserr<<"MCP::debugInfo= "<<debugInfo<<endln;
-        showdebugInfo=1;
+   {
+    if ((X[1]==2.0*shear)&&(unloadflag!=1)&&(zeroloadflag!=1)){
+      opserr<<"MCP::warning...WHY X[1]=2G at plasticflag>0 and not unload?"<<endln;
+      opserr<<"MCP::debugInfo= "<<debugInfo<<endln;
+      showdebugInfo=1;
     }
 
 
     twomu   = 2.0 * shear;
     if (plasticflag==1)
-    {  debugInfo(5)=2;
+    {
+      debugInfo(5)=2;
       alp = 0.0;
       strial  = s_n ;
       strial += twomu*de;
@@ -1530,6 +1530,7 @@ LABEL10:
         normchi += chitri(i,j)*chitri(i,j);
       } // end for j
     } //end for i 
+  
     if (normchi >= 0) {
       normchi = sqrt (normchi);
     } 
@@ -1653,11 +1654,8 @@ LABEL10:
    if (showdebugInfo==1){
     opserr<<"END OF INTEGRATOR::debugInfo= "<<debugInfo<<endln;   
    }
-    //if ((iternum>20)&&(this->getEleTag()==151)){
-     //opserr<<"MCP::debugInfo= "<<debugInfo<<endln;
-       //opserr<<"MCP::plasticflag= "<<plasticflag<<endln;
-    //}
-}  // end of this subroutine
+   return 0;
+}
 
 
 Vector MultiaxialCyclicPlasticity::MCPparameter(10) ;
