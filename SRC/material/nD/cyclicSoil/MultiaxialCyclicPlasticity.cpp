@@ -1677,10 +1677,10 @@ MultiaxialCyclicPlasticity::getMCPparameter()
  double norm = 0 ;
  double p = one3 * (stress(0,0)+stress(1,1)+stress(2,2));
  Matrix s = stress ;
- int i; 
- for (i = 0; i < 3; i++ )  s(i,i) -= p ;
+ for (int i = 0; i < 3; i++ )
+   s(i,i) -= p ;
  
- for (i = 0; i < 3; i++ ){
+ for (int i = 0; i < 3; i++ ){
    for (int j = 0; j < 3; j++ ) {
      norm   += (s(i,j)-backs(i,j)) * (s(i,j)-backs(i,j)) ;
    } // end for j
@@ -1690,14 +1690,13 @@ MultiaxialCyclicPlasticity::getMCPparameter()
  MCPparameter(7) = load ;
 
  norm=0;
- for (i = 0; i < 3; i++ ){
+ for (int i = 0; i < 3; i++ ){
   for (int j = 0; j < 3; j++ ) {
      norm   += (strain(i,j)) * (strain(i,j)) ;
   } // end for j
-  } //end for i 
+  }
 
  MCPparameter(8) = norm ;
  // MCPparameter(9) = normde ;   get directly from subroutine plastic_integrator
  return MCPparameter;
-
 }

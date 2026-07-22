@@ -34,8 +34,8 @@ public:
     ERROR = TCL_ERROR
   };
 
-  Status Error = Status::ERROR;
-  Status Ok = Status::OK;
+  constexpr static Status Error = Status::ERROR;
+  constexpr static Status Ok = Status::OK;
 
   typedef const char * Arg;
   typedef Tcl_CmdProc Cmd;
@@ -70,5 +70,5 @@ private:
   Tcl_Interp* const m_interp;
   StringStream m_stream;
 };
-}
 
+}
