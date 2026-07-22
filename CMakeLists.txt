@@ -14,6 +14,10 @@ project(OpenSees
         DESCRIPTION "Open System For Earthquake Engineering Simulation"
         LANGUAGES   C CXX Fortran)
 
+
+option(Xara_MumpsSV_Sequential
+  "Include sequential Mumps solver" OFF)
+
 set(OPS_BUNDLED_DIR   "${CMAKE_CURRENT_LIST_DIR}/OTHER/")
 set(OPS_SRC_DIR       "${CMAKE_CURRENT_LIST_DIR}/SRC/")
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}"
@@ -21,11 +25,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}"
 
 enable_testing()
 
-#==============================================================================
-# DEPENDENCIES
-#==============================================================================
-
-set(OPS_Extension_List OPS_ASDEA)
 
 #==============================================================================
 #                            OS Configuration
@@ -229,6 +228,7 @@ set(OPS_Includes
   ${OPS_SRC_DIR}/handler
   ${OPS_SRC_DIR}/actor/actor
   ${OPS_SRC_DIR}/actor/objectBroker
+  ${OPS_SRC_DIR}/actor/machineBroker
   ${OPS_SRC_DIR}/actor/channel
   ${OPS_SRC_DIR}/actor/message
   ${OPS_SRC_DIR}/tagged
@@ -346,6 +346,7 @@ add_library(OPS_Matrix             OBJECT)
 add_library(OPS_Handler            OBJECT)
 add_library(OPS_Logging            OBJECT)
 add_library(OPS_Actor              OBJECT)
+# add_library(OPS_Channel            OBJECT)
 add_library(G3_ObjectBroker        OBJECT)
 add_library(OPS_Tagged             OBJECT)
 add_library(OPS_Utilities          OBJECT)
@@ -361,20 +362,32 @@ add_library(OPS_Transform "")
 add_library(OPS_Element            OBJECT)
 
 add_library(OPS_SysOfEqn           OBJECT)
+# add_library(OPS_SysOfEqnMP         OBJECT)
 add_library(OPS_Analysis           OBJECT)
 add_library(OPS_Damage             OBJECT)
-add_library(OPS_Runtime            OBJECT)
+# add_library(OPS_Runtime            OBJECT)
+
+add_library(Xara_InterpreterCore   OBJECT)
+add_library(Xara_InterpreterRT     OBJECT)
+add_library(Xara_InterpreterMP     OBJECT)
+# add_library(XaraCmdsRT             OBJECT)
+# add_library(XaraCmdsMP             OBJECT)
+add_library(XaraCmds_Analysis      OBJECT)
+add_library(XaraCmds_AnalysisRT    OBJECT)
+add_library(XaraCmds_AnalysisMP    OBJECT)
+add_library(XaraCmds_Modeling      OBJECT)
+add_library(XaraCmds_General       OBJECT)
+
 add_library(OPS_Database           OBJECT EXCLUDE_FROM_ALL)
 
 # Optional Extensions
 add_library(OPS_Parallel           OBJECT EXCLUDE_FROM_ALL)
 add_library(OPS_Partition          OBJECT EXCLUDE_FROM_ALL)
-add_library(OPS_ASDEA              OBJECT EXCLUDE_FROM_ALL)
 
 # Packaged libraries
 add_library(G3)
 
-set_property(TARGET OPS_Runtime           PROPERTY POSITION_INDEPENDENT_CODE 1)
+# set_property(TARGET OPS_Runtime           PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET OPS_MaterialFortran   PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET OPS_ElementFortran    PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_property(TARGET G3                    PROPERTY POSITION_INDEPENDENT_CODE 1)
@@ -457,6 +470,7 @@ target_link_libraries(G3
     OPS_Material
     OPS_Damage
     G3_ObjectBroker
+    OPS_Algorithm 
 )
 
 
@@ -468,7 +482,7 @@ target_link_libraries(G3
 # Extensions
 #----------------------------
 message(":: Configuring OpenSees extensions")
-foreach(extension IN LISTS OPS_Element_List OPS_Extension_List)
+foreach(extension IN LISTS OPS_Element_List)
   string(TOUPPER "${extension}" ext_flag) 
   string(REGEX REPLACE "^OPS_" "OPSDEF_" ext_flag "${ext_flag}")
   add_compile_definitions(${ext_flag})

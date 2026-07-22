@@ -15,11 +15,11 @@ target_link_libraries(OPS_Uniaxial_Fedeas PRIVATE OPS_Material OPS_Logging)
 set(fedeas_uniaxial "/home/claudio/packages/FEDEAS/build/src/uniaxial/libfedeas_uniaxial.a")
 
 if (EXISTS "${fedeas_uniaxial}")
-  target_link_libraries(OPS_Runtime PRIVATE
+  target_link_libraries(XaraCmds_Modeling PRIVATE
     OPS_Uniaxial_Fedeas
     ${fedeas_uniaxial}
   )
-  target_sources(OPS_Runtime PRIVATE
+  target_sources(XaraCmds_Modeling PRIVATE
     commands.cpp
   )
 endif()

@@ -56,18 +56,13 @@
 #include <numberer/PlainNumberer.h>
 #include "analysis.h"
 
+using namespace Xara;
 
 // extern int OPS_ResponseSpectrumAnalysis(G3_Runtime*);
 extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
                                        Tcl_Interp *interp, int cArg, int mArg,
                                        TCL_Char ** const argv, Domain *domain);
 
-Tcl_CmdProc TclCommand_clearAnalysis;
-extern Tcl_CmdProc TclCommand_setNumberer;
-extern Tcl_CmdProc TclCommand_runNumberer;
-namespace OpenSees {
-Tcl_CmdProc responseSpectrumAnalysis;
-}
 
 
 //
@@ -80,8 +75,8 @@ G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
   Tcl_CreateCommand(interp, "wipeAnalysis", &wipeAnalysis, analysis, nullptr);
   Tcl_CreateCommand(interp, "_clearAnalysis", &TclCommand_clearAnalysis, analysis, nullptr);
 
-  Tcl_CreateCommand(interp, "numberer",   TclCommand_setNumberer, analysis, nullptr);
-  Tcl_CreateCommand(interp, "number",     TclCommand_runNumberer, analysis, nullptr);
+  Tcl_CreateCommand(interp, "numberer",   XaraCmd_numberer, analysis, nullptr);
+  Tcl_CreateCommand(interp, "number",     XaraCmd_number, analysis, nullptr);
 
   Tcl_CreateCommand(interp, "responseSpectrumAnalysis", &OpenSees::responseSpectrumAnalysis, nullptr, nullptr);
 
@@ -100,7 +95,7 @@ G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
 // command invoked to build an Analysis object
 //
 static int
-specifyAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_analysis(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -157,7 +152,7 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 // on the Analysis object
 //
 static int
-analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_analyze(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -267,7 +262,7 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
 static int
-initializeAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+initializeAnalysis(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                    TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -280,9 +275,9 @@ initializeAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
 static int
-eigenAnalysis(ClientData clientData,
+XaraCmd_eigen(ClientData clientData,
               Tcl_Interp *interp, 
-              Tcl_Size argc,
+              ArgSize argc,
               TCL_Char ** const argv)
 {
 
@@ -406,7 +401,7 @@ eigenAnalysis(ClientData clientData,
 // TODO: Move this to commands/modeling/damping.cpp? ...but it uses and
 // AnalysisBuilder
 static int
-modalDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_modalDamping(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -492,8 +487,9 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
 static int
-CreateDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-             TCL_Char ** const argv)
+XaraCmd_damping(ClientData clientData, 
+                Tcl_Interp *interp, ArgSize argc,
+                TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
@@ -591,7 +587,7 @@ CreateDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
 static int
-resetModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+resetModel(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
@@ -609,7 +605,7 @@ resetModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char **
 
 
 int
-printIntegrator(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+printIntegrator(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                 TCL_Char ** const argv, OPS_Stream &output)
 {
   assert(clientData != nullptr);
@@ -641,7 +637,7 @@ printIntegrator(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 }
 
 static int
-printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_printA(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   // printA <filename> - m <double> -c <double> -k <double>
   assert(clientData != nullptr);
@@ -808,7 +804,7 @@ printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
 }
 
 static int
-printB(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_printB(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
@@ -875,7 +871,7 @@ printB(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
 
 // This is removed from the Tcl_Interp in model.cpp
 extern int
-TclCommand_clearAnalysis(ClientData cd, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+TclCommand_clearAnalysis(ClientData cd, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
 
   if (cd != nullptr) {
@@ -895,7 +891,7 @@ TclCommand_clearAnalysis(ClientData cd, Tcl_Interp *interp, Tcl_Size argc, TCL_C
 }
 
 static int
-wipeAnalysis(ClientData cd, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+wipeAnalysis(ClientData cd, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   if (cd != nullptr) {
     BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)cd;
@@ -909,8 +905,10 @@ wipeAnalysis(ClientData cd, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const
 // command invoked to allow the ConstraintHandler object to be built
 //
 static int
-specifyConstraintHandler(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-                         TCL_Char ** const argv)
+XaraCmd_constraints(ClientData clientData, 
+                    Tcl_Interp *interp, 
+                    ArgSize argc,
+                    TCL_Char ** const argv)
 {
   
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;

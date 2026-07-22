@@ -27,7 +27,7 @@
 #include <LinearSOE.h>
 #include <Vector.h>
 #include <Channel.h>
-#include <math.h>
+#include <cmath>
 #include <Domain.h>
 #include <Node.h>
 #include <DOF_Group.h>
@@ -43,25 +43,27 @@
 #include <Matrix.h>
 
 
+
 MinUnbalDispNorm::MinUnbalDispNorm(double lambda1, int specNumIter,
-		     double min, double max, int signFirstStep)
+		     double min, double max, TrackSign::Type sign_type)
 :StaticIntegrator(INTEGRATOR_TAGS_MinUnbalDispNorm),
  dLambda1LastStep(lambda1), 
- specNumIncrStep(specNumIter), numIncrLastStep(specNumIter),
+ specNumIncrStep(specNumIter==0? 1.0 : specNumIter), 
+ //
+ numLastIter(specNumIter),
  deltaUhat(0), deltaUbar(0), deltaU(0), deltaUstep(0), dUhatdh(0), 
- dLambdaj(0.0),
  phat(nullptr), deltaLambdaStep(0.0), currentLambda(0.0), 
  dLambda1min(min), dLambda1max(max), signLastDeterminant(1), 
- signFirstStepMethod(signFirstStep),
+ track_sign(sign_type),
+ // sensitivity
  dLambdaStepDh(0.0),dUIJdh(0),Dlambdadh(0.0),dphatdh(0),Residual2(0),
  signLastDeltaLambdaStep(1), sensitivityFlag(0),Residual(0), 
  dlambdadh(0.0), dLambda(0.0), sensU(0),d_deltaU_dh(0),gradNumber(0),dLAMBDAdh(0)
 {
   // to avoid divide-by-zero error on first update() ensure numIncr != 0
-  if (specNumIncrStep == 0) {
+  if (specNumIter == 0) {
     opserr << "WARNING LoadControl::LoadControl() - numIncr set to 0, 1 assumed\n";
-    specNumIncrStep = 1.0;
-    numIncrLastStep = 1.0;
+    numLastIter = 1.0;
   }
 }
 
@@ -97,63 +99,66 @@ MinUnbalDispNorm::~MinUnbalDispNorm()
   dUhatdh=0;
 }
 
+
 int
 MinUnbalDispNorm::newStep()
 {
   // get pointers to AnalysisModel and LinearSOE
   AnalysisModel *theModel = this->getAnalysisModel();
-  LinearSOE *theLinSOE = this->getLinearSOE();    
-  if (theModel == 0 || theLinSOE == 0) {
-    opserr << "WARNING MinUnbalDispNorm::newStep() ";
-    opserr << "No AnalysisModel or LinearSOE has been set\n";
-    return -1;
-  }
+  LinearSOE *theLinSOE = this->getLinearSOE();
+  assert(theModel != nullptr && theLinSOE != nullptr);
 
-  // get the current load factor
-  currentLambda = theModel->getCurrentDomainTime();
-
+  //
   // determine dUhat
+  //
   this->formTangent();
   theLinSOE->setB(*phat);
-  if (theLinSOE->solve() < 0) {
-    opserr << "MinUnbalanceDispNorm::newStep(void) - failed in solver\n";
+  if (theLinSOE->solve() < 0)
     return -1;
-  }
+
   (*deltaUhat) = theLinSOE->getX();
   Vector &dUhat = *deltaUhat;
 
-  // determine delta lambda(1) == dlambda
-  double expon   = 1.0;
-  double dLambda = dLambda1LastStep*pow(specNumIncrStep/numIncrLastStep, expon);
+  //
+  // 3) determine delta lambda(1) == dlambda
+  //
+  double dLambda;
+  {
+    double expon   = 1.0;
+    double dLambdaTrial = dLambda1LastStep*std::pow(specNumIncrStep/numLastIter, expon);
+    double trial_size = dLambdaTrial; //std::abs(dLambdaTrial);
 
-  // check aaint min and max values specified in constructor
-  if (dLambda < dLambda1min)
-    dLambda = dLambda1min;
+    // clamp magnitude of step to specified bounds
+    if (trial_size < dLambda1min)
+      trial_size = dLambda1min;
+    else if (trial_size > dLambda1max)
+      trial_size = dLambda1max;
 
-  else if (dLambda > dLambda1max)
-    dLambda = dLambda1max;
-
-  dLambda1LastStep = dLambda;
-
-  if (signFirstStepMethod == SIGN_LAST_STEP) {
-    if (deltaLambdaStep < 0)
-      signLastDeltaLambdaStep = -1;
-    else
-      signLastDeltaLambdaStep = +1;
-    
-    dLambda *= signLastDeltaLambdaStep; // base sign of load change
-                                        // on what was happening last step
-  } else {
-
-    double det = theLinSOE->getDeterminant();
-    int signDeterminant = 1;
-    if (det < 0)
-      signDeterminant = -1;
-  
-    dLambda *= signDeterminant * signLastDeterminant;
-  
-    signLastDeterminant = signDeterminant;
+    dLambda = std::copysign(trial_size, dLambdaTrial);
+    dLambda *= track_sign.newStep(*theLinSOE, dLambda);
+    dLambda1LastStep = std::abs(dLambda);
   }
+
+  // if (signFirstStepMethod == SIGN_LAST_STEP) {
+  //   if (deltaLambdaStep < 0)
+  //     signLastDeltaLambdaStep = -1;
+  //   else
+  //     signLastDeltaLambdaStep = +1;
+    
+  //   dLambda *= signLastDeltaLambdaStep; // base sign of load change
+  //                                       // on what was happening last step
+  // }
+  // else {
+
+  //   double det = theLinSOE->getDeterminant();
+  //   int signDeterminant = 1;
+  //   if (det < 0)
+  //     signDeterminant = -1;
+  
+  //   dLambda *= signDeterminant * signLastDeterminant;
+  
+  //   signLastDeterminant = signDeterminant;
+  // }
 
   /*
   double work = (*phat)^(dUhat);
@@ -163,51 +168,25 @@ MinUnbalDispNorm::newStep()
   if (signCurrentWork != signLastDeltaStep)
   */
 
-  deltaLambdaStep = dLambda;
+  currentLambda = theModel->getCurrentDomainTime();
   currentLambda  += dLambda;
-  numIncrLastStep = 0;
+  deltaLambdaStep = dLambda;
+  numLastIter = 0;
+  if (this->activateSensitivity() == true)
+    this->newStepSensitivity(dLambda);
 
-  // determine delta U(1) == dU
+
+
+  // determine delta U(1) == dU = dUhat * dlambda
   (*deltaU) = dUhat;
   (*deltaU) *= dLambda;
   (*deltaUstep) = (*deltaU);
 
 
-  if (this->activateSensitivity() == true) { 
-    Domain *theDomain=theModel->getDomainPtr();
-    ParameterIter &paramIter = theDomain->getParameters();
-    Parameter *theParam;
-
-    // De-activate all parameters
-    while ((theParam = paramIter()) != 0)
-      theParam->activate(false);
-     
-    // Now, compute sensitivity wrt each parameter
-    // int numGrads = theDomain->getNumParameters();
-    
-    
-    paramIter = theDomain->getParameters();
-    while ((theParam = paramIter()) != 0) {
-      // Activate this parameter
-      theParam->activate(true);
-      // Get the grad index for this parameter
-      gradNumber = theParam->getGradIndex();
-
-      this->formTangDispSensitivity(dUhatdh,gradNumber);
-      this->formdLambdaDh(gradNumber);
-
-      sensU->addVector(1.0, *dUhatdh ,dLambda);
-
-      theParam->activate(false);
-    } 
-  }
-  ///////////////Abbas/////////////////////////////
-
   // update model with delta lambda and delta U
   theModel->incrDisp(*deltaU);    
   theModel->applyLoadDomain(currentLambda);
   if (theModel->updateDomain() < 0) {
-    opserr << "MinUnbalDispNorm::newStep - model failed to update for new dU\n";
     return -1;
   }
 
@@ -215,56 +194,51 @@ MinUnbalDispNorm::newStep()
 }
 
 int
-MinUnbalDispNorm::update(const Vector &dU)
+MinUnbalDispNorm::update(const Vector &dX)
 {
-   AnalysisModel *theModel = this->getAnalysisModel();
-    LinearSOE *theLinSOE = this->getLinearSOE();    
-    if (theModel == 0 || theLinSOE == 0) {
-      opserr << "WARNING MinUnbalDispNorm::update() ";
-      opserr << "No AnalysisModel or LinearSOE has been set\n";
-      return -1;
-    }
+  AnalysisModel *theModel = this->getAnalysisModel();
+  LinearSOE *theLinSOE = this->getLinearSOE();
+  assert(theModel != nullptr && theLinSOE != nullptr);
 
-    (*deltaUbar) = dU; // have to do this as the SOE is gonna change
+  (*deltaUbar) = dX; // have to do this as the SOE is gonna change
 
-    // determine dUhat    
-    theLinSOE->setB(*phat);
-    theLinSOE->solve();
-    (*deltaUhat) = theLinSOE->getX();    
+  // determine dUhat    
+  theLinSOE->setB(*phat);
+  theLinSOE->solve();
+  (*deltaUhat) = theLinSOE->getX();    
 
-    // determine delta lambda(i)
-    double a = (*deltaUhat)^(*deltaUbar);
-    double b = (*deltaUhat)^(*deltaUhat);
-    if (b == 0.0) {
-      opserr << "MinUnbalDispNorm::update() - zero denominator\n";
-      return -1;
-    }
+  // determine delta lambda(i)
+  double a = (*deltaUhat)^(*deltaUbar);
+  double b = (*deltaUhat)^(*deltaUhat);
+  if (b == 0.0) {
+    opserr << "MinUnbalDispNorm::update() - zero denominator\n";
+    return -1;
+  }
 
-    double dLambda = -a/b;
-    dLambdaj = dLambda; //Abbas
-    // determine delta U(i)
-    (*deltaU) = (*deltaUbar);    
-    deltaU->addVector(1.0, *deltaUhat,dLambda);
-    
-    // update dU and dlambda
-    (*deltaUstep)   += *deltaU;
-    deltaLambdaStep += dLambda;
-    currentLambda   += dLambda;
-    // update the model
-    theModel->incrDisp(*deltaU);    
-    theModel->applyLoadDomain(currentLambda);    
+  double dLambda = -a/b;
+  track_sign.update(*theLinSOE, dLambda);
 
-    if (theModel->updateDomain() < 0) {
-      opserr << "MinUnbalDispNorm::update - model failed to update for new dU\n";
-      return -1;
-    }
-    
-    // set the X soln in linearSOE to be deltaU for convergence Test
-    theLinSOE->setX(*deltaU);
+  // determine delta U(i)
+  (*deltaU) = (*deltaUbar);    
+  deltaU->addVector(1.0, *deltaUhat,dLambda);
+  
+  // update dU and dlambda
+  (*deltaUstep)   += *deltaU;
+  deltaLambdaStep += dLambda;
+  currentLambda   += dLambda;
+  // update the model
+  theModel->incrDisp(*deltaU);    
+  theModel->applyLoadDomain(currentLambda);    
 
-    numIncrLastStep++;
+  if (theModel->updateDomain() < 0) {
+    return -1;
+  }
+  
+  // set the X soln in linearSOE to be deltaU for convergence Test
+  theLinSOE->setX(*deltaU);
 
-    return 0;
+  numLastIter++;
+  return 0;
 }
 
 
@@ -272,52 +246,52 @@ MinUnbalDispNorm::update(const Vector &dU)
 int 
 MinUnbalDispNorm::domainChanged()
 {
-   // we first create the Vectors needed
-   AnalysisModel *theModel = this->getAnalysisModel();
-   LinearSOE *theLinSOE = this->getLinearSOE();    
-   if (theModel == 0 || theLinSOE == 0) {
-       opserr << "WARNING MinUnbalDispNorm::update() ";
-       opserr << "No AnalysisModel or LinearSOE has been set\n";
-       return -1;
-   }    
-   int size = theModel->getNumEqn(); // ask model in case N+1 space
+  // first create the Vectors needed
+  AnalysisModel *theModel = this->getAnalysisModel();
+  LinearSOE *theLinSOE = this->getLinearSOE();    
+  if (theModel == 0 || theLinSOE == 0) {
+      opserr << "WARNING MinUnbalDispNorm::update() ";
+      opserr << "No AnalysisModel or LinearSOE has been set\n";
+      return -1;
+  }    
+  int size = theModel->getNumEqn(); // ask model in case N+1 space
 
-   if (deltaUhat == 0 || deltaUhat->Size() != size) {
-      if (deltaUhat != 0)
-          delete deltaUhat;   // delete the old
-      deltaUhat = new Vector(size);
-   }
+  if (deltaUhat == 0 || deltaUhat->Size() != size) {
+    if (deltaUhat != 0)
+        delete deltaUhat;   // delete the old
+    deltaUhat = new Vector(size);
+  }
 
-   if (deltaUbar == 0 || deltaUbar->Size() != size) {
-      if (deltaUbar != 0)
-          delete deltaUbar;   // delete the old
-      deltaUbar = new Vector(size);
-   }
+  if (deltaUbar == 0 || deltaUbar->Size() != size) {
+  if (deltaUbar != 0)
+      delete deltaUbar;   // delete the old
+  deltaUbar = new Vector(size);
+  }
 
-   
-   if (deltaU == 0 || deltaU->Size() != size) {
-      if (deltaU != 0)
-          delete deltaU;   // delete the old
-      deltaU = new Vector(size);
-   }
+  
+  if (deltaU == 0 || deltaU->Size() != size) {
+    if (deltaU != 0)
+        delete deltaU;   // delete the old
+    deltaU = new Vector(size);
+  }
 
-   if (deltaUstep == 0 || deltaUstep->Size() != size) { 
-      if (deltaUstep != 0)
-          delete deltaUstep;  
-      deltaUstep = new Vector(size);
-   }
+  if (deltaUstep == 0 || deltaUstep->Size() != size) { 
+    if (deltaUstep != 0)
+        delete deltaUstep;  
+    deltaUstep = new Vector(size);
+  }
 
-   if (phat == nullptr || phat->Size() != size) { 
-      if (phat != nullptr)
-          delete phat;  
-      phat = new Vector(size);
-   }    
+  if (phat == nullptr || phat->Size() != size) { 
+    if (phat != nullptr)
+        delete phat;  
+    phat = new Vector(size);
+  }    
 
-   if (dphatdh == 0 || dphatdh->Size() != size) { 
-      if (dphatdh != 0)
-        delete dphatdh;  
-      dphatdh = new Vector(size);
-   }
+  if (dphatdh == 0 || dphatdh->Size() != size) { 
+    if (dphatdh != 0)
+      delete dphatdh;  
+    dphatdh = new Vector(size);
+  }
 
 
   if (dUhatdh == 0 || dUhatdh->Size() != size) { 
@@ -404,7 +378,7 @@ MinUnbalDispNorm::sendSelf(int cTag, Channel &theChannel)
   Vector data(8);
   data(0) = dLambda1LastStep;
   data(1) = specNumIncrStep;
-  data(2) = numIncrLastStep;
+  data(2) = numLastIter;
   data(3) = deltaLambdaStep;
   data(4) = currentLambda;
   if (signLastDeltaLambdaStep == 1)
@@ -415,8 +389,8 @@ MinUnbalDispNorm::sendSelf(int cTag, Channel &theChannel)
   data(7) = dLambda1max;
 
   if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0) {
-      opserr << "MinUnbalDispNorm::sendSelf() - failed to send the data\n";
-      return -1;
+    opserr << "MinUnbalDispNorm::sendSelf() - failed to send the data\n";
+    return -1;
   }
   return 0;
 }
@@ -426,6 +400,10 @@ int
 MinUnbalDispNorm::recvSelf(int cTag,
 		    Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
+#if 1
+  // Disabled to make members const
+  return -1;
+#else
   Vector data(8);
   if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0) {
       opserr << "MinUnbalDispNorm::sendSelf() - failed to send the data\n";
@@ -436,7 +414,7 @@ MinUnbalDispNorm::recvSelf(int cTag,
 
   dLambda1LastStep = data(0);
   specNumIncrStep = data(1);
-  numIncrLastStep = data(2);
+  numLastIter = data(2);
   deltaLambdaStep = data(3);
   currentLambda = data(4);
   if (data(5)== 1.0)
@@ -447,6 +425,7 @@ MinUnbalDispNorm::recvSelf(int cTag,
   dLambda1max = data(7);
 
   return 0;
+#endif
 }
 
 void
@@ -463,74 +442,107 @@ MinUnbalDispNorm::Print(OPS_Stream &s, int flag)
 
 ///////////////////////////Sensitivity Begin///////////////////////
 
+int
+MinUnbalDispNorm::newStepSensitivity(double dLambda)
+{
+  AnalysisModel *theModel = this->getAnalysisModel();
+  Domain *theDomain=theModel->getDomainPtr();
+  ParameterIter &paramIter = theDomain->getParameters();
+  Parameter *theParam;
+
+  // De-activate all parameters
+  while ((theParam = paramIter()) != 0)
+    theParam->activate(false);
+    
+  // Now, compute sensitivity wrt each parameter
+  // int numGrads = theDomain->getNumParameters();
+  
+  
+  paramIter = theDomain->getParameters();
+  while ((theParam = paramIter()) != 0) {
+    // Activate this parameter
+    theParam->activate(true);
+    // Get the grad index for this parameter
+    gradNumber = theParam->getGradIndex();
+
+    this->formTangDispSensitivity(dUhatdh,gradNumber);
+    this->formdLambdaDh(gradNumber);
+
+    sensU->addVector(1.0, *dUhatdh ,dLambda);
+
+    theParam->activate(false);
+  }
+  return 0;
+}
+
 // obtain the derivative of the tangent displacement (dUhatdh)
 Vector *
 MinUnbalDispNorm::formTangDispSensitivity(Vector *dUhatdh,int gradNumber)
 {
-   LinearSOE *theLinSOE = this->getLinearSOE(); 
-   dUhatdh->Zero();
-   dphatdh->Zero();
+  LinearSOE *theLinSOE = this->getLinearSOE(); 
+  dUhatdh->Zero();
+  dphatdh->Zero();
 
-   //call the tangent (K)
-   this->formTangent();
-   theLinSOE->setB(*dphatdh);
-   if(theLinSOE->solve()<0) {
-      opserr<<"SOE failed to obtained dUhatdh ";
-      exit(-1); // TODO: why exit?
-   }
-   (*dUhatdh)=theLinSOE->getX();
+  //call the tangent (K)
+  this->formTangent();
+  theLinSOE->setB(*dphatdh);
+  if (theLinSOE->solve()<0) {
+    opserr << "SOE failed to obtained dUhatdh ";
+    // return nullptr;
+  }
+  (*dUhatdh)=theLinSOE->getX();
 
 
-   
-   // if the parameter is a load parameter.
-   ////////////////////////////////////////////////////////
-   // Loop through the loadPatterns and add the dPext/dh contributions
-
-   static Vector oneDimVectorWithOne(1);
-   oneDimVectorWithOne(0) = 1.0;
-   static ID oneDimID(1);
-   Node *aNode;
-   DOF_Group *aDofGroup;
-
-   int nodeNumber, dofNumber, relevantID, i, sizeRandomLoads, numRandomLoads;
-   
-   LoadPattern *loadPatternPtr;
-   AnalysisModel *theModel = this->getAnalysisModel();   
-   Domain *theDomain = theModel->getDomainPtr();
-   LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
   
-   while ((loadPatternPtr = thePatterns()) != nullptr) {
+  // if the parameter is a load parameter.
+  ////////////////////////////////////////////////////////
+  // Loop through the loadPatterns and add the dPext/dh contributions
 
-     const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(gradNumber);
-      sizeRandomLoads = randomLoads.Size();
-      if (sizeRandomLoads == 1) {
-	      // No random loads in this load pattern
-        continue;
-      }
-      // Random loads: add contributions to the 'B' vector
-      numRandomLoads = (int)(sizeRandomLoads/2);
-      for (i=0; i<numRandomLoads*2; i=i+2) {
-         nodeNumber = (int)randomLoads(i);
-         dofNumber = (int)randomLoads(i+1);
-         aNode = theDomain->getNode(nodeNumber);
-         aDofGroup = aNode->getDOF_GroupPtr();
-         const ID &anID = aDofGroup->getID();
-         relevantID = anID(dofNumber-1);
-         oneDimID(0) = relevantID;
-         theLinSOE->addB(oneDimVectorWithOne, oneDimID);
-         (*dphatdh)=theLinSOE->getB();
-         // dphatdh->addMatrixVector(1.0,dKdh,*deltaUhat,1.0);
-      }
-   }
+  static Vector oneDimVectorWithOne(1);
+  oneDimVectorWithOne(0) = 1.0;
+  static ID oneDimID(1);
+  Node *aNode;
+  DOF_Group *aDofGroup;
 
-   if(theLinSOE->solve()<0) {
-     opserr << "SOE failed to obtained dUhatdh ";
-     exit(-1);
-   }
+  int nodeNumber, dofNumber, relevantID, i, sizeRandomLoads, numRandomLoads;
+  
+  LoadPattern *loadPatternPtr;
+  AnalysisModel *theModel = this->getAnalysisModel();   
+  Domain *theDomain = theModel->getDomainPtr();
+  LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
 
-   (*dUhatdh)=theLinSOE->getX();
+  while ((loadPatternPtr = thePatterns()) != nullptr) {
 
-   return dUhatdh;
+    const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(gradNumber);
+    sizeRandomLoads = randomLoads.Size();
+    if (sizeRandomLoads == 1) {
+      // No random loads in this load pattern
+      continue;
+    }
+    // Random loads: add contributions to the 'B' vector
+    numRandomLoads = (int)(sizeRandomLoads/2);
+    for (i=0; i<numRandomLoads*2; i=i+2) {
+        nodeNumber = (int)randomLoads(i);
+        dofNumber = (int)randomLoads(i+1);
+        aNode = theDomain->getNode(nodeNumber);
+        aDofGroup = aNode->getDOF_GroupPtr();
+        const ID &anID = aDofGroup->getID();
+        relevantID = anID(dofNumber-1);
+        oneDimID(0) = relevantID;
+        theLinSOE->addB(oneDimVectorWithOne, oneDimID);
+        (*dphatdh)=theLinSOE->getB();
+        // dphatdh->addMatrixVector(1.0,dKdh,*deltaUhat,1.0);
+    }
+  }
+
+  if(theLinSOE->solve()<0) {
+    opserr << "SOE failed to obtained dUhatdh ";
+    // exit(-1);
+  }
+
+  (*dUhatdh)=theLinSOE->getX();
+
+  return dUhatdh;
 }
 
 // form dLambda for each time step dLambda
@@ -548,33 +560,31 @@ MinUnbalDispNorm::formdLambdaDh(int gradNumber)
 double 
 MinUnbalDispNorm::getLambdaSensitivity(int gradNumber)
 {
-
- 
  //  Vector &dufRdh=*dUIJdh;// component of the dUfrDh: derivative of the residual displacement
 
-   double temp= (*deltaUhat)^(*deltaUhat);
-   double denomerator= pow(temp,2.0);
-   double a= (*deltaUhat)^(*dUIJdh);
-   double b= (*dUhatdh)^(*deltaUbar);
-   double c= (*deltaUhat)^(*deltaUbar);
-   double d= (*deltaUhat)^(*dUhatdh);
-   double Numerator= -(temp*(a+b)-(c*2.0*d));
-   Dlambdadh = Numerator/denomerator;  //   
+  double temp= (*deltaUhat)^(*deltaUhat);
+  double denomerator= pow(temp,2.0);
+  double a= (*deltaUhat)^(*dUIJdh);
+  double b= (*dUhatdh)^(*deltaUbar);
+  double c= (*deltaUhat)^(*deltaUbar);
+  double d= (*deltaUhat)^(*dUhatdh);
+  double Numerator= -(temp*(a+b)-(c*2.0*d));
+  Dlambdadh = Numerator/denomerator;  //   
 
-   // Now update Lambda_ij
-   if(dLAMBDAdh !=0) {
-     (*dLAMBDAdh)(gradNumber) = (*dLAMBDAdh)(gradNumber)+ Dlambdadh;
-     return (*dLAMBDAdh)(gradNumber);
-   } else {
-     return 0.0;
-   }
+  // Now update Lambda_ij
+  if (dLAMBDAdh != nullptr) {
+    (*dLAMBDAdh)(gradNumber) = (*dLAMBDAdh)(gradNumber)+ Dlambdadh;
+    return (*dLAMBDAdh)(gradNumber);
+  } else {
+    return 0.0;
+  }
 }
 
 
 int
 MinUnbalDispNorm::formIndependentSensitivityRHS()
 {
-   return 0;
+  return 0;
 }
 
    
@@ -669,45 +679,44 @@ MinUnbalDispNorm::formSensitivityRHS(int passedGradNumber)
 int
 MinUnbalDispNorm::saveSensitivity(const Vector &v, int gradNum, int numGrads)
 {
-   AnalysisModel* theAnalysisModel = this->getAnalysisModel();
+  AnalysisModel* theAnalysisModel = this->getAnalysisModel();
 
-   DOF_GrpIter &theDOFGrps = theAnalysisModel->getDOFs();
-   DOF_Group 	*dofPtr;
+  DOF_GrpIter &theDOFGrps = theAnalysisModel->getDOFs();
+  DOF_Group 	*dofPtr;
 
-   while ( (dofPtr = theDOFGrps() ) != 0)  {
-      dofPtr->saveDispSensitivity(v,gradNum,numGrads);
-   }
+  while ( (dofPtr = theDOFGrps() ) != 0)  {
+    dofPtr->saveDispSensitivity(v,gradNum,numGrads);
+  }
 
-   return 0;
+  return 0;
 }
 
 int
 MinUnbalDispNorm::saveLambdaSensitivity(double dlambdadh, int gradNum, int numGrads)
 {
-   AnalysisModel* theAnalysisModel = this->getAnalysisModel();
-   Domain *theDomain = theAnalysisModel->getDomainPtr();
+  AnalysisModel* theAnalysisModel = this->getAnalysisModel();
+  Domain *theDomain = theAnalysisModel->getDomainPtr();
 
-   LoadPattern *lpPtr;
-   LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
-   while ( (lpPtr = thePatterns() ) != 0)
-     lpPtr->saveLoadFactorSensitivity(dlambdadh, gradNum, numGrads);
+  LoadPattern *lpPtr;
+  LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
+  while ( (lpPtr = thePatterns() ) != 0)
+    lpPtr->saveLoadFactorSensitivity(dlambdadh, gradNum, numGrads);
 
-   return 0;
+  return 0;
 }
 
    int 
 MinUnbalDispNorm::commitSensitivity(int gradNum, int numGrads)
 {
+  AnalysisModel* theAnalysisModel = this->getAnalysisModel();
 
-   AnalysisModel* theAnalysisModel = this->getAnalysisModel();
-
-   // Loop through the FE_Elements and set unconditional sensitivities
-   FE_Element *elePtr;
-   FE_EleIter &theEles = theAnalysisModel->getFEs();    
-   while((elePtr = theEles()) != 0) {
-      elePtr->commitSensitivity(gradNum, numGrads);
-   }
-   return 0;
+  // Loop through the FE_Elements and set unconditional sensitivities
+  FE_Element *elePtr;
+  FE_EleIter &theEles = theAnalysisModel->getFEs();    
+  while((elePtr = theEles()) != 0) {
+    elePtr->commitSensitivity(gradNum, numGrads);
+  }
+  return 0;
 }
 
 

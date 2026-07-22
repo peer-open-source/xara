@@ -8,7 +8,7 @@
 
 target_link_libraries(OPS_SysOfEqn PRIVATE UMFPACK AMD)
 
-target_sources(OPS_Runtime PRIVATE dispatch.cpp)
+target_sources(XaraCmds_Analysis PRIVATE dispatch.cpp)
 
 target_sources(OPS_SysOfEqn
   PRIVATE

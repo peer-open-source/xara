@@ -4,7 +4,8 @@
 #                Pacific Earthquake Engineering Research Center
 #
 #==============================================================================
-target_sources(OPS_Runtime
+
+target_sources(XaraCmds_Modeling
   PRIVATE
     commands.cpp
     evolution.cpp

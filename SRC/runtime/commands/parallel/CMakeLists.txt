@@ -9,13 +9,13 @@
 
 return()
 
-find_package(MPI)
+
 if (NOT MPI_FOUND)
   return()
 endif()
 
 
-add_library(OpenSeesRT_Parallel OBJECT)
+add_library(OpenSeesRT_Parallel OBJECT EXCLUDE_FROM_ALL)
 
 target_include_directories(OpenSeesRT_Parallel
   PRIVATE
@@ -51,49 +51,4 @@ target_link_libraries(OpenSeesRT_Parallel PRIVATE
     MPI::MPI_CXX
 #   /usr/lib/libscalapack.so
     ${MPI_Fortran_LIBRARIES}
-)
-
-#
-# OpenSeesMP
-#
-add_library(LibOpenSeesMP  SHARED  EXCLUDE_FROM_ALL )
-set_property(TARGET LibOpenSeesMP PROPERTY POSITION_INDEPENDENT_CODE 1)
-
-target_link_libraries(LibOpenSeesMP PRIVATE 
-        OpenSeesRT_Parallel
-        OPS_Parallel 
-        OPS_Actor  
-        OpenSeesRT 
-        OPS_Runtime 
-        MPI::MPI_CXX
-)
-
-target_sources(LibOpenSeesMP PRIVATE 
-    communicate.cpp
-    ${OPS_SRC_DIR}/parallel/OpenSeesMP.cpp
-)
-
-#
-# OpenSeesSP
-#
-add_library(LibOpenSeesSP  SHARED  EXCLUDE_FROM_ALL )
-set_property(TARGET LibOpenSeesSP PROPERTY POSITION_INDEPENDENT_CODE 1)
-
-target_sources(LibOpenSeesSP PRIVATE 
-    partition.cpp
-    ${OPS_SRC_DIR}/parallel/OpenSeesSP.cpp
-)
-
-target_link_libraries(LibOpenSeesSP 
-  PRIVATE 
-    OpenSeesRT_Parallel
-    OPS_Parallel 
-    OPS_Partition
-    OPS_Analysis
-    OPS_Runtime 
-    OPS_Actor  
-    OpenSeesRT 
-    MPI::MPI_CXX
-    METIS
-#   /usr/lib/libscalapack.so
 )

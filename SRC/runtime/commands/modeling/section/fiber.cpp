@@ -314,11 +314,13 @@ initSectionCommands(ClientData clientData,
 }
 
 int
-TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
-                           TCL_Char ** const argv)
+XaraCmd_section_Fiber(ClientData context, 
+                      Tcl_Interp *interp, 
+                      ArgSize argc,
+                      TCL_Char ** const argv)
 {
-  assert(clientData != nullptr);
-  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
+  assert(context != nullptr);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(context);
 
   // Check if we are being invoked from Python or Tcl
   bool openseespy = false;
@@ -340,7 +342,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
 
-  int secTag;
+  Xara::Tag secTag;
   if (Tcl_GetInt(interp, argv[2], &secTag) != TCL_OK) {
     opserr << OpenSees::PromptValueError 
            << "failed to parse section tag " << argv[2]
@@ -713,7 +715,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   // initialize  the fiber section (for building)
-  if (initSectionCommands(clientData, interp, secTag, torsion, shape_data, options) != TCL_OK) {
+  if (initSectionCommands(context, interp, secTag, torsion, shape_data, options) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "error constructing the section\n";
     return TCL_ERROR;
   }
@@ -756,7 +758,8 @@ TclCommand_addPatch(ClientData clientData,
 
   // make sure at least one other argument to contain patch type
   if (argc < 2) {
-    opserr << OpenSees::PromptValueError << "need to specify a patch type \n";
+    opserr << OpenSees::PromptValueError 
+           << "need to specify a patch type \n";
     return TCL_ERROR;
   }
 
@@ -885,14 +888,14 @@ TclCommand_addPatch(ClientData clientData,
 
   else if (strcmp(argv[1], "circ") == 0) {
     int numSubdivRad, numSubdivCirc, matTag;
-    double yCenter, zCenter;
-    Vector centerPosition(2);
+    VectorND<2> pcenter{};
     double intRad, extRad;
     double startAng, endAng;
 
     int argi = 2;
     if (argc < 11) {
-      opserr << OpenSees::PromptValueError << "invalid number of parameters: patch circ matTag "
+      opserr << OpenSees::PromptValueError 
+             << "invalid number of parameters: patch circ matTag "
                 "numSubdivCirc numSubdivRad yCenter zCenter intRad extRad "
                 "startAng endAng\n";
       return TCL_ERROR;
@@ -900,8 +903,8 @@ TclCommand_addPatch(ClientData clientData,
 
     if (Tcl_GetInt(interp, argv[argi++], &matTag) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
-             << "invalid matTag: patch circ matTag numSubdivCirc "
-                "numSubdivRad yCenter zCenter intRad extRad startAng endAng\n";
+             << "invalid matTag: " << argv[argi-1]
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
@@ -916,12 +919,12 @@ TclCommand_addPatch(ClientData clientData,
       return TCL_ERROR;
     }
 
-    if (Tcl_GetDouble(interp, argv[argi++], &yCenter) != TCL_OK) {
+    if (Tcl_GetDouble(interp, argv[argi++], &pcenter[0]) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid yCenter\n";
       return TCL_ERROR;
     }
 
-    if (Tcl_GetDouble(interp, argv[argi++], &zCenter) != TCL_OK) {
+    if (Tcl_GetDouble(interp, argv[argi++], &pcenter[1]) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid zCenter\n";
       return TCL_ERROR;
     }
@@ -946,12 +949,12 @@ TclCommand_addPatch(ClientData clientData,
       return TCL_ERROR;
     }
 
-    centerPosition(0) = yCenter;
-    centerPosition(1) = zCenter;
-
     // create patch
-    CircPatch patch(matTag, numSubdivCirc, numSubdivRad, centerPosition,
-                    intRad, extRad, startAng, endAng);
+    CircPatch patch(matTag, 
+                    numSubdivCirc, numSubdivRad, 
+                    pcenter,
+                    intRad, extRad, 
+                    startAng, endAng);
 
     // add patch to section
     int error = fiberSectionRepr->addPatch(patch);

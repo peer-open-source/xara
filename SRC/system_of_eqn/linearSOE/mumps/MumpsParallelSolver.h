@@ -64,8 +64,8 @@ class MumpsParallelSolver : public LinearSOESolver
 
   virtual ~MumpsParallelSolver();
   
-  int solve(void);
-  int setSize(void);
+  int solve();
+  int setSize();
   
   int sendSelf(int commitTag, Channel &theChannel);
   int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
@@ -74,8 +74,8 @@ class MumpsParallelSolver : public LinearSOESolver
 
  private:
 
-  int initializeMumps(void);
-  int solveAfterInitialization(void);
+  int initializeMumps();
+  int solveAfterInitialization();
 
   bool init;
   MumpsParallelSOE *theMumpsSOE;

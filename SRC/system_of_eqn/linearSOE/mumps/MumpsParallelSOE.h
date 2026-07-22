@@ -55,7 +55,7 @@ class MumpsParallelSOE : public MumpsSOE
     // these methods need to be rewritten
     int setSize(Graph &);
 
-    int addB(const Vector &, const ID &, double fact = 1.0);    
+    int addB(const Vector &, const ID &, double fact = 1.0) final;    
     int setB(const Vector &, double fact = 1.0);            
     const Vector &getB();
     void zeroB();

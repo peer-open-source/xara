@@ -35,5 +35,5 @@ if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/GeneralizedJ2.cpp")
     PUBLIC
       GeneralizedJ2.h
   )
-  target_compile_definitions(OPS_Runtime PRIVATE XARA_HAVE_GENERALIZEDJ2)
+  target_compile_definitions(XaraCmds_Modeling PRIVATE XARA_HAVE_GENERALIZEDJ2)
 endif()

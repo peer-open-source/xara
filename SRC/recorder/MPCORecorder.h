@@ -59,10 +59,11 @@ https://www.hdfgroup.org/downloads/hdf5/
 #define MPCORecorder_h
 
 #include <Recorder.h>
+#include <elementAPI.h>
 
 class MPCORecorder : public Recorder
 {
-	friend void* OPS_MPCORecorder();
+	friend void* OPS_ADD_RUNTIME_VPV(OPS_MPCORecorder);
 private:
 	class private_data;
 
@@ -70,8 +71,8 @@ public:
 	MPCORecorder();
 	~MPCORecorder();
 	int record(int commitTag, double timeStamp);
-	virtual int restart(void);
-	virtual int domainChanged(void);
+	virtual int restart();
+	virtual int domainChanged();
 	virtual int setDomain(Domain &theDomain);
 	virtual int sendSelf(int commitTag, Channel &theChannel);
 	virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);

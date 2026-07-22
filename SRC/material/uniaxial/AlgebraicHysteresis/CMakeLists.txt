@@ -7,7 +7,7 @@
 
 
 target_include_directories(OPS_Material PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-target_include_directories(OPS_Runtime  PUBLIC
+target_include_directories(XaraCmds_Modeling  PUBLIC
   ${OPS_SRC_DIR}/material/uniaxial/stiffness
   ${OPS_SRC_DIR}/material/uniaxial/strength
   ${OPS_SRC_DIR}/material/uniaxial/unloading
@@ -21,7 +21,7 @@ target_sources(OPS_Material
     MaterialState.h
 )
 
-target_sources(OPS_Runtime PRIVATE
+target_sources(XaraCmds_Modeling PRIVATE
     "command.cpp"
     "backbone.cpp"
     "StiffnessDegradationCommand.cpp"

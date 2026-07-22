@@ -13,17 +13,17 @@
 // method. All methods are virtual to allow for subclasses; which can be
 // used by programmers when introducing new subclasses of the main objects.
 //
-// What: "@(#) TclPackageClassBroker.h, revA"
+// What: "@(#) XaraClassBroker.h, revA"
 
-#ifndef TclPackageClassBroker_h
-#define TclPackageClassBroker_h
+#ifndef XaraClassBroker_h
+#define XaraClassBroker_h
 
 #include <FEM_ObjectBroker.h>
 
-class TclPackageClassBroker : public FEM_ObjectBroker {
+class XaraClassBroker : public FEM_ObjectBroker {
 public:
-  TclPackageClassBroker();
-  ~TclPackageClassBroker();
+  XaraClassBroker();
+  ~XaraClassBroker();
 
   Actor *getNewActor(int classTag, Channel *theChannel);
 

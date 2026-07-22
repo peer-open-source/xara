@@ -72,28 +72,28 @@ TclEquiSolnAlgo G3Parse_newEquiSolnAlgo;
 static TclEquiSolnAlgo G3_newBroyden;
 static TclEquiSolnAlgo G3_newBFGS;
 
-Tcl_CmdProc TclCommand_newLinearAlgorithm;
-Tcl_CmdProc TclCommand_newNewtonRaphson;
+static Tcl_CmdProc XaraCmd_algorithm_Linear;
+static Tcl_CmdProc XaraCmd_algorithm_Newton;
 Tcl_CmdProc TclCommand_newNewtonHallM;
-Tcl_CmdProc TclCommand_newAcceleratedNewton;
+static Tcl_CmdProc XaraCmd_algorithm_AcceleratedNewton;
 static Tcl_CmdProc TclCommand_newNewtonLineSearch;
 
 namespace  OpenSees {
 std::unordered_map<std::string, Tcl_CmdProc*> Algorithms {
-  {"Linear",            TclCommand_newLinearAlgorithm},
+  {"Linear",            XaraCmd_algorithm_Linear},
 
-  {"Newton",            TclCommand_newNewtonRaphson},
-  {"ModifiedNewton",    TclCommand_newNewtonRaphson},
+  {"Newton",            XaraCmd_algorithm_Newton},
+  {"ModifiedNewton",    XaraCmd_algorithm_Newton},
   {"NewtonHall",        TclCommand_newNewtonHallM},
   {"NewtonLineSearch",  TclCommand_newNewtonLineSearch},
 
-  {"QuasiNewton",       TclCommand_newAcceleratedNewton},
-  {"SecantNewton",      TclCommand_newAcceleratedNewton},
-  {"MillerAccelerator", TclCommand_newAcceleratedNewton},
-  {"KrylovNewton",      TclCommand_newAcceleratedNewton},
-  {"PeriodicNewton",    TclCommand_newAcceleratedNewton},
-  {"RaphsonNewton",     TclCommand_newAcceleratedNewton},
-  {"AcceleratedNewton", TclCommand_newAcceleratedNewton},
+  {"QuasiNewton",       XaraCmd_algorithm_AcceleratedNewton},
+  {"SecantNewton",      XaraCmd_algorithm_AcceleratedNewton},
+  {"MillerAccelerator", XaraCmd_algorithm_AcceleratedNewton},
+  {"KrylovNewton",      XaraCmd_algorithm_AcceleratedNewton},
+  {"PeriodicNewton",    XaraCmd_algorithm_AcceleratedNewton},
+  {"RaphsonNewton",     XaraCmd_algorithm_AcceleratedNewton},
+  {"AcceleratedNewton", XaraCmd_algorithm_AcceleratedNewton},
 };
 }
 
@@ -101,7 +101,9 @@ std::unordered_map<std::string, Tcl_CmdProc*> Algorithms {
 // command invoked to allow the SolnAlgorithm object to be built
 //
 int
-TclCommand_specifyAlgorithm(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_algorithm(ClientData clientData, 
+                 Tcl_Interp *interp, 
+                 ArgSize argc,
                  TCL_Char ** const argv)
 {
 
@@ -172,8 +174,8 @@ G3Parse_newEquiSolnAlgo(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
 }
 
 
-int
-TclCommand_newLinearAlgorithm(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+static int
+XaraCmd_algorithm_Linear(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
                            TCL_Char ** const argv)
 {
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
@@ -202,8 +204,8 @@ TclCommand_newLinearAlgorithm(ClientData clientData, Tcl_Interp *interp, Tcl_Siz
   return TCL_OK;
 }
 
-int
-TclCommand_newNewtonRaphson(ClientData clientData, 
+static int
+XaraCmd_algorithm_Newton(ClientData clientData, 
                             Tcl_Interp* interp, 
                             Tcl_Size argc, TCL_Char**const argv)
 {
@@ -575,9 +577,11 @@ TclCommand_newNewtonLineSearch(ClientData clientData, Tcl_Interp *interp, Tcl_Si
 
 
 
-int
-TclCommand_newAcceleratedNewton(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-                             TCL_Char ** const argv)
+static int
+XaraCmd_algorithm_AcceleratedNewton(ClientData clientData, 
+                                    Tcl_Interp *interp, 
+                                    ArgSize argc,
+                                    TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
@@ -757,7 +761,9 @@ G3_newBroyden(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 // Other commands
 //
 int
-printAlgorithm(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+printAlgorithm(ClientData clientData, 
+               Tcl_Interp *interp, 
+               ArgSize argc,
                TCL_Char ** const argv, OPS_Stream &output)
 {
   assert(clientData != nullptr);
@@ -885,7 +891,7 @@ TclCommand_solveCPU(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TC
 
 
 int
-TclCommand_numIter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_numIter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   const EquiSolnAlgo *algo = ((BasicAnalysisBuilder *)clientData)->getAlgorithm();

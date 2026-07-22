@@ -5,6 +5,7 @@
 //===----------------------------------------------------------------------===//
 //                              https://xara.so
 //===----------------------------------------------------------------------===//
+//
 // Written: cmp
 // Created: Spring 2023
 //
@@ -29,15 +30,17 @@ const std::unordered_map<std::string, Tcl_CmdProc*> invoke_commands
   {"PlaneStress",         &TclCommand_usePlaneStress            },
   {"Material",            &TclCommand_useMaterial               },
   {"TriaxialMaterial",    &TclCommand_useMaterial               },
+  {"MultiaxialMaterial",  &TclCommand_useMaterial               },
 };
 
 
 int
-TclCommand_invoke(ClientData clientData, Tcl_Interp* interp, int argc, char const** const argv)
+XaraCmd_invoke(ClientData context, Tcl_Interp* interp, int argc, char const** const argv)
 {
   // check number of arguments in command line
   if (argc < 4) {
-    opserr << OpenSees::PromptValueError << "bad arguments - want: using <obj-type> <obj-tag> {<operations>...}";
+    opserr << OpenSees::PromptValueError 
+           << "bad arguments - want: using <obj-type> <obj-tag> {<operations>...}";
     return TCL_ERROR;
   }
 
@@ -45,7 +48,7 @@ TclCommand_invoke(ClientData clientData, Tcl_Interp* interp, int argc, char cons
 
   if (tcl_cmd != invoke_commands.end()) {
 
-    return (*tcl_cmd->second)(clientData, interp, argc, &argv[0]);
+    return (*tcl_cmd->second)(context, interp, argc, &argv[0]);
 
   } else {
     return TCL_ERROR;

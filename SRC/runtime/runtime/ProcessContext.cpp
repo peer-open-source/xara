@@ -14,34 +14,36 @@
 //===----------------------------------------------------------------------===//
 //
 #include "ProcessContext.h"
-#include <TclPackageClassBroker.h>
+#include <XaraClassBroker.h>
 #include <Channel.h>
 #include <Logging.h>
-#include <runtime/interpreter/Interpreter.h>
-#include <mpi.h>
+#include <Parsing.h>
+#include <Interpreter.h>
 
-using namespace OpenSees;
+#if defined(XARA_ENABLE_MPI)
+# include <mpi.h>
+#endif
+
+using namespace Xara;
 
 static Tcl_CmdProc getPID;
 static Tcl_CmdProc getNP;
 static Tcl_CmdProc opsBarrier;
 
 
-ProcessContext::~ProcessContext() 
-{
-  // theMachine.shutdown();
-  // MPI_Finalize();
-
-  delete m_obroker;
-}
-
-
+#if !defined(XARA_ENABLE_MPI)
 ProcessContext::ProcessContext()
-: m_obroker(new TclPackageClassBroker())
+: m_obroker(new XaraClassBroker())
+{
+
+}
+#else
+ProcessContext::ProcessContext()
+: m_obroker(new XaraClassBroker())
 , theMachine(m_obroker, 0, nullptr)
 {
   int OPS_rank = theMachine.getPID();
-  int OPS_np = theMachine.getNP();
+  int OPS_np   = theMachine.getNP();
 
   if (OPS_rank == 0) {
     opsdbg << "Rank = " << OPS_rank << " / " << OPS_np << "\n";
@@ -63,6 +65,16 @@ ProcessContext::ProcessContext()
     theChannels[0] = myChannel;
   }
 }
+#endif
+
+ProcessContext::~ProcessContext() 
+{
+  // theMachine.shutdown();
+  // MPI_Finalize();
+
+  delete m_obroker;
+}
+
 
 int
 ProcessContext::setup(Interpreter& interp)
@@ -114,5 +126,13 @@ getNP(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const arg
 static int
 opsBarrier(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
-  return MPI_Barrier(MPI_COMM_WORLD);
+#if defined(XARA_ENABLE_MPI)
+  if (MPI_Barrier(MPI_COMM_WORLD) != MPI_SUCCESS) {
+    opserr << OpenSees::PromptValueError 
+           << "MPI_Barrier failed"
+            << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+#endif
+  return TCL_OK;
 }

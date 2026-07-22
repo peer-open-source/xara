@@ -36,7 +36,9 @@
 //
 #include <ProfileSPDLinSOE.h>
 #include <ProfileSPDLinDirectSolver.h>
-#include <DistributedProfileSPDLinSOE.h>
+#if defined(XARA_HAVE_PARALLEL_SOLVERS)
+#  include <DistributedProfileSPDLinSOE.h>
+#endif
 //
 #include <DiagonalSOE.h>
 #include <DiagonalDirectSolver.h>
@@ -52,9 +54,6 @@
 #include <ArpackSOE.h>
 #include <ArpackSolver.h>
 
-#if defined(_PETSC)
-LinearSOE *TclCommand_newPetscSOE(int, TCL_Char**);
-#endif
 
 #if defined(_PARALLEL_PROCESSING)
 //  parallel soe & solvers
@@ -149,11 +148,15 @@ std::unordered_map<std::string, struct soefps> soe_table = {
 #else
      SP_SOE(ProfileSPDLinDirectSolver,   DistributedProfileSPDLinSOE),
      MP_SOE(ProfileSPDLinDirectSolver,   DistributedProfileSPDLinSOE)}},
-
-  {"parallelprofilespd", {
-     nullptr, nullptr,
-     MP_SOE(ProfileSPDLinDirectSolver,   DistributedProfileSPDLinSOE)}},
 #endif
+
+#if defined(XARA_HAVE_PARALLEL_SOLVERS)
+  {"parallelprofilespd", {
+     G3_SOE(ProfileSPDLinDirectSolver,   DistributedProfileSPDLinSOE),
+     nullptr,
+     MP_SOE(ProfileSPDLinDirectSolver,   DistributedProfileSPDLinSOE)}},
+#endif 
+
   {"fullgeneral", {
      G3_SOE(FullGenLinLapackSolver,      FullGenLinSOE),
      SP_SOE(FullGenLinLapackSolver,      FullGenLinSOE),

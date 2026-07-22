@@ -361,7 +361,7 @@ target_include_directories(arpack
 if (APPLE) 
   target_link_options(arpack
     PUBLIC
-    -Wl,-no_compact_unwind>
+    -Wl,-no_compact_unwind
   )
 elseif(WIN32)
   target_link_options(arpack PUBLIC /NODEFAULTLIB:"ifconsol.lib")

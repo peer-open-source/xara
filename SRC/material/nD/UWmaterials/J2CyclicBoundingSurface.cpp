@@ -34,6 +34,7 @@
 #include <string.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
+#include <plastic/Voight.hpp>
 
 //parameters
 
@@ -183,7 +184,7 @@ J2CyclicBoundingSurface::J2CyclicBoundingSurface(int  tag, int classTag,
 }
 
 
-//destructor
+// destructor
 J2CyclicBoundingSurface::~J2CyclicBoundingSurface()
 {
 
@@ -240,6 +241,7 @@ void
 J2CyclicBoundingSurface::plastic_integrator()
 {  
 	const double tol_rel = (1.0e-10);
+	// static Vector eye(Voight::ivol);
 	Vector eye(6);
 	eye(0) = 1.0;
 	eye(1) = 1.0;
@@ -249,7 +251,7 @@ J2CyclicBoundingSurface::plastic_integrator()
 	Vector dStrain_dev = getDevPart(dStrain);        //incremental deviatoric strain
 	double dStrain_vol = trace(dStrain);             //incremental volumetric strain
 
-	Vector dev_stress_n(6); //deviatoric stress
+	Vector dev_stress_n(6);   //deviatoric stress
 	Vector dev_stress_np1(6); //deviatoric stress
 	Vector dev_sigma0_np1(6); //deviatoric stress
 
@@ -286,9 +288,6 @@ J2CyclicBoundingSurface::plastic_integrator()
 
 	if (loadingCond > 0.0)
 	{
-		if (debugFlag)
-			opserr << "Unloading happened." << endln;
-
 		m_sigma0_np1 = m_stress_n;
 		dev_sigma0_np1 = getDevPart(m_sigma0_np1);
 		loadingCond = 0.0;
@@ -314,11 +313,11 @@ J2CyclicBoundingSurface::plastic_integrator()
 
 		H_np1 = H(m_kappa_np1);
 
-		Vector res(2); double res_norm;
+		Vector res(2); 
 		res(0) = m_psi_np1 * (1.0 + 3.0 * m_shear *  m_beta / H_np1) / (2.0 * m_shear) - 1.0;
 		res(1) = vector_norm(dev_stress_n + (1.0 + m_kappa_np1) * m_psi_np1 * convert_to_stressLike(dStrain_dev), 1) / m_R - 1.0;;
 
-		res_norm = vector_norm(res, 3);
+		double res_norm = vector_norm(res, 3);
 
 		// Initialize variables for the Newton
 		int       iteration_counter = 0;
@@ -359,7 +358,6 @@ J2CyclicBoundingSurface::plastic_integrator()
 
 			res_norm = vector_norm(res, 3);
 		}
-
 	}
 	else
 	{
@@ -376,11 +374,11 @@ J2CyclicBoundingSurface::plastic_integrator()
 		H_n = H(m_kappa_n);
 		H_np1 = H(m_kappa_np1);
 
-		Vector res(2); double res_norm;
+		Vector res(2);
 		res(0) = m_psi_np1 * (1.0 + 3.0 * m_shear * ((1 - m_beta) / H_n + m_beta / H_np1)) / (2.0 * m_shear) - 1.0;
 		res(1) = vector_norm(dev_stress_n + (1.0 + m_kappa_np1) * m_psi_np1 * convert_to_stressLike(dStrain_dev) + m_kappa_np1 * (dev_stress_n - dev_sigma0_np1), 1) / m_R - 1.0;;
 
-		res_norm = vector_norm(res, 3);
+		double res_norm = vector_norm(res, 3);
 
 		// Initialize variables for the Newton
 		int iteration_counter = 0;
@@ -424,40 +422,33 @@ J2CyclicBoundingSurface::plastic_integrator()
 	}
 
 	//m_stress_vis_n1 = m_D * (m_beta * m_strainRate_n1 + (1.0 - m_beta) * m_strainRate_n);
-	if (ops_Dt > 0.0) { m_stress_vis_n1 = m_D * (dStrain) / ops_Dt; }
-	else { m_stress_vis_n1 = m_stress_vis_n; }
+	if (ops_Dt > 0.0) {
+		m_stress_vis_n1 = m_D * (dStrain) / ops_Dt; 
+	}
+	else {
+		m_stress_vis_n1 = m_stress_vis_n; 
+	}
 
 	// m_stress_np1 += (m_stress_vis_n1 - m_stress_vis_n);  //stress update using incremental form
 
 	m_stress_t_n1 = m_stress_np1 + m_stress_vis_n1;
-
-
-	//opserr << " delta T (material) " << ops_Dt << endln;
-
-	//for (int i = 0; i < 6; i++) {
-	//	opserr << " , " << (m_beta * m_strainRate_n1(i) + (1.0 - m_beta) * m_strainRate_n(i));
-	//}
-	//opserr << " end of strainRate ";
-
-	//for (int i = 0; i < 6; i++) {
-	//	opserr << " , " << dStrain(i);
-	//}
-	//opserr << " end dStrain " << endln;
-	//opserr << " I am in PLASTIC Integrator " << endln;
 
 	return;
 }
 
 
 // Trace Operator
-double J2CyclicBoundingSurface::trace(Vector V)
+double 
+J2CyclicBoundingSurface::trace(Vector V)
 {
 	return V(0) + V(1) + V(2);
 }
+
 // Deviatoric operator
-Vector J2CyclicBoundingSurface::getDevPart(Vector V)
+Vector 
+J2CyclicBoundingSurface::getDevPart(Vector V)
 {
-	double temp = 1. / 3.*trace(V);
+	double temp = 1./3.*trace(V);
 	for (int i = 0; i < 3; i++)
 		V(i) = V(i) - temp;
 	return V;
@@ -544,10 +535,13 @@ J2CyclicBoundingSurface::calcInitialTangent()
 
 
 //hardening function
-double J2CyclicBoundingSurface::H(double kappa)
+double 
+J2CyclicBoundingSurface::H(double kappa)
 {
-	if (kappa < 0) return 1.0e-10;
-	return    m_h_par * pow(kappa, m_m_par);
+	if (kappa < 0) 
+	  return 1.0e-10;
+
+	return m_h_par * pow(kappa, m_m_par);
 }
 
 

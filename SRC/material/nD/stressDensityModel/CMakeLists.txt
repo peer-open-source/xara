@@ -27,7 +27,7 @@ target_sources(OPS_MaterialFortran
 if (APPLE) 
   target_link_options(OPS_MaterialFortran
     PUBLIC
-    -Wl,-no_compact_unwind>
+    -Wl,-no_compact_unwind
   )
 endif()
 

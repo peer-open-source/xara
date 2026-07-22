@@ -19,6 +19,7 @@
 #include <cmath>
 
 namespace Voight {
+
 enum class Basis {
   Stress, Strain, Mixed
 };
@@ -30,6 +31,7 @@ Trace(const VectorND<6> &v)
 {
   return v(0) + v(1) + v(2);
 }
+
 
 static inline VectorND<6> 
 Dev(const VectorND<6> &v)

@@ -15,7 +15,7 @@ target_sources(OPS_SysOfEqn
     ProfileSPDLinDirectSkypackSolver.cpp
     #ProfileSPDLinSolverGather.cpp
     #ProfileSPDLinSOEGather.cpp
-    # DistributedProfileSPDLinSOE.cpp
+    DistributedProfileSPDLinSOE.cpp
     SProfileSPDLinSOE.cpp
     SProfileSPDLinSolver.cpp
 

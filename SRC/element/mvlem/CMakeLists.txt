@@ -9,7 +9,7 @@
 
 if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
 else()
-    target_compile_definitions(OPS_Runtime PRIVATE XARA_HAVE_MVLEM)
+    target_compile_definitions(XaraCmds_Modeling PRIVATE XARA_HAVE_MVLEM)
     target_sources(OPS_Element
         PRIVATE
             MVLEM_3D.cpp

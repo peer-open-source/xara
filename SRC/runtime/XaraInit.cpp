@@ -14,10 +14,15 @@
 //===----------------------------------------------------------------------===//
 //
 // This file contains functions that are required by Tcl to load the
-// OpenSeesRT library.
+// Xara library.
 //
-#ifndef OPENSEESRT_VERSION
-#  define OPENSEESRT_VERSION "0.0.0"
+// The following macros are defined by the build system:
+// - XARA_VERSION: The version of the Xara library.
+// - XARA_COMMIT_HASH (optional): The git commit hash of the current build.
+// - XARA_PARALLEL_MODE: String, either MP or RT
+//
+#ifndef XARA_VERSION
+#  define XARA_VERSION "0.0.0"
 #endif
 //
 #include <Parsing.h>
@@ -40,22 +45,22 @@
 #endif
 
 // interpreter/runtime.cpp
-extern int Init_OpenSees(Tcl_Interp *interp);
-extern void G3_InitTclSequentialAPI(Tcl_Interp* interp);
-extern int init_g3_tcl_utils(Tcl_Interp*);
+extern int  XaraInit_InterpreterCommands(Tcl_Interp *interp);
+extern void XaraInit_SequentialCommands(Tcl_Interp* interp);
+extern int  XaraInit_UtilityCommands(Tcl_Interp*);
 
 //
 // Tcl Command that returns the current OpenSees version
 //
 static int
-version(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
+XaraCmd_version(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char **argv)
 {
   char buffer[40];
 
 #ifdef XARA_COMMIT_HASH
-  sprintf(buffer, "%s (commit %s)", OPENSEESRT_VERSION, XARA_COMMIT_HASH);
+  sprintf(buffer, "%s (commit %s)", XARA_VERSION, XARA_COMMIT_HASH);
 #else
-  sprintf(buffer, "%s", OPENSEESRT_VERSION);
+  sprintf(buffer, "%s", XARA_VERSION);
 #endif
   Tcl_SetResult(interp, buffer, TCL_VOLATILE);
 
@@ -75,7 +80,7 @@ Openseesrt_Init(Tcl_Interp *interp)
   if (Tcl_InitStubs(interp, TCL_VERSION, 0) == NULL)
     return TCL_ERROR;
 
-  if (Tcl_PkgProvide(interp, "OpenSeesRT", OPENSEESRT_VERSION) == TCL_ERROR)
+  if (Tcl_PkgProvide(interp, "OpenSeesRT", XARA_VERSION) == TCL_ERROR)
     return TCL_ERROR;
 
   // Create a runtime instance, and store it with the interpreter
@@ -83,9 +88,9 @@ Openseesrt_Init(Tcl_Interp *interp)
   Tcl_SetAssocData(interp, "G3_Runtime", NULL, (ClientData)rt);
 
   // Initialize OpenSees
-  Init_OpenSees(interp);
-  G3_InitTclSequentialAPI(interp); // Add sequential API
-  init_g3_tcl_utils(interp);       // Add utility commands (linspace, range, etc.)
+  XaraInit_InterpreterCommands(interp);
+  XaraInit_SequentialCommands(interp); // Add sequential API
+  XaraInit_UtilityCommands(interp);    // Add utility commands (linspace, range, etc.)
 
   char* verbosity = getenv("XARA_VERBOSITY"); // Was OPENSEESRT_VERBOSITY
   if (verbosity != nullptr) {
@@ -103,7 +108,7 @@ Openseesrt_Init(Tcl_Interp *interp)
   Tcl_SetVar(interp, "opensees::copyright", copyright,      TCL_LEAVE_ERR_MSG);
   Tcl_SetVar(interp, "opensees::license",   license,        TCL_LEAVE_ERR_MSG);
   Tcl_SetVar(interp, "opensees::banner",    unicode_banner, TCL_LEAVE_ERR_MSG);
-  Tcl_CreateCommand(interp, "version",      version,      nullptr, nullptr);
+  Tcl_CreateCommand(interp, "version",      XaraCmd_version,  nullptr, nullptr);
   return TCL_OK;
 }
 

@@ -5,7 +5,7 @@
 #
 #==============================================================================
 
-target_sources(OPS_Runtime PRIVATE commands.cpp)
+target_sources(XaraCmds_Analysis PRIVATE commands.cpp)
 
 target_sources(OPS_Analysis
    PRIVATE

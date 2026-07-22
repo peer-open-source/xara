@@ -11,7 +11,7 @@ target_include_directories(OPS_FrameQuadrature
   PUBLIC ${CMAKE_CURRENT_LIST_DIR} ${OPS_Includes}
 )
 
-target_sources(OPS_Runtime PRIVATE commands.cpp)
+target_sources(XaraCmds_Modeling PRIVATE commands.cpp)
 
 target_sources(OPS_FrameQuadrature
   PRIVATE

@@ -5,7 +5,7 @@
 #
 #==============================================================================
 #add_library(OPS_Element_adapter OBJECT)
-target_sources(OPS_Runtime PRIVATE dispatch.cpp)
+target_sources(XaraCmds_Modeling PRIVATE dispatch.cpp)
 
 target_sources(OPS_Element
     PRIVATE
