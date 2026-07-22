@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.2 $
-// $Date: 2008-11-09 06:05:48 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/backbone/HystereticBackbone.h,v $
-
+//
 // Written: MHS
 // Created: Aug 2000
 //
@@ -37,7 +33,7 @@
 class Information;
 class Parameter;
 
-class HystereticBackbone : public TaggedObject, public MovableObject
+class HystereticBackbone : public TaggedObject//, public MovableObject
 {
  public:
   HystereticBackbone(int tag, int classTag);
@@ -49,7 +45,7 @@ class HystereticBackbone : public TaggedObject, public MovableObject
   
   virtual double getYieldStrain(void) = 0;
   
-  virtual HystereticBackbone *getCopy(void) = 0;
+  virtual HystereticBackbone *getCopy() = 0;
   
   virtual int setVariable(char *argv) {return -1;}
   virtual int getVariable(int varID, double &theValue) {return -1;}
@@ -57,8 +53,12 @@ class HystereticBackbone : public TaggedObject, public MovableObject
   virtual int setParameter(char **argv, int argc, Parameter &eleInformation);
   virtual int updateParameter(int responseID, Information &eleInformation);	
   
- private:
-  
+ // CMP: removed MovableObject inheritance to avoid shadowing of get/setVariable
+ int sendSelf(int commitTag, Channel &) {return 0;} // cmp
+ int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) {return 0;} // cmp
+ int getDbTag() {return 0;} // cmp
+ int setDbTag(int dbTag) {return 0;} // cmp  
+ int getClassTag() {return 0;} // cmp
 };
 
 extern bool OPS_addHystereticBackbone(HystereticBackbone *newComponent);

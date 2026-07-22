@@ -5,25 +5,27 @@
 #
 #==============================================================================
 target_sources(OPS_Actor
-    PRIVATE
-      Channel.cpp
-      Socket.cpp
-      TCP_Socket.cpp
-      UDP_Socket.cpp      
-    PUBLIC
-      Channel.h
-      Socket.h
-      TCP_Socket.h
-      UDP_Socket.h      
+  PRIVATE
+    Channel.cpp
+    Socket.cpp
+    TCP_Socket.cpp
+    UDP_Socket.cpp      
+  PUBLIC
+    Channel.h
+    Socket.h
+    TCP_Socket.h
+    UDP_Socket.h      
 )
 
 
 target_sources(OPS_Parallel
-    PRIVATE
-      MPI_Channel.cpp
-    PUBLIC
-      MPI_Channel.h
+  PRIVATE
+    MPI_Channel.cpp
+  PUBLIC
+    MPI_Channel.h
 )
 
+# target_include_directories(OPS_Channel PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_include_directories(OPS_Actor    PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_include_directories(OPS_Parallel PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+# target_link_libraries(OPS_Channel PRIVATE OPS_Logging OPS_Actor)

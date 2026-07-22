@@ -101,7 +101,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_PressureIndependMultiYield)
       new PressureIndependMultiYield (tag, nd, param[0], param[1], param[2],
               param[3], param[4], param[5], param[6],
               param[7], numberOfYieldSurf, gredu);
-        if (gredu != 0) {
+    if (gredu != 0) {
       delete [] gredu;
       gredu = 0;
     }
@@ -320,10 +320,13 @@ void PressureIndependMultiYield::elast2Plast(void)
 }
 
 
-int PressureIndependMultiYield::setTrialStrain (const Vector &strain)
+int PressureIndependMultiYield::setTrialStrain(const Vector &strain)
 {
   int ndm = ndmx[matN];
-  if (ndmx[matN] == 0) ndm = 2;
+  if (ndmx[matN] == 0)
+    ndm = 2;
+
+  assert((ndm==2 && strain.Size()==3) || (ndm==3 && strain.Size()==6));
 
   static Vector temp(6);
   if (ndm==3 && strain.Size()==6)
@@ -336,11 +339,6 @@ int PressureIndependMultiYield::setTrialStrain (const Vector &strain)
     temp[4] = 0.0;
     temp[5] = 0.0;
   }
-  else {
-    opserr << "Fatal:D2PressDepMYS:: Material dimension is: " << ndm << endln;
-    opserr << "But strain vector size is: " << strain.Size() << endln;
-    exit(-1);
-  }
 
   //strainRate.setData(temp-currentStrain.t2Vector(1),1);
   temp -= currentStrain.t2Vector(1);
@@ -350,13 +348,14 @@ int PressureIndependMultiYield::setTrialStrain (const Vector &strain)
 }
 
 
-int PressureIndependMultiYield::setTrialStrain (const Vector &strain, const Vector &rate)
+int
+PressureIndependMultiYield::setTrialStrain(const Vector &strain, const Vector &rate)
 {
-  return setTrialStrain (strain);
+  return setTrialStrain(strain);
 }
 
 
-int PressureIndependMultiYield::setTrialStrainIncr (const Vector &strain)
+int PressureIndependMultiYield::setTrialStrainIncr(const Vector &strain)
 {
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 2;
@@ -386,15 +385,17 @@ int PressureIndependMultiYield::setTrialStrainIncr (const Vector &strain, const 
 }
 
 
-const Matrix & PressureIndependMultiYield::getTangent (void)
+const Matrix & 
+PressureIndependMultiYield::getTangent()
 {
   int loadStage = loadStagex[matN];
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 3;
 
-  if (loadStage == 1 && e2p == 0) elast2Plast();
+  if (loadStage == 1 && e2p == 0)
+    elast2Plast();
 
-  if (loadStage!=1) {  //linear elastic
+  if (loadStage != 1) {  //linear elastic
     for (int i=0;i<6;i++)
       for (int j=0;j<6;j++) {
         theTangent(i,j) = 0.;
@@ -490,7 +491,8 @@ PressureIndependMultiYield::getInitialTangent()
 }
 
 
-const Vector & PressureIndependMultiYield::getStress (void)
+const Vector & 
+PressureIndependMultiYield::getStress()
 {
   int loadStage = loadStagex[matN];
   int numOfSurfaces = numOfSurfacesx[matN];
@@ -505,12 +507,13 @@ const Vector & PressureIndependMultiYield::getStress (void)
     getTangent();
     static Vector a(6);
     a = currentStress.t2Vector();
-	a.addMatrixVector(1.0, theTangent, strainRate.t2Vector(1), 1.0);
+    a.addMatrixVector(1.0, theTangent, strainRate.t2Vector(1), 1.0);
     trialStress.setData(a);
   }
 
   else {
-    for (i=1; i<=numOfSurfaces; i++) theSurfaces[i] = committedSurfaces[i];
+    for (int i=1; i<=numOfSurfaces; i++)
+      theSurfaces[i] = committedSurfaces[i];
     activeSurfaceNum = committedActiveSurf;
     subStrainRate = strainRate;
     setTrialStress(currentStress);
@@ -520,12 +523,13 @@ const Vector & PressureIndependMultiYield::getStress (void)
     }
     int numSubIncre = setSubStrainRate();
 
-    for (i=0; i<numSubIncre; i++) {
+    for (int i=0; i<numSubIncre; i++) {
       if (i==0)
-	setTrialStress(currentStress);
+        setTrialStress(currentStress);
       else
-	setTrialStress(trialStress);
-      if (activeSurfaceNum==0 && !isCrossingNextSurface()) continue;
+        setTrialStress(trialStress);
+      if (activeSurfaceNum==0 && !isCrossingNextSurface())
+        continue;
       if (activeSurfaceNum==0) activeSurfaceNum++;
       stressCorrection(0);
       updateActiveSurface();
@@ -604,7 +608,8 @@ NDMaterial * PressureIndependMultiYield::getCopy (const char *code)
 }
 
 
-const char * PressureIndependMultiYield::getType (void) const
+const char * 
+PressureIndependMultiYield::getType() const
 {
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 2;
@@ -613,7 +618,8 @@ const char * PressureIndependMultiYield::getType (void) const
 }
 
 
-int PressureIndependMultiYield::getOrder (void) const
+int
+PressureIndependMultiYield::getOrder() const
 {
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 2;
@@ -1356,7 +1362,7 @@ void PressureIndependMultiYield::setTrialStress(T2Vector & stress)
 }
 
 
-int PressureIndependMultiYield::setSubStrainRate(void)
+int PressureIndependMultiYield::setSubStrainRate()
 {
     int numOfSurfaces = numOfSurfacesx[matN];
 

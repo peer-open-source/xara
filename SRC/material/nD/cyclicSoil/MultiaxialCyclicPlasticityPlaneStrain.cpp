@@ -65,21 +65,12 @@ MultiaxialCyclicPlasticity( tag, ND_TAG_MultiaxialCyclicPlasticityPlaneStrain, r
 
 
 
-//elastic constructor
-MultiaxialCyclicPlasticityPlaneStrain :: 
-MultiaxialCyclicPlasticityPlaneStrain(   int    tag, double rho,    // add density by Gang Wang
-                 double K, 
-                 double G ) :
-MultiaxialCyclicPlasticity( tag, ND_TAG_MultiaxialCyclicPlasticityPlaneStrain, rho, K, G )
-{ 
-
-}
-
-
 
 //destructor
 MultiaxialCyclicPlasticityPlaneStrain :: ~MultiaxialCyclicPlasticityPlaneStrain( ) 
-{ } 
+{
+
+} 
 
 
 

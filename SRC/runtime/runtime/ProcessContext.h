@@ -42,7 +42,7 @@ public:
   Channel** getChannels() const {return theChannels;}
   int getNumChannels() const {return numChannels;}
 
-  int setup(Interpreter&);
+  int setup(Tcl_Interp* interp);
   int clean(Interpreter&) {return 0;}
 
 private:

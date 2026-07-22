@@ -12,7 +12,7 @@ class G3_Runtime;
 #include "Logging.h"
 
 
-namespace OpenSees {
+namespace Xara::Logging::Internal {
 
 StandardStream sserr;
 DummyStream    ssnul;
@@ -21,7 +21,7 @@ OPS_Stream *opsdbgPtr = &ssnul;
 OPS_Stream *opslogPtr = &ssnul;
 OPS_Stream *opswrnPtr = &sserr;
 
-namespace Internal {
+// namespace Internal {
   const char * WarnPromptColor   = RED "WARNING " COLOR_RESET;
   const char * WarnPromptNoColor = "WARNING ";
 
@@ -40,8 +40,10 @@ namespace Internal {
   const char * AnalysisSuccessColor    = GRN "   SUCCESS" COLOR_RESET " :: ";
   const char * AnalysisSuccessNoColor  =     "   SUCCESS"             " :: ";
 
-} // namespace OpenSees::Internal
+} // namespace Xara::Logging::Internal 
 
+namespace OpenSees {
+  using namespace Xara::Logging;
   // Default to no color
   const char * SignalMessageEnd      = "\n";
   const char * PromptParseError      = Internal::ErrorPromptNoColor;
@@ -63,45 +65,47 @@ const char * G3_DEBUG_PROMPT = OpenSees::Internal::DebugPromptNoColor;
 int
 G3_SetStreamLevel(int stream, bool on)
 {
-
+  using namespace Xara::Logging::Internal;
   OPS_Stream **theStream;
   switch (stream) {
-    case G3_LevelError: theStream = &OpenSees::opserrPtr; break;
-    case G3_LevelDebug: theStream = &OpenSees::opsdbgPtr; break;
-    case G3_LevelWarn : theStream = &OpenSees::opswrnPtr; break;
+    case G3_LevelError: theStream = &opserrPtr; break;
+    case G3_LevelDebug: theStream = &opsdbgPtr; break;
+    case G3_LevelWarn : theStream = &opswrnPtr; break;
     default:
       return -1;
   }
 
   if (on) {
-    *theStream = &OpenSees::sserr;
+    *theStream = &sserr;
   } else {
-    *theStream = &OpenSees::ssnul;
+    *theStream = &ssnul;
   }
   return 0;
 }
 
-int G3_SetStreamColor(G3_Runtime* rt, int strm, int flag)
+int
+G3_SetStreamColor(G3_Runtime* rt, int strm, int flag)
 {
+  using namespace Xara::Logging::Internal;
   if (flag == 1) {
-    G3_WARN_PROMPT                  = OpenSees::Internal::WarnPromptColor;
-    OpenSees::SignalWarning         = OpenSees::Internal::WarnPromptColor;
-    G3_DEBUG_PROMPT                 = OpenSees::Internal::DebugPromptColor;
-    OpenSees::PromptParseError      = OpenSees::Internal::ErrorPromptColor;
-    OpenSees::PromptValueError      = OpenSees::Internal::ErrorPromptColor;
-    OpenSees::PromptModelError      = OpenSees::Internal::ErrorPromptColor;
-    OpenSees::PromptAnalysisFailure = OpenSees::Internal::AnalysisFailureColor;
-    OpenSees::PromptAnalysisSuccess = OpenSees::Internal::AnalysisSuccessColor;
-    OpenSees::PromptAnalysisIterate = OpenSees::Internal::AnalysisIterateColor;
+    G3_WARN_PROMPT                  = WarnPromptColor;
+    OpenSees::SignalWarning         = WarnPromptColor;
+    G3_DEBUG_PROMPT                 = DebugPromptColor;
+    OpenSees::PromptParseError      = ErrorPromptColor;
+    OpenSees::PromptValueError      = ErrorPromptColor;
+    OpenSees::PromptModelError      = ErrorPromptColor;
+    OpenSees::PromptAnalysisFailure = AnalysisFailureColor;
+    OpenSees::PromptAnalysisSuccess = AnalysisSuccessColor;
+    OpenSees::PromptAnalysisIterate = AnalysisIterateColor;
 
   } else if (flag == 0) {
-    G3_WARN_PROMPT             = OpenSees::Internal::WarnPromptNoColor;
-    OpenSees::SignalWarning    = OpenSees::Internal::WarnPromptNoColor;
-    G3_DEBUG_PROMPT            = OpenSees::Internal::DebugPromptNoColor;
-    OpenSees::PromptParseError = OpenSees::Internal::ErrorPromptNoColor;
-    OpenSees::PromptAnalysisFailure = OpenSees::Internal::AnalysisFailureNoColor;
-    OpenSees::PromptAnalysisSuccess = OpenSees::Internal::AnalysisSuccessNoColor;
-    OpenSees::PromptAnalysisIterate = OpenSees::Internal::AnalysisIterateNoColor;
+    G3_WARN_PROMPT             = WarnPromptNoColor;
+    OpenSees::SignalWarning    = WarnPromptNoColor;
+    G3_DEBUG_PROMPT            = DebugPromptNoColor;
+    OpenSees::PromptParseError = ErrorPromptNoColor;
+    OpenSees::PromptAnalysisFailure = AnalysisFailureNoColor;
+    OpenSees::PromptAnalysisSuccess = AnalysisSuccessNoColor;
+    OpenSees::PromptAnalysisIterate = AnalysisIterateNoColor;
   }
 
   return 0;

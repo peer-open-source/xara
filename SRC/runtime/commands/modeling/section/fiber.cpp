@@ -35,7 +35,7 @@
 #include <NDFiberSectionWarping2d.h>
 #include <FiberSection2dInt.h>
 #include <FiberSection3d.h>
-#include <MixedFrameSection.h>
+#include <MultiaxialFiberSection.h>
 #include <FrameFiberSection3d.h>
 #include <FrameSolidSection3d.h>
 #include <FrameTraceSection3d.h>
@@ -151,22 +151,22 @@ initSectionCommands(ClientData clientData,
 
     if (options.isND) {
       if (options.isMixed) {
-        auto sec = new MixedFrameSection(secTag, 
+        auto sec = new MultiaxialFiberSection(secTag, 
                           options.reserve, 
                           shape_data.mixed_form, 
                           options.wagner,
                           options.num_threads);
-        sbuilder = new FiberSectionBuilder<3, NDMaterial, MixedFrameSection>(*builder, *sec);
+        sbuilder = new FiberSectionBuilder<3, NDMaterial, MultiaxialFiberSection>(*builder, *sec);
         section = sec;
       }
       else if (options.isNew) {
         if (!getenv("XARA_OLD_WARP")) {
-          auto sec = new MixedFrameSection(secTag, 
+          auto sec = new MultiaxialFiberSection(secTag, 
                                            options.reserve, 
                                            shape_data.mixed_form, 
                                            options.wagner,
                                            options.num_threads);
-          sbuilder = new FiberSectionBuilder<3, NDMaterial, MixedFrameSection>(*builder, *sec);
+          sbuilder = new FiberSectionBuilder<3, NDMaterial, MultiaxialFiberSection>(*builder, *sec);
           section = sec;
         } else {
           auto sec = new FrameTraceSection3d(secTag, options.reserve, options.wagner);
@@ -392,9 +392,9 @@ XaraCmd_section_Fiber(ClientData context,
   // bool shape_done = false;
 
   if (builder->getNDF() <= 6)
-    shape_data.mixed_form = MixedFrameSection::MixedType::UT;//Energetic;
+    shape_data.mixed_form = MultiaxialFiberSection::MixedType::UT;//Energetic;
   else 
-    shape_data.mixed_form = MixedFrameSection::MixedType::None;
+    shape_data.mixed_form = MultiaxialFiberSection::MixedType::None;
 
   UniaxialMaterial *torsion = nullptr;
   bool deleteTorsion = false;
@@ -492,20 +492,20 @@ XaraCmd_section_Fiber(ClientData context,
       if ((strcmp(argv[iarg + 1], "None") == 0) || 
           (strcmp(argv[iarg + 1], "NV") == 0) ||
           (strcmp(argv[iarg + 1], "NT") == 0)) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::None;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::None;
       } else if ((strcmp(argv[iarg + 1], "constant") == 0) || 
                  (strcmp(argv[iarg + 1], "geometric") == 0) ||
                  (strcmp(argv[iarg + 1], "UG") == 0)) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::Constant;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::Constant;
       } else if (strcmp(argv[iarg + 1],  "UT") == 0) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::UT;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::UT;
       } else if (strcmp(argv[iarg + 1],  "U02") == 0) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::U02;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::U02;
       } else if ((strcmp(argv[iarg + 1], "energetic") == 0) || 
                  (strcmp(argv[iarg + 1], "UE") == 0) ) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::Energetic;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::Energetic;
       } else if (strcmp(argv[iarg + 1],  "NR") == 0) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::Equilibrium;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::Equilibrium;
       } else {
         opserr << OpenSees::PromptValueError 
                << "invalid mixed type value: " << argv[iarg + 1]

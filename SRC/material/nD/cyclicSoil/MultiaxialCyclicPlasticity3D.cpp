@@ -66,25 +66,14 @@ MultiaxialCyclicPlasticity( tag, ND_TAG_MultiaxialCyclicPlasticity3D, rho, K, G,
 }
 
 
-//elastic constructor
-MultiaxialCyclicPlasticity3D :: 
-MultiaxialCyclicPlasticity3D(   int    tag, 
-				 double rho,
-                 double K, 
-                 double G ) :
-MultiaxialCyclicPlasticity( tag, ND_TAG_MultiaxialCyclicPlasticity3D, rho, K, G )
-{ 
-
-}
-
-
 
 //destructor
 MultiaxialCyclicPlasticity3D :: ~MultiaxialCyclicPlasticity3D( ) 
 { } 
 
 
-NDMaterial* MultiaxialCyclicPlasticity3D :: getCopy( ) 
+NDMaterial* 
+MultiaxialCyclicPlasticity3D::getCopy() 
 { 
   MultiaxialCyclicPlasticity3D  *clone;
   clone = new MultiaxialCyclicPlasticity3D( ) ;   //new instance of this class

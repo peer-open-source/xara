@@ -35,8 +35,11 @@
 
 #include <Vector.h>
 #include <Matrix.h>
+#include <VectorND.h>
 #include <NDMaterial.h>
 
+
+namespace OpenSees {
 
 class J2CyclicBoundingSurface : public NDMaterial {
 
@@ -161,11 +164,13 @@ protected:
 	double m_chi;
 	Matrix m_D;
 
-	//material input
-	Vector m_strain_n;           //strain vector time n
-	Vector m_strain_np1;         //strain vector time n+1
-	Vector m_strainRate_n;
-	Vector m_strainRate_n1;
+	// material input
+	VectorND<6> m_strain_n;           //strain vector time n
+	VectorND<6> m_strain_np1;         //strain vector time n+1
+	VectorND<6> m_strainRate_n;
+	VectorND<6> m_strainRate_n1;
+
+	Vector return_vector;
 
 	bool m_isElast2Plast;
 
@@ -188,9 +193,9 @@ protected:
 
 	Vector getDevPart(Vector V);
 
-	double inner_product(Vector x, Vector y, int type);
+	double inner_product(const Vector &x, const Vector &y, int type);
 
-	double vector_norm(Vector x, int type);
+	double vector_norm(const Vector &x, int type);
 
 	Vector convert_to_stressLike(Vector v);
 
@@ -199,4 +204,5 @@ protected:
 
 };
 
+} // namespace OpenSees
 #endif

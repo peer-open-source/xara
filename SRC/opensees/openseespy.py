@@ -406,35 +406,6 @@ class OpenSeesPy:
         ['Path', 1, '-values', 0.0, 5.0, 8.0, 7.0, 5.0, 3.0, 2.0, 1.0, 0.0, '-time', 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
         ['Path', 1, '-values', [0.0, 5.0, 8.0, 7.0, 5.0, 3.0, 2.0, 1.0, 0.0], '-time', [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]]
         """
-
-        args = list(args)
-        if "-values" in args:
-            iv = args.index("-values")
-            # Count the number of floating-point arguments
-            for nv, value in enumerate(args[iv+1:]):
-                if not isinstance(value, float):
-                    nv += 1
-                    break
-            else:
-                # if we didnt break out of the for loop
-                nv += 2
-
-            values = args[iv+1:iv+nv]
-            args = [a for a in args[:iv+1]] + [values] + [a for a in args[iv+nv:]]
-
-        if "-time" in args:
-            it = args.index("-time")
-            for nt, value in enumerate(args[it+1:]):
-                if not isinstance(value, float):
-                    nt += 1
-                    break
-            else:
-                # if we didnt break out of the for loop
-                nt += 2
-
-            time = args[it+1:it+nt]
-            args = [a for a in args[:it+1]] + [time] + [a for a in args[it+nt:]]
-
         return self._invoke_proc("timeSeries", *args, **kwds)
 
 

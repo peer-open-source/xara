@@ -37,6 +37,7 @@
 #include <Message.h>
 #include <MovableObject.h>
 #include <FEM_ObjectBroker.h>
+
 int Channel::numChannel = 0;
 
 Channel::Channel ()

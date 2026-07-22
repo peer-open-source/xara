@@ -26,11 +26,15 @@
 #include <Vector.h>
 #include <Channel.h>
 #include <float.h>
+#include <VectorND.h>
 
 #define UP_LIMIT    1.0e+30
 #define LOW_LIMIT   20.*DBL_EPSILON
-
+#define DYNAMIC_T2VECTOR
 // global function: scalar product of two second order tensor vectors
+
+namespace OpenSees {
+
 double operator && (const Vector &, const Vector &);
 void doubledotProduct (Vector & c, const Vector & a, const Matrix & b);
 void tensorProduct(Matrix & c, const Vector & a, const Vector & b);
@@ -47,15 +51,20 @@ public:
   T2Vector(const Vector & deviat_init, double volume_init);
   
   ~T2Vector();
+  enum class Basis: int {Stress=0, Strain=1};
 
   void setData(const Vector &init, int isEngrgStrain =0);
   void setData(const Vector &deviat, double volume);
+  void setData(const VectorND<6> & init, Basis);
 
-  const Vector & t2Vector(int isEngrgStrain=0) const; 
-  const Vector & deviator(int isEngrgStrain=0) const;
+  const Vector& t2Vector(int isEngrgStrain=0) const {return this->t2Vector(static_cast<Basis>(isEngrgStrain));}
+  const Vector& deviator(int isEngrgStrain=0) const {return this->deviator(static_cast<Basis>(isEngrgStrain));}
+  const Vector& t2Vector(Basis) const;
+  const Vector& deviator(Basis) const;
+
   double volume() const {return theVolume; }
-  const Vector &unitT2Vector() const;
-  const Vector &unitDeviator() const;
+  const Vector& unitT2Vector() const;
+  const Vector& unitDeviator() const;
   double t2VectorLength() const;
   double deviatorLength() const;
   double octahedralShear(int isEngrgStrain=0) const;
@@ -71,15 +80,21 @@ public:
   double angleBetweenDeviator(const T2Vector &) const; 
 
   int operator == (const T2Vector & a) const;
-  int isZero(void) const;
-  int Zero(void);
+  int isZero() const;
+  int Zero();
 
 private:
+#ifdef DYNAMIC_T2VECTOR
   Vector theT2Vector;
   Vector theDeviator;
+#else
+  VectorND<6> theT2Vector;
+  VectorND<6> theDeviator;
+#endif
   double theVolume;
   static Vector engrgStrain;
 };
 
+} // namespace OpenSees
 
 #endif

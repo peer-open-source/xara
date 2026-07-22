@@ -13,9 +13,11 @@
 #define _MultiYieldSurface_H_
 
 #include <T2Vector.h>
-
+#include <VectorND.h>
 
 #define LOCK_VALUE  1.0e+30
+
+namespace OpenSees {
 
 // global function to find the roots of a second order equation
 double secondOrderEqn(double A, double B, double C, int i);
@@ -25,26 +27,23 @@ class MultiYieldSurface
 {
  
 public:
-  //constructors
+  // constructors
   MultiYieldSurface();
   MultiYieldSurface(const Vector & center_init, double size_init, 
                     double plas_modul); 
   ~MultiYieldSurface();
-	void setData(const Vector & center_init, double size_init, 
-               double plas_modul); 
+	void setData(const Vector & center_init, double size_init,  double plas_modul);
+	void setData(const VectorND<6> & center_init, double size_init,  double plas_modul); 
   const Vector & center() const {return theCenter; }
   double size() const {return theSize; }
   double modulus() const {return plastShearModulus; }
   void  setCenter(const Vector & newCenter); 
 
-  // friend ostream & operator<< (ostream & os, const MultiYieldSurface & );  
-  // friend istream & operator>> (istream & is, MultiYieldSurface & );
-
 private:
   double theSize;
   Vector theCenter;  
   double plastShearModulus;
-
 };
 
+} // namespace OpenSees
 #endif

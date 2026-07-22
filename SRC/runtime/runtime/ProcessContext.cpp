@@ -18,7 +18,7 @@
 #include <Channel.h>
 #include <Logging.h>
 #include <Parsing.h>
-#include <Interpreter.h>
+// #include <Interpreter.h>
 
 #if defined(XARA_ENABLE_MPI)
 # include <mpi.h>
@@ -77,11 +77,11 @@ ProcessContext::~ProcessContext()
 
 
 int
-ProcessContext::setup(Interpreter& interp)
+ProcessContext::setup(Tcl_Interp* interp)
 {
-  Tcl_CreateCommand(&interp, "getNP",     &getNP,   (ClientData)this, nullptr);
-  Tcl_CreateCommand(&interp, "getPID",    &getPID,  (ClientData)this, nullptr);
-  Tcl_CreateCommand(&interp, "barrier",   &opsBarrier,  (ClientData)this, nullptr);
+  Tcl_CreateCommand(interp, "getNP",     &getNP,   (ClientData)this, nullptr);
+  Tcl_CreateCommand(interp, "getPID",    &getPID,  (ClientData)this, nullptr);
+  Tcl_CreateCommand(interp, "barrier",   &opsBarrier,  (ClientData)this, nullptr);
   return 0;
 }
 

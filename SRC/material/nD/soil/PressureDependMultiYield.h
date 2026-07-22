@@ -18,52 +18,54 @@
 #include "soil/T2Vector.h"
 #include <Matrix.h>
 
-class MultiYieldSurface;
+
 
 namespace OpenSees {
+class MultiYieldSurface;
+
 
 class PressureDependMultiYield : public NDMaterial
 {
 public:
      // Initialization constructor
      PressureDependMultiYield (int tag, 
-			       int nd,
-				  double rho,
-			       double refShearModul,
-			       double refBulkModul,
-			       double frictionAng,
-			       double peakShearStra,
-			       double refPress,
-			       double pressDependCoe,
-			       double phaseTransformAngle, 
-			       double contractionParam1,
-			       double dilationParam1,
-			       double dilationParam2,
-			       double liquefactionParam1,
-			       double liquefactionParam2,
-			       double liquefactionParam4,
-			       int   numberOfYieldSurf = 20,
-				   double * gredu = 0,
-		           double e = 0.6,
-			       double volLimit1 = 0.9,
-			       double volLimit2 = 0.02,
-			       double volLimit3 = 0.7,
-			       double atm = 101.,
-				   double cohesi = 0.1,
-				   double hv = 0.,
-				   double pv = 1.);
+                               int nd,
+                               double rho,
+                               double refShearModul,
+                               double refBulkModul,
+                               double frictionAng,
+                               double peakShearStra,
+                               double refPress,
+                               double pressDependCoe,
+                               double phaseTransformAngle, 
+                               double contractionParam1,
+                               double dilationParam1,
+                               double dilationParam2,
+                               double liquefactionParam1,
+                               double liquefactionParam2,
+                               double liquefactionParam4,
+                               int   numberOfYieldSurf = 20,
+                               double * gredu = 0,
+                               double e = 0.6,
+                               double volLimit1 = 0.9,
+                               double volLimit2 = 0.02,
+                               double volLimit3 = 0.7,
+                               double atm = 101.,
+                               double cohesi = 0.1,
+                               double hv = 0.0,
+                               double pv = 1.);
 
      // Default constructor
-     PressureDependMultiYield ();
+     PressureDependMultiYield();
 
      // Copy constructor
-     PressureDependMultiYield (const PressureDependMultiYield &);
+     PressureDependMultiYield(const PressureDependMultiYield &);
 
      // Destructor: clean up memory storage space.
      virtual ~PressureDependMultiYield ();
 
-     const char *getClassType(void) const {return "PressureDependMultiYield";};     
-     double getRho(void) {return rhox[matN];} ;
+     const char *getClassType(void) const {return "PressureDependMultiYield";}  
+     double getRho() {return rhox[matN];}
 
      // Sets the values of the trial strain tensor.
      int setTrialStrain (const Vector &strain);
@@ -75,45 +77,38 @@ public:
      int setTrialStrainIncr(const Vector &v, const Vector &r);
 
      // Calculates current tangent stiffness.
-     const Matrix &getTangent (void);
-     const Matrix &getInitialTangent (void);
-        
-     void getBackbone (Matrix &);
+     const Matrix &getTangent();
+     const Matrix &getInitialTangent ();
+
 
      // Calculates the corresponding stress increment (rate), for a given strain increment. 
-     const Vector &getStress (void);
-     const Vector &getStrain (void);
-     const Vector &getCommittedStress (void);
-     const Vector &getStressToRecord (int numOutput); // Added by Alborz Ghofrani - UW
-     const Vector &getCommittedStrain (void);
+     const Vector &getStress();
+     const Vector &getStrain();
+     const Vector &getCommittedStress();
+     const Vector &getStressToRecord(int numOutput); // Added by Alborz Ghofrani - UW
+     const Vector &getCommittedStrain();
 
      // Accepts the current trial strain values as being on the solution path, and updates 
      // all model parameters related to stress/strain states. Return 0 on success.
-     int commitState (void);
-
-     // Revert the stress/strain states to the last committed states. Return 0 on success.
-     int revertToLastCommit (void);
-
-     int revertToStart(void) {return 0;}
+     int commitState();
+     int revertToLastCommit();
+     int revertToStart() {return 0;}
 
      // Return an exact copy of itself.
-     NDMaterial *getCopy (void);
+     NDMaterial *getCopy();
 
-     // Return a copy of itself if "code"="PressureDependMultiYield", otherwise return null.
-     NDMaterial *getCopy (const char *code);
+     NDMaterial *getCopy(const char *code);
 
-     // Return the string "PressureDependMultiYield".
-     const char *getType (void) const ;
+     const char *getType() const ;
 
      // Return ndm.
-     int getOrder (void) const ;
+     int getOrder() const ;
 
-     int sendSelf(int commitTag, Channel &theChannel);  
-     int recvSelf(int commitTag, Channel &theChannel, 
-		  FEM_ObjectBroker &theBroker);    
+     int sendSelf(int commitTag, Channel &);  
+     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker);    
      Response *setResponse (const char **argv, int argc, OPS_Stream &s);
-     int getResponse (int responseID, Information &matInformation);
-     void Print(OPS_Stream &s, int flag =0);
+     int getResponse (int responseID, Information &);
+     void Print(OPS_Stream &s, int flag);
      //void setCurrentStress(const Vector stress) { currentStress=T2Vector(stress); }
      int setParameter(const char **argv, int argc, Parameter &param);
      int updateParameter(int responseID, Information &);
@@ -122,8 +117,9 @@ public:
     // friend class PyLiq1;
     // friend class TzLiq1;
 private:
+     void getBackbone(Matrix &);
   // user supplied 
-	static int matCount;
+     static int matCount;
      static int* ndmx;  //num of dimensions (2 or 3)
      static int* loadStagex;  //=0 if elastic; =1 or 2 if plastic
      static double* rhox;  //mass density
@@ -147,22 +143,22 @@ private:
      static double* volLimit2x;
      static double* volLimit3x;
      static double pAtm;
-	static double* Hvx;
-	static double* Pvx;
+     static double* Hvx;
+     static double* Pvx;
 
      // internal
      static double* residualPressx;
      static double* stressRatioPTx;
      static Matrix theTangent;
-     
-	int matN;
+
+     int matN;
      int e2p;
      MultiYieldSurface * theSurfaces; // NOTE: surfaces[0] is not used  
      MultiYieldSurface * committedSurfaces;  
      int    activeSurfaceNum;  
      int    committedActiveSurf;
      double modulusFactor;
-	 double initPress;
+     double initPress;
      T2Vector currentStress;
      T2Vector trialStress;
      T2Vector currentStrain;
@@ -198,15 +194,15 @@ private:
      T2Vector lockStressCommitted;
      static Vector workV6;
      static T2Vector workT2V;
-	 double maxPress;
-     
+     double maxPress;
+
      void elast2Plast();
      // Called by constructor
      void setUpSurfaces(double *);  
      double yieldFunc(const T2Vector & stress, const MultiYieldSurface * surfaces, 
-		      int surface_num);
+                      int surface_num);
      void deviatorScaling(T2Vector & stress, const MultiYieldSurface * surfaces, 
-			  int surfaceNum);
+                          int surfaceNum);
      void initSurfaceUpdate();
      void initStrainUpdate();
 
@@ -223,7 +219,7 @@ private:
      double getPlasticPotential(const T2Vector & stress, const T2Vector & surfaceNormal);
      void setTrialStress(T2Vector & stress); 
      double getLoadingFunc(const T2Vector & contact, const T2Vector & surfaceNormal,
-			   double plasticPotential,int crossedSurface);
+                           double plasticPotential,int crossedSurface);
      //return 1 if stress locked; o/w return 0.
      int stressCorrection(int crossedSurface);
      void updateActiveSurface();
@@ -232,5 +228,7 @@ private:
      // Return 1 if crossing the active surface; return 0 o/w
      int  isCrossingNextSurface();  
 };
+
 } // namespace OpenSees
+
 #endif

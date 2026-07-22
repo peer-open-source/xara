@@ -135,7 +135,7 @@ class Node :
     // Eigen vectors
     VIRTUAL int setNumEigenvectors(int numVectorsToStore);
     VIRTUAL int setEigenvector(int mode, const Vector &eigenVector);
-    VIRTUAL const Matrix &getEigenvectors(void);
+    VIRTUAL const Matrix &getEigenvectors();
 
     // Thermodynamics
     VIRTUAL NodalThermalAction* getNodalThermalActionPtr();
@@ -189,13 +189,6 @@ class Node :
     int    setParameter(const char **argv, int argc, Parameter &);
     int    updateParameter(int parameterID, Information &);
     int    activateParameter(int parameterID);
-
-#if 1
-    //
-    // Display
-    //
-    VIRTUAL int getDisplayCrds(Vector &results, double fact, int displayMode=0);
-#endif
 
     // Reset global matrices
     static int resetGlobalMatrices();

@@ -77,7 +77,7 @@ J2CyclicBoundingSurfacePlaneStrain::getOrder() const
 int 
 J2CyclicBoundingSurfacePlaneStrain::setTrialStrain(const Vector &strain_from_element) 
 {
-	m_strain_np1.Zero();
+	m_strain_np1.zero();
 	m_strain_np1(0) = strain_from_element(0);
 	m_strain_np1(1) = strain_from_element(1);
 	m_strain_np1(3) = strain_from_element(2);

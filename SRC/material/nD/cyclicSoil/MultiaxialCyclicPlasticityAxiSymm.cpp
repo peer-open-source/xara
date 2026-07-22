@@ -64,21 +64,23 @@ MultiaxialCyclicPlasticity( tag, ND_TAG_MultiaxialCyclicPlasticityAxiSymm, rho, 
 
 
 
-//elastic constructor
-MultiaxialCyclicPlasticityAxiSymm :: 
-MultiaxialCyclicPlasticityAxiSymm(   int    tag, double rho,    // add density by Gang Wang
-                 double K, 
-                 double G ) :
-MultiaxialCyclicPlasticity( tag, ND_TAG_MultiaxialCyclicPlasticityAxiSymm, rho, K, G )
-{ 
+// //elastic constructor
+// MultiaxialCyclicPlasticityAxiSymm :: 
+// MultiaxialCyclicPlasticityAxiSymm(   int    tag, double rho,    // add density by Gang Wang
+//                  double K, 
+//                  double G ) :
+// MultiaxialCyclicPlasticity( tag, ND_TAG_MultiaxialCyclicPlasticityAxiSymm, rho, K, G )
+// { 
 
-}
+// }
 
 
 
 //destructor
-MultiaxialCyclicPlasticityAxiSymm :: ~MultiaxialCyclicPlasticityAxiSymm( ) 
-{ } 
+MultiaxialCyclicPlasticityAxiSymm::~MultiaxialCyclicPlasticityAxiSymm() 
+{ 
+
+} 
 
 
 NDMaterial* MultiaxialCyclicPlasticityAxiSymm :: getCopy( ) 

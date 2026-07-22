@@ -272,12 +272,12 @@ BoundingCamClay::commitState(void)
 	return 0;
 }
  
-int BoundingCamClay::revertToLastCommit (void)
+int BoundingCamClay::revertToLastCommit()
 {
     return 0;
 }
 
-int BoundingCamClay::revertToStart(void)
+int BoundingCamClay::revertToStart()
 {
 	// added for InitialStateAnalysis
 	if (ops_InitialStateAnalysis) {
@@ -316,13 +316,12 @@ BoundingCamClay::getOrder() const
 
 //--------------------Plasticity-------------------------------------
 // plasticity integration routine
-void BoundingCamClay::plastic_integrator() 
+void 
+BoundingCamClay::plastic_integrator() 
 {
-	double f, ev, es, p, q;
-	double kappa, r, R;
+	double f, es, p, q;
 	double norm_e = 0;
 	Vector SIGMAo(6);
-	Vector epsilonET(6);
 	Vector epsilonE(6);
 	Vector sigma(6);
 	Vector alpha(6);
@@ -332,9 +331,9 @@ void BoundingCamClay::plastic_integrator()
 	Vector n(6);
 
 	// initialize working variables
-	kappa = mKappa_n;
-	R = mR_n;
-	r = mr_n;
+	double kappa = mKappa_n;
+	double R = mR_n;
+	double r = mr_n;
     p = 0.0;
     q = 0.0;
 
@@ -342,10 +341,11 @@ void BoundingCamClay::plastic_integrator()
     SIGMAo = mSIGMAo_n;
 
 	// trial elastic strain
+	Vector epsilonET(6);
 	epsilonET = mEpsilon - mEpsilon_P;
 		
 	// trial elastic volumetric strain
-	ev = GetTrace(epsilonET);
+	double ev = GetTrace(epsilonET);
 	// trial elastic deviatoric strain tensor (contravariant)
 	e = mIIdevCon*epsilonET;
 	// norm of trial elastic deviatoric strain (contravariant-type norm)
@@ -353,9 +353,8 @@ void BoundingCamClay::plastic_integrator()
 	// trial second invariant of deviatoric strain tensor
 	es = root23*norm_e;
 
-	// force elastic response if initialization analysis is designated===================================
+	// force elastic response if initialization analysis is designated ===================================
 	if (mElastFlag == 0) {
-		//opserr << "force elastic response" << endln;
 		double qCalc;
 
 		// elastic strain = trial elastic strain
@@ -402,8 +401,9 @@ void BoundingCamClay::plastic_integrator()
     		initializeState = false;
 		}
 
-    // proceed with full algorithm if initialization analysis is not designated==========================
-	} else if (mElastFlag == 1) {
+    // proceed with full algorithm if initialization analysis is not designated
+	}
+	else if (mElastFlag == 1) {
 
     	// set initial volumetric strain
     	if (!initializeState) {
@@ -489,7 +489,8 @@ void BoundingCamClay::plastic_integrator()
     		// consistent elastoplastic tangent = elastic tangent
     		mCep = mCe;
 
-    	} else if (f > tolerance) {
+    	}
+		else if (f > tolerance) {
 			//opserr << "update of loading function required " << f << endln;
     		// update of loading function required
     		double Deps_vp, rho, eta, nu;
@@ -643,7 +644,6 @@ void BoundingCamClay::plastic_integrator()
     
     			// compute norm of residual vector
     			resNorm = Resid.Norm();
-    			//opserr << "iteration " << k << " residual norm " << resNorm << endln;
     		}
     
     		// update plastic strain

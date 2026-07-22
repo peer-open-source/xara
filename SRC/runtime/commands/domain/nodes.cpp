@@ -102,7 +102,9 @@ findID(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
 }
 
 int
-setNodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_setNodeCoord(ClientData clientData, 
+             Tcl_Interp *interp, 
+             ArgSize argc,
              TCL_Char ** const argv)
 {
   //
@@ -117,7 +119,7 @@ setNodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     return TCL_ERROR;
   }
 
-  int tag;
+  Xara::Tag tag;
 
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError

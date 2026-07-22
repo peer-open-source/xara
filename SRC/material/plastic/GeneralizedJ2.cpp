@@ -48,41 +48,41 @@ GeneralizedJ2::hard_LP(const Hardening &hd, double yf_tr,
                        double &Dlam, double &xi_p, double &Tlam) noexcept
 {
   const double H  = hd.Hi + hd.Hk;
-  const double TG = hd.TG;
+  const double G  = hd.G;
 
-  Dlam = yf_tr / (TG + H);
+  Dlam = yf_tr / (2.0*G + H);
   if (Dlam < 0.0)
     Dlam = 0.0;
-  xi_p = TG / (TG + H);
+  xi_p = 2.0*G / (2.0*G + H);
   Tlam = 1.0;
   return 0;
 }
+
 
 int
 GeneralizedJ2::hard_GP(const Hardening &hd,
                        double yf_tr, const HState &hs,
                        double &Dlam, double &xi_p, double &Tlam) noexcept
 {
-  const double Hk    = hd.Hk;
-  const double Hi    = hd.Hi;
-  const double H     = Hk + Hi;
-  const double TG    = hd.TG;
+  const double H     = hd.Hk + hd.Hi;
+  const double G     = hd.G;
   const double delta = hd.delta;
   const double phi   = hd.phi;   // phi = Fs - Fy
+  const double G1 = G + H/2.0;
 
   const double A2 = hs.A2;       // = sig_nrm - past.sigdnrm
   const double A1 = yf_tr;
-  const double A3 = delta - TG;
+  const double A3 = delta - 2.0*G;
   const double A4 = (delta + H)*phi;
 
   // Quadratic a x^2 + b x + c = 0
-  const double a = (TG + H)*A3;
-  const double b =  A4 - A1*(delta - TG) + (TG + H)*A2;
+  const double a = 2.0*G1*A3;
+  const double b =  A4 - A1*(delta - 2.0*G) + (2.0*G + H)*A2;
   const double c = -A1*A2;
 
   const double discr = b*b - 4.0*a*c;
   if (discr < 0.0) {
-    // Should not happen if inputs are consistent; fall back to elastic
+    // Should not happen if inputs are consistent
     Dlam = 0.0;
     xi_p = 1.0;
     Tlam = 1.0;
@@ -100,12 +100,12 @@ GeneralizedJ2::hard_GP(const Hardening &hd,
   if (!std::isfinite(Dlam)) Dlam = 0.0;
 
   // algorithmic tangent coefficient xi_p
-  // xi_p = TG*(B1 + B2) / ((TG + H)*B1 - (delta - TG)*B2 + B3)
+  // xi_p = TG*(B1 + B2) / ((TG + H)*B1 - (delta - 2.0*G)*B2 + B3)
   const double B1    = A2 + A3*Dlam;
-  const double B2    = A1 - (TG + H)*Dlam; 
+  const double B2    = A1 - (2.0*G + H)*Dlam; 
   const double B3    = A4; 
-  const double Denom = (TG + H)*B1 - A3*B2 + B3;
-  xi_p  = (Denom != 0.0) ? (TG*(B1 + B2)/Denom) : 1.0;
+  const double Denom = (2.0*G + H)*B1 - A3*B2 + B3;
+  xi_p  = (Denom != 0.0) ? (2.0*G*(B1 + B2)/Denom) : 1.0;
   Tlam  = 1.0;
   return 0;
 }
@@ -128,7 +128,8 @@ GeneralizedJ2::GeneralizedJ2(int tag,
   E(E_), nu(nu_), Fy(Fy_), Fs(Fs_),
   Hiso(Hiso_), Hkin(Hkin_), delta(delta_),
   rule(rule_),
-  retTangent(C), retInitialTangent(Ce), retStress(pres.sig), retStrain(eps),
+  retTangent(C), retInitialTangent(Ce), 
+  retStress(pres.sig), retStrain(eps),
   density(density_)
 {
   this->revertToStart();
@@ -143,7 +144,7 @@ GeneralizedJ2::~GeneralizedJ2() = default;
 //
 
 int
-GeneralizedJ2::updateState()
+GeneralizedJ2::updateState(const VectorND<6> &eps)
 {
   static constexpr MatrixND<6,9> P {
     // NOTE: this appears transposed because MatrixND is column-major
@@ -166,14 +167,15 @@ GeneralizedJ2::updateState()
   const double flow_rate = SQRT23; // 1.0 for J2, sqrt(3/2) for Mises
 
 
-  // Trial deviatoric stress (Voigt), using plastic strain from last commit
-  const VectorND<6> eps_d = Voight::Dev(eps);
   // deviatoric part of total strain
-  // deviatoric stress trial: s_tr = 2G*(eps_d - eps_p_d)
+  const VectorND<6> eps_dev = Voight::Dev(eps);
+  const double      eps_vol = Voight::Trace(eps); // volumetric strain
+
+  // Trial deviatoric stress: s_tr = 2G * (eps_dev - eps_p_d)
   const VectorND<6> eps_p_d = Voight::Dev(past.eps_p);
   VectorND<9> sig_dev_tr{};
-  sig_dev_tr.addVector(0.0, P^eps_d, TG);
-  sig_dev_tr.addVector(1.0, P^eps_p_d, -TG);
+  sig_dev_tr.addVector(0.0, P^eps_dev,  2.0*G);
+  sig_dev_tr.addVector(1.0, P^eps_p_d, -2.0*G);
 
   // Yield function at trial
   const VectorND<9> eta = sig_dev_tr - past.sig_b;
@@ -187,12 +189,14 @@ GeneralizedJ2::updateState()
   if (elastic) {
     // Elastic update
     // Full Cauchy stress = deviatoric + K*eps_v*IVOL
-    // volumetric strain
-    const double eps_v = Voight::Trace(eps);
-    VectorND<6> sig = P*sig_dev_tr;
-    sig.addVector(1.0, Voight::ivol, K*eps_v);
 
-    pres.sig     = sig;
+    // VectorND<6> sig = P*sig_dev_tr;
+    // sig.addVector(1.0, Voight::ivol, K*eps_vol);
+    pres.sig = Voight::ReduceVector(sig_dev_tr);
+    Voight::AddVol(pres.sig, K*eps_vol);
+
+    // pres.sig     = sig;
+    // pres.eps     = eps;
     pres.eps_p   = past.eps_p;
     pres.sig_b   = past.sig_b;
     pres.alpha   = past.alpha;
@@ -200,8 +204,8 @@ GeneralizedJ2::updateState()
 
     // Tangent
     C.zero();
-    C.addMatrix(Voight::IoI,  K);
-    C.addMatrix(Voight::IIdevCon, TG);
+    C.addMatrix(Voight::IoI,          K);
+    C.addMatrix(Voight::IIdevCon, 2.0*G);
     return 0;
   }
 
@@ -217,7 +221,7 @@ GeneralizedJ2::updateState()
 
   // Hardening rule selection
   const double phi = Fs - Fy; // phi is distance to asymptote
-  const Hardening hd{Hiso, Hkin, TG, delta, phi, rule};
+  const Hardening hd{Hiso, Hkin, G, delta, phi, rule};
   HState hs{};
   hs.A2    = A2;
   hs.sn    = sig_nrm;
@@ -233,11 +237,12 @@ GeneralizedJ2::updateState()
     default:        status = hard_GP(hd, yf_tr, hs, Dlam, xi_p, Tlam); break;
   }
   if (status != 0) {
+    opserr << "Hardening rule failed; falling back to elastic update\n";
     // Something went wrong in the hardening; fall back to elastic
     pres = past;
     C.zero();
-    C.addMatrix(Voight::IoI,  K);
-    C.addMatrix(Voight::IIdevCon, TG);
+    C.addMatrix(Voight::IoI,          K);
+    C.addMatrix(Voight::IIdevCon, 2.0*G);
     return -1;
   }
 
@@ -251,7 +256,7 @@ GeneralizedJ2::updateState()
 
   // Correct deviatoric stress: s = s_tr - 2G * Dlam * n
   VectorND<9> sig_dev = sig_dev_tr;
-  sig_dev.addVector(1.0, n, -TG*Dlam);
+  sig_dev.addVector(1.0, n, -2.0*G*Dlam);
 
   // Update isotropic variable alpha
   pres.alpha = past.alpha + flow_rate*Dlam;
@@ -263,7 +268,7 @@ GeneralizedJ2::updateState()
 
   // Assemble full stress
   pres.sig = P*sig_dev;
-  pres.sig.addVector(1.0,  Voight::ivol,  K*Voight::Trace(eps));
+  pres.sig.addVector(1.0,  Voight::ivol,  K*eps_vol);
 
   // Store norm for next step
   pres.sigdnrm = (sig_dev - pres.sig_b).norm();
@@ -289,10 +294,10 @@ GeneralizedJ2::updateState()
   nn.addTensorProduct(P*n,P*n, 1.0);
   MatrixND<6,6> Pnn = Voight::IIdevCon;
   Pnn.addMatrix(nn, -1.0);
-  C.addMatrix(Pnn, TG*a);
+  C.addMatrix(Pnn, 2.0*G*a);
 
   // term: TG * b * (n⊗n)
-  C.addMatrix(nn, TG*b);
+  C.addMatrix(nn, 2.0*G*b);
 
   return 0;
 }
@@ -304,18 +309,19 @@ GeneralizedJ2::updateState()
 int
 GeneralizedJ2::setTrialStrain(const Vector &v)
 {
+  assert(v.Size() == 6);
   // copy into internal Voigt
   for (int i=0;i<6;i++)
     eps[i] = v(i);
-  return updateState();
+  return updateState(eps);
 }
 
 int
 GeneralizedJ2::setTrialStrainIncr(const Vector &dv)
 {
   for (int i=0;i<6;i++)
-    eps(i) += dv(i);
-  return updateState();
+    eps[i] += dv(i);
+  return updateState(eps);
 }
 
 const Matrix&
@@ -353,12 +359,6 @@ int
 GeneralizedJ2::revertToLastCommit()
 {
   pres = past;
-
-  // TODO: Rebuild C from current E,nu and state (safe)
-  const double G  = E/2./(1. +    nu);     // Shear modulus
-  const double K  = E/3./(1. - 2.*nu);     // Bulk  modulus
-
-
   C = Ce;
   return 0;
 }
@@ -377,11 +377,11 @@ GeneralizedJ2::revertToStart()
   past = pres;
 
   // Build elastic matrices
-  const double G  = Gfrom(E, nu);
-  const double K  = Kfrom(E, nu);
+  const double G  = E/2./(1. +    nu);     // Shear modulus
+  const double K  = E/3./(1. - 2.*nu);     // Bulk  modulus
 
   Ce.zero();
-  Ce.addMatrix(Voight::IoI, K);
+  Ce.addMatrix(Voight::IoI,          K);
   Ce.addMatrix(Voight::IIdevCon, 2.0*G); // Idp
   C = Ce;
   return 0;
@@ -427,8 +427,8 @@ GeneralizedJ2::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
-    s << "\"name\": \"GeneralizedJ2\", ";
-    s << "\"tag\": " << this->getTag() << ", ";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"GeneralizedJ2\", ";
     s << "\"E\": " << E << ", ";
     s << "\"nu\": " << nu << ", ";
     s << "\"Fy\": " << Fy << ", ";

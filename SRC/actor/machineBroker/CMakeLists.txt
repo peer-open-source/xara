@@ -7,8 +7,6 @@
 target_sources(OPS_Actor
   PRIVATE
     MachineBroker.cpp
-  PUBLIC
-    MachineBroker.h
 )
 
 

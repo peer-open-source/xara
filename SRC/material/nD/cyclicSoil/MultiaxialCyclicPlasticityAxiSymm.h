@@ -66,15 +66,12 @@ class MultiaxialCyclicPlasticityAxiSymm : public MultiaxialCyclicPlasticity {
                  double Parameter_m,
                  double Parameter_beta,
                  double Kcoeff,
-                 double viscosity=0 ) ;
-
-  //elastic constructor // add density by Gang Wang
-  MultiaxialCyclicPlasticityAxiSymm( int tag, double rho, double K, double G ) ;
+                 double viscosity=0 );
 
   //destructor
   ~MultiaxialCyclicPlasticityAxiSymm( ) ;
 
-  const char *getClassType(void) const {return "MultiaxialCyclicPlasticityAxiSymm";};
+  const char *getClassType() const {return "MultiaxialCyclicPlasticityAxiSymm";}
 
     NDMaterial* getCopy( ) ;
 

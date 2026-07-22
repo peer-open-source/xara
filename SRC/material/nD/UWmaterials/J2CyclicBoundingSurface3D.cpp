@@ -20,18 +20,19 @@
                                                                        
 // Written: UW Computational Geomechanics Group
 //          Pedro Arduino (*), ALborz Ghofrani(*)
-//			(*)  University of Washington
+//            (*)  University of Washington
 //          March 2020
 //
 // Description: This file contains the implementation of the J2CyclicBoundingSurface3D class.
 #include "J2CyclicBoundingSurface3D.h"
+
 
 Matrix J2CyclicBoundingSurface3D::tangent(3, 3);
 
 
 // full constructor
 J2CyclicBoundingSurface3D::J2CyclicBoundingSurface3D( int tag, double G, double K, double su, double rho, double h, double m, double h0, double chi, double beta)
-	:J2CyclicBoundingSurface (tag, ND_TAG_J2CyclicBoundingSurface3D, G, K, su, rho, h, m, h0, chi, beta)
+    :J2CyclicBoundingSurface (tag, ND_TAG_J2CyclicBoundingSurface3D, G, K, su, rho, h, m, h0, chi, beta)
 {
 }
 
@@ -50,7 +51,7 @@ J2CyclicBoundingSurface3D::~J2CyclicBoundingSurface3D()
 NDMaterial* 
 J2CyclicBoundingSurface3D::getCopy()
 { 
-	J2CyclicBoundingSurface3D *clone;
+    J2CyclicBoundingSurface3D *clone;
     clone = new J2CyclicBoundingSurface3D();
     *clone = *this;
     return clone;
@@ -74,48 +75,49 @@ J2CyclicBoundingSurface3D::getOrder() const
 int 
 J2CyclicBoundingSurface3D::setTrialStrain(const Vector &strain_from_element)
 {
-	m_strain_np1 = strain_from_element;
-	this->integrate();
+    m_strain_np1 = strain_from_element;
+    this->integrate();
 
-	return 0;
+    return 0;
 }
 
 // unused trial strain functions
 int 
 J2CyclicBoundingSurface3D::setTrialStrain(const Vector &v, const Vector &r)
 {
-	m_strainRate_n1 = r;
-	m_strain_np1 = v;
-	this->integrate();
+    m_strainRate_n1 = r;
+    m_strain_np1 = v;
+    this->integrate();
 
-	return 0;
+    return 0;
 }
 
 // send back the strain
 const Vector& 
 J2CyclicBoundingSurface3D::getStrain()
 {
-	return m_strain_np1;
+    return_vector.setData(m_strain_np1);
+    return return_vector;
 } 
 
 // send back the stress 
 const Vector& 
 J2CyclicBoundingSurface3D::getStress()
 {
-	//return m_stress_np1;
-	return m_stress_t_n1;
+    //return m_stress_np1;
+    return m_stress_t_n1;
 }
 
 // send back the tangent 
 const Matrix& 
 J2CyclicBoundingSurface3D::getTangent()
 {
-	return calcTangent();
+    return calcTangent();
 } 
 
 // send back the tangent 
 const Matrix& 
 J2CyclicBoundingSurface3D::getInitialTangent()
 {
-	return m_Ce;
+    return m_Ce;
 }

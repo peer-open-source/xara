@@ -10,7 +10,11 @@
 #include <NDMaterial.h>
 #include "soil/T2Vector.h"
 #include <Matrix.h>
+#include "SoilStage.h"
 
+
+
+namespace OpenSees {
 class MultiYieldSurface;
 
 class PressureIndependMultiYield : public NDMaterial
@@ -31,17 +35,17 @@ public:
 				 double * gredu = 0);
 
      // Default constructor
-     PressureIndependMultiYield ();
+     PressureIndependMultiYield();
 
      // Copy constructor
-     PressureIndependMultiYield (const PressureIndependMultiYield &);
+     PressureIndependMultiYield(const PressureIndependMultiYield &);
 
      // Destructor: clean up memory storage space.
      virtual ~PressureIndependMultiYield ();
 
-     const char *getClassType(void) const {return "PressureIndependMultiYield";}
+     const char *getClassType() const {return "PressureIndependMultiYield";}
 
-     double getRho(void) {return rhox[matN];} ;
+     double getRho() {return rhox[matN];} ;
 
      // Sets the values of the trial strain tensor.
      int setTrialStrain (const Vector &strain);
@@ -53,38 +57,38 @@ public:
      int setTrialStrainIncr(const Vector &v, const Vector &r);
 
      // Calculates current tangent stiffness.
-     const Matrix &getTangent (void);
-     const Matrix &getInitialTangent (void);
+     const Matrix &getTangent();
+     const Matrix &getInitialTangent ();
         
-     void getBackbone (Matrix &);
+     void getBackbone(Matrix &);
 
      // Calculates the corresponding stress increment (rate), for a given strain increment. 
-     const Vector &getStress (void);
-     const Vector &getStrain (void);
-     const Vector &getCommittedStress (void);
+     const Vector &getStress();
+     const Vector &getStrain();
+     const Vector &getCommittedStress ();
      const Vector &getStressToRecord (int numOutput); // Added by Alborz Ghofrani - UW
-     const Vector &getCommittedStrain (void);
+     const Vector &getCommittedStrain();
 
      // Accepts the current trial strain values as being on the solution path, and updates 
      // all model parameters related to stress/strain states. Return 0 on success.
-     int commitState (void);
+     int commitState();
 
      // Revert the stress/strain states to the last committed states. Return 0 on success.
-     int revertToLastCommit (void);
+     int revertToLastCommit();
 
-     int revertToStart(void) {return 0;}
+     int revertToStart() {return 0;}
 
      // Return an exact copy of itself.
-     NDMaterial *getCopy (void);
+     NDMaterial *getCopy();
 
      // Return a copy of itself if "code"="PressureIndependMultiYield", otherwise return null.
-     NDMaterial *getCopy (const char *code);
+     NDMaterial *getCopy(const char *code);
 
      // Return the string "PressureIndependMultiYield".
-     const char *getType (void) const ;
+     const char *getType() const ;
 
      // Return ndm.
-     int getOrder (void) const ;
+     int getOrder(void) const ;
 
      int sendSelf(int commitTag, Channel &theChannel);  
      int recvSelf(int commitTag, Channel &theChannel, 
@@ -136,7 +140,7 @@ private:
 	static T2Vector subStrainRate;
     double * mGredu;
 
-	void elast2Plast(void);
+	void elast2Plast();
 	// Called by constructor
 	void setUpSurfaces(double *);  
 
@@ -166,15 +170,15 @@ private:
 
 	void stressCorrection(int crossedSurface);
 	
-	void updateActiveSurface(void);
+	void updateActiveSurface();
 	
-	void updateInnerSurface(void);
+	void updateInnerSurface();
 
 	// Return 1 if crossing the active surface; return 0 o/w
-	int  isCrossingNextSurface(void);  
+	int  isCrossingNextSurface();  
 
 };
-
+} // namespace OpenSees
 #endif
 
 

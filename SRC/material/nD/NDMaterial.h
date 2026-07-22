@@ -38,6 +38,7 @@
 // Revision: A
 //
 #include <cassert>
+#include <Domain.h>
 #include <TaggedObject.h>
 #include <MovableObject.h>
 #include <MaterialBuilder.h>
@@ -46,6 +47,7 @@ class ID;
 class Vector;
 class Information;
 class Response;
+class Domain;
 
 using namespace OpenSees;
 
@@ -55,6 +57,8 @@ class NDMaterial : public MaterialBuilder, public MovableObject
     NDMaterial(int tag, int classTag);
     NDMaterial();
     virtual ~NDMaterial();
+
+    int setDomain(Domain *domain) {m_domain = domain; return 0;}
 
     virtual NDMaterial *getCopy() = 0;
     virtual NDMaterial *getCopy(const char *type) override;
@@ -105,7 +109,14 @@ class NDMaterial : public MaterialBuilder, public MovableObject
 
   protected:
     int getCharacteristicLength(double& l) const { l = c_length; return c_length_set ? 0 : -1;}
-    int getTimeStep(double& dt) const { dt = timeStep; return timeStep_set ? 0 : -1;}
+    int getTimeStep(double& dt) const { 
+      if (m_domain) {
+        dt = m_domain->getDT();
+        return 0;
+      } else {
+        return -1;
+      }
+    }
 
   private:
     static Matrix errMatrix;
@@ -113,8 +124,7 @@ class NDMaterial : public MaterialBuilder, public MovableObject
     double c_length = 0.0;     // characteristic length for nonlocal damage models
     bool c_length_set = false; // flag to indicate if characteristic length has been set
 
-    double timeStep = 0.0;     //
-    bool timeStep_set = false; //
+    Domain *m_domain = nullptr; // pointer to the domain in which the material is used
 };
 
 #endif
