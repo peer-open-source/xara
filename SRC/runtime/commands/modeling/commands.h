@@ -45,7 +45,7 @@ extern Tcl_CmdProc  TclCommand_doBlock2D;
 extern Tcl_CmdProc  TclCommand_doBlock3D;
 
 // uniaxial.cpp
-extern Tcl_CmdProc  TclCommand_addUniaxialMaterial;
+extern Tcl_CmdProc  XaraCmd_uniaxialMaterial;
 
 // section.cpp
 extern Tcl_CmdProc  XaraCmd_section;
@@ -133,7 +133,7 @@ constexpr ModelBuilderCommands[] =  {
   {"with",                 XaraCmd_invoke},
   {"invoke",               XaraCmd_invoke},
 // Materials & sections
-  {"uniaxialMaterial",     TclCommand_addUniaxialMaterial},
+  {"uniaxialMaterial",     XaraCmd_uniaxialMaterial},
   {"nDMaterial",           TclCommand_addNDMaterial},
   {"material",             TclCommand_addMaterial},
   {"beamIntegration",      XaraCmd_beamIntegration},

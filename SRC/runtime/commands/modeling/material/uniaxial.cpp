@@ -91,8 +91,9 @@ UniaxialMaterial *TclBasicBuilder_addDegradingMaterial(ClientData, Tcl_Interp *,
 
 
 int
-TclCommand_addUniaxialMaterial(ClientData clientData, Tcl_Interp *interp,
-                                  int argc, TCL_Char ** const argv)
+XaraCmd_uniaxialMaterial(ClientData clientData, 
+                         Tcl_Interp *interp,
+                         ArgSize argc, TCL_Char ** const argv)
 {
   using OpenSees::Library::UniaxialLibrary;
 
