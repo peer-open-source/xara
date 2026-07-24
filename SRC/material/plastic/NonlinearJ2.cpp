@@ -15,28 +15,15 @@
 //
 // General isotropic J2 plasticity with nonlinear isotropic/kinematic hardening
 //
-// Written: Claudio M. Perez
-// Adapted from the MATLAB implementation by Nikolay Velkov.
-//
-// Developed with FEDEASLab [1].
-//
-// References:
-//
-//  [1] Filippou, F.C. (1998)
-//     "FEDEASLab: Finite Elements for Design Evaluation and Analysis of Structures"
-//  [2] Hartloper, Sousa, Lignos (2021), ASCE, JSE, Vol. 147, Issue 4
-//      "Constitutive Modeling of Structural Steels: Nonlinear Isotropic/Kinematic Hardening"
-//      Material Model and Its Calibration
-//  [3] Suchocki (2022), Acta Mechanica, Vol 233, Issue 1, pp. 83-120
-//      On finite element implementation of cyclic elastoplasticity: 
-//      theory, coding, and exemplary problems
-//  [4] Simo, Hughes (1998), Computational Inelasticity, Springer
+// Details and references are provided in the header file NonlinearJ2.h.
 //
 //
 // material J2 tag E nu 
 //      -F {Fy Fi Fs}  -b {a b} 
 //      -C {C1 C2 ...} -g {g1 g2 ...}
 //      -YFtol tol -maxIter n -density rho
+//
+// Written: Claudio M. Perez
 //
 #include "NonlinearJ2.h"
 #include <VectorND.h>
@@ -66,9 +53,8 @@ NonlinearJ2::NonlinearJ2(int tag,
                      double YFtol,
                      int MaxIter)
 : NDMaterial(tag, 0),
-  E(E_), nu(nu_), fy(Fy_),
-  Hiso_(Hiso),
-  a_(a), DInf_(DInf), b_(b), QInf_(QInf),
+  E(E_), nu(nu_), Fy(Fy_),
+  Hiso_(Hiso), Q_{DInf, QInf}, b_{a, b},
   newton_tolerance(YFtol), MaxIter_(MaxIter),
   density_(density),
   retInitialTangent(Ce), retTangent(C),
@@ -128,10 +114,10 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
     // pres.sig = P * s_tr;
     // pres.sig.addVector(1.0, Voight::ivol,  K*eps_vol);
 
-    pres.eps      = eps;
-    pres.eps_p    = past.eps_p;
-    pres.gamma    = past.gamma;
-    pres.sig_b    = past.sig_b;
+    pres.eps             = eps;
+    pres.eps_p           = past.eps_p;
+    pres.mises_strain    = past.mises_strain;
+    pres.sig_b           = past.sig_b;
 
     // Elastic tangent
     C.zero();
@@ -151,7 +137,7 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
   }
 
   //
-  // Plastic correction, Newton on lamda
+  // Plastic correction, Newton on lambda
   //
   double lamda   = 0.0;
   double g, Dg, phi_a=0.0;
@@ -202,12 +188,11 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
   pres.eps_p.addVector(1.0, deps_p_Iinv, lamda);
 
 
-  // Update isotropic variable
+  // Update isotropic variables
   const double d_mises_strain = lamda*flow_rate*(phi_n*mises_scale);
   Isotropic::update(*this, past, d_mises_strain, pres);
 
-  // Update back-stress components: 
-  // X_k = w_k * ( X_k + (2/3) C_k * lamda * n )
+  // Update back-stress components
   Kinematic::update(*this, past, d_mises_strain, m, pres);
 
   // Assemble full stress = P*s_dev + K*eps_v*ivol
@@ -227,9 +212,9 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
   const double theta_phi = lamda*phi_m / phi_a;
 
   C.zero();
-  // volumetric identity scaled by bulk modulus
+  // 1. bulk term
   C.addMatrix(Voight::IoI,      K);
-  // scale contravariant deviatoric identity
+  // 2. scale contravariant deviatoric identity
   C.addMatrix(Voight::IIdevCon,  2.0*G*(1.0 - 2.0*G*theta_phi));
 
   const double theta_lam = -2.0*G/(flow_rate*Dg);
@@ -247,6 +232,67 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
   }
 
   return 0;
+}
+
+
+void 
+NonlinearJ2::newton_update(const VectorND<9>& s_tr, 
+                          double lambda,
+                          // outputs:
+                          VectorND<9>& m,
+                          double& g, 
+                          double& Dg,
+                          double& phi_a) const noexcept 
+{
+  double d_mises_strain = (flow_rate*lambda)*phi_n*mises_scale;
+
+  // Partial stress, Z
+  m = s_tr;
+  m -= Kinematic::A(*this, past, d_mises_strain);
+
+  phi_a  = metric(m); // phi(a)
+
+  // Newton residual function
+  g = phi_a - 2.0*G*d_mises_strain*(phi_n/mises_scale)
+    - Kinematic::H(*this, past, d_mises_strain)*(phi_n/mises_scale)
+    - Isotropic::Y(*this, past, d_mises_strain)*phi_n*mises_scale;
+
+  if (phi_a < 1e-16) {
+    m.zero();
+    Dg = 0.0;
+    return;
+  }
+
+  m    *= phi_m/phi_a; // m = a * phi(m)/phi(a)
+
+  // Derivative of newton residual
+  // Note: d(norm(Z))/d(lamda) == n . X' == dX(n)
+  Dg = Kinematic::dX(*this, past, d_mises_strain, m)*mises_rate/flow_rate
+      - Kinematic::dH(*this, past, d_mises_strain)*mises_rate*(phi_n/mises_scale)
+      - 2.0*G*mises_rate*(phi_n/mises_scale)
+      - Isotropic::H(*this, past, d_mises_strain)*mises_scale*phi_n*mises_rate;
+}
+
+void
+NonlinearJ2::scale_tolerance(double sig_nrm, double& gtol, double& ftol) const noexcept
+{
+  const double yieldRadius = Isotropic::Y(*this, past, 0.0) * phi_n * mises_scale;
+
+  const double yieldScale =
+      std::max(
+          1.0,
+          std::max(sig_nrm, std::abs(yieldRadius))
+      );
+
+  double round_tol = 256.0
+          * std::numeric_limits<double>::epsilon()
+          * yieldScale;
+
+  gtol = std::max(
+          newton_tolerance,
+          round_tol
+      );
+  ftol = std::max(1e-10*yieldScale, round_tol);
 }
 
 //
@@ -297,7 +343,7 @@ NonlinearJ2::revertToStart()
   pres.eps.zero();
   pres.eps_p.zero();
   pres.sig_b.assign(Ck_.size(), VectorND<9>{});
-  pres.gamma = 0.0;
+  pres.mises_strain = 0.0;
   pres.Estr  = 0.0;
   pres.Ehst  = 0.0;
 
@@ -346,10 +392,10 @@ NonlinearJ2::getCopy()
 {
   auto *m = new NonlinearJ2(this->getTag(),
                           E, nu, 
-                          fy, density_, 
-                          Hiso_,
-                          a_, DInf_, b_, QInf_,
-                          Ck_, gammak_, newton_tolerance, MaxIter_);
+                          Fy, density_, 
+                          Hiso_, b_[0], Q_[0], b_[1], Q_[1],
+                          Ck_, gammak_, 
+                          newton_tolerance, MaxIter_);
   // constructor assumed Ck without 2/3 and rescales. 
   // We have to undo that here to avoid double rescaling
   for (size_t i=0;i<Ck_.size();i++)
@@ -373,20 +419,6 @@ NonlinearJ2::getCopy(const char *type)
 }
 
 
-int 
-NonlinearJ2::sendSelf(int, Channel &)
-{
-  // Not implemented
-  return -1;
-}
-
-int 
-NonlinearJ2::recvSelf(int, Channel &, FEM_ObjectBroker &)
-{
-  // Not implemented
-  return -1;
-}
-
 
 void
 NonlinearJ2::Print(OPS_Stream &s, int flag)
@@ -397,9 +429,9 @@ NonlinearJ2::Print(OPS_Stream &s, int flag)
     s << "\"type\": \"" << this->getClassType() << "\", ";
     s << "\"E\": " << E << ", ";
     s << "\"nu\": " << nu << ", ";
-    s << "\"Fy\": " << fy << ", ";
-    s << "\"Q\": [" << QInf_ << ", " << DInf_ << "], ";
-    s << "\"b\": [" << b_ << ", " << a_ << "], ";
+    s << "\"Fy\": " << Fy << ", ";
+    s << "\"Q\": [" << Q_[0] << ", " << Q_[1] << "], ";
+    s << "\"b\": [" << b_[0] << ", " << b_[1] << "], ";
     s << "\"C\": [";
     for (size_t i=0;i<Ck_.size();i++) {
       s << Ck_[i]*(3.0/2.0);
@@ -421,9 +453,7 @@ NonlinearJ2::Print(OPS_Stream &s, int flag)
   else {
     s << "NonlinearJ2 tag: " << this->getTag()
       << " E: " << E << " nu: " << nu
-      << " fy: " << fy
-      << " a: " << a_ << " DInf: " << DInf_
-      << " b: " << b_ << " QInf: " << QInf_
+      << " fy: " << Fy
       << " m(backstresses): " << int(Ck_.size())
       << " tol: " << newton_tolerance << " iters: " << MaxIter_
       << " rho: " << density_ << "\n";
