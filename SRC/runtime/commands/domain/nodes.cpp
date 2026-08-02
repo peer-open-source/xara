@@ -916,8 +916,9 @@ nodeEigenvector(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
 int
-calculateNodalReactions(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-                        TCL_Char ** const argv)
+XaraCmd_reactions(ClientData clientData, 
+                  Tcl_Interp *interp, ArgSize argc,
+                  TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *domain = static_cast<Domain *>(clientData);

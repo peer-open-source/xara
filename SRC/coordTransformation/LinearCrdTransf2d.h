@@ -45,7 +45,7 @@ public:
     LinearCrdTransf2d();
     ~LinearCrdTransf2d();
     
-    const char *getClassType() const {return "LinearCrdTransf2d";};
+    const char *getClassType() const {return "LinearCrdTransf2d";}
     
     int initialize(Node *node1Pointer, Node *node2Pointer);
     int update();
@@ -87,7 +87,7 @@ public:
     int sendSelf(int cTag, Channel &theChannel);
     int recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
     
-    void Print(OPS_Stream &s, int flag = 0);
+    void Print(OPS_Stream &s, int flag);
     
     // method used to rotate consistent mass matrix
     const Matrix &getGlobalMatrixFromLocal(const Matrix &local);

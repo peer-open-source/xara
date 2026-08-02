@@ -165,7 +165,7 @@ Tcl_CmdProc findID;
 
 Tcl_CmdProc nodeResponse;
 
-Tcl_CmdProc calculateNodalReactions;
+Tcl_CmdProc XaraCmd_reactions;
 
 Tcl_CmdProc getNodeTags;
 Tcl_CmdProc retainedNodes;

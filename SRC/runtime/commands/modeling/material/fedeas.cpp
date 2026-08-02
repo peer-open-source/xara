@@ -736,7 +736,7 @@ FedeasSteelParse(ClientData clientData, Tcl_Interp *interp,
     theMaterial = new Steel2(tag, fy, E, b, R0, cR1, cR2, a1, a2, a3, a4);
   }
 
-  else if ((strcasecmp(argv[1], "Steel02") == 0)) {
+  else if ((strcasecmp(argv[1], "Steel02") == 0) || (strcmp(argv[1], "Steel03") == 0)) {
     theMaterial = new Steel02(tag, 
                               fy, E, b, 
                               R0, cR1, cR2,
@@ -777,6 +777,7 @@ TclCommand_newFedeasSteel(ClientData clientData, Tcl_Interp *interp,
 
   else if ((strcasecmp(argv[1], "Steel02") == 0) || 
            (strcmp(argv[1], "Steel2") == 0) || 
+           (strcmp(argv[1], "Steel03") == 0) || 
            (strcmp(argv[1], "Steel02Thermal") == 0) || 
            (strcmp(argv[1], "SteelMP") == 0)
   ) {

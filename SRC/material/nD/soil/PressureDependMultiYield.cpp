@@ -825,13 +825,13 @@ PressureDependMultiYield::getStress(void)
 }
 
 const Vector &
-PressureDependMultiYield::getStrain (void)
+PressureDependMultiYield::getStrain()
 {
   return getCommittedStrain();
 }
 
 int
-PressureDependMultiYield::commitState(void)
+PressureDependMultiYield::commitState()
 {
   int loadStage = loadStagex[matN];
   int numOfSurfaces = numOfSurfacesx[matN];
@@ -867,17 +867,18 @@ PressureDependMultiYield::commitState(void)
 }
 
 int
-PressureDependMultiYield::revertToLastCommit (void)
+PressureDependMultiYield::revertToLastCommit()
 {
   return 0;
 }
 
 NDMaterial *
-PressureDependMultiYield::getCopy (void)
+PressureDependMultiYield::getCopy()
 {
   PressureDependMultiYield * copy = new PressureDependMultiYield(*this);
   return copy;
 }
+
 
 NDMaterial *
 PressureDependMultiYield::getCopy (const char *code)
@@ -888,7 +889,7 @@ PressureDependMultiYield::getCopy (const char *code)
     return copy;
   }
 
-  return 0;
+  return nullptr;
 }
 
 const char *
@@ -1418,9 +1419,9 @@ PressureDependMultiYield::Print(OPS_Stream &s, int flag )
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT
       << "{"
-      << "\"type\": \"" << this->getClassType() << "\", "
       << "\"name\": " << this->getTag() << ", "
-      << "\"loadStage\": " <<  loadStagex[matN] 
+      << "\"type\": \"" << this->getClassType() << "\", "
+      << "\"stage\": " <<  loadStagex[matN] 
       << "}";
     return;
   }
@@ -1429,7 +1430,7 @@ PressureDependMultiYield::Print(OPS_Stream &s, int flag )
 }
 
 const Vector &
-PressureDependMultiYield::getCommittedStress (void)
+PressureDependMultiYield::getCommittedStress()
 {
   int ndm = ndmx[matN];
     if (ndmx[matN] == 0) ndm = 2;

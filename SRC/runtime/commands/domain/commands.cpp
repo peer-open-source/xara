@@ -116,7 +116,7 @@ static struct {
   {"nodeEigenvector",     &nodeEigenvector},
   {"nodeReaction",        &nodeReaction},
 
-  {"reactions",           &calculateNodalReactions},
+  {"reactions",           &XaraCmd_reactions},
 
   {"setNodeVel",          &setNodeVel},
   {"setNodeDisp",         &setNodeDisp},
@@ -193,7 +193,7 @@ RemoveTclDomainCommands(Tcl_Interp* interp)
 }
 
 int
-AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
+XaraInit_DomainCommands(Tcl_Interp *interp, Domain* the_domain)
 {
 
   ClientData domain = (ClientData)the_domain;

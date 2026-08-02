@@ -84,6 +84,7 @@ public:
 private:
   int offset_flags;
   LinearFrameTransf<nn,ndf> linear;
+  Vector3D vz; // vector in local xz plane
   bool consistent_tangent;
 };
 

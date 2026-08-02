@@ -26,7 +26,9 @@
 #endif
 
 int
-TclBasicBuilder_addBrick(ClientData clientData, Tcl_Interp *interp, int argc,
+TclBasicBuilder_addBrick(ClientData clientData, 
+                         Tcl_Interp *interp,
+                         ArgSize argc,
                          TCL_Char **const argv)
 {
   const int eleArgStart = 1;
@@ -314,7 +316,6 @@ TclBasicBuilder_addBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
   for (int i = 0; i < 8; i++)
     if (Tcl_GetInt(interp, argv[1 + argStart + i], &(Nod[i])) != TCL_OK) {
       opserr << "WARNING invalid Node number\n";
-      opserr << "brickUP element: " << brickUPId << "\n";
       return TCL_ERROR;
     }
 
@@ -351,31 +352,24 @@ TclBasicBuilder_addBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
   if ((argc - argStart) >= 16) {
     if (Tcl_GetDouble(interp, argv[15 + argStart], &b1) != TCL_OK) {
       opserr << "WARNING invalid b1\n";
-      opserr << "brickUP element: " << brickUPId << "\n";
       return TCL_ERROR;
     }
   }
   if ((argc - argStart) >= 17) {
     if (Tcl_GetDouble(interp, argv[16 + argStart], &b2) != TCL_OK) {
       opserr << "WARNING invalid b2\n";
-      opserr << "brickUP element: " << brickUPId << "\n";
       return TCL_ERROR;
     }
   }
   if ((argc - argStart) >= 18) {
     if (Tcl_GetDouble(interp, argv[17 + argStart], &b3) != TCL_OK) {
       opserr << "WARNING invalid b3\n";
-      opserr << "brickUP element: " << brickUPId << "\n";
       return TCL_ERROR;
     }
   }
 
   NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
-
-  if (theMaterial == 0) {
-    opserr << "WARNING material not found\n";
-    opserr << "Material: " << matID;
-    opserr << "\nbrickUP element: " << brickUPId << "\n";
+  if (theMaterial == nullptr) {
     return TCL_ERROR;
   }
 
@@ -383,10 +377,7 @@ TclBasicBuilder_addBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
   BrickUP *theBrickUP = new BrickUP(
       brickUPId, Nod[0], Nod[1], Nod[2], Nod[3], Nod[4], Nod[5], Nod[6], Nod[7],
       *theMaterial, bk, r, perm1, perm2, perm3, b1, b2, b3);
-  if (theBrickUP == 0) {
-    opserr << "WARNING ran out of memory creating element\n";
-    return TCL_ERROR;
-  }
+
 
   if (theTclDomain->addElement(theBrickUP) == false) {
     opserr << "WARNING could not add element to the domain\n";
@@ -394,8 +385,6 @@ TclBasicBuilder_addBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
     return TCL_ERROR;
   }
 
-  // if get here we have successfully created the element and added it to the
-  // domain
   return TCL_OK;
 }
 
@@ -440,7 +429,6 @@ TclBasicBuilder_addTwentyEightNodeBrickUP(ClientData clientData, Tcl_Interp *int
   for (int i = 0; i < 20; i++)
     if (Tcl_GetInt(interp, argv[1 + argStart + i], &(Nod[i])) != TCL_OK) {
       opserr << "WARNING invalid Node number\n";
-      opserr << "20_8_BrickUP element: " << brickUPId << "\n";
       return TCL_ERROR;
     }
 
@@ -452,62 +440,51 @@ TclBasicBuilder_addTwentyEightNodeBrickUP(ClientData clientData, Tcl_Interp *int
 
   if (Tcl_GetDouble(interp, argv[22 + argStart], &bk) != TCL_OK) {
     opserr << "WARNING invalid fluid bulk modulus\n";
-    opserr << "20_8_BrickUP element: " << brickUPId << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[23 + argStart], &r) != TCL_OK) {
     opserr << "WARNING invalid fluid mass density\n";
-    opserr << "20_8_BrickUP element: " << brickUPId << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[24 + argStart], &perm1) != TCL_OK) {
     opserr << "WARNING invalid permeability_x\n";
-    opserr << "20_8_BrickUP element: " << brickUPId << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[25 + argStart], &perm2) != TCL_OK) {
     opserr << "WARNING invalid permeability_y\n";
-    opserr << "20_8_BrickUP element: " << brickUPId << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[26 + argStart], &perm3) != TCL_OK) {
     opserr << "WARNING invalid permeability_z\n";
-    opserr << "20_8_BrickUP element: " << brickUPId << "\n";
     return TCL_ERROR;
   }
 
   if ((argc - argStart) >= 28) {
     if (Tcl_GetDouble(interp, argv[27 + argStart], &b1) != TCL_OK) {
       opserr << "WARNING invalid b1\n";
-      opserr << "20_8_BrickUP element: " << brickUPId << "\n";
       return TCL_ERROR;
     }
   }
   if ((argc - argStart) >= 29) {
     if (Tcl_GetDouble(interp, argv[28 + argStart], &b2) != TCL_OK) {
       opserr << "WARNING invalid b2\n";
-      opserr << "20_8_BrickUP element: " << brickUPId << "\n";
       return TCL_ERROR;
     }
   }
   if ((argc - argStart) >= 30) {
     if (Tcl_GetDouble(interp, argv[29 + argStart], &b3) != TCL_OK) {
       opserr << "WARNING invalid b3\n";
-      opserr << "20_8_BrickUP element: " << brickUPId << "\n";
       return TCL_ERROR;
     }
   }
 
   NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
 
-  if (theMaterial == 0) {
-    opserr << "WARNING material not found\n";
-    opserr << "Material: " << matID;
-    opserr << "\n20_8_BrickUP element: " << brickUPId << "\n";
+  if (theMaterial == nullptr) {
     return TCL_ERROR;
   }
 
@@ -518,11 +495,6 @@ TclBasicBuilder_addTwentyEightNodeBrickUP(ClientData clientData, Tcl_Interp *int
           Nod[7], Nod[8], Nod[9], Nod[10], Nod[11], Nod[12], Nod[13], Nod[14],
           Nod[15], Nod[16], Nod[17], Nod[18], Nod[19], *theMaterial, bk, r,
           perm1, perm2, perm3, b1, b2, b3);
-  if (theTwentyEightNodeBrickUP == 0) {
-    opserr << "WARNING ran out of memory creating element\n";
-    opserr << "20_8_BrickUP element: " << brickUPId << "\n";
-    return TCL_ERROR;
-  }
 
   if (theTclDomain->addElement(theTwentyEightNodeBrickUP) == false) {
     opserr << "WARNING could not add element to the domain\n";
@@ -550,7 +522,8 @@ TclBasicBuilder_addBBarBrickUP(ClientData clientData, Tcl_Interp *interp, int ar
   ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
 
-  if (builder == 0 || clientData == 0) {
+
+  if (builder == nullptr || clientData == nullptr) {
     opserr << "WARNING builder has been destroyed\n";
     return TCL_ERROR;
   }
@@ -592,37 +565,31 @@ TclBasicBuilder_addBBarBrickUP(ClientData clientData, Tcl_Interp *interp, int ar
 
   if (Tcl_GetInt(interp, argv[9 + argStart], &matID) != TCL_OK) {
     opserr << "WARNING invalid matID\n";
-    opserr << "BBarBrickUP element: " << BBarBrickUPId << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[10 + argStart], &bk) != TCL_OK) {
     opserr << "WARNING invalid fluid bulk modulus\n";
-    opserr << "BBarBrickUP element: " << BBarBrickUPId << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[11 + argStart], &r) != TCL_OK) {
     opserr << "WARNING invalid fluid mass density\n";
-    opserr << "BBarBrickUP element: " << BBarBrickUPId << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[12 + argStart], &perm1) != TCL_OK) {
     opserr << "WARNING invalid permeability_x\n";
-    opserr << "BBarBrickUP element: " << BBarBrickUPId << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[13 + argStart], &perm2) != TCL_OK) {
     opserr << "WARNING invalid permeability_y\n";
-    opserr << "BBarBrickUP element: " << BBarBrickUPId << "\n";
     return TCL_ERROR;
   }
 
   if (Tcl_GetDouble(interp, argv[14 + argStart], &perm3) != TCL_OK) {
     opserr << "WARNING invalid permeability_z\n";
-    opserr << "BBarBrickUP element: " << BBarBrickUPId << "\n";
     return TCL_ERROR;
   }
 
@@ -636,24 +603,18 @@ TclBasicBuilder_addBBarBrickUP(ClientData clientData, Tcl_Interp *interp, int ar
   if ((argc - argStart) >= 17) {
     if (Tcl_GetDouble(interp, argv[16 + argStart], &b2) != TCL_OK) {
       opserr << "WARNING invalid b2\n";
-      opserr << "BBarBrickUP element: " << BBarBrickUPId << "\n";
       return TCL_ERROR;
     }
   }
   if ((argc - argStart) >= 18) {
     if (Tcl_GetDouble(interp, argv[17 + argStart], &b3) != TCL_OK) {
       opserr << "WARNING invalid b3\n";
-      opserr << "BBarBrickUP element: " << BBarBrickUPId << "\n";
       return TCL_ERROR;
     }
   }
 
   NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
-
-  if (theMaterial == 0) {
-    opserr << "WARNING material not found\n";
-    opserr << "Material: " << matID;
-    opserr << "\nBBarBrickUP element: " << BBarBrickUPId << "\n";
+  if (theMaterial == nullptr) {
     return TCL_ERROR;
   }
 
@@ -661,15 +622,10 @@ TclBasicBuilder_addBBarBrickUP(ClientData clientData, Tcl_Interp *interp, int ar
   BBarBrickUP *theBBarBrickUP = new BBarBrickUP(
       BBarBrickUPId, Nod[0], Nod[1], Nod[2], Nod[3], Nod[4], Nod[5], Nod[6],
       Nod[7], *theMaterial, bk, r, perm1, perm2, perm3, b1, b2, b3);
-  if (theBBarBrickUP == 0) {
-    opserr << "WARNING ran out of memory creating element\n";
-    opserr << "BBarBrickUP element: " << BBarBrickUPId << "\n";
-    return TCL_ERROR;
-  }
+
 
   if (theTclDomain->addElement(theBBarBrickUP) == false) {
     opserr << "WARNING could not add element to the domain\n";
-    opserr << "BBarBrickUP element: " << BBarBrickUPId << "\n";
     delete theBBarBrickUP;
     return TCL_ERROR;
   }

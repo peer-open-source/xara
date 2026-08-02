@@ -258,8 +258,8 @@ ViscousMaterial::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << getTag() << ", ";
     s << "\"type\": \""<<getClassType()<<"\", ";
-    s << "\"tag\": "<<getTag()<<", ";
     s << "\"C\": "<<C<<", ";
     s << "\"Alpha\": "<<Alpha<<", ";
     s << "\"minVel\": "<<minVel;

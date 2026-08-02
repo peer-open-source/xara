@@ -62,9 +62,9 @@ public:
      PressureDependMultiYield(const PressureDependMultiYield &);
 
      // Destructor: clean up memory storage space.
-     virtual ~PressureDependMultiYield ();
+     virtual ~PressureDependMultiYield();
 
-     const char *getClassType(void) const {return "PressureDependMultiYield";}  
+     const char *getClassType() const {return "PressureDependMultiYield";}  
      double getRho() {return rhox[matN];}
 
      // Sets the values of the trial strain tensor.

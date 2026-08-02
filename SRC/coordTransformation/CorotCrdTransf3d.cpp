@@ -1827,7 +1827,7 @@ CorotCrdTransf3d::getKs2Matrix(const Vector &ri, const Vector &z) const
 }
 
 CrdTransf *
-CorotCrdTransf3d::getCopy()
+CorotCrdTransf3d::getCopy3d()
 {
   // create a new instance of CorotCrdTransf3d
 

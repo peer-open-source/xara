@@ -83,7 +83,8 @@ XaraCmd_systemSize(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_
 int
 XaraCmd_system(ClientData clientData, 
                Tcl_Interp *interp, 
-               ArgSize argc, G3_Char ** const argv)
+               ArgSize argc, 
+               G3_Char ** const argv)
 {
   // make sure at least one other argument to contain type of system
   if (argc < 2) {
@@ -114,7 +115,7 @@ XaraCmd_system(ClientData clientData,
 
 static LinearSOE*
 G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp, 
-                     Tcl_Size argc,
+                     ArgSize argc,
                      G3_Char ** const argv)
 {
   G3_Runtime* rt = G3_getRuntime(interp); 

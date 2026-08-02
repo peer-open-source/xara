@@ -18,7 +18,7 @@
 #include <Parsing.h>
 
 // modeling/model.cpp
-extern Tcl_CmdProc  TclCommand_wipeModel;
+extern Tcl_CmdProc  XaraCmd_wipe;
 extern Tcl_CmdProc  XaraCmd_build;
 
 // response.cpp
@@ -30,22 +30,22 @@ extern Tcl_CmdProc  XaraCmd_getNDM;
 extern Tcl_CmdProc  XaraCmd_getNDF;
 extern Tcl_CmdProc  XaraCmd_node;
 extern Tcl_CmdProc  XaraCmd_mass;
-extern Tcl_CmdProc  TclCommand_addNodalLoad;
+extern Tcl_CmdProc  XaraCmd_nodalLoad;
 // 
 extern Tcl_CmdProc  TclCommand_addSeries;
-extern Tcl_CmdProc  TclCommand_addPattern;
+extern Tcl_CmdProc  XaraCmd_pattern;
 extern Tcl_CmdProc  TclCommand_addTimeSeries;
 extern Tcl_CmdProc  TclCommand_addGeomTransf;
 
 // element.cpp
-extern Tcl_CmdProc  TclCommand_addElement;
+extern Tcl_CmdProc  XaraCmd_element;
 
 // blockND.cpp
-extern Tcl_CmdProc  TclCommand_doBlock2D;
-extern Tcl_CmdProc  TclCommand_doBlock3D;
+extern Tcl_CmdProc      XaraCmd_block2D;
+extern Tcl_CmdProc      XaraCmd_block3D;
 
 // uniaxial.cpp
-extern Tcl_CmdProc  TclCommand_addUniaxialMaterial;
+extern Tcl_CmdProc  XaraCmd_uniaxialMaterial;
 
 // section.cpp
 extern Tcl_CmdProc  XaraCmd_section;
@@ -75,7 +75,7 @@ extern Tcl_CmdProc TclCommand_addImposedMotionSP;
 extern Tcl_CmdProc TclCommand_addGroundMotion;
 
 // Loads
-// extern Tcl_CmdProc  TclCommand_addNodalLoad;
+// extern Tcl_CmdProc  XaraCmd_nodalLoad;
 Tcl_CmdProc TclCommand_addElementalLoad;
 
 // Other
@@ -95,13 +95,13 @@ Tcl_CmdProc XaraCmd_beamIntegration;
 //
 Tcl_CmdProc TclCommand_addFrictionModel;
 Tcl_CmdProc TclCommand_addLimitCurve;
-Tcl_CmdProc TclCommand_addNDMaterial;
+Tcl_CmdProc XaraCmd_nDMaterial;
 
 // invoking.cpp
 Tcl_CmdProc XaraCmd_invoke;
 
 // printing.cpp
-Tcl_CmdProc TclCommand_print;
+Tcl_CmdProc XaraCmd_print;
 Tcl_CmdProc TclCommand_classType;
 
 Tcl_CmdProc TclCommand_addMaterial;
@@ -118,11 +118,11 @@ constexpr ModelBuilderCommands[] =  {
   {"getNDF",               XaraCmd_getNDF},
   {"node",                 XaraCmd_node},
   {"mass",                 XaraCmd_mass},
-  {"element",              TclCommand_addElement},
+  {"element",              XaraCmd_element},
 
-  {"print",                TclCommand_print},
+  {"print",                XaraCmd_print},
   {"classType",            TclCommand_classType},
-  {"printModel",           TclCommand_print},
+  {"printModel",           XaraCmd_print},
 
   {"fix",                  TclCommand_addHomogeneousBC},
   {"fixX",                 TclCommand_addHomogeneousBC_X},
@@ -133,8 +133,8 @@ constexpr ModelBuilderCommands[] =  {
   {"with",                 XaraCmd_invoke},
   {"invoke",               XaraCmd_invoke},
 // Materials & sections
-  {"uniaxialMaterial",     TclCommand_addUniaxialMaterial},
-  {"nDMaterial",           TclCommand_addNDMaterial},
+  {"uniaxialMaterial",     XaraCmd_uniaxialMaterial},
+  {"nDMaterial",           XaraCmd_nDMaterial},
   {"material",             TclCommand_addMaterial},
   {"beamIntegration",      XaraCmd_beamIntegration},
 
@@ -150,9 +150,9 @@ constexpr ModelBuilderCommands[] =  {
   {"geomTransf",           TclCommand_addGeomTransf},
   {"transform",            TclCommand_addGeomTransf},
 
-  {"pattern",              TclCommand_addPattern},
-//   {"load",             TclCommand_addNodalLoad},
-  {"nodalLoad",            TclCommand_addNodalLoad},
+  {"pattern",              XaraCmd_pattern},
+//   {"load",             XaraCmd_nodalLoad},
+  {"nodalLoad",            XaraCmd_nodalLoad},
   {"timeSeries",           TclCommand_addTimeSeries},
 
   {"equalDOF",             TclCommand_addEqualDOF_MP},
@@ -166,8 +166,8 @@ constexpr ModelBuilderCommands[] =  {
 
   {"eleLoad",              TclCommand_addElementalLoad},
 
-  {"block2D",              TclCommand_doBlock2D},
-  {"block3D",              TclCommand_doBlock3D},
+  {"block2D",                  XaraCmd_block2D},
+  {"block3D",                  XaraCmd_block3D},
   {"rigidDiaphragm",       &TclCommand_RigidDiaphragm},
 
 /*

@@ -38,7 +38,8 @@ class J2CyclicBoundingSurface3D : public J2CyclicBoundingSurface
   public : 
 
   //full constructor
-  J2CyclicBoundingSurface3D(int tag, double G, double K, double su, double rho, double h, double m, double h0, double chi, double beta);
+  J2CyclicBoundingSurface3D(int tag, double G, double K, 
+                            double su, double rho, double h, double m, double h0, double chi, double beta);
 
   //null constructor
   J2CyclicBoundingSurface3D();

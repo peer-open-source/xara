@@ -24,7 +24,9 @@
 //    1........2 |-> x
 //
 // Reference:
-// K. Kolozvari, K. Kalbasi, K. Orakcal & J. W. Wallace (2021), "Three-dimensional model for nonlinear analysis of slender flanged reinforced concrete walls", Engineering Structures.
+// K. Kolozvari, K. Kalbasi, K. Orakcal & J. W. Wallace (2021), 
+//  "Three-dimensional model for nonlinear analysis of slender flanged reinforced concrete walls", 
+//  Engineering Structures.
 //
 // Source: /usr/local/cvs/OpenSees/SRC/element/mvlem/MVLEM_3D.cpp
 //

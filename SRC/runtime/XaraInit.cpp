@@ -67,6 +67,14 @@ XaraCmd_version(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Cha
   return TCL_OK;
 }
 
+#ifdef USE_TCL_STUBS
+static void
+XaraDeleteRuntime(ClientData clientData, Tcl_Interp *interp)
+{
+  (void)interp;
+  delete static_cast<G3_Runtime *>(clientData);
+}
+#endif
 
 //
 // Called when the library is loaded as a Tcl extension.
@@ -85,7 +93,11 @@ Openseesrt_Init(Tcl_Interp *interp)
 
   // Create a runtime instance, and store it with the interpreter
   G3_Runtime *rt = new G3_Runtime{interp};
+#ifdef USE_TCL_STUBS
+  Tcl_SetAssocData(interp, "G3_Runtime", XaraDeleteRuntime, (ClientData)rt);
+#else
   Tcl_SetAssocData(interp, "G3_Runtime", NULL, (ClientData)rt);
+#endif
 
   // Initialize OpenSees
   XaraInit_InterpreterCommands(interp);
@@ -111,4 +123,3 @@ Openseesrt_Init(Tcl_Interp *interp)
   Tcl_CreateCommand(interp, "version",      XaraCmd_version,  nullptr, nullptr);
   return TCL_OK;
 }
-

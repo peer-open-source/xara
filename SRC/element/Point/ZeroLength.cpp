@@ -60,7 +60,7 @@ Vector ZeroLength::ZeroLengthV12(12);
 ZeroLength::ZeroLength(int tag,
                        int dim,
                        int Nd1, int Nd2, 
-           const Matrix3D& T,
+                       const Matrix3D& T,
                        int n1dMat,
                        UniaxialMaterial** theMat,
                        const ID& direction,
@@ -90,7 +90,7 @@ ZeroLength::ZeroLength(int tag,
   for (int i=0; i<numMaterials1d; i++) {
     theMaterial1d[i] = theMat[i]->getCopy();
   }
-      
+
   // establish the connected nodes and set up the transformation matrix for orientation
   this->setUp( Nd1, Nd2);
 

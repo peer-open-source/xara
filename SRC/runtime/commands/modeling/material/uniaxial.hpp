@@ -275,6 +275,7 @@ UniaxialLibrary {
     {"Steel",                  dispatch<TclCommand_newPlasticMaterial>},
     {"Steel01",                dispatch<TclCommand_newFedeasSteel>     },
     {"Steel02",                dispatch<TclCommand_newFedeasSteel>     },
+    {"Steel03",                dispatch<TclCommand_newFedeasSteel>     },
     {"Steel2",                 dispatch<TclCommand_newFedeasSteel>     },
     {"Steel4",                 dispatch<OPS_Steel4>                    },
     {"RambergOsgood",          dispatch<OPS_RambergOsgoodSteel>        },
