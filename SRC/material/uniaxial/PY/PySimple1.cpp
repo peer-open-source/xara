@@ -904,12 +904,25 @@ PySimple1::recvSelf(int cTag, Channel &theChannel,
 void 
 PySimple1::Print(OPS_Stream &s, int flag)
 {
-    s << "PySimple1, tag: " << this->getTag() << endln;
-    s << "  soilType: " << soilType << endln;
-    s << "  pult: " << pult << endln;
-    s << "  y50: " << y50 << endln;
-    s << "  drag: " << drag << endln;
-	s << "  dashpot: " << dashpot << endln;
+	if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+        s << OPS_PRINT_JSON_MATE_INDENT << "{";
+        s << "\"name\": " << this->getTag() << ", ";
+        s << "\"type\": \"PySimple1\"" << ", ";
+        s << "\"soilType\": " << soilType << ", ";
+        s << "\"pult\": " << pult << ", ";
+        s << "\"y50\": " << y50 << ", ";
+        s << "\"drag\": " << drag << ", ";
+        s << "\"dashpot\": " << dashpot << "} ";
+        return;
+    }
+    else {
+        s << "PySimple1, tag: " << this->getTag() << endln;
+        s << "  soilType: " << soilType << endln;
+        s << "  pult: " << pult << endln;
+        s << "  y50: " << y50 << endln;
+        s << "  drag: " << drag << endln;
+        s << "  dashpot: " << dashpot << endln;
+    }
 }
 
 /////////////////////////////////////////////////////////////////////
