@@ -953,28 +953,24 @@ CorotCrdTransf2d::getGeomStiffMatrix(const Vector &pb) const
 }
 
 double
-CorotCrdTransf2d::getInitialLength(void)
+CorotCrdTransf2d::getInitialLength()
 {
   return L;
 }
 
 double
-CorotCrdTransf2d::getDeformedLength(void)
+CorotCrdTransf2d::getDeformedLength()
 {
   return Ln;
 }
 
 CrdTransf *
-CorotCrdTransf2d::getCopy2d(void)
+CorotCrdTransf2d::getCopy2d()
 {
   // create a new instance of CorotCrdTransf2d
   CorotCrdTransf2d *theCopy =
       new CorotCrdTransf2d(this->getTag(), nodeIOffset, nodeJOffset);
 
-  if (!theCopy) {
-    opserr << "CorotCrdTransf2d::getCopy() - out of memory creating copy\n";
-    return 0;
-  }
 
   theCopy->nodeIPtr = nodeIPtr;
   theCopy->nodeJPtr = nodeJPtr;
