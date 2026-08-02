@@ -111,7 +111,8 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_BeamContact2D)
 }
 
 // constructors
-BeamContact2D::BeamContact2D(int tag, int Nd1, int Nd2, int NdS, int NdL, NDMaterial &theMat,
+BeamContact2D::BeamContact2D(int tag, int Nd1, int Nd2, int NdS, int NdL, 
+	                         NDMaterial &theMat,
                              double width, double tolG, double tolF, int cSwitch)
   :Element(tag,ELE_TAG_BeamContact2D),
     theMaterial(0),

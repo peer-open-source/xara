@@ -86,8 +86,7 @@ public:
 
     void Print(OPS_Stream &s, int flag);
 
-    Response *setResponse(const char **argv, int argc,
-        OPS_Stream &s);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 
     int getResponse(int responseID, Information &eleInformation);
 

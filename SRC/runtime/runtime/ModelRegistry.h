@@ -54,6 +54,7 @@ public:
 
   int getNDM() const;
   int getNDF() const;
+  void setDimension(int ndm, int ndf) {this->ndm = ndm; this->ndf = ndf;}
   Domain *getDomain() const;
 #ifdef MODEL_CHANNELS
   ProcessContext& getParallelContext() {return m_channels;}

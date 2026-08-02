@@ -39,8 +39,8 @@ bool builtModel = false;
 
 FE_Datastore *theDatabase = nullptr;
 
-extern int G3_AddTclAnalysisAPI(Tcl_Interp *, ModelRegistry&);
-extern int AddTclDomainCommands(Tcl_Interp *, Domain*);
+extern int XaraInit_AnalysisCommands(Tcl_Interp *, ModelRegistry&);
+extern int XaraInit_DomainCommands(Tcl_Interp *, Domain*);
 extern int RemoveTclDomainCommands(Tcl_Interp* interp);
 
 // 
@@ -80,6 +80,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
   //
   //
   //
+  bool isNewModel = (clientData == nullptr);
   if (clientData == nullptr) {
     theNewDomain = new Domain();
 
@@ -88,7 +89,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
     Tcl_CreateCommand(interp, "model", &TclCommand_specifyModel, theNewDomain, nullptr);
 
-    AddTclDomainCommands(interp, theNewDomain);
+    XaraInit_DomainCommands(interp, theNewDomain);
   }
 
 
@@ -221,6 +222,13 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     int G3_setDomain(G3_Runtime*, Domain*);
     G3_setDomain(rt, theNewDomain);
     // create the model builder
+#if 1
+    if (!isNewModel) {
+      theNewBuilder = G3_getModelBuilder(rt); //static_cast<ModelRegistry*>(clientData);
+      theNewBuilder->setDimension(ndm, ndf);
+    }
+    else
+#endif
     theNewBuilder = new ModelRegistry(*theNewDomain, ndm, ndf, rotationType);
 
     //
@@ -233,7 +241,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
     static int ncmd = sizeof(ModelBuilderCommands)/sizeof(decltype(ModelBuilderCommands[0])); // CommandTableEntry);
 
-    Tcl_CreateCommand(interp, "wipe", TclCommand_wipeModel, (ClientData)theNewBuilder, nullptr);
+    Tcl_CreateCommand(interp, "wipe", XaraCmd_wipe, (ClientData)theNewBuilder, nullptr);
 
     for (int i = 0; i < ncmd; i++)
       Tcl_CreateCommand(interp, 
@@ -250,7 +258,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     const char* analysis_option;
     if (!(analysis_option = Tcl_GetVar(interp,"opensees::pragma::analysis",TCL_GLOBAL_ONLY)) ||
          (strcmp(analysis_option, "off") != 0)) {
-      G3_AddTclAnalysisAPI(interp, *theNewBuilder);
+      XaraInit_AnalysisCommands(interp, *theNewBuilder);
     }
   }
   else {
@@ -263,8 +271,9 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
   return TCL_OK;
 }
 
+
 int
-TclCommand_wipeModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *argv[])
+XaraCmd_wipe(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *argv[])
 {
   Tcl_Eval(interp, "_clearAnalysis");
 
@@ -287,7 +296,7 @@ TclCommand_wipeModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
     builtModel = false;
   }
   Tcl_CreateCommand(interp, "model", &TclCommand_specifyModel, nullptr, nullptr);
-  Tcl_CreateCommand(interp, "wipe",  &TclCommand_wipeModel,    nullptr, nullptr);
+  Tcl_CreateCommand(interp, "wipe",  &XaraCmd_wipe,    nullptr, nullptr);
 
   ops_Dt = 0.0;
 
