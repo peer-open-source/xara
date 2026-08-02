@@ -58,18 +58,12 @@
 
 using namespace Xara;
 
-// extern int OPS_ResponseSpectrumAnalysis(G3_Runtime*);
-extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
-                                       Tcl_Interp *interp, int cArg, int mArg,
-                                       TCL_Char ** const argv, Domain *domain);
-
-
 
 //
 // Add commands to the interpreter that take the AnalysisBuilder as clientData.
 //
 int
-G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
+XaraInit_AnalysisCommands(Tcl_Interp *interp, ModelRegistry& context)
 {
   BasicAnalysisBuilder *analysis = new BasicAnalysisBuilder(context);
   Tcl_CreateCommand(interp, "wipeAnalysis", &wipeAnalysis, analysis, nullptr);
@@ -95,8 +89,10 @@ G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
 // command invoked to build an Analysis object
 //
 static int
-XaraCmd_analysis(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
-                TCL_Char ** const argv)
+XaraCmd_analysis(ClientData clientData,
+                 Tcl_Interp *interp, 
+                 ArgSize argc,
+                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
@@ -152,8 +148,10 @@ XaraCmd_analysis(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
 // on the Analysis object
 //
 static int
-XaraCmd_analyze(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
-             TCL_Char ** const argv)
+XaraCmd_analyze(ClientData clientData, 
+                Tcl_Interp *interp, 
+                ArgSize argc,
+                TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;

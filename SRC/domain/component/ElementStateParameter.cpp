@@ -32,7 +32,7 @@ ElementStateParameter::ElementStateParameter(int tag, double value,
 					     int Argc, 
 					     int Flag, 
 					     ID *theEle)
-  : Parameter(tag,PARAMETER_TAG_ElementStateParameter),
+  : Parameter(tag, PARAMETER_TAG_ElementStateParameter),
    currentValue(value),
    flag(Flag),
    argc(Argc), fromFree(1)
@@ -97,8 +97,8 @@ ElementStateParameter::setDomain(Domain *theDomain)
     while (((theEle = theEles()) != 0)) {
       int theResult = theEle->setParameter((const char **)argv, argc, *theParameter);
       if (theResult != -1) {
-	theParameter->update(currentValue);
-	theParameter->clean();
+        theParameter->update(currentValue);
+        theParameter->clean();
       }
     }    
   } else if (flag == 1) {
@@ -112,11 +112,11 @@ ElementStateParameter::setDomain(Domain *theDomain)
       int eleTag = (*theEleIDs)(i);
       theEle = theDomain->getElement(eleTag);
       if (theEle != 0) {
-	int theResult = theEle->setParameter((const char **)argv, argc, *theParameter);
-	if (theResult != -1) {
-	  theParameter->update(currentValue);
-	  theParameter->clean();
-	}	  
+        int theResult = theEle->setParameter((const char **)argv, argc, *theParameter);
+        if (theResult != -1) {
+          theParameter->update(currentValue);
+          theParameter->clean();
+        }
       }
     }
   } else {

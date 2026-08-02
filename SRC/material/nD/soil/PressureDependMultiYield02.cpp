@@ -380,14 +380,15 @@ PressureDependMultiYield02::PressureDependMultiYield02 (const PressureDependMult
 }
 
 
-PressureDependMultiYield02::~PressureDependMultiYield02 ()
+PressureDependMultiYield02::~PressureDependMultiYield02()
 {
   if (theSurfaces != 0) delete [] theSurfaces;
   if (committedSurfaces != 0) delete [] committedSurfaces;
 }
 
 
-void PressureDependMultiYield02::elast2Plast(void)
+void
+PressureDependMultiYield02::elast2Plast()
 {
   int loadStage = loadStagex[matN];
   int numOfSurfaces = numOfSurfacesx[matN];
@@ -451,13 +452,13 @@ int PressureDependMultiYield02::setTrialStrain (const Vector &strain)
 }
 
 
-int PressureDependMultiYield02::setTrialStrain (const Vector &strain, const Vector &rate)
+int PressureDependMultiYield02::setTrialStrain(const Vector &strain, const Vector &rate)
 {
   return setTrialStrain (strain);
 }
 
 
-int PressureDependMultiYield02::setTrialStrainIncr (const Vector &strain)
+int PressureDependMultiYield02::setTrialStrainIncr(const Vector &strain)
 {
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 2;
@@ -483,13 +484,14 @@ int PressureDependMultiYield02::setTrialStrainIncr (const Vector &strain)
 }
 
 
-int PressureDependMultiYield02::setTrialStrainIncr (const Vector &strain, const Vector &rate)
+int PressureDependMultiYield02::setTrialStrainIncr(const Vector &strain, const Vector &rate)
 {
   return setTrialStrainIncr(strain);
 }
 
 
-const Matrix & PressureDependMultiYield02::getTangent (void)
+const Matrix & 
+PressureDependMultiYield02::getTangent()
 {
   int loadStage = loadStagex[matN];
   double refShearModulus = refShearModulusx[matN];
@@ -501,14 +503,11 @@ const Matrix & PressureDependMultiYield02::getTangent (void)
   if (ndmx[matN] == 0) ndm = 3;
 
   if (loadStage == 1 && e2p == 0) {
-//      opserr << "PDMY02::getTang() - 1\n";
       initPress = currentStress.volume();
-//       opserr << "PDMY02::getTang() - 2\n";
       elast2Plast();
-//       opserr << "PDMY02::getTang() - 3\n";
   }
   if (loadStage==2 && initPress==refPressure)
-      initPress = currentStress.volume();
+    initPress = currentStress.volume();
 
   if (loadStage==0 || loadStage==2) {  //linear elastic
     double factor;
@@ -530,7 +529,8 @@ const Matrix & PressureDependMultiYield02::getTangent (void)
         if (i<3 && j<3) 
             theTangent(i,j) += (refBulkModulus - 2.*refShearModulus/3.)*factor;
       }
-  } else {
+  }
+  else {
     double coeff1, coeff2, coeff3, coeff4;
     double factor = getModulusFactor(updatedTrialStress);
     double shearModulus = factor*refShearModulus;
@@ -834,20 +834,20 @@ int PressureDependMultiYield02::commitState (void)
 }
 
 
-int PressureDependMultiYield02::revertToLastCommit (void)
+int PressureDependMultiYield02::revertToLastCommit()
 {
   return 0;
 }
 
 
-NDMaterial * PressureDependMultiYield02::getCopy (void)
+NDMaterial * PressureDependMultiYield02::getCopy()
 {
   PressureDependMultiYield02 * copy = new PressureDependMultiYield02(*this);
   return copy;
 }
 
 
-NDMaterial * PressureDependMultiYield02::getCopy (const char *code)
+NDMaterial * PressureDependMultiYield02::getCopy(const char *code)
 {
   if (strcmp(code,"PressureDependMultiYield02") == 0 || strcmp(code,"PlaneStrain") == 0
       || strcmp(code,"ThreeDimensional") == 0) {
@@ -1379,7 +1379,8 @@ PressureDependMultiYield02::setResponse (const char **argv, int argc, OPS_Stream
 }
 
 
-void PressureDependMultiYield02::getBackbone (Matrix & bb)
+void 
+PressureDependMultiYield02::getBackbone(Matrix & bb)
 {
   double residualPress = residualPressx[matN];
   double refPressure = refPressurex[matN];
@@ -1422,7 +1423,8 @@ void PressureDependMultiYield02::getBackbone (Matrix & bb)
 }
 
 
-int PressureDependMultiYield02::getResponse (int responseID, Information &matInfo)
+int
+PressureDependMultiYield02::getResponse(int responseID, Information &matInfo)
 {
   switch (responseID) {
   case -1:
@@ -1460,11 +1462,25 @@ int PressureDependMultiYield02::getResponse (int responseID, Information &matInf
 }
 
 
-void PressureDependMultiYield02::Print(OPS_Stream &s, int flag )
+void 
+PressureDependMultiYield02::Print(OPS_Stream &s, int flag )
 {
   // TODO: impolement JSON
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{\"type\": \"PressureDependMultiYield02\", \"name\": " << getTag() << "}";
+    s << OPS_PRINT_JSON_MATE_INDENT
+      << "{"
+      << "\"name\": " << this->getTag() << ", "
+      << "\"type\": \"" << this->getClassType() << "\", "
+      << "\"stage\": " <<  loadStagex[matN] << ", "
+      << "\"ndm\": " << ndmx[matN] << ", "
+      << "\"density\": " << this->getRho() << ", "
+      << "\"G\": " << refShearModulusx[matN] << ", "
+      << "\"K\": " << refBulkModulusx[matN] << ", "
+      << "\"FrictionAngle\": " << frictionAnglex[matN] << ", "
+      << "\"RefPressure\": " << refPressurex[matN] << ", "
+      << "\"ResidualPressure\": " << residualPressx[matN] << ", "
+      << "\"PressDependCoeff\": " << pressDependCoeffx[matN]
+      << "}";
     return;
   }
   else

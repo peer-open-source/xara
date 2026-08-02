@@ -63,6 +63,8 @@ public:
      // Destructor: clean up memory storage space.
      virtual ~PressureDependMultiYield02 ();
 
+     const char *getClassType() const final {return "PressureDependMultiYield02";}
+
      double getRho() {return rhox[matN];} ;
 
      // Sets the values of the trial strain tensor.
@@ -81,18 +83,18 @@ public:
      void getBackbone (Matrix &);
 
      // Calculates the corresponding stress increment (rate), for a given strain increment.
-     const Vector &getStress (void);
-     const Vector &getStrain (void);
+     const Vector &getStress ();
+     const Vector &getStrain ();
      const Vector &getCommittedStress (void);
      const Vector &getStressToRecord (int numOutput); // Added by Alborz Ghofrani - UW
      const Vector &getCommittedStrain (void);
 
      // Accepts the current trial strain values as being on the solution path, and updates
      // all model parameters related to stress/strain states. Return 0 on success.
-     int commitState (void);
+     int commitState();
 
      // Revert the stress/strain states to the last committed states. Return 0 on success.
-     int revertToLastCommit (void);
+     int revertToLastCommit();
 
      int revertToStart(void) {return 0;}
 
@@ -113,7 +115,7 @@ public:
 		  FEM_ObjectBroker &theBroker);
      Response *setResponse (const char **argv, int argc, OPS_Stream &s);
      int getResponse (int responseID, Information &matInformation);
-     void Print(OPS_Stream &s, int flag =0);
+     void Print(OPS_Stream &s, int flag);
      //void setCurrentStress(const Vector stress) { currentStress=T2Vector(stress); }
      int setParameter(const char **argv, int argc, Parameter &param);
      int updateParameter(int responseID, Information &eleInformation);

@@ -1091,7 +1091,7 @@ LinearCrdTransf3d::getInitialGlobalStiffMatrix(const Matrix &KB)
 }
 
 CrdTransf *
-LinearCrdTransf3d::getCopy()
+LinearCrdTransf3d::getCopy3d()
 {
   // create a new instance of LinearCrdTransf3d
 

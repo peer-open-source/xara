@@ -64,7 +64,7 @@
 
 
 Tcl_CmdProc TclCommand_addSP;
-Tcl_CmdProc TclCommand_addNodalLoad;
+Tcl_CmdProc XaraCmd_nodalLoad;
 
 extern TimeSeriesIntegrator *
 TclDispatch_newSeriesIntegrator(ClientData clientData,
@@ -82,10 +82,10 @@ TclSeriesCommand(ClientData clientData,
 // - load
 // - sp
 int
-TclCommand_addPattern(ClientData clientData,
-                      Tcl_Interp *interp,
-                      Tcl_Size argc,
-                      TCL_Char ** const argv)
+XaraCmd_pattern(ClientData clientData,
+                Tcl_Interp *interp,
+                ArgSize argc,
+                TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
@@ -763,7 +763,7 @@ TclCommand_addPattern(ClientData clientData,
 //  info.clientData = (ClientData)thePattern;
 //  Tcl_SetCommandInfo(interp, "sp", &info);
 
-    // Tcl_CreateCommand(interp, "nodalLoad", TclCommand_addNodalLoad, (ClientData)thePattern, NULL);
+    // Tcl_CreateCommand(interp, "nodalLoad", XaraCmd_nodalLoad, (ClientData)thePattern, NULL);
     Tcl_Eval(interp, "rename load opensees::import;");
     Tcl_Eval(interp, "rename nodalLoad load;");
     if (Tcl_Eval(interp, argv[commandEndMarker]) != TCL_OK) {
@@ -781,12 +781,11 @@ TclCommand_addPattern(ClientData clientData,
     Tcl_Eval(interp, "rename opensees::import load;");
   }
 
-
   return TCL_OK;
 }
 
 int
-TclCommand_addNodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+XaraCmd_nodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   

@@ -44,33 +44,33 @@ public:
     LinearCrdTransf3d();
     ~LinearCrdTransf3d();
     
-    const char *getClassType() const {return "LinearCrdTransf3d";};
+    const char *getClassType() const {return "LinearCrdTransf3d";}
     
     int initialize(Node *node1Pointer, Node *node2Pointer);
-    int update(void);
-    double getInitialLength(void);
-    double getDeformedLength(void);
+    int update();
+    double getInitialLength();
+    double getDeformedLength();
     
-    int commitState(void);
-    int revertToLastCommit(void);        
-    int revertToStart(void);
+    int commitState();
+    int revertToLastCommit();        
+    int revertToStart();
     
-    const Vector &getBasicTrialDisp(void);
-    const Vector &getBasicIncrDisp(void);
-    const Vector &getBasicIncrDeltaDisp(void);
-	const Vector &getBasicTrialVel(void);
-	const Vector &getBasicTrialAccel(void);
+    const Vector &getBasicTrialDisp();
+    const Vector &getBasicIncrDisp();
+    const Vector &getBasicIncrDeltaDisp();
+	const Vector &getBasicTrialVel();
+	const Vector &getBasicTrialAccel();
     
     const Vector &getGlobalResistingForce(const Vector &basicForce, const Vector &p0);
     const Matrix &getGlobalStiffMatrix(const Matrix &basicStiff, const Vector &basicForce);
     const Matrix &getInitialGlobalStiffMatrix(const Matrix &basicStiff);
     
-    virtual CrdTransf *getCopy();
+    CrdTransf *getCopy3d() override;
     
     int sendSelf(int cTag, Channel &theChannel);
     int recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
     
-    void Print(OPS_Stream &s, int flag = 0);
+    void Print(OPS_Stream &s, int flag);
     
     // method used to rotate consistent mass matrix
     const Matrix &getGlobalMatrixFromLocal(const Matrix &local);

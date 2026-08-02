@@ -56,7 +56,7 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp *interp
 class TclBasicBuilder;
 typedef int (G3_TclElementCommand)(ClientData, Tcl_Interp*, int, const char** const, Domain*, TclBasicBuilder*);
 static Tcl_CmdProc XaraCmd_addMultipleShearSpring;
-G3_TclElementCommand TclBasicBuilder_addMultipleNormalSpring;
+static Tcl_CmdProc TclBasicBuilder_addMultipleNormalSpring;
 G3_TclElementCommand TclBasicBuilder_addMasonPan12;
 G3_TclElementCommand TclBasicBuilder_addMasonPan3D;
 G3_TclElementCommand TclBasicBuilder_addBeamGT;
@@ -68,7 +68,6 @@ XaraCmd_element(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **
   using OpenSees::Library::ElementLibrary;
 
   G3_Runtime *rt = G3_getRuntime(interp);
-  TclBasicBuilder *theTclBuilder = (TclBasicBuilder*)G3_getSafeBuilder(rt);
 
   assert(clientData != nullptr);
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
@@ -224,8 +223,9 @@ XaraCmd_element(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **
 
   else if ((strcasecmp(argv[1], "multipleNormalSpring") == 0) ||
            (strcasecmp(argv[1], "MNS") == 0)) {
-    return TclBasicBuilder_addMultipleNormalSpring(clientData, interp, argc, argv, theTclDomain, theTclBuilder);
+    return TclBasicBuilder_addMultipleNormalSpring(clientData, interp, argc, argv);
   }
+
 #if 0
   else {
 
@@ -516,10 +516,9 @@ errDetected(bool ifNoError, const char *msg)
 };
 
 
-int
+static int
 TclBasicBuilder_addMultipleNormalSpring(ClientData clientData, Tcl_Interp *interp,
-                                        Tcl_Size argc, TCL_Char ** const argv,
-                                        Domain *theTclDomain, TclBasicBuilder *theTclBuilder)
+                                        Tcl_Size argc, TCL_Char ** const argv)
 {
 
   assert(clientData != nullptr);
@@ -781,9 +780,11 @@ error:
                     material, shape, size, lambda, oriYp, oriX, mass);
 
   // then add the multipleNormalSpring to the domain
-  if (theTclDomain->addElement(theElement) == false) {
-    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
-    opserr << "multipleNormalSpring element: " << eleTag << OpenSees::SignalMessageEnd;
+  Domain* domain = builder->getDomain();
+  if (domain->addElement(theElement) == false) {
+    opserr << OpenSees::PromptValueError 
+           << "could not add element to the domain"
+           << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;
   }

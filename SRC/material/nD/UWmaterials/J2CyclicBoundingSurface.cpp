@@ -340,7 +340,7 @@ J2CyclicBoundingSurface::plastic_integrator()
             // Solve the system
             Ktan.rsolve(res, incVar);
 
-            m_psi_np1 = m_psi_np1 - incVar(0);
+            m_psi_np1   = m_psi_np1 - incVar(0);
             m_kappa_np1 = m_kappa_np1 - incVar(1);
 
             H_np1 = H(m_kappa_np1);
@@ -615,7 +615,7 @@ J2CyclicBoundingSurface::calcTangent()
         
         double dt = 0.0;
         if (this->getTimeStep(dt) == 0) {
-            m_Cep += (1.0 / dt) * m_D; //Adding viscous damping contribution to Cep
+            m_Cep += (1.0 / dt) * m_D; // Adding viscous damping contribution to Cep
         }
 
         return m_Cep;

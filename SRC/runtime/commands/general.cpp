@@ -31,7 +31,7 @@
 
 #include <Parsing.h>
 
-extern Tcl_CmdProc TclCommand_wipeModel;
+extern Tcl_CmdProc XaraCmd_wipe;
 Tcl_CmdProc TclCommand_clearAnalysis;
 Tcl_CmdProc TclCommand_specifyModel;
 // nodes.cpp
@@ -425,7 +425,7 @@ XaraInit_InterpreterCommands(Tcl_Interp *interp)
   // Some entry points
   Tcl_CreateCommand(interp, "model",               TclCommand_specifyModel,   nullptr, nullptr);
   Tcl_CreateCommand(interp, "opensees::model",     TclCommand_specifyModel,   nullptr, nullptr);
-  Tcl_CreateCommand(interp, "wipe",                TclCommand_wipeModel,      nullptr, nullptr);
+  Tcl_CreateCommand(interp, "wipe",                XaraCmd_wipe,      nullptr, nullptr);
   Tcl_CreateCommand(interp, "_wipeNodes",          TclCommand_wipeNodes,      nullptr, nullptr);
   Tcl_CreateCommand(interp, "_clearAnalysis",      TclCommand_clearAnalysis,  nullptr, nullptr);
 
