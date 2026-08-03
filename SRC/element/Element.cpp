@@ -706,7 +706,7 @@ double Element::getCharacteristicLength(void)
       double ijLength = 0;
       for (int k=0; k<iDOF && k<jDOF; k++) {
         ijLength += (jCoords(k)-iCoords(k))*(jCoords(k)-iCoords(k)); //Tesser
-      }        
+      }
       ijLength = sqrt(ijLength);
       if (ijLength > cLength)
         cLength = ijLength;
