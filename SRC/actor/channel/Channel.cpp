@@ -49,22 +49,22 @@ Channel::Channel ()
 Channel::~Channel()
 {
     
-}    
+}
 
 int
-Channel::isDatastore(void)
+Channel::isDatastore()
 {
   return 0;
 }
 
 int
-Channel::getDbTag(void)
+Channel::getDbTag()
 {
   return 0;
 }
 
 int
-Channel::getTag(void)
+Channel::getTag()
 {
 		return tag;
 }
