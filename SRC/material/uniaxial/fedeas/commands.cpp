@@ -547,7 +547,7 @@ TclBasicBuilder_addFedeasMaterial(ClientData clientData, Tcl_Interp *interp,
       theMaterial = new FedeasSteel1Material(tag, fy, E, b);
   }
 
-  else if (strcmp(argv[1], "Steel02") == 0) {
+  else if ((strcmp(argv[1], "Steel02") == 0) || (strcmp(argv[1], "Steel03") == 0)) {
     // uniaxialMaterial Steel02 $tag $Fy $E $b $R0 $cR1 $cR2 <$a1 $a2 $a3 $a4 $sigInit>
     if (argc < 6) {
       opserr << "WARNING invalid number of arguments\n";

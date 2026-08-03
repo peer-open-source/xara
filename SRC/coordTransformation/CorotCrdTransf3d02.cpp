@@ -1320,29 +1320,24 @@ CorotCrdTransf3d02::getLocalAxes(Vector &XAxis, Vector &YAxis, Vector &ZAxis)
 double
 CorotCrdTransf3d02::getInitialLength()
 {
-    return L;
+  return L;
 }
 
 
 double
 CorotCrdTransf3d02::getDeformedLength()
 {
-    return Ln;
+  return Ln;
 }
 
 
 CrdTransf *
-CorotCrdTransf3d02::getCopy()
+CorotCrdTransf3d02::getCopy3d()
 {
   // create a new instance of CorotCrdTransf3d02
 
   CorotCrdTransf3d02 *theCopy =
     new CorotCrdTransf3d02 (this->getTag(), vAxis, nodeIOffset, nodeJOffset);
-
-  if (!theCopy) {
-    opserr << "CorotCrdTransf3d02::getCopy() - out of memory creating copy\n";
-    return 0;
-  }
 
   theCopy->nodeIPtr = nodeIPtr;
   theCopy->nodeJPtr = nodeJPtr;

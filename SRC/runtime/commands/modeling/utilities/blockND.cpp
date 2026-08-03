@@ -27,10 +27,10 @@
 using OpenSees::MatrixND;
 
 int
-TclCommand_doBlock2D(ClientData clientData, 
-                     Tcl_Interp *interp, 
-                     Tcl_Size argc,
-                     TCL_Char ** const argv)
+XaraCmd_block2D(ClientData clientData, 
+                Tcl_Interp *interp, 
+                ArgSize argc,
+                TCL_Char ** const argv)
 { 
   assert(clientData != nullptr);
   ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
@@ -244,8 +244,10 @@ TclCommand_doBlock2D(ClientData clientData,
 
 
 int
-TclCommand_doBlock3D(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-                      TCL_Char ** const argv)
+XaraCmd_block3D(ClientData clientData, 
+                Tcl_Interp *interp, 
+                ArgSize argc,
+                TCL_Char ** const argv)
 {
   // block3D numX? numY? startNode? startEle? eleType? eleArgs?
   //
@@ -431,13 +433,13 @@ TclCommand_doBlock(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   if (ndm == 2)
-    return TclCommand_doBlock2D(clientData, interp, argc, argv);
+    return     XaraCmd_block2D(clientData, interp, argc, argv);
 
   else if (strcmp(argv[1], "2d") == 0)
-    return TclCommand_doBlock2D(clientData, interp, argc-1, argv+1);
+    return     XaraCmd_block2D(clientData, interp, argc-1, argv+1);
 
   else
-    return TclCommand_doBlock3D(clientData, interp, argc, argv);
+    return     XaraCmd_block3D(clientData, interp, argc, argv);
 
   return TCL_OK;
 }

@@ -782,8 +782,10 @@ PyLiq1::Print(OPS_Stream &s, int flag)
 {
   // TODO: impolement JSON
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "          {\"name\": \"PyLiq1\"" << ", ";
-    s << "\"tag\":" << this->getTag() << ", ";
+	s << OPS_PRINT_JSON_MATE_INDENT;
+    s << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+	s << "\"type\": \"PyLiq1\"" << ", ";
     s << "\"soilType\": " << soilType << ", ";
     s << "\"pult\": " << pult << ", ";
     s << "\"y50\": " << y50 << ", ";

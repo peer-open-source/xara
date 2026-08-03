@@ -15,6 +15,65 @@
 //
 // General isotropic J2 plasticity with nonlinear isotropic/kinematic hardening
 //
+// - Isotropic hardening is Chaboche-Rousselier type and consits of a linear 
+//   term and two Voce exponential terms.
+// - Kinematic hardening employs a sum of Armstrong-Frederick back-stress terms,
+//   as developed by Chaboche. With one term, this reproduces the linear Prager
+//   type kinematic hardening when gamma=0.
+//
+// This model is similar to UVCmultiaxial [2], with the following distinctions:
+// 1) UVCmultiaxial does not include the linear isotropic hardening term. This 
+//    was incorporated in the present model to allow it to replicate standard
+//    linearly hardening J2 plasticity when the Voce parameters are set to zero.
+//    It is also able to reproduce the common "linear + one exponential" plasticity
+//    model that is offered in, eg, FEAP, and employed by [4].
+// 2) UVCmultiaxial [2] derives the consistency condition assuming the flow direction
+//    coincides with the direction of the trial state. This is only valid for 
+//    proportional loading when nonlinear kinematic hardening is employed. 
+//    The present model does not make this assumption.
+// 3) UVCmultiaxial [2] employs an exponential integration scheme for the back-stress
+//    evolution that is derived by assuming the flow direction is constant over the increment.
+//    This appears to be a reasonable procedure, and may be reproduced in the present model 
+//    by setting:
+//             bs_integration =  BackStressIntegration::Exponential;
+//    However, the present model also supports a backward-Euler integration scheme
+//    for the back-stress evolution which is more commonly employed in the literature. 
+// 4) In the original implementation of UVCmultiaxial [2], a missplaced factor of sqrt(2/3)
+//    in the kinematic hardening modulus produces an inconsistent tangent. This is not
+//    the case in the present model, which produces a consistent tangent.
+//
+// This model is also similar to that of [3], which supports equivalent hardening rules.
+// In [3], backward-Euler integration is employed for the back-stress evolution (item 3 above). 
+//
+// The conventions adopted (scaling the yield surface, consistency parameter, flow direction, etc) 
+// are more consistent with [2] and [4] than with [3]. These conventions are represented by
+// compile-time parameters, but currently are:
+// - The yield function takes the Frobenius norm. Alternatives would be the J2 invariant
+// - The flow direction m is normalized to unit length.
+// - The scalar unknown lambda solved for in the state determination is the 
+//   Frobenius norm of the plastic strain increment
+// 
+// TODO:
+// - Refactor Isotropic and Kinematic hardening classes, remove from header.
+// - Store the back-stress components in 6D if possible, minimize use of 9D representation.
+// - Support alternative nonlinear isotropic hardening rules:
+//   - Mroz and Maciejewski
+// - It would be very easy to support
+//
+// References:
+//
+//  [1] Filippou, F.C. (1998)
+//     "FEDEASLab: Finite Elements for Design Evaluation and Analysis of Structures"
+//  [2] Hartloper, Sousa, Lignos (2021), ASCE, JSE, Vol. 147, Issue 4
+//      "Constitutive Modeling of Structural Steels: Nonlinear Isotropic/Kinematic Hardening"
+//      Material Model and Its Calibration
+//  [3] Suchocki (2022), Acta Mechanica, Vol 233, Issue 1, pp. 83-120
+//      "On finite element implementation of cyclic elastoplasticity: 
+//      theory, coding, and exemplary problems"
+//  [4] Simo, Hughes (1998), Computational Inelasticity, Springer
+//
+// Written: Claudio M. Perez
+//
 #pragma once
 #include <NDMaterial.h>
 #include <Voight.hpp>
@@ -51,6 +110,10 @@ public:
   const char *getClassType() const override {return "NonlinearJ2";}
   const char *getType() const override {return "ThreeDimensional";}
 
+  // Copies
+  NDMaterial *getCopy() override;
+  NDMaterial *getCopy(const char *type) override;
+
   int getOrder() const override { return 6; }
   double getRho() override { return density_; }
 
@@ -70,27 +133,21 @@ public:
   int revertToLastCommit() override;
   int revertToStart() override;
 
-  // Copies
-  NDMaterial *getCopy() override;
-  NDMaterial *getCopy(const char *type) override;
-
-  // Comm/Print
-  int sendSelf(int ctag, Channel &) override;
-  int recvSelf(int ctag, Channel &, FEM_ObjectBroker &) override;
+  // TaggedObject interface
   void Print(OPS_Stream &s, int flag) override;
 
 private:
   // Parameters
-  double E, nu, fy, G;
+  double E, nu, Fy, G;
+  // Mass density
+  double density_;
   // Isotropic hardening
-  double a_, DInf_, b_, QInf_, Hiso_;
+  double Q_[2], b_[2], Hiso_;
   // Kinematic hardening
   std::vector<double> Ck_, gammak_;
   // Solver controls
   double newton_tolerance;
   int    MaxIter_;
-  // Mass density
-  double density_;
 
   // Tangent tensors
   OpenSees::MatrixND<6,6> Ce, C;
@@ -104,9 +161,9 @@ private:
   struct State {
     OpenSees::VectorND<6> sig;     // Cauchy stress
     OpenSees::VectorND<6> eps;     // total strain at commit
-    OpenSees::VectorND<6> eps_p;   // plastic strain
-    std::vector<OpenSees::VectorND<9>> sig_b; // back-stress components (deviatoric, 9x1 each)
-    double gamma;                  // iso hardening scalar
+    OpenSees::VectorND<6> eps_p;   // plastic strain tensor
+    std::vector<OpenSees::VectorND<9>> sig_b; // back-stress components (deviatoric)
+    double mises_strain;           // mises equivalent plastic strain
     double Estr;                   // strain energy
     double Ehst;                   // hysteretic energy
   } past, pres;
@@ -131,11 +188,13 @@ private:
          0,        0,        0,        0,        0,   0.5000,
          0,        0,        0,        0,        0,   0.5000};
 
-
-  // constants for different conventions in scaling the yield check
+  //
+  // constants for different conventions in scaling the yield function, 
+  // flow direction, and consistency parameter
+  //
   static constexpr double SQRT23 = 0.81649658092772603; // sqrt(2/3)
   static constexpr double mises_scale = SQRT23;
-  static constexpr double norm_unit = 1.0; // /SQRT23; // sqrt(3/2) for J2 norm
+  static constexpr double norm_unit = 1.0; // SQRT23; // sqrt(3/2) for J2 norm
   static constexpr double flow_rate = 1.0; // SQRT23;
   // derived
   static constexpr double phi_n = norm_unit;
@@ -143,12 +202,6 @@ private:
   static constexpr double mises_rate = flow_rate*phi_n*mises_scale;
   static constexpr double phi_m = flow_rate*phi_n*phi_n;
   static constexpr double phi_nnmm = (phi_n*phi_n)/(phi_m*phi_m);
-
-  // method for integrating backstress; currently set at compile time
-  enum class BackStressIntegration {
-    Exponential, // Hartloper version
-    BackwardEuler
-  } bs_integration =  BackStressIntegration::Exponential; // BackStressIntegration::BackwardEuler;
 
 
   static inline double metric(const VectorND<9>& v) noexcept {
@@ -161,59 +214,26 @@ private:
                             VectorND<9>& m,
                             double& g, 
                             double& Dg,
-                            double& phi_a) const noexcept {
-    double mises_strain = (flow_rate*lambda)*phi_n*mises_scale;
+                            double& phi_a) const noexcept;
 
-    // Partial stress, Z
-    m = s_tr;
-    m -= Kinematic::A(*this, past, mises_strain);
+  inline void scale_tolerance(double sig_nrm, double& gtol, double& ftol) const noexcept;
 
-    phi_a  = metric(m); // phi(a)
 
-    // Newton residual function
-    g = phi_a - 2.0*G*mises_strain*(phi_n/mises_scale)
-      - Kinematic::H(*this, past, mises_strain)*(phi_n/mises_scale)
-      - Isotropic::Y(*this, past, mises_strain)*phi_n*mises_scale;
+  //
+  // Hardening Models (TODO: these need refactoring and organizing)
+  //
 
-    if (phi_a < 1e-16) {
-      m.zero();
-      Dg = 0.0;
-      return;
-    }
-
-    m    *= phi_m/phi_a; // m = a * phi(m)/phi(a)
-
-    // Derivative of newton residual
-    // Note: d(norm(Z))/d(lamda) == n . X' == dX(n)
-    // const double dphi_a = 
-    Dg = Kinematic::dX(*this, past, mises_strain, m)*mises_rate/flow_rate
-       - Kinematic::dH(*this, past, mises_strain)*mises_rate*(phi_n/mises_scale)
-       - 2.0*G*mises_rate*(phi_n/mises_scale)
-       - Isotropic::H(*this, past, mises_strain)*mises_scale*phi_n*mises_rate;
-  }
-
-  inline void scale_tolerance(double sig_nrm, double& gtol, double& ftol) const noexcept {
-    const double yieldRadius = Isotropic::Y(*this, past, 0.0) * phi_n * mises_scale;
-
-    const double yieldScale =
-        std::max(
-            1.0,
-            std::max(sig_nrm, std::abs(yieldRadius))
-        );
-
-    double round_tol = 256.0
-            * std::numeric_limits<double>::epsilon()
-            * yieldScale;
-
-    gtol = std::max(
-            newton_tolerance,
-            round_tol
-        );
-    ftol = std::max(1e-10*yieldScale, round_tol);
-  }
 
   // Nonlinear Chaboche kinematic hardening
   struct Kinematic {
+
+    // method for integrating backstress; currently set at compile time
+    enum class BackStressIntegration {
+      Exponential, // Hartloper version
+      BackwardEuler
+    };
+    static constexpr BackStressIntegration bs_integration =  BackStressIntegration::Exponential; // BackStressIntegration::BackwardEuler;
+
     static inline VectorND<9> A(const NonlinearJ2 &m,
                                 const NonlinearJ2::State &past,
                                 double lamda) noexcept {
@@ -225,7 +245,7 @@ private:
         // const double phi = 1.0/(1.0 + m.gammak_[i]*lamda);
         
         double phi; //, dphi;
-        switch (m.bs_integration) {
+        switch (bs_integration) {
           case BackStressIntegration::BackwardEuler:
             phi = 1.0/(1.0 + m.gammak_[i]*lamda);
             // dphi = -m.gammak_[i]*phi*phi;
@@ -250,7 +270,7 @@ private:
           continue;
         
         double phi;
-        switch (m.bs_integration) {
+        switch (bs_integration) {
           case BackStressIntegration::BackwardEuler:
             phi = 1.0/(1.0 + m.gammak_[i]*mises_strain);
             break;
@@ -269,25 +289,25 @@ private:
 
     static inline double dH(const NonlinearJ2& m,
                             const NonlinearJ2::State &s,
-                            double lamda) noexcept {
+                            double d_mises_strain) noexcept {
       double dH = 0.0;
       const size_t nc = m.Ck_.size();
       for (size_t i=0;i<nc;i++) {
         if (m.Ck_[i] == 0.0 || m.gammak_[i] == 0.0)
           continue;
-        
+
         double phi, dphi;
-        switch (m.bs_integration) {
+        switch (bs_integration) {
           case BackStressIntegration::BackwardEuler:
-            phi = 1.0/(1.0 + m.gammak_[i]*lamda);
+            phi = 1.0/(1.0 + m.gammak_[i]*d_mises_strain);
             dphi = -m.gammak_[i]*phi*phi;
             break;
           case BackStressIntegration::Exponential:
-            phi = std::exp(-m.gammak_[i]*lamda);
+            phi = std::exp(-m.gammak_[i]*d_mises_strain);
             dphi = -m.gammak_[i]*phi;
             break;
         }
-        // const double phi = 1.0/(1.0 + m.gammak_[i]*lamda);
+        // const double phi = 1.0/(1.0 + m.gammak_[i]*d_mises_strain);
         // const double dphi = -m.gammak_[i]*phi*phi;
         //
         dH += -(m.Ck_[i]/m.gammak_[i])*dphi;
@@ -301,11 +321,11 @@ private:
                             const VectorND<9>& n) noexcept {
       // Return |x|' = n . x'
       double dX = 0.0;
-      // const double gamma = past.gamma + SQRT23*lamda;
+      // const double gamma = past.mises_strain + SQRT23*lamda;
       const size_t nc = m.gammak_.size();
       for (size_t i=0;i<nc;i++) {
         double phi, dphi;
-        switch (m.bs_integration) {
+        switch (bs_integration) {
           case BackStressIntegration::BackwardEuler:
             phi = 1.0/(1.0 + m.gammak_[i]*lamda);
             dphi = -m.gammak_[i]*phi*phi;
@@ -321,19 +341,19 @@ private:
       return dX;
     }
 
-
     static inline void addTangent(const NonlinearJ2 &m,
                                   const NonlinearJ2::State &past,
                                   double lamda,
                                   const VectorND<9>& n,
                                   double theta,
+                                  // outputs:
                                   MatrixND<6,6,double> &C) noexcept {
       const size_t nc = past.sig_b.size();
       // const VectorND<6> Pn = P * n;
       const VectorND<6> Pn = Voight::ReduceVector(n);
       for (size_t i=0; i<nc; i++) {
         double phi, dphi;
-        switch (m.bs_integration) {
+        switch (bs_integration) {
           case BackStressIntegration::BackwardEuler:
             phi = 1.0/(1.0 + m.gammak_[i]*lamda);
             dphi = -m.gammak_[i]*phi*phi;
@@ -365,7 +385,7 @@ private:
           continue;
 
         double phi;
-        switch (m.bs_integration) {
+        switch (bs_integration) {
           case BackStressIntegration::BackwardEuler:
             phi = 1.0/(1.0 + m.gammak_[i]*lamda);
             break;
@@ -384,34 +404,36 @@ private:
 
   struct Isotropic {
     static inline double H(const NonlinearJ2& m,
-                    const NonlinearJ2::State &s,
-                    double lamda) noexcept {
-      double gamma = s.gamma + lamda;
+                    const NonlinearJ2::State &past,
+                    double dep
+    ) noexcept {
+      double mises_strain = past.mises_strain + dep;
       double H = m.Hiso_;
-      if (m.DInf_ != 0.0 && m.a_ != 0.0)
-        H += m.DInf_*m.a_*std::exp(-m.a_*gamma);
-      if (m.QInf_ != 0.0 && m.b_ != 0.0)
-        H += m.QInf_*m.b_*std::exp(-m.b_*gamma);
+      for (int i=0;i<2;i++) {
+        if (m.Q_[i] != 0.0 && m.b_[i] != 0.0)
+          H += m.Q_[i]*m.b_[i]*std::exp(-m.b_[i]*mises_strain);
+      }
       return H;
     }
 
     static inline double Y(const NonlinearJ2& m,
-                    const NonlinearJ2::State &s,
-                    double lamda) noexcept {
-      double gamma = s.gamma + lamda;
-      double Fy = m.fy + m.Hiso_*gamma;
-      if (m.QInf_ != 0.0 && m.b_ != 0.0)
-        Fy += m.QInf_*(1.0 - std::exp(-m.b_ * gamma));
-      if (m.DInf_ != 0.0 && m.a_ != 0.0)
-        Fy += m.DInf_*(1.0 - std::exp(-m.a_ * gamma));
+                    const NonlinearJ2::State &past,
+                    double dep) noexcept {
+      double mises_strain = past.mises_strain + dep;
+      double Fy = m.Fy + m.Hiso_*mises_strain;
+      for (int i=0;i<2;i++) {
+        if (m.Q_[i] != 0.0 && m.b_[i] != 0.0)
+          Fy += m.Q_[i]*(1.0 - std::exp(-m.b_[i] * mises_strain));
+      }
       return Fy;
     }
 
     static inline void update(const NonlinearJ2& m,
                               const NonlinearJ2::State &past,
-                              double lamda,
+                              double d_mises_strain,
+                              // outputs:
                               NonlinearJ2::State &pres) noexcept {
-      pres.gamma = past.gamma + lamda;
+      pres.mises_strain = past.mises_strain + d_mises_strain;
     }
   };
 };

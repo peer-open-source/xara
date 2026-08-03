@@ -26,6 +26,7 @@ public:
 				 double rho, 
 				 double refShearModul,
 				 double refBulkModul,
+
 				 double cohesi,
 				 double peakShearStra,
 				 double frictionAng = 0.,
@@ -88,7 +89,7 @@ public:
      const char *getType() const ;
 
      // Return ndm.
-     int getOrder(void) const ;
+     int getOrder() const ;
 
      int sendSelf(int commitTag, Channel &theChannel);  
      int recvSelf(int commitTag, Channel &theChannel, 
@@ -108,12 +109,11 @@ public:
     friend class QzLiq1; // Sumeet
 
 private:
-
 	static int matCount;
 	static int* loadStagex;  //=0 if elastic; =1 if plastic
 
   // user supplied
-	static int* ndmx;  //num of dimensions (2 or 3)
+	static int* ndmx;  // num of dimensions (2 or 3)
 	static double* rhox;
 	static double* frictionAnglex;
 	static double* peakShearStrainx;
@@ -124,7 +124,7 @@ private:
 
 	// internal
 	static double* residualPressx;
-	static Matrix theTangent;  //classwise member
+	static Matrix theTangent;
 	int e2p;
 	int matN;
 	double refShearModulus;
@@ -150,14 +150,14 @@ private:
 	void deviatorScaling(T2Vector & stress, const MultiYieldSurface * surfaces, 
 			     int surfaceNum, int count=0);
 
-	void initSurfaceUpdate(void);
+	void initSurfaceUpdate();
 
-	void paramScaling(void);
+	void paramScaling();
 
 	// Return num_strain_subincre
-	int setSubStrainRate(void);
+	int setSubStrainRate();
 
-	int isLoadReversal(void);
+	int isLoadReversal();
 
 	void getContactStress(T2Vector &contactStress);
 

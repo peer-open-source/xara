@@ -92,7 +92,7 @@ Timer::start()
 }
 
 void 
-Timer::pause(void)
+Timer::pause()
 {
 #ifdef TIMER_USE_MPIWTIME
     t2 = MPI_Wtime();
@@ -111,7 +111,7 @@ Timer::pause(void)
 
 
 double
-Timer::getReal(void) const
+Timer::getReal() const
 {
 #ifdef TIMER_USE_MPIWTIME
     return t2 - t1;
@@ -125,10 +125,10 @@ Timer::getReal(void) const
     return Real;
 #endif //_WIN32
 #endif //TIMER_USE_MPIWTIME
-}    
+}
 
 double
-Timer::getCPU(void) const
+Timer::getCPU() const
 {
 #ifdef TIMER_USE_MPIWTIME
     return 0;
@@ -142,10 +142,10 @@ Timer::getCPU(void) const
     return CPU;
 #endif //_WIN32
 #endif //TIMER_USE_MPIWTIME
-}    
+}
 
 int
-Timer::getNumPageFaults(void) const
+Timer::getNumPageFaults() const
 {
 #ifdef TIMER_USE_MPIWTIME
     return 0;

@@ -44,7 +44,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2CyclicBoundingSurfaceMaterial)
 
     numdata = 1;
     if (OPS_GetIntInput(&numdata, &tag) < 0) {
-        opserr << "WARNING invalid J2CyclicBoundingSurface tag\n";
+        opserr << "WARNING invalid tag\n";
         return 0;
     }
 
@@ -60,7 +60,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_J2CyclicBoundingSurfaceMaterial)
     }
 
     return new J2CyclicBoundingSurface3D(tag, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]);
-
 }
 
 

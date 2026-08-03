@@ -57,17 +57,17 @@ class BeamContact3Dp : public Element
     ~BeamContact3Dp();
 
     // public methods to obtain information about dof & connectivity    
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
-    int getNumDOF(void);       
-    void setDomain(Domain *theDomain);
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
+    int getNumDOF();
+    void setDomain(Domain *);
 
     // public methods to set the state of the element    
-    int commitState(void);
-    int revertToLastCommit(void);        
-    int revertToStart(void);        
-    int update(void);
+    int commitState();
+    int revertToLastCommit();        
+    int revertToStart();        
+    int update();
    
     // public methods to obtain stiffness, mass, damping and
     // residual information    
@@ -77,7 +77,7 @@ class BeamContact3Dp : public Element
     void zeroLoad();       
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
-    const Vector &getResistingForce(void);
+    const Vector &getResistingForce();
     const Vector &getResistingForceIncInertia();            
 
     // public methods for element output

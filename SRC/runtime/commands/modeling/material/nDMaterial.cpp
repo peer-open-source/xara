@@ -72,8 +72,8 @@ static NDMaterialPackageCommand *theNDMaterialPackageCommands = nullptr;
 
 
 int
-TclCommand_addNDMaterial(ClientData clientData, Tcl_Interp *interp,
-                          Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_nDMaterial(ClientData clientData, Tcl_Interp *interp,
+                    ArgSize argc, TCL_Char ** const argv)
 {
   using OpenSees::Library::MaterialLibrary;
 

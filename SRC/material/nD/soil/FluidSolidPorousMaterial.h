@@ -38,7 +38,7 @@ class FluidSolidPorousMaterial : public NDMaterial
      // Destructor: clean up memory storage space.
      virtual ~FluidSolidPorousMaterial ();
 
-     const char *getClassType() const {return "FluidSolidPorousMaterial";}
+     const char *getClassType() const {return "FluidSolidPorous";}
 
      // Sets the values of the trial strain tensor.
      int setTrialStrain (const Vector &strain);
