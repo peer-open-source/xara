@@ -31,7 +31,7 @@ extern Tcl_CmdProc  XaraCmd_getNDF;
 extern Tcl_CmdProc  XaraCmd_node;
 extern Tcl_CmdProc  XaraCmd_mass;
 extern Tcl_CmdProc  TclCommand_addNodalLoad;
-// 
+//
 extern Tcl_CmdProc  TclCommand_addSeries;
 extern Tcl_CmdProc  TclCommand_addPattern;
 extern Tcl_CmdProc  TclCommand_addTimeSeries;
@@ -65,7 +65,7 @@ extern Tcl_CmdProc TclCommand_addSP;
 extern Tcl_CmdProc TclCommand_constrain;
 extern Tcl_CmdProc TclCommand_addHomogeneousBC;
 extern Tcl_CmdProc TclCommand_addHomogeneousBC_X;
-extern Tcl_CmdProc TclCommand_addHomogeneousBC_Y; 
+extern Tcl_CmdProc TclCommand_addHomogeneousBC_Y;
 extern Tcl_CmdProc TclCommand_addHomogeneousBC_Z;
 extern Tcl_CmdProc TclCommand_addEqualDOF_MP;
 extern Tcl_CmdProc TclCommand_addEqualDOF_MP_Mixed;
@@ -89,7 +89,7 @@ Tcl_CmdProc TclCommand_addDamageModel;
 Tcl_CmdProc TclCommand_addParameter;
 Tcl_CmdProc TclCommand_mesh;
 Tcl_CmdProc TclCommand_remesh;
-Tcl_CmdProc TclCommand_backgroundMesh; 
+Tcl_CmdProc TclCommand_backgroundMesh;
 Tcl_CmdProc XaraCmd_beamIntegration;
 
 //
@@ -105,6 +105,9 @@ Tcl_CmdProc TclCommand_print;
 Tcl_CmdProc TclCommand_classType;
 
 Tcl_CmdProc TclCommand_addMaterial;
+#ifdef XARA_ENABLE_CUDA
+extern Tcl_CmdProc XaraCmd_cuda;
+#endif
 
 namespace OpenSees {
 struct CommandTableEntry {
@@ -129,7 +132,7 @@ constexpr ModelBuilderCommands[] =  {
   {"fixY",                 TclCommand_addHomogeneousBC_Y},
   {"fixZ",                 TclCommand_addHomogeneousBC_Z},
 
-// 
+//
   {"with",                 XaraCmd_invoke},
   {"invoke",               XaraCmd_invoke},
 // Materials & sections
@@ -157,7 +160,7 @@ constexpr ModelBuilderCommands[] =  {
 
   {"equalDOF",             TclCommand_addEqualDOF_MP},
   {"rigidLink",            TclCommand_RigidLink},
-  
+
   {"sp",                   TclCommand_addSP},
   {"constrain",            TclCommand_constrain},
   {"groundMotion",         TclCommand_addGroundMotion},
@@ -209,7 +212,9 @@ constexpr ModelBuilderCommands[] =  {
 // command for updating properties of soil materials, by ZHY
    {"updateParameter", TclCommand_UpdateParameter},
 #endif
-
+#ifdef XARA_ENABLE_CUDA
+  {"cuda", XaraCmd_cuda},
+#endif
 };
 
 } // namespace OpenSees
@@ -235,4 +240,3 @@ Tcl_CmdProc TclCommand_addElementRayleigh;
 
 // Added by Alborz Ghofrani - U.Washington
 Tcl_CmdProc TclCommand_GenerateInterfacePoints;
-
