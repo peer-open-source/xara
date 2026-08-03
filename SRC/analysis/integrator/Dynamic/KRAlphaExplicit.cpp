@@ -62,9 +62,6 @@ OPS_ADD_RUNTIME_VPV(OPS_KRAlphaExplicit)
     
     theIntegrator = new KRAlphaExplicit(rhoInf, updElemDisp);
     
-    if (theIntegrator == 0)
-        opserr << "WARNING - out of memory creating KRAlphaExplicit integrator\n";
-    
     return theIntegrator;
 }
 
@@ -151,7 +148,7 @@ int KRAlphaExplicit::newStep(double _deltaT)
         opserr << "WARNING KRAlphaExplicit::newStep() - no AnalysisModel set\n";
         return -2;
     }
-    
+
     if (initAlphaMatrices || _deltaT != deltaT)  {
         
         // update time step increment
@@ -206,7 +203,7 @@ int KRAlphaExplicit::newStep(double _deltaT)
         // calculate the effective mass matrix Mhat
         Mhat->addMatrix(0.0, B1, 1.0);
         Mhat->addMatrixProduct(1.0, B1, *alpha3, -1.0);
-        
+
         // switch the SOE back to the user specified one
         this->IncrementalIntegrator::setLinks(*theModel, *theLinSOE, theTest);
 
@@ -259,6 +256,7 @@ int KRAlphaExplicit::newStep(double _deltaT)
     return 0;
 }
 
+
 int KRAlphaExplicit::revertToStart()
 {
     if (Ut != 0) 
@@ -276,6 +274,7 @@ int KRAlphaExplicit::revertToStart()
 
     return 0;
 }
+
 
 int KRAlphaExplicit::revertToLastStep()
 {
