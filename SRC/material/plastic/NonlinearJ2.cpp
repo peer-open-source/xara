@@ -22,6 +22,7 @@
 //      -F {Fy Fi Fs}  -b {a b} 
 //      -C {C1 C2 ...} -g {g1 g2 ...}
 //      -YFtol tol -maxIter n -density rho
+//===----------------------------------------------------------------------===//
 //
 // Written: Claudio M. Perez
 //
@@ -35,7 +36,7 @@
 #include <cmath>
 #include <limits>
 #include <cstring>
-#include "hardening/FlowStress.h"
+// #include "hardening/FlowStress.h"
 
 using namespace OpenSees;
 
@@ -143,7 +144,6 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
   double g, Dg, phi_a=0.0;
   int iter = 0;
   VectorND<9> m;
-
   this->newton_update(s_tr,lamda,   m,g,Dg,phi_a);
 
   // Solve consistency condition
@@ -163,12 +163,6 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
 
   if (iter == MaxIter_ && std::abs(g) > g_tol) {
     // Currently cannot print since opserr is not thread safe.
-
-    // opserr << "Material failed to converge after ";
-    // opserr << MaxIter_ << " iterations, |g| = " 
-    // << std::abs(g) 
-    // << " > " << newton_tolerance
-    // << "\n";
     return -1;
   }
 
@@ -242,7 +236,7 @@ NonlinearJ2::newton_update(const VectorND<9>& s_tr,
                           VectorND<9>& m,
                           double& g, 
                           double& Dg,
-                          double& phi_a) const noexcept 
+                          double& phi_z) const noexcept 
 {
   double d_mises_strain = (flow_rate*lambda)*phi_n*mises_scale;
 
@@ -250,20 +244,20 @@ NonlinearJ2::newton_update(const VectorND<9>& s_tr,
   m = s_tr;
   m -= Kinematic::A(*this, past, d_mises_strain);
 
-  phi_a  = metric(m); // phi(a)
+  phi_z  = metric(m); // =  phi(Z)
 
   // Newton residual function
-  g = phi_a - 2.0*G*d_mises_strain*(phi_n/mises_scale)
+  g = phi_z - 2.0*G*d_mises_strain*(phi_n/mises_scale)
     - Kinematic::H(*this, past, d_mises_strain)*(phi_n/mises_scale)
     - Isotropic::Y(*this, past, d_mises_strain)*phi_n*mises_scale;
 
-  if (phi_a < 1e-16) {
+  if (phi_z < 1e-16) {
     m.zero();
     Dg = 0.0;
     return;
   }
 
-  m    *= phi_m/phi_a; // m = a * phi(m)/phi(a)
+  m    *= phi_m/phi_z; // m = Z * phi(m)/phi(a)
 
   // Derivative of newton residual
   // Note: d(norm(Z))/d(lamda) == n . X' == dX(n)
