@@ -29,8 +29,9 @@ class MultiYieldSurface
 public:
   // constructors
   MultiYieldSurface();
-  MultiYieldSurface(const Vector & center_init, double size_init, 
-                    double plas_modul); 
+  MultiYieldSurface(const Vector & center_init,
+                    double size_init, 
+                    double plas_modul);
   ~MultiYieldSurface();
 	void setData(const Vector & center_init, double size_init,  double plas_modul);
 	void setData(const VectorND<6> & center_init, double size_init,  double plas_modul); 
