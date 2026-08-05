@@ -54,6 +54,8 @@ public:
      // Destructor: clean up memory storage space.
      virtual ~MultiYieldSurfaceClay();
 
+     const char *getClassType() const final {return "MultiYieldSurfaceClay";}
+
      double getRho() {return rhox[matN];}
      // Sets the values of the trial strain tensor.
      int setTrialStrain (const Vector &strain);
