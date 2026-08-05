@@ -59,13 +59,15 @@ const char* BoundingCamClay3D::getType() const
 }
 
 //send back order of strain in vector form
-int BoundingCamClay3D::getOrder() const 
+int 
+BoundingCamClay3D::getOrder() const 
 { 
-    return 6; 
+  return 6; 
 } 
 
 //get the strain and integrate plasticity equations
-int BoundingCamClay3D::setTrialStrain( const Vector &strain_from_element) 
+int 
+BoundingCamClay3D::setTrialStrain( const Vector &strain_from_element) 
 {
 	mEpsilon = strain_from_element;
 
@@ -83,13 +85,15 @@ int BoundingCamClay3D::setTrialStrain(const Vector &v, const Vector &r)
 }
 
 //send back the strain
-const Vector& BoundingCamClay3D::getStrain() 
+const Vector& 
+BoundingCamClay3D::getStrain() 
 {
-    return mEpsilon;
+  return mEpsilon;
 } 
 
 //send back the stress 
-const Vector& BoundingCamClay3D::getStress() 
+const Vector& 
+BoundingCamClay3D::getStress() 
 {
  	return mSigma;
 }
@@ -101,7 +105,8 @@ const Matrix& BoundingCamClay3D::getTangent()
 } 
 
 //send back the tangent 
-const Matrix& BoundingCamClay3D::getInitialTangent() 
+const Matrix& 
+BoundingCamClay3D::getInitialTangent() 
 {
     return mCep;
 } 
