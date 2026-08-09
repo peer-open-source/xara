@@ -499,13 +499,9 @@ Vector::addMatrixTransposeVector(double thisFact,
                                  const Vector &v, 
                                  double otherFact )
 {
-#ifdef _G3DEBUG
-  // check the sizes are compatable
-  if ((sz != m.noRows()) && (m.noRows() != v.sz)) {
-    opserr << "Vector::addMatrixTransposeVector() - incompatable sizes\n";
-    return -1;    
-  }
-#endif
+  // this = m^T * v  =>  size(this)==m.cols, size(v)==m.rows
+  assert(sz == m.noCols());
+  assert(m.noRows() == v.sz);
 
   // see if quick return
   if (otherFact == 0.0 && thisFact == 1.0)
@@ -981,21 +977,26 @@ Vector::operator^(const Vector &V) const
 }
 
 
-// Vector operator/(const Matrix &M) const;    
-//  return inv(M)*this
+// Vector operator/(const Matrix &M) const;
+//   return solution of M x = *this (least squares if M is rectangular)
 #if 1
 Vector
 Vector::operator/(const Matrix &M) const
 {
-  Vector res(M.noRows());
-    
-  if (M.noRows() != M.noCols()) { // if not square do least squares solution
+  if (M.noRows() != M.noCols()) {
+    // Normal equations: (M^T M) x = M^T b, with x sized to M.noCols()
+    assert(sz == M.noRows());
     Matrix A(M^M);
-    A.Solve(*this, res);    
+    Vector Atb(M.noCols());
+    Atb.addMatrixTransposeVector(0.0, M, *this, 1.0);
+    Vector res(M.noCols());
+    A.Solve(Atb, res);
+    return res;
   }
-  else {
-    M.Solve(*this, res);
-  }
+
+  assert(sz == M.noRows());
+  Vector res(M.noRows());
+  M.Solve(*this, res);
   return res;
 }
 #endif
