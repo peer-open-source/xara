@@ -17,11 +17,11 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 #ifndef PenaltyMP_FE_h
 #define PenaltyMP_FE_h
 
-// Written: fmk 
+// Written: fmk
 // Created: 11/96
 // Revision: A
 //
@@ -43,40 +43,55 @@ class Domain;
 class MP_Constraint;
 class Node;
 
-class PenaltyMP_FE: public FE_Element
+class PenaltyMP_FE final : public FE_Element
 {
   public:
     PenaltyMP_FE(int tag, Domain &, MP_Constraint &, double alpha);
-    virtual ~PenaltyMP_FE();    
+    ~PenaltyMP_FE() override;
 
-    // public methods
     int  setID(AnalysisModel &) final;
-    const ID &getID() const final {return myID;}
-    virtual const Matrix &getTangent(Integrator *theIntegrator);
-    virtual const Vector &getResidual(Integrator *theIntegrator);
-    virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
+    const ID &getID() const final { return myID; }
 
-    virtual const Vector &getK_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getKi_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
-    void zeroTangent() final {tang? tang->Zero() : void();};
-    
+    const Matrix &getTangent(Integrator *) override;
+    const Vector &getResidual(Integrator *) override;
+    const Vector &getTangForce(const Vector &x, double fact = 1.0) override;
+    const Vector &getK_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getKi_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getC_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getM_Force(const Vector &x, double fact = 1.0) override;
+
+    void zeroTangent() override;
+    void addKtToTang(double fact = 1.0) override;
+    void addKiToTang(double fact = 1.0) override;
+    void addCtoTang(double fact = 1.0) override;
+    void addMtoTang(double fact = 1.0) override;
+
+    void zeroResidual() override;
+    void addRtoResidual(double fact = 1.0) override;
+    void addRIncInertiaToResidual(double fact = 1.0) override;
+    void addM_Force(const Vector &accel, double fact = 1.0) override;
+    void addD_Force(const Vector &vel, double fact = 1.0) override;
+
   private:
     void determineTangent();
+    const Matrix &getStaticTangent() {
+      if (timeVarying)
+        this->determineTangent();
+      return *tang;
+    }
+
     ID myID;
-    
+
     MP_Constraint *theMP;
     Node *theConstrainedNode;
-    Node *theRetainedNode;    
+    Node *theRetainedNode;
 
-    Matrix *tang;
+    Matrix *tang;      // unscaled static penalty stiffness
+    Matrix *sysTang;   // integrator-assembled system tangent
     Vector *resid;
     Matrix *C;    // to hold the C matrix
+    const bool timeVarying;
     double alpha;
-  
 };
 
 #endif
-
-
