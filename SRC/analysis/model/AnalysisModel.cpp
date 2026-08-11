@@ -73,8 +73,8 @@ ApproxDOF(Domain& domain)
 
 
 AnalysisModel::AnalysisModel(Domain& domain)
-: MovableObject(AnaMODEL_TAGS_AnalysisModel),
-  myDomain(&domain)
+ : MovableObject(AnaMODEL_TAGS_AnalysisModel)
+ , myDomain(&domain)
  , myHandler(nullptr)
  , myDOFGraph(0)
  , myGroupGraph(0)
@@ -85,8 +85,7 @@ AnalysisModel::AnalysisModel(Domain& domain)
 #if 0
   theFEs     = new VectorOfTaggedObjects(); // 256);
   theDOFs    = new VectorOfTaggedObjects(); // 256);
-#else 
-
+#else
   theFEs     = new ArrayOfTaggedObjects(1024);
   theDOFs    =  new ArrayOfTaggedObjects(1024);
 #endif

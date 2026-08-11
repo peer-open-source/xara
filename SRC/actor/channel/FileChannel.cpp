@@ -175,7 +175,8 @@ int FileChannel::sendObj(int commitTag,
 int FileChannel::recvObj(int commitTag,
 			MovableObject &theObject, 
 			FEM_ObjectBroker &theBroker,
-						  ChannelAddress *theAddress) {
+						  ChannelAddress *theAddress) 
+{
   if ( !theFile )
 	return -1;
 
@@ -185,16 +186,17 @@ int FileChannel::recvObj(int commitTag,
 }
 
 
-int FileChannel::sendMsg(int dbTag, int commitTag, const Message &, ChannelAddress *theAddress) 
+int 
+FileChannel::sendMsg(int dbTag, int commitTag, const Message &, ChannelAddress *theAddress) 
 {
   return 0;
 }  
   
-int FileChannel::recvMsg(int dbTag, int commitTag, Message &, ChannelAddress *theAddress) 
-			 
+int 
+FileChannel::recvMsg(int dbTag, int commitTag, Message &, ChannelAddress *theAddress)			 
 {
   return 0;
-}     
+}
 
 
    

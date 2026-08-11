@@ -48,22 +48,22 @@ MovableObject::~MovableObject()
 
 
 ClassTag 
-MovableObject::getClassTag(void) const
+MovableObject::getClassTag() const
 {
-    return classTag;
+  return classTag;
 }
 
 static char unknownClassType[] = {"UnknownMovableObject"};
 
 const char *
-MovableObject::getClassType(void) const
+MovableObject::getClassType() const
 {
   return unknownClassType;
 }
 
 
 int 
-MovableObject::getDbTag(void) const
+MovableObject::getDbTag() const
 {
     return dbTag;
 }

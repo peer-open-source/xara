@@ -39,48 +39,48 @@ void * OPS_ADD_RUNTIME_VPV(OPS_FluidSolidPorousMaterial)
 
     int argc = OPS_GetNumRemainingInputArgs() + 2;
     if (argc < 6) {
-	opserr << "WARNING insufficient arguments\n";
-	opserr << "Want: nDMaterial FluidSolidPorous tag? "<< arg[0];
-	opserr << "? "<< "\n";
-	opserr << arg[1] << "? "<< arg[2] << "? "<< endln;
-	return 0;
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: nDMaterial FluidSolidPorous tag? "<< arg[0];
+    opserr << "? "<< "\n";
+    opserr << arg[1] << "? "<< arg[2] << "? "<< endln;
+    return 0;
     }
 
     int numdata = 1;
     if (OPS_GetIntInput(&numdata, &tag) < 0) {
-	opserr << "WARNING invalid FluidSolidPorous tag" << endln;
-	return 0;
+    opserr << "WARNING invalid FluidSolidPorous tag" << endln;
+    return 0;
     }
 
     for (int i=3; i<6; i++)
-	if (OPS_GetDoubleInput(&numdata, &param[i-3]) < 0) {
-	    opserr << "WARNING invalid " << " double" << "\n";
-	    opserr << "nDMaterial FluidSolidPorous: " << tag << endln;
-	    return 0;
-	}
+    if (OPS_GetDoubleInput(&numdata, &param[i-3]) < 0) {
+        opserr << "WARNING invalid " << " double" << "\n";
+        opserr << "nDMaterial FluidSolidPorous: " << tag << endln;
+        return 0;
+    }
 
     NDMaterial *soil = OPS_getNDMaterial(param[1]);
     if (soil == 0) {
-	opserr << "WARNING FluidSolidPorous: couldn't get soil material ";
-	opserr << "tagged: " << param[1] << "\n";
-	return 0;
+    opserr << "WARNING FluidSolidPorous: couldn't get soil material ";
+    opserr << "tagged: " << param[1] << "\n";
+    return 0;
     }
 
     param[3] = 101.;
     if (argc == 7) {
-	if (OPS_GetDoubleInput(&numdata, &param[3]) < 0) {
-	    opserr << "WARNING invalid " << " double" << "\n";
-	    opserr << "nDMaterial FluidSolidPorous: " << tag << endln;
-	    return 0;
-	}
+    if (OPS_GetDoubleInput(&numdata, &param[3]) < 0) {
+        opserr << "WARNING invalid " << " double" << "\n";
+        opserr << "nDMaterial FluidSolidPorous: " << tag << endln;
+        return 0;
+    }
     }
 
     return new FluidSolidPorousMaterial (tag, param[0], *soil,
-					 param[2],param[3]);
+                     param[2],param[3]);
 }
 
 FluidSolidPorousMaterial::FluidSolidPorousMaterial (int tag, int nd, NDMaterial &soilMat,
-						    double combinedBulkModul, double atm)
+                            double combinedBulkModul, double atm)
  : NDMaterial(tag, ND_TAG_FluidSolidPorousMaterial)
 {
   if (combinedBulkModul < 0) {
@@ -148,9 +148,9 @@ FluidSolidPorousMaterial::FluidSolidPorousMaterial (const FluidSolidPorousMateri
 }
 
 
-FluidSolidPorousMaterial::~FluidSolidPorousMaterial ()
+FluidSolidPorousMaterial::~FluidSolidPorousMaterial()
 {
-  if (theSoilMaterial != 0)
+  if (theSoilMaterial != nullptr)
     delete theSoilMaterial;
 }
 
@@ -164,7 +164,7 @@ FluidSolidPorousMaterial::setTrialStrain (const Vector &strain)
   if (ndm==2 && strain.Size()==3)
     trialVolumeStrain = strain[0]+strain[1];
   else if (ndm==3 && strain.Size()==6)
-	trialVolumeStrain = strain[0]+strain[1]+strain[2];
+    trialVolumeStrain = strain[0]+strain[1]+strain[2];
 
   return theSoilMaterial->setTrialStrain(strain);
 }
@@ -173,35 +173,36 @@ FluidSolidPorousMaterial::setTrialStrain (const Vector &strain)
 int
 FluidSolidPorousMaterial::setTrialStrain(const Vector &strain, const Vector &rate)
 {
-	int ndm = ndmx[matN];
+    int ndm = ndmx[matN];
 
-	if (ndm==2 && strain.Size()==3)
-		trialVolumeStrain = strain[0]+strain[1];
-	else if (ndm==3 && strain.Size()==6)
-		trialVolumeStrain = strain[0]+strain[1]+strain[2];
-	else {
-		opserr << "Fatal:FluidSolidPorousMaterial:: Material dimension is: " << ndm << endln;
-		opserr << "But strain vector size is: " << strain.Size() << endln;
-		exit(-1);;
-	}
+    if (ndm==2 && strain.Size()==3)
+        trialVolumeStrain = strain[0]+strain[1];
+    else if (ndm==3 && strain.Size()==6)
+        trialVolumeStrain = strain[0]+strain[1]+strain[2];
+    else {
+        opserr << "Fatal:FluidSolidPorousMaterial:: Material dimension is: " << ndm << endln;
+        opserr << "But strain vector size is: " << strain.Size() << endln;
+        exit(-1);;
+    }
 
   return theSoilMaterial->setTrialStrain(strain);
 }
 
 
-int FluidSolidPorousMaterial::setTrialStrainIncr (const Vector &strain)
+int 
+FluidSolidPorousMaterial::setTrialStrainIncr(const Vector &strain)
 {
-	int ndm = ndmx[matN];
+    int ndm = ndmx[matN];
 
-	if (ndm==2 && strain.Size()==3)
-		trialVolumeStrain = currentVolumeStrain + strain[0]+strain[1];
-	else if (ndm==3 && strain.Size()==6)
-		trialVolumeStrain = currentVolumeStrain + strain[0]+strain[1]+strain[2];
-	else {
-		opserr << "Fatal:FluidSolidPorousMaterial:: Material dimension is: " << ndm << endln;
-		opserr << "But strain vector size is: " << strain.Size() << endln;
-		exit(-1);;
-	}
+    if (ndm==2 && strain.Size()==3)
+        trialVolumeStrain = currentVolumeStrain + strain[0]+strain[1];
+    else if (ndm==3 && strain.Size()==6)
+        trialVolumeStrain = currentVolumeStrain + strain[0]+strain[1]+strain[2];
+    else {
+        opserr << "Fatal:FluidSolidPorousMaterial:: Material dimension is: " << ndm << endln;
+        opserr << "But strain vector size is: " << strain.Size() << endln;
+        exit(-1);;
+    }
 
   return theSoilMaterial->setTrialStrainIncr(strain);
 }
@@ -209,50 +210,52 @@ int FluidSolidPorousMaterial::setTrialStrainIncr (const Vector &strain)
 
 int FluidSolidPorousMaterial::setTrialStrainIncr (const Vector &strain, const Vector &rate)
 {
-	int ndm = ndmx[matN];
+    int ndm = ndmx[matN];
 
-	if (ndm==2 && strain.Size()==3)
-		trialVolumeStrain = currentVolumeStrain + strain[0]+strain[1];
-	else if (ndm==3 && strain.Size()==6)
-		trialVolumeStrain = currentVolumeStrain + strain[0]+strain[1]+strain[2];
-	else {
-		opserr << "Fatal:FluidSolidPorousMaterial:: Material dimension is: " << ndm << endln;
-		opserr << "But strain vector size is: " << strain.Size() << endln;
-		exit(-1);;
-	}
+    if (ndm==2 && strain.Size()==3)
+        trialVolumeStrain = currentVolumeStrain + strain[0]+strain[1];
+    else if (ndm==3 && strain.Size()==6)
+        trialVolumeStrain = currentVolumeStrain + strain[0]+strain[1]+strain[2];
+    else {
+        opserr << "Fatal:FluidSolidPorousMaterial:: Material dimension is: " << ndm << endln;
+        opserr << "But strain vector size is: " << strain.Size() << endln;
+        exit(-1);;
+    }
 
   return theSoilMaterial->setTrialStrainIncr(strain);
 }
 
 
-const Matrix & FluidSolidPorousMaterial::getTangent (void)
+const Matrix & 
+FluidSolidPorousMaterial::getTangent()
 {
-	int ndm = ndmx[matN];
-	int loadStage = loadStagex[matN];
-	double combinedBulkModulus = combinedBulkModulusx[matN];
+    int ndm = ndmx[matN];
+    int loadStage = loadStagex[matN];
+    double combinedBulkModulus = combinedBulkModulusx[matN];
 
-	Matrix *workM = (ndm == 2) ? &workM3 : &workM6;
+    Matrix *workM = (ndm == 2) ? &workM3 : &workM6;
   
-	*workM = theSoilMaterial->getTangent();
+    *workM = theSoilMaterial->getTangent();
 
-	if (loadStage != 0) { 
-	  for (int i=0; i<ndm; i++) 
-		  for (int j=0; j<ndm; j++) 
-			  (*workM)(i,j) = (*workM)(i,j) + combinedBulkModulus;
-  }
+    if (loadStage != 0) { 
+      for (int i=0; i<ndm; i++) 
+          for (int j=0; j<ndm; j++) 
+              (*workM)(i,j) = (*workM)(i,j) + combinedBulkModulus;
+    }
 
-	return *workM;
+    return *workM;
 }
 
-const Matrix & FluidSolidPorousMaterial::getInitialTangent (void)
+const Matrix & 
+FluidSolidPorousMaterial::getInitialTangent()
 {
-	int ndm = ndmx[matN];
+    int ndm = ndmx[matN];
 
-	Matrix *workM = (ndm == 2) ? &workM3 : &workM6;
+    Matrix *workM = (ndm == 2) ? &workM3 : &workM6;
   
-	*workM = theSoilMaterial->getInitialTangent();
+    *workM = theSoilMaterial->getInitialTangent();
 
-	return *workM;
+    return *workM;
 }
 
 double FluidSolidPorousMaterial::getRho()
@@ -275,15 +278,14 @@ const Vector & FluidSolidPorousMaterial::getStress (void)
       e2p = 1;
       initMaxPress = ((*workV)[0] < (*workV)[1]) ? (*workV)[0] : (*workV)[1]; 
       if (ndm == 3)
-	initMaxPress = (initMaxPress < (*workV)[2]) ? initMaxPress : (*workV)[2];
+        initMaxPress = (initMaxPress < (*workV)[2]) ? initMaxPress : (*workV)[2];
     }
     trialExcessPressure = currentExcessPressure;
-    trialExcessPressure += 
-      (trialVolumeStrain - currentVolumeStrain) * combinedBulkModulus;
+    trialExcessPressure += (trialVolumeStrain - currentVolumeStrain) * combinedBulkModulus;
     if (trialExcessPressure > pAtm-initMaxPress) 
       trialExcessPressure = pAtm-initMaxPress;
     //if (trialExcessPressure < initMaxPress)
-    //	trialExcessPressure = initMaxPress;
+    //    trialExcessPressure = initMaxPress;
     for (int i=0; i<ndm; i++) 
       (*workV)[i] += trialExcessPressure;
   }
@@ -301,7 +303,7 @@ int FluidSolidPorousMaterial::setParameter(const char **argv, int argc, Paramete
   if (this->getTag() == matTag) {
 
     if (strcmp(argv[0],"updateMaterialStage") == 0) 
-    	return param.addObject(1, this);
+        return param.addObject(1, this);
     else if (strcmp(argv[0],"combinedBulkModulus") == 0) 
       return param.addObject(2, this);  
   }
@@ -309,7 +311,8 @@ int FluidSolidPorousMaterial::setParameter(const char **argv, int argc, Paramete
   return theSoilMaterial->setParameter(argv, argc, param);
 }
 
-int FluidSolidPorousMaterial::updateParameter(int responseID, Information &info)
+int
+FluidSolidPorousMaterial::updateParameter(int responseID, Information &info)
 {
   if (responseID == 1) {
     //    opserr << "FluidSolidPorousMaterial updateMaterialStage" << info.theInt << endln;
@@ -324,216 +327,222 @@ int FluidSolidPorousMaterial::updateParameter(int responseID, Information &info)
 }
 
 
-const Vector & FluidSolidPorousMaterial::getCommittedStress (void)
+const Vector & FluidSolidPorousMaterial::getCommittedStress()
 {
   return theSoilCommittedStress;
 }
 
 
-const Vector & FluidSolidPorousMaterial::getCommittedStrain (void)
+const Vector & 
+FluidSolidPorousMaterial::getCommittedStrain()
 {
   return theSoilCommittedStrain;
 }
 
 
-const Vector & FluidSolidPorousMaterial::getCommittedPressure (void)
+const Vector & FluidSolidPorousMaterial::getCommittedPressure()
 {
-	int ndm = ndmx[matN];
+    int ndm = ndmx[matN];
 
-	static Vector temp(2);
-	
-	temp[0] = currentExcessPressure;
-	temp[1] = temp[0]/initMaxPress;
+    static Vector temp(2);
     
-	return temp;
+    temp[0] = currentExcessPressure;
+    temp[1] = temp[0]/initMaxPress;
+    
+    return temp;
 }
 
 
-const Vector & FluidSolidPorousMaterial::getStrain (void)
+const Vector & 
+FluidSolidPorousMaterial::getStrain()
 {
   return theSoilMaterial->getStrain();
 }
 
 
-int FluidSolidPorousMaterial::commitState (void)
+int 
+FluidSolidPorousMaterial::commitState()
 {
-	int loadStage = loadStagex[matN];
+    int loadStage = loadStagex[matN];
 
-	currentVolumeStrain = trialVolumeStrain;
-	if (loadStage != 0) 
-		currentExcessPressure = trialExcessPressure;
-	else
+    currentVolumeStrain = trialVolumeStrain;
+    if (loadStage != 0) 
+        currentExcessPressure = trialExcessPressure;
+    else
         currentExcessPressure = 0.;
 
-	int res = theSoilMaterial->commitState();
+    int res = theSoilMaterial->commitState();
         theSoilCommittedStress = theSoilMaterial->getStress();
-	theSoilCommittedStrain = theSoilMaterial->getStrain();
-	return res;
+    theSoilCommittedStrain = theSoilMaterial->getStrain();
+    return res;
 }
 
 
 int FluidSolidPorousMaterial::revertToLastCommit (void)
 {
-	return theSoilMaterial->revertToLastCommit();
+    return theSoilMaterial->revertToLastCommit();
 }
 
 int FluidSolidPorousMaterial::revertToStart (void)
 {
-	return theSoilMaterial->revertToStart();
+    return theSoilMaterial->revertToStart();
 }
 
-NDMaterial * FluidSolidPorousMaterial::getCopy (void)
+NDMaterial * 
+FluidSolidPorousMaterial::getCopy ()
 {
-  FluidSolidPorousMaterial * copy = new FluidSolidPorousMaterial(*this);
-  return copy;
-}
-
-
-NDMaterial * FluidSolidPorousMaterial::getCopy (const char *code)
-{
-	if (strcmp(code,"FluidSolidPorous") == 0 || strcmp(code,"PlaneStrain") == 0 ||
-		strcmp(code,"ThreeDimensional") == 0) {
-     FluidSolidPorousMaterial * copy = new FluidSolidPorousMaterial(*this);
-	   return copy;
-	}
-
-	return 0;
+  return new FluidSolidPorousMaterial(*this);
 }
 
 
-const char * FluidSolidPorousMaterial::getType() const
+NDMaterial * 
+FluidSolidPorousMaterial::getCopy(const char *code)
 {
-	int ndm = ndmx[matN];
+    if (strcmp(code,"FluidSolidPorous") == 0 || strcmp(code,"PlaneStrain") == 0 ||
+        strcmp(code,"ThreeDimensional") == 0) {
+       return new FluidSolidPorousMaterial(*this);
+    }
 
-	return (ndm == 2) ? "PlaneStrain" : "ThreeDimensional";
+    return 0;
 }
 
 
-int FluidSolidPorousMaterial::getOrder() const
+const char * 
+FluidSolidPorousMaterial::getType() const
 {
-	int ndm = ndmx[matN];
+    int ndm = ndmx[matN];
 
-	return (ndm == 2) ? 3 : 6;
+    return (ndm == 2) ? "PlaneStrain" : "ThreeDimensional";
+}
+
+
+int 
+FluidSolidPorousMaterial::getOrder() const
+{
+    int ndm = ndmx[matN];
+
+    return (ndm == 2) ? 3 : 6;
 }
 
 
 int FluidSolidPorousMaterial::sendSelf(int commitTag, Channel &theChannel)
 {
-	int ndm = ndmx[matN];
-	int loadStage = loadStagex[matN];
-	double combinedBulkModulus = combinedBulkModulusx[matN];
+    int ndm = ndmx[matN];
+    int loadStage = loadStagex[matN];
+    double combinedBulkModulus = combinedBulkModulusx[matN];
 
-	int res = 0;
+    int res = 0;
 
-	static Vector data(7);
-	data(0) = this->getTag();
-	data(1) = ndm;
-	data(2) = loadStage;
+    static Vector data(7);
+    data(0) = this->getTag();
+    data(1) = ndm;
+    data(2) = loadStage;
     data(3) = combinedBulkModulus;
-	data(4) = currentExcessPressure;
+    data(4) = currentExcessPressure;
     data(5) = currentVolumeStrain;
-	data(6) = matN;
+    data(6) = matN;
 
     res += theChannel.sendVector(this->getDbTag(), commitTag, data);
-	if (res < 0) {
-	  opserr << "FluidSolidPorousMaterial::sendSelf -- could not send Vector\n";
-	     
-		return res;
-	}
+    if (res < 0) {
+      opserr << "FluidSolidPorousMaterial::sendSelf -- could not send Vector\n";
+         
+        return res;
+    }
 
-	ID classTags(2);
+    ID classTags(2);
 
-	classTags(0) = theSoilMaterial->getClassTag();
-	int matDbTag = theSoilMaterial->getDbTag();
-	// NOTE: we do have to ensure that the material has a database
-	// tag if we are sending to a database channel.
-	if (matDbTag == 0) {
-		matDbTag = theChannel.getDbTag();
-		if (matDbTag != 0)
-			theSoilMaterial->setDbTag(matDbTag);
-	}
-	classTags(1) = matDbTag;
+    classTags(0) = theSoilMaterial->getClassTag();
+    int matDbTag = theSoilMaterial->getDbTag();
+    // NOTE: we do have to ensure that the material has a database
+    // tag if we are sending to a database channel.
+    if (matDbTag == 0) {
+        matDbTag = theChannel.getDbTag();
+        if (matDbTag != 0)
+            theSoilMaterial->setDbTag(matDbTag);
+    }
+    classTags(1) = matDbTag;
 
-	res += theChannel.sendID(this->getDbTag(), commitTag, classTags);
-	if (res < 0) {
-	  opserr << "WARNING FluidSolidPorousMaterial::sendSelf() - " << this->getTag() << " failed to send ID\n";
-	  
-	  return res;
-	}
+    res += theChannel.sendID(this->getDbTag(), commitTag, classTags);
+    if (res < 0) {
+      opserr << "WARNING FluidSolidPorousMaterial::sendSelf() - " << this->getTag() << " failed to send ID\n";
+      
+      return res;
+    }
 
-	// Finally, asks the material object to send itself
-	res += theSoilMaterial->sendSelf(commitTag, theChannel);
-	if (res < 0) {
-	  opserr << "WARNING FluidSolidPorousMaterial::sendSelf() - " << this->getTag() << " failed to send its Material\n";
-	  return res;
-	}
+    // Finally, asks the material object to send itself
+    res += theSoilMaterial->sendSelf(commitTag, theChannel);
+    if (res < 0) {
+      opserr << "WARNING FluidSolidPorousMaterial::sendSelf() - " << this->getTag() << " failed to send its Material\n";
+      return res;
+    }
 
-	return res;
+    return res;
 }
 
 
 
 
-int FluidSolidPorousMaterial::recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker)    
+int 
+FluidSolidPorousMaterial::recvSelf(int commitTag, Channel &theChannel, 
+         FEM_ObjectBroker &theBroker)    
 {
-	int res = 0;
+    int res = 0;
 
-	static Vector data(7);
+    static Vector data(7);
 
-	res += theChannel.recvVector(this->getDbTag(), commitTag, data);
-	if (res < 0) {
-	  opserr << "FluidSolidPorousMaterial::recvSelf -- could not receive Vector\n";
-	  return res;
-	}
+    res += theChannel.recvVector(this->getDbTag(), commitTag, data);
+    if (res < 0) {
+      opserr << "FluidSolidPorousMaterial::recvSelf -- could not receive Vector\n";
+      return res;
+    }
     
-	this->setTag((int)data(0));
-	int ndm = data(1);
-	int loadStage = data(2);
-	double combinedBulkModulus = data(3);
-	currentExcessPressure = data(4);
-	currentVolumeStrain = data(5);
-	matN = data(6);
+    this->setTag((int)data(0));
+    int ndm = data(1);
+    int loadStage = data(2);
+    double combinedBulkModulus = data(3);
+    currentExcessPressure = data(4);
+    currentVolumeStrain = data(5);
+    matN = data(6);
 
-	ndmx[matN] = ndm;
-	loadStagex[matN] = loadStage;
-	combinedBulkModulusx[matN] = combinedBulkModulus;
+    ndmx[matN] = ndm;
+    loadStagex[matN] = loadStage;
+    combinedBulkModulusx[matN] = combinedBulkModulus;
 
-	// now receives the ids of its material
-	ID classTags(2);
+    // now receives the ids of its material
+    ID classTags(2);
 
-	res += theChannel.recvID(this->getDbTag(), commitTag, classTags);
-	if (res < 0)  {
-	  opserr << "FluidSolidPorousMaterial::recvSelf() - failed to recv ID data\n";
-	  return res;
-	}    
-	
-	int matClassTag = classTags(0);
-	int matDbTag = classTags(1);
-	// Check that material is of the right type; if not,
-	// delete it and create a new one of the right type
-	if (theSoilMaterial == 0 || theSoilMaterial->getClassTag() != matClassTag) {
-	  if (theSoilMaterial != 0)
-	    delete theSoilMaterial;
-	  theSoilMaterial = theBroker.getNewNDMaterial(matClassTag);
-	  if (theSoilMaterial == 0) {
-	    opserr << "FluidSolidPorousMaterial::recvSelf() - " <<
-	      "Broker could not create NDMaterial of class type" << matClassTag << endln;
-	    exit(-1);
-	  }
-	}
+    res += theChannel.recvID(this->getDbTag(), commitTag, classTags);
+    if (res < 0)  {
+      opserr << "FluidSolidPorousMaterial::recvSelf() - failed to recv ID data\n";
+      return res;
+    }    
+    
+    int matClassTag = classTags(0);
+    int matDbTag = classTags(1);
+    // Check that material is of the right type; if not,
+    // delete it and create a new one of the right type
+    if (theSoilMaterial == 0 || theSoilMaterial->getClassTag() != matClassTag) {
+      if (theSoilMaterial != 0)
+        delete theSoilMaterial;
+      theSoilMaterial = theBroker.getNewNDMaterial(matClassTag);
+      if (theSoilMaterial == 0) {
+        opserr << "FluidSolidPorousMaterial::recvSelf() - " <<
+          "Broker could not create NDMaterial of class type" << matClassTag << endln;
+        exit(-1);
+      }
+    }
 
-	// Receive the material
-	theSoilMaterial->setDbTag(matDbTag);
-	res += theSoilMaterial->recvSelf(commitTag, theChannel, theBroker);
-	if (res < 0) {
-	  opserr << "FluidSolidPorousMaterial::recvSelf() - material failed to recv itself\n";
-	  return res;
-	}
-	theSoilCommittedStress = theSoilMaterial->getStress();
-	theSoilCommittedStress = theSoilMaterial->getStrain();
+    // Receive the material
+    theSoilMaterial->setDbTag(matDbTag);
+    res += theSoilMaterial->recvSelf(commitTag, theChannel, theBroker);
+    if (res < 0) {
+      opserr << "FluidSolidPorousMaterial::recvSelf() - material failed to recv itself\n";
+      return res;
+    }
+    theSoilCommittedStress = theSoilMaterial->getStress();
+    theSoilCommittedStress = theSoilMaterial->getStrain();
 
-	return res;
+    return res;
 }
 
 
@@ -584,32 +593,19 @@ int FluidSolidPorousMaterial::getResponse (int responseID, Information &matInfo)
 }
 
 
-void FluidSolidPorousMaterial::Print(OPS_Stream &s, int flag )
+void 
+FluidSolidPorousMaterial::Print(OPS_Stream &s, int flag )
 {
   // TODO: impolement better JSON
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT
       << "{"
-      << "\"type\": \"" << this->getClassType() << "\", "
       << "\"name\": " << this->getTag() << ", "
-      << "\"loadStage\": " <<  loadStagex[matN] 
+      << "\"type\": \"" << this->getClassType() << "\", "
+      << "\"stage\": " <<  loadStagex[matN] 
       << "}";
     return;
   }
-  s << "FluidSolidPorousMaterial" << endln;
+  s << "FluidSolidPorousMaterial" << "\n";
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
