@@ -2,6 +2,9 @@
 
 namespace Rotations {
   enum class Parameters {
-    None, Iter, Incr, Init
+    None, 
+    Iter, 
+    Incr, 
+    Init
   };
 }
