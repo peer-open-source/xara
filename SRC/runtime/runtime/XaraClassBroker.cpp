@@ -21,13 +21,6 @@
 // used by programmers when introducing new subclasses of the main objects.
 //===----------------------------------------------------------------------===//
 //
-#ifdef _PARALLEL_PROCESSING
-#  include <mpi.h>
-#endif
-
-#ifdef _PARALLEL_INTERPRETERS
-#  include <mpi.h>
-#endif
 
 #include <Hash.h>
 using namespace OpenSees::Hash;

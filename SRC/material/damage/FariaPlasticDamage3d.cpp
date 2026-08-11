@@ -17,7 +17,7 @@
 #include "FariaPlasticDamage3d.h"
 #include <Channel.h>
 #include <MatrixND.h>
-#include <Voight.hpp>
+#include <Voigt.hpp>
 #include <MaterialResponse.h>
 
 #define MND
@@ -336,7 +336,7 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
   //
 
   // decompose into positive and negative effective stress tensor
-  MatrixND<6,6> Qpos{}, Qneg = Voight::IImix;
+  MatrixND<6,6> Qpos{}, Qneg = Voigt::IImix;
   signeg = sige;
   StrsDecA(sige, sigpos, &Qpos);    // decompose the effective stress
   signeg -= sigpos;                 // signeg = sige - sigpos
@@ -424,14 +424,14 @@ FariaPlasticDamage3d::setTrialStrain(const Vector &strain)
       }
       else {
         // norm of deviatoric stress
-        VectorND<6> s = Voight::IIdevMix*signeg;            // deviatoric stress
+        VectorND<6> s = Voigt::IIdevMix*signeg;            // deviatoric stress
 
         double nrms = std::sqrt(s[0]*s[0] + s[1]*s[1] + s[2]*s[2]
                          + 2.0*(s[3]*s[3] + s[4]*s[4] + s[5]*s[5]));
         VectorND<6> n = s;
         double sqrt_eta = std::sqrt(eta);
         double Dtaun_Dsigoct = std::pow(3.0,0.25) * k/2.0/sqrt_eta;
-        Dtaun_Dsigneg.addVector(0.0, Voight::ivol, Dtaun_Dsigoct/3.0); // = Dtaun_Dsigoct * Dsigoct_Dsigneg
+        Dtaun_Dsigneg.addVector(0.0, Voigt::ivol, Dtaun_Dsigoct/3.0); // = Dtaun_Dsigoct * Dsigoct_Dsigneg
         if (std::abs(nrms) <= 1e-8) //toln) 
           n.zero();
         else {
@@ -574,8 +574,8 @@ FariaPlasticDamage3d::revertToStart()
   double G  = E/2./(1. +    nu);     // Shear modulus
   double K  = E/3./(1. - 2.*nu);     // Bulk  modulus
   Ce.zero();
-  Ce.addMatrix(Voight::IIvol, K);
-  Ce.addMatrix(Voight::IIdevCon, 2.*G);
+  Ce.addMatrix(Voigt::IIvol, K);
+  Ce.addMatrix(Voigt::IIdevCon, 2.*G);
   // Ce.addMatrix(IIdevMix, 2*G);
 
   C = Ce;
@@ -754,8 +754,8 @@ FariaPlasticDamage3d::recvSelf(int commitTag, Channel &theChannel,
   double G  = E/2./(1. +    nu);     // Shear modulus
   double K  = E/3./(1. - 2.*nu);     // Bulk  modulus
   Ce.zero();
-  Ce.addMatrix(Voight::IIvol, K);
-  Ce.addMatrix(Voight::IIdevCon, 2.*G);
+  Ce.addMatrix(Voigt::IIvol, K);
+  Ce.addMatrix(Voigt::IIdevCon, 2.*G);
 
   rp = rpCommit;
   rn = rnCommit;

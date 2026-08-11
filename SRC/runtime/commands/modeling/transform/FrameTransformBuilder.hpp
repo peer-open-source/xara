@@ -20,6 +20,7 @@
 #include <TaggedObject.h>
 #include <VectorND.h>
 #include <Vector3D.h>
+#include <Rotations.h>
 
 #include <FrameTransform.h>
 #include <LinearFrameTransf.h>
@@ -30,9 +31,9 @@
 #include <Isometry/CrisfieldIsometry.h>
 #include <Isometry/BattiniIsometry.h>
 #include <Isometry/LinearIsometry.h>
-#if 0
 #include <Isometry/SphericalIsometry.h>
 #include <Isometry/IdentityIsometry.h>
+#if 0
 #include <Isometry/Crisfield06.h>
 #endif 
 
@@ -50,10 +51,29 @@ public:
 
     virtual ~FrameTransformBuilder() {}
   
+    enum class TransformType {
+      Unknown,
+      Linear_O3,
+      LinearIsometric_X1,
+
+      Corotational_O3,
+      // Corotational_X1,
+      Corotational02_X1,
+      Corotational03_X1,
+      Corotational04_X1,
+      Corotational05_X1,
+      Corotational06_X1,
+
+      Spherical_X1,
+      PDelta_O3,
+      PDelta_X1,
+    };
+
     template<int nn, int ndf>
     FrameTransform<nn, ndf> *
-    create(int flags = 0)
+    create(int flags = 0, Rotations::Parameters rotation_type = Rotations::Parameters::None)
     {
+
       int c_flags = offset_flags;
       if (flags)
         c_flags |= flags;
@@ -90,7 +110,7 @@ public:
 
       else if (strstr(name, "PDelta") != nullptr) {
         bool ctan = false;
-        if (strcmp(name, "PDelta02") == 0)
+        if (strcmp(name, "PDelta02") == 0 || getenv("CTAN"))
           ctan = true;
         if constexpr (nn == 2)
           return new PDeltaFrameTransf<nn, ndf> (tag, vz, offset_array, c_flags, ctan);
@@ -124,13 +144,12 @@ public:
 #if 0
       else if (strcmp(name, "Corotational06") == 0)
         return new EuclidFrameTransf<nn, ndf, Crisfield06<nn>> (tag, vz, offset_array, c_flags);
-
+#endif
       else if (strcmp(name, "Spherical") == 0)
         return new EuclidFrameTransf<nn, ndf, SphericalIsometry<nn>> (tag, vz, offset_array, c_flags);
 
       else if (strcmp(name, "Identity") == 0)
         return new EuclidFrameTransf<nn, ndf, IdentityIsometry<nn>> (tag, vz, offset_array, c_flags);
-#endif
       return nullptr;
     }
 
@@ -160,6 +179,7 @@ public:
     Vector3D vz;
     std::map<int, Vector3D> offsets;
     int offset_flags;
+    TransformType type;
 };
 
 } // namespace OpenSees

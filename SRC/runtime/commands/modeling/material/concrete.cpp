@@ -40,16 +40,19 @@
 static int find_faria_peak(double Fc, double An, double Bn, double& Fo);
 
 int
-TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
-                                int argc, TCL_Char ** const argv)
+TclCommand_newConcreteMaterial(ClientData clientData, 
+                               Tcl_Interp *interp,
+                               int argc, TCL_Char ** const argv)
 {
 
   assert(clientData != nullptr);
   enum class Position {
-    Tag, E, Nu, PeakTension, PeakCompression, EndRequired,
-    Beta, Ap, An, Bn,
-    Density,
-    G, K, Lambda,
+    Tag, 
+      E, Nu, PeakTension, PeakCompression, 
+    EndRequired,
+      Beta, Ap, An, Bn,
+      Density,
+      G, K, Lambda,
     End,
   };
   ArgumentTracker<Position> tracker;
@@ -88,9 +91,10 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
   // 1. Keyword arguments
   //
 
-  // Isotropy
+  // Parse elastic-isotropic constants (any 2 of E, G, K, nu, lambda)
   IsotropicParse iso {consts, niso};
   if (XaraCmd_setIsotropicParameters((ClientData)&iso, interp, argc, argv) == TCL_OK) {
+    // Parse was successful; mark all possible isotropic parameters as consumed
     tracker.consume(Position::E);
     tracker.consume(Position::G);
     tracker.consume(Position::Nu);
@@ -100,6 +104,7 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
 
   // Other arguments
   for (int i=2; i<argc; i++) {
+    // Check if this argument was already handled by the isotropic parser
     if (iso.positions.find(i) != iso.positions.end()) {
       continue;
     }
@@ -107,12 +112,14 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
     else if (strcmp(argv[i], "-rho") == 0 || strcmp(argv[i], "-density") == 0) {
       if (++i >= argc) {
           opserr << OpenSees::PromptValueError
-                 << "Missing value for option " << argv[i-1] << "\n";
+                 << "Missing value for option " << argv[i-1] 
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &density) != TCL_OK) {
           opserr << OpenSees::PromptValueError
-                 << "Invalid density " << argv[i] << "\n";
+                 << "Invalid density " << argv[i] 
+                 << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
       }
     }
@@ -126,12 +133,14 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
              strcmp(argv[i], "-fc") == 0) {
       if (++i >= argc) {
         opserr << OpenSees::PromptValueError
-               << "Missing value for option " << argv[i-1] << "\n";
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Fc) != TCL_OK) {
         opserr << OpenSees::PromptValueError
-               << "Invalid " << &argv[i-1][1] << " value " << argv[i] << "\n";
+               << "Invalid " << &argv[i-1][1] << " value " << argv[i] 
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       tracker.consume(Position::PeakCompression);
@@ -435,7 +444,8 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
     double Fcy;
     if (find_faria_peak(Fc, An, Bn, Fcy) != 0) {
       opserr << OpenSees::PromptParseError
-             << "Failed to find yield from peak stress.\n";
+             << "Failed to find yield from peak stress."
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     Fc = Fcy;
@@ -456,6 +466,8 @@ TclCommand_newConcreteMaterial(ClientData clientData, Tcl_Interp *interp,
                                                        density);
 
     if (builder->addTaggedObject<NDMaterial>(*theMaterial) != TCL_OK ) {
+      // Failed to add; likely due to user passing a tag that already exists. 
+      // Free memory and return an error.
       delete theMaterial;
       return TCL_ERROR;
     }
@@ -517,8 +529,6 @@ find_faria_peak(double Fc, double An, double Bn, double& Fo)
   }
 
   // Case 0 < A < 1.
-  // The true global envelope is unbounded as x -> infinity.
-  // This returns the first local peak, which is usually the calibration target.
   else if (A < 1.0) {
     if (dm(1.0) <= 0.0) {
         M = 1.0;
@@ -539,7 +549,6 @@ find_faria_peak(double Fc, double An, double Bn, double& Fo)
   }
 
   // Case A > 1.
-  // This has a finite global peak.
   else {
     if (B >= 2.0) {
       M = 1.0;

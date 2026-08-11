@@ -41,6 +41,9 @@
 // 4) In the original implementation of UVCmultiaxial [2], a missplaced factor of sqrt(2/3)
 //    in the kinematic hardening modulus produces an inconsistent tangent. This is not
 //    the case in the present model, which produces a consistent tangent.
+// 5) The original implementation of UVCmultiaxial [2] symmetrizes the tangent, which
+//    becomes asymmetric when nonlinear kinematic hardening is employed. 
+//    The present model does not symmetrize the tangent, and produces a consistent tangent.
 //
 // This model is also similar to that of [3], which supports equivalent hardening rules.
 // In [3], backward-Euler integration is employed for the back-stress evolution (item 3 above). 
@@ -58,7 +61,6 @@
 // - Store the back-stress components in 6D if possible, minimize use of 9D representation.
 // - Support alternative nonlinear isotropic hardening rules:
 //   - Mroz and Maciejewski
-// - It would be very easy to support
 //
 // References:
 //
@@ -72,11 +74,13 @@
 //      theory, coding, and exemplary problems"
 //  [4] Simo, Hughes (1998), Computational Inelasticity, Springer
 //
+//===----------------------------------------------------------------------===//
+//
 // Written: Claudio M. Perez
 //
 #pragma once
 #include <NDMaterial.h>
-#include <Voight.hpp>
+#include <Voigt.hpp>
 #include <MatrixND.h>
 #include <VectorND.h>
 #include <vector>
@@ -145,7 +149,7 @@ private:
   double Q_[2], b_[2], Hiso_;
   // Kinematic hardening
   std::vector<double> Ck_, gammak_;
-  // Solver controls
+  // Solver control
   double newton_tolerance;
   int    MaxIter_;
 
@@ -172,10 +176,9 @@ private:
 private:
   // Core update
   int updateState(const VectorND<6> &eps);
-  bool isLinearHardening() const {return (Ck_.size() == 1 && gammak_[0] == 0.0);}
 
 
-  // 6x9 Voight mapping used like: (P^vec6) -> 9x1   and   (P*vec9) -> 6x1
+  // 6x9 Voigt mapping used like: (P^vec6) -> 9x1   and   (P*vec9) -> 6x1
   static constexpr MatrixND<6,9> P {
     // NOTE: this appears transposed because MatrixND is column-major
     1.0000,        0,        0,        0,        0,        0,
@@ -350,7 +353,7 @@ private:
                                   MatrixND<6,6,double> &C) noexcept {
       const size_t nc = past.sig_b.size();
       // const VectorND<6> Pn = P * n;
-      const VectorND<6> Pn = Voight::ReduceVector(n);
+      const VectorND<6> Pn = Voigt::ReduceVector(n);
       for (size_t i=0; i<nc; i++) {
         double phi, dphi;
         switch (bs_integration) {
@@ -365,7 +368,7 @@ private:
         }
         //
         // VectorND<6> Px = P * past.sig_b[i];
-        const VectorND<6> Px = Voight::ReduceVector(past.sig_b[i]);
+        const VectorND<6> Px = Voigt::ReduceVector(past.sig_b[i]);
         
         static constexpr double cc = -mises_rate;
         C.addTensorProduct(Px, Pn,  dphi*theta*cc);

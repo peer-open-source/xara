@@ -1,18 +1,25 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
 //
 // Written: cmp
 // Created: Spring 2023
 //
-#include <tcl.h>
 #include <string>
 #include <unordered_map>
 
+#include <Parsing.h>
 #include <Logging.h>
 
 Tcl_CmdProc TclCommand_useMaterial;
@@ -22,10 +29,10 @@ Tcl_CmdProc TclCommand_usePlaneStress;
 
 const std::unordered_map<std::string, Tcl_CmdProc*> invoke_commands 
 {
-  {"UniaxialMaterial",  &TclCommand_useUniaxialMaterial       },
+  {"UniaxialMaterial",    &TclCommand_useUniaxialMaterial       },
 
-  {"FrameSection",      &TclCommand_useCrossSection           },
-  {"section",           &TclCommand_useCrossSection           },
+  {"FrameSection",        &TclCommand_useCrossSection           },
+  {"section",             &TclCommand_useCrossSection           },
 
   {"PlaneStress",         &TclCommand_usePlaneStress            },
   {"Material",            &TclCommand_useMaterial               },
@@ -35,12 +42,13 @@ const std::unordered_map<std::string, Tcl_CmdProc*> invoke_commands
 
 
 int
-XaraCmd_invoke(ClientData context, Tcl_Interp* interp, int argc, char const** const argv)
+XaraCmd_invoke(ClientData context, Tcl_Interp* interp, ArgSize argc, char const** const argv)
 {
   // check number of arguments in command line
   if (argc < 4) {
     opserr << OpenSees::PromptValueError 
-           << "bad arguments - want: using <obj-type> <obj-tag> {<operations>...}";
+           << "bad arguments - want: using <obj-type> <obj-tag> {<operations>...}"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 

@@ -20,9 +20,9 @@
 //# PROGRAMMER(S):     Zhao Cheng, Boris Jeremic
 //#
 //#
-//# DATE:              Sept2005              
-//# UPDATE HISTORY:   
-//#                     
+//# DATE:              Sept2005
+//# UPDATE HISTORY:
+//#
 //#
 //#
 //===============================================================================

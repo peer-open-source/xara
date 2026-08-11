@@ -16,7 +16,7 @@ Heaviside(double X) {
 
 
 static inline void 
-addVoightTensorProduct(MatrixND<6,6>& P,
+addVoigtTensorProduct(MatrixND<6,6>& P,
                        const VectorND<3>& n1,
                        const VectorND<3>& n2,
                        const VectorND<3>& n3,
@@ -97,28 +97,28 @@ StrsDecA(const VectorND<6> &sig,
     Ppos.zero();
 
     // Ppos : positive projection operator;
-    addVoightTensorProduct(Ppos, n1,n1,  n1,n1,  H1);
-    addVoightTensorProduct(Ppos, n2,n2,  n2,n2,  H2);
-    addVoightTensorProduct(Ppos, n3,n3,  n3,n3,  H3);
+    addVoigtTensorProduct(Ppos, n1,n1,  n1,n1,  H1);
+    addVoigtTensorProduct(Ppos, n2,n2,  n2,n2,  H2);
+    addVoigtTensorProduct(Ppos, n3,n3,  n3,n3,  H3);
 
     // p12(x)p12
     double term12 = (fabs(sigI[0] - sigI[1]) <= 1e-16) ? H1 : (M1 - M2)/(sigI[0] - sigI[1]);
-    addVoightTensorProduct(Ppos, n1,n2,  n1,n2,  0.25*2*term12); // 1212
-    addVoightTensorProduct(Ppos, n1,n2,  n2,n1,  0.25*2*term12); // 1221
-    addVoightTensorProduct(Ppos, n2,n1,  n1,n2,  0.25*2*term12); // 2112
-    addVoightTensorProduct(Ppos, n2,n1,  n2,n1,  0.25*2*term12); // 2121
+    addVoigtTensorProduct(Ppos, n1,n2,  n1,n2,  0.25*2*term12); // 1212
+    addVoigtTensorProduct(Ppos, n1,n2,  n2,n1,  0.25*2*term12); // 1221
+    addVoigtTensorProduct(Ppos, n2,n1,  n1,n2,  0.25*2*term12); // 2112
+    addVoigtTensorProduct(Ppos, n2,n1,  n2,n1,  0.25*2*term12); // 2121
     // p13(x)p13
     double term13 = (fabs(sigI[0] - sigI[2]) <= 1e-16) ? H1 : (M1 - M3)/(sigI[0] - sigI[2]);
-    addVoightTensorProduct(Ppos, n1,n3,  n1,n3,  0.25*2*term13); // 1313
-    addVoightTensorProduct(Ppos, n1,n3,  n3,n1,  0.25*2*term13); // 1321
-    addVoightTensorProduct(Ppos, n3,n1,  n1,n3,  0.25*2*term13); // 3113
-    addVoightTensorProduct(Ppos, n3,n1,  n3,n1,  0.25*2*term13); // 3121
+    addVoigtTensorProduct(Ppos, n1,n3,  n1,n3,  0.25*2*term13); // 1313
+    addVoigtTensorProduct(Ppos, n1,n3,  n3,n1,  0.25*2*term13); // 1321
+    addVoigtTensorProduct(Ppos, n3,n1,  n1,n3,  0.25*2*term13); // 3113
+    addVoigtTensorProduct(Ppos, n3,n1,  n3,n1,  0.25*2*term13); // 3121
     // p23(x)p23
     double term23 = (fabs(sigI[1] - sigI[2]) <= 1e-16) ? H2 : (M2 - M3)/(sigI[1] - sigI[2]);
-    addVoightTensorProduct(Ppos, n2,n3,  n2,n3,  0.25*2*term23); // 2323
-    addVoightTensorProduct(Ppos, n2,n3,  n3,n2,  0.25*2*term23); // 2332
-    addVoightTensorProduct(Ppos, n3,n2,  n2,n3,  0.25*2*term23); // 3223
-    addVoightTensorProduct(Ppos, n3,n2,  n3,n2,  0.25*2*term23); // 3232
+    addVoigtTensorProduct(Ppos, n2,n3,  n2,n3,  0.25*2*term23); // 2323
+    addVoigtTensorProduct(Ppos, n2,n3,  n3,n2,  0.25*2*term23); // 2332
+    addVoigtTensorProduct(Ppos, n3,n2,  n2,n3,  0.25*2*term23); // 3223
+    addVoigtTensorProduct(Ppos, n3,n2,  n3,n2,  0.25*2*term23); // 3232
 
     for (int i=0; i<6; i++)
       for (int j=3; j<6; j++)

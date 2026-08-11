@@ -22,12 +22,13 @@
 //      -F {Fy Fi Fs}  -b {a b} 
 //      -C {C1 C2 ...} -g {g1 g2 ...}
 //      -YFtol tol -maxIter n -density rho
+//===----------------------------------------------------------------------===//
 //
 // Written: Claudio M. Perez
 //
 #include "NonlinearJ2.h"
 #include <VectorND.h>
-#include <Voight.hpp>
+#include <Voigt.hpp>
 #include <MatrixND.h>
 #include <Logging.h>
 #include <Channel.h>
@@ -35,7 +36,7 @@
 #include <cmath>
 #include <limits>
 #include <cstring>
-#include "hardening/FlowStress.h"
+// #include "hardening/FlowStress.h"
 
 using namespace OpenSees;
 
@@ -83,14 +84,14 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
   const double K  = E/3./(1. - 2.*nu);  // Bulk  modulus
 
   // Deviatoric strain
-  const VectorND<6> eps_dev = Voight::Dev(eps);
-  const double      eps_vol = Voight::Trace(eps);
+  const VectorND<6> eps_dev = Voigt::Dev(eps);
+  const double      eps_vol = Voigt::Trace(eps);
 
   // Trial deviatoric stress s_tr = 2G * (eps_dev - eps_p_d)
-  const VectorND<6> eps_p_d = Voight::Dev(past.eps_p);
+  const VectorND<6> eps_p_d = Voigt::Dev(past.eps_p);
   VectorND<9> s_tr{};
-  s_tr.addVector(0.0, Voight::ExpandVector(eps_dev),  2.0*G);
-  s_tr.addVector(1.0, Voight::ExpandVector(eps_p_d), -2.0*G);
+  s_tr.addVector(0.0, Voigt::ExpandVector(eps_dev),  2.0*G);
+  s_tr.addVector(1.0, Voigt::ExpandVector(eps_p_d), -2.0*G);
 
   // Sum of back-stresses at last commit
   VectorND<9> Xn{};
@@ -109,10 +110,10 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
   // Elastic admissible?
   if (f_tr <= f_tol) {
     // Stress = P*s_tr + K*eps_v*ivol
-    pres.sig = Voight::ReduceVector(s_tr);
-    Voight::AddVol(pres.sig, K*eps_vol);
+    pres.sig = Voigt::ReduceVector(s_tr);
+    Voigt::AddVol(pres.sig, K*eps_vol);
     // pres.sig = P * s_tr;
-    // pres.sig.addVector(1.0, Voight::ivol,  K*eps_vol);
+    // pres.sig.addVector(1.0, Voigt::ivol,  K*eps_vol);
 
     pres.eps             = eps;
     pres.eps_p           = past.eps_p;
@@ -121,8 +122,8 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
 
     // Elastic tangent
     C.zero();
-    C.addMatrix(Voight::IoI,          K);
-    C.addMatrix(Voight::IIdevCon, 2.0*G);
+    C.addMatrix(Voigt::IoI,          K);
+    C.addMatrix(Voigt::IIdevCon, 2.0*G);
 
     // Currently not computing energy
     if (false) {
@@ -143,7 +144,6 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
   double g, Dg, phi_a=0.0;
   int iter = 0;
   VectorND<9> m;
-
   this->newton_update(s_tr,lamda,   m,g,Dg,phi_a);
 
   // Solve consistency condition
@@ -163,12 +163,6 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
 
   if (iter == MaxIter_ && std::abs(g) > g_tol) {
     // Currently cannot print since opserr is not thread safe.
-
-    // opserr << "Material failed to converge after ";
-    // opserr << MaxIter_ << " iterations, |g| = " 
-    // << std::abs(g) 
-    // << " > " << newton_tolerance
-    // << "\n";
     return -1;
   }
 
@@ -178,7 +172,7 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
 
   // eps_p += I^{-1} * (P' * lamda*n)
   // const VectorND<6> n6 = P * m;
-  const VectorND<6> n6 = Voight::ReduceVector(m);
+  const VectorND<6> n6 = Voigt::ReduceVector(m);
   // apply I^{-1} (double the shear components)
   VectorND<6> deps_p_Iinv = n6;
   for (int i=3;i<6;i++)
@@ -200,7 +194,7 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
   // Correct deviatoric stress: s = s_tr - 2G*lamda*n
   pres.sig.addMatrixVector(0.0, P, s_tr, 1.0);
   pres.sig.addMatrixVector(1.0, P, m, -2.0*G*lamda);
-  pres.sig.addVector(1.0, Voight::ivol,  K*eps_vol);
+  pres.sig.addVector(1.0, Voigt::ivol,  K*eps_vol);
 
   pres.eps = eps;
 
@@ -213,9 +207,9 @@ NonlinearJ2::updateState(const VectorND<6> &eps)
 
   C.zero();
   // 1. bulk term
-  C.addMatrix(Voight::IoI,      K);
+  C.addMatrix(Voigt::IoI,      K);
   // 2. scale contravariant deviatoric identity
-  C.addMatrix(Voight::IIdevCon,  2.0*G*(1.0 - 2.0*G*theta_phi));
+  C.addMatrix(Voigt::IIdevCon,  2.0*G*(1.0 - 2.0*G*theta_phi));
 
   const double theta_lam = -2.0*G/(flow_rate*Dg);
   C.addTensorProduct(n6, n6,  -2.0*G*(theta_lam - 2.0*G*theta_phi*phi_nnmm));
@@ -242,7 +236,7 @@ NonlinearJ2::newton_update(const VectorND<9>& s_tr,
                           VectorND<9>& m,
                           double& g, 
                           double& Dg,
-                          double& phi_a) const noexcept 
+                          double& phi_z) const noexcept 
 {
   double d_mises_strain = (flow_rate*lambda)*phi_n*mises_scale;
 
@@ -250,20 +244,20 @@ NonlinearJ2::newton_update(const VectorND<9>& s_tr,
   m = s_tr;
   m -= Kinematic::A(*this, past, d_mises_strain);
 
-  phi_a  = metric(m); // phi(a)
+  phi_z  = metric(m); // =  phi(Z)
 
   // Newton residual function
-  g = phi_a - 2.0*G*d_mises_strain*(phi_n/mises_scale)
+  g = phi_z - 2.0*G*d_mises_strain*(phi_n/mises_scale)
     - Kinematic::H(*this, past, d_mises_strain)*(phi_n/mises_scale)
     - Isotropic::Y(*this, past, d_mises_strain)*phi_n*mises_scale;
 
-  if (phi_a < 1e-16) {
+  if (phi_z < 1e-16) {
     m.zero();
     Dg = 0.0;
     return;
   }
 
-  m    *= phi_m/phi_a; // m = a * phi(m)/phi(a)
+  m    *= phi_m/phi_z; // m = Z * phi(m)/phi(a)
 
   // Derivative of newton residual
   // Note: d(norm(Z))/d(lamda) == n . X' == dX(n)
@@ -353,8 +347,8 @@ NonlinearJ2::revertToStart()
   const double G  = E/2./(1. +    nu);     // Shear modulus
   const double K  = E/3./(1. - 2.*nu);     // Bulk  modulus
   Ce.zero();
-  Ce.addMatrix(Voight::IoI,          K);
-  Ce.addMatrix(Voight::IIdevCon, 2.0*G);
+  Ce.addMatrix(Voigt::IoI,          K);
+  Ce.addMatrix(Voigt::IIdevCon, 2.0*G);
   C = Ce;
 
   return 0;

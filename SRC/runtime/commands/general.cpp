@@ -33,7 +33,7 @@
 
 extern Tcl_CmdProc XaraCmd_wipe;
 Tcl_CmdProc TclCommand_clearAnalysis;
-Tcl_CmdProc TclCommand_specifyModel;
+Tcl_CmdProc XaraCmd_model;
 // nodes.cpp
 Tcl_CmdProc TclCommand_wipeNodes;
 // formats.cpp
@@ -42,6 +42,9 @@ Tcl_CmdProc XaraCmd_convertTextToBinary;
 Tcl_CmdProc XaraCmd_stripOpenSeesXML;
 // domain/peri/commands.cpp
 Tcl_CmdProc Tcl_Peri;
+
+static Tcl_CmdProc XaraCmd_defaultUnits;
+
 
 struct char_cmd {
   const char* name; Tcl_CmdProc*  func;
@@ -65,8 +68,6 @@ extern ProgressBar* progress_bar_ptr;
 
 const char *getInterpPWD(Tcl_Interp *interp);
 
-
-static Tcl_CmdProc defaultUnits;
 
 int TclObjCommand_pragma([[maybe_unused]] ClientData, 
                      Tcl_Interp *, Tcl_Size, Tcl_Obj *const objv[]);
@@ -188,7 +189,9 @@ OpenSees_putsCommand(ClientData dummy, Tcl_Interp *interp, Tcl_Size objc,
 
 
 static int
-OPS_SetObjCmd(ClientData clientData, Tcl_Interp *interp, Tcl_Size objc,
+OPS_SetObjCmd(ClientData clientData, 
+              Tcl_Interp *interp, 
+              Tcl_Size objc,
               Tcl_Obj *const objv[])
 {
 
@@ -381,6 +384,7 @@ maxOpenFiles(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   return TCL_OK;
 }
 
+
 int
 XaraInit_InterpreterCommands(Tcl_Interp *interp)
 {
@@ -409,10 +413,10 @@ XaraInit_InterpreterCommands(Tcl_Interp *interp)
   Tcl_CreateCommand(interp, "setPrecision",        setPrecision, nullptr, nullptr);
   Tcl_CreateCommand(interp, "exit",                OpenSeesExit, nullptr, nullptr);
   Tcl_CreateCommand(interp, "quit",                OpenSeesExit, nullptr, nullptr);
-  Tcl_CreateCommand(interp, "fault", 
-    [](ClientData, Tcl_Interp*, int, G3_Char**)->int{throw 20; return 0;}, nullptr, nullptr);
+  // Tcl_CreateCommand(interp, "fault", 
+  //   [](ClientData, Tcl_Interp*, int, G3_Char**)->int{throw 20; return 0;}, nullptr, nullptr);
 
-  Tcl_CreateCommand(interp, "defaultUnits",        defaultUnits, nullptr, nullptr);
+  Tcl_CreateCommand(interp, "defaultUnits",        XaraCmd_defaultUnits, nullptr, nullptr);
 
   // Timer
   Tcl_CreateCommand(interp, "start",               startTimer,   nullptr, nullptr);
@@ -423,8 +427,8 @@ XaraInit_InterpreterCommands(Tcl_Interp *interp)
   Tcl_CreateCommand(interp, "setMaxOpenFiles",     maxOpenFiles,        nullptr, nullptr);
 
   // Some entry points
-  Tcl_CreateCommand(interp, "model",               TclCommand_specifyModel,   nullptr, nullptr);
-  Tcl_CreateCommand(interp, "opensees::model",     TclCommand_specifyModel,   nullptr, nullptr);
+  Tcl_CreateCommand(interp, "model",               XaraCmd_model,   nullptr, nullptr);
+  Tcl_CreateCommand(interp, "opensees::model",     XaraCmd_model,   nullptr, nullptr);
   Tcl_CreateCommand(interp, "wipe",                XaraCmd_wipe,      nullptr, nullptr);
   Tcl_CreateCommand(interp, "_wipeNodes",          TclCommand_wipeNodes,      nullptr, nullptr);
   Tcl_CreateCommand(interp, "_clearAnalysis",      TclCommand_clearAnalysis,  nullptr, nullptr);
@@ -449,11 +453,12 @@ XaraInit_InterpreterCommands(Tcl_Interp *interp)
 }
 
 
-int
-defaultUnits(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **argv)
+static int
+XaraCmd_defaultUnits(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char **argv)
 {
+  // defaultUnits -Force type? -Length type? -Time type?
   if (argc < 7) {
-    opserr << "defaultUnits - missing a unit type want: defaultUnits -Force type? -Length type? -Time type?\n";
+    opserr << "defaultUnits - missing a unit type\n";
     return -1;
   }
 
@@ -464,28 +469,32 @@ defaultUnits(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **arg
 
   int count = 1;
   while (count < argc) {
-      if ((strcmp(argv[count], "-force") == 0) || (strcmp(argv[count], "-Force") == 0)
-          || (strcmp(argv[count], "-FORCE") == 0)) {
-          force = argv[count + 1];
-      }
-      else if ((strcmp(argv[count], "-length") == 0) || (strcmp(argv[count], "-Length") == 0)
-          || (strcmp(argv[count], "-LENGTH") == 0)) {
-          length = argv[count + 1];
-      }
-      else if ((strcmp(argv[count], "-time") == 0) || (strcmp(argv[count], "-Time") == 0)
-          || (strcmp(argv[count], "-TIME") == 0)) {
-          time = argv[count + 1];
-      }
-      else if ((strcmp(argv[count], "-temperature") == 0) || (strcmp(argv[count], "-Temperature") == 0)
-          || (strcmp(argv[count], "-TEMPERATURE") == 0) || (strcmp(argv[count], "-temp") == 0)
-          || (strcmp(argv[count], "-Temp") == 0) || (strcmp(argv[count], "-TEMP") == 0)) {
-          temperature = argv[count + 1];
-      }
-      else {
-          opserr << "defaultUnits - unrecognized unit: " << argv[count] << " want: defaultUnits -Force type? -Length type? -Time type?\n";
-          return -1;
-      }
-      count += 2;
+    if ((strcmp(argv[count], "-force") == 0) || (strcmp(argv[count], "-Force") == 0)
+        || (strcmp(argv[count], "-FORCE") == 0)) {
+        force = argv[count + 1];
+    }
+    else if ((strcmp(argv[count], "-length") == 0) || (strcmp(argv[count], "-Length") == 0)
+        || (strcmp(argv[count], "-LENGTH") == 0)) {
+        length = argv[count + 1];
+    }
+    else if ((strcmp(argv[count], "-time") == 0) || (strcmp(argv[count], "-Time") == 0)
+        || (strcmp(argv[count], "-TIME") == 0)) {
+        time = argv[count + 1];
+    }
+    else if ((strcmp(argv[count], "-temperature") == 0) || 
+             (strcmp(argv[count], "-Temperature") == 0) || 
+             (strcmp(argv[count], "-TEMPERATURE") == 0) || 
+             (strcmp(argv[count], "-temp") == 0) || 
+             (strcmp(argv[count], "-Temp") == 0) || 
+             (strcmp(argv[count], "-TEMP") == 0)) {
+        temperature = argv[count + 1];
+    }
+    else {
+      opserr << OpenSees::PromptValueError 
+             << "unrecognized unit: " << argv[count] << "\n";
+      return -1;
+    }
+    count += 2;
   }
 
   if (length == 0 || force == 0 || time == 0) {
@@ -520,7 +529,8 @@ defaultUnits(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **arg
   }
   else {
     lb = 1.0;
-    opserr << "defaultUnits - unknown force type, valid options: lb, kip, N, kN, MN, kgf, tonf\n";
+    opserr << OpenSees::PromptValueError 
+           << "unknown force type, valid options: lb, kip, N, kN, MN, kgf, tonf\n";
     return TCL_ERROR;
   }
 
@@ -528,21 +538,22 @@ defaultUnits(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **arg
     in = 1.0;
   }
   else if ((strcmp(length, "ft") == 0) || (strcmp(length, "feet") == 0)) {
-      in = 1.0 / 12.0;
+    in = 1.0 / 12.0;
   }
   else if ((strcmp(length, "mm") == 0)) {
-      in = 25.4;
+    in = 25.4;
   }
   else if ((strcmp(length, "cm") == 0)) {
-      in = 2.54;
+    in = 2.54;
   }
   else if ((strcmp(length, "m") == 0)) {
-      in = 0.0254;
+    in = 0.0254;
   }
   else {
-      in = 1.0;
-      opserr << "defaultUnits - unknown length type, valid options: in, ft, mm, cm, m\n";
-      return TCL_ERROR;
+    in = 1.0;
+    opserr << OpenSees::PromptValueError 
+           << "unknown length type, valid options: in, ft, mm, cm, m\n";
+    return TCL_ERROR;
   }
 
   if ((strcmp(time, "sec") == 0) || (strcmp(time, "Sec") == 0)) {

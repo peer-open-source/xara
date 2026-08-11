@@ -23,6 +23,7 @@
 #include <Parsing.h>
 #include <Logging.h>
 #include <ModelRegistry.h>
+#include <OpenSeesVersion.h>
 
 #include <LinearCrdTransf2d.h>
 #include <LinearCrdTransf3d.h>
@@ -38,15 +39,17 @@
 #include <transform/FrameTransformBuilder.hpp>
 
 using namespace OpenSees;
+using namespace Xara;
 
-int 
+static int 
 TclCommand_addTransformBuilder(ClientData clientData,
                                Tcl_Interp *interp,
-                               Tcl_Size argc,
+                               ArgSize argc,
                                const char ** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+
 
   // Make sure there is a minimum number of arguments
   if (argc < 3) {
@@ -58,16 +61,48 @@ TclCommand_addTransformBuilder(ClientData clientData,
 
   int ndm = builder->getNDM();
   
-  if (ndm != 2 && ndm != 3)
+  if (ndm != 2 && ndm != 3) {
+    opserr << OpenSees::PromptValueError
+           << "model dimension must be 2 or 3"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
+  }
+
+  const char *name = argv[1];
+  if (getenv("XARA_TRANSFORM"))
+    name = getenv("XARA_TRANSFORM");
 
   int tag;
-  const char *name = argv[1];
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError 
            << "invalid tag\n";
     return TCL_ERROR;
   }
+
+
+  FrameTransformBuilder::TransformType type = FrameTransformBuilder::TransformType::Unknown;
+  OpenSeesVersion version = GetCompatibilityVersion(interp);
+  if (strcmp(name, "Linear") == 0) {
+    type = FrameTransformBuilder::TransformType::Linear_O3;
+  }
+
+  else if (strcmp(name, "Corotational") == 0) {
+    if (version >= OpenSeesVersion::X1)
+      type = FrameTransformBuilder::TransformType::Corotational02_X1;
+    else
+      type = FrameTransformBuilder::TransformType::Corotational_O3;
+  }
+
+  else if (strstr(name, "PDelta") != nullptr) {
+    if (version >= OpenSeesVersion::X1)
+      type = FrameTransformBuilder::TransformType::PDelta_X1;
+    else
+      type = FrameTransformBuilder::TransformType::PDelta_O3;
+  }
+
+  else if (strcmp(name, "Corotational02") == 0)
+    type = FrameTransformBuilder::TransformType::Corotational02_X1;
+
 
   FrameTransformBuilder& transform = *new FrameTransformBuilder(ndm, tag, name);
 
@@ -299,7 +334,8 @@ TclCommand_addTransformBuilder(ClientData clientData,
 
 
 int
-TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
+XaraCmd_geomTransf(ClientData clientData, Tcl_Interp *interp, 
+                         ArgSize argc,
                          const char ** const argv)
 
 {
@@ -333,7 +369,7 @@ TclCommand_addGeomTransf(ClientData clientData, Tcl_Interp *interp, int argc,
   int ndm = builder->getNDM();
   int ndf = builder->getNDF();
 
-  if (ndm == 3 && !getenv("CRD")) {
+  if (ndm == 3 && !getenv("XARA_LEGACY_TRANSFORM")) {
     auto tb = builder->getTypedObject<FrameTransformBuilder>(tag);
     if (tb == nullptr) {
       opserr << OpenSees::PromptValueError 
