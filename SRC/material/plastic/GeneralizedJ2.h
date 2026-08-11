@@ -24,7 +24,7 @@ namespace OpenSees {
 class GeneralizedJ2 : public NDMaterial
 {
 public:
-  enum class HRule { LP, GP /*, NLK */ };
+  enum class HRule { LP, GP, AF };
 
   GeneralizedJ2(int tag, 
                 double E, 
@@ -103,12 +103,13 @@ private:
     double Hi, Hk, G, delta, phi; // phi = Fs - Fy
     HRule rule;
   };
-  struct HState {
+  struct TrialState {
     double A2;           // sig_nrm - past.sigdnrm
     double sn;           // ||trial_dev - b||
     VectorND<9> se;      // trial deviatoric stress
     VectorND<9> sb;      // back-stress
     double alpha;        // isotropic hardening scalar
+    double flow_stress;
   };
 
 
@@ -116,13 +117,18 @@ private:
 
   static int hard_LP(const Hardening &hd,
                      double yf_tr,
-                     double &Dlam, double &xi_p, double &Tlam) noexcept;
+                     const TrialState &hs,
+                     double &Dlam, double &xi_p, double &theta_phi, double &Tlam) noexcept;
 
   static int hard_GP(const Hardening &hd, 
                      double yf_tr, 
-                     const HState &hs,
-                     double &Dlam, double &xi_p, double &Tlam) noexcept;
+                     const TrialState &hs,
+                     double &Dlam, double &xi_p, double &theta_phi, double &Tlam) noexcept;
 
+  static int hard_AF(const Hardening &hd,
+                       double yf_tr,
+                       const TrialState &hs,
+                       double &Dlam, double &xi_p, double &theta_phi, double &Tlam, VectorND<9> &n, double& theta_nlk) noexcept;
 };
 
 } // namespace OpenSees
