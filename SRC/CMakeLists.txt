@@ -1,5 +1,5 @@
 #==============================================================================
-# 
+#
 #        OpenSees -- Open System For Earthquake Engineering Simulation
 #                Pacific Earthquake Engineering Research Center
 #
@@ -32,3 +32,7 @@ add_subdirectory(parallel)
 
 add_subdirectory(executable)
 add_subdirectory(testing)
+
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/cuda")
+  add_subdirectory(cuda)
+endif()
