@@ -34,7 +34,7 @@
 #include <string.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <plastic/Voight.hpp>
+#include <plastic/Voigt.hpp>
 
 using namespace OpenSees;
 
@@ -169,7 +169,7 @@ void
 J2CyclicBoundingSurface::plastic_integrator()
 {  
     const double tol_rel = 1.0e-10;
-    // static Vector eye(Voight::ivol);
+    // static Vector eye(Voigt::ivol);
     VectorND<6> eye{};
     eye(0) = 1.0;
     eye(1) = 1.0;
@@ -177,8 +177,8 @@ J2CyclicBoundingSurface::plastic_integrator()
 
     // incremental strain for the step
     VectorND<6> dStrain = m_strain_np1 - m_strain_n;
-    VectorND<6> dStrain_dev = Voight::Dev(dStrain);    // incremental deviatoric strain
-    double dStrain_vol = Voight::Trace(dStrain);       // incremental volumetric strain
+    VectorND<6> dStrain_dev = Voigt::Dev(dStrain);    // incremental deviatoric strain
+    double dStrain_vol = Voigt::Trace(dStrain);       // incremental volumetric strain
 
 
 
@@ -187,12 +187,12 @@ J2CyclicBoundingSurface::plastic_integrator()
     // VectorND<6> dev_stress_n{};   // deviatoric stress
     VectorND<6> dev_stress_np1{};    // deviatoric stress
     // VectorND<6> dev_sigma0_np1{};    // deviatoric stress
-    VectorND<6> dev_stress_n = Voight::Dev(m_stress_n);
-    VectorND<6> dev_sigma0_np1 = Voight::Dev(m_sigma0_np1);
+    VectorND<6> dev_stress_n = Voigt::Dev(m_stress_n);
+    VectorND<6> dev_sigma0_np1 = Voigt::Dev(m_sigma0_np1);
 
     double loadingCond = -1;
-    double norm_dev_stress_n   = sqrt(Voight::Dot(dev_stress_n,   dev_stress_n, 1));
-    double norm_dev_sigma0_np1 = sqrt(Voight::Dot(dev_sigma0_np1, dev_sigma0_np1, 1));
+    double norm_dev_stress_n   = sqrt(Voigt::Dot(dev_stress_n,   dev_stress_n, 1));
+    double norm_dev_sigma0_np1 = sqrt(Voigt::Dot(dev_sigma0_np1, dev_sigma0_np1, 1));
 
     m_kappa_np1 = m_kappa_n;
     m_psi_np1 = m_psi_n;
@@ -211,13 +211,13 @@ J2CyclicBoundingSurface::plastic_integrator()
         loadingCond = temp_numerator / temp_denominator;
 #else
     // this is how we do it
-    loadingCond = Voight::Dot(m_kappa_n/(1 + m_kappa_n) * dev_sigma0_np1 - dev_stress_n, dStrain_dev, 3);
+    loadingCond = Voigt::Dot(m_kappa_n/(1 + m_kappa_n) * dev_sigma0_np1 - dev_stress_n, dStrain_dev, 3);
 #endif
 
     if (loadingCond > 0.0)
     {
         m_sigma0_np1 = m_stress_n;
-        dev_sigma0_np1 = Voight::Dev(m_sigma0_np1);
+        dev_sigma0_np1 = Voigt::Dev(m_sigma0_np1);
         loadingCond = 0.0;
     }
 

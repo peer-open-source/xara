@@ -26,7 +26,7 @@
 #include <Parameter.h>
 #include <Information.h>
 #include <MaterialResponse.h>
-#include "Voight.hpp"
+#include "Voigt.hpp"
 
 using namespace OpenSees;
 
@@ -146,7 +146,7 @@ SimplifiedJ2::plastIntegrator()
 
   // --- check elastic or plastic--
   double yieldFunction =
-      std::sqrt(Voight::Dot(Teta, Teta)) - SQRT23*CsigmaY; // to replace Yn=(2/3)^.5*sigmaYn
+      std::sqrt(Voigt::Dot(Teta, Teta)) - SQRT23*CsigmaY; // to replace Yn=(2/3)^.5*sigmaYn
 
   if (yieldFunction > 0) { // plastic corrector
 
@@ -155,7 +155,7 @@ SimplifiedJ2::plastIntegrator()
     sigmaY = CsigmaY + SQRT23* H_iso * lambda;
 
     VectorND<6> n;
-    n.addVector(0, Teta, 1.0/std::sqrt(Voight::Dot(Teta, Teta)));
+    n.addVector(0, Teta, 1.0/std::sqrt(Voigt::Dot(Teta, Teta)));
 
     //Vector eta(6);
     //eta.addVector(0, n, pow( (Teta &&  Teta),0.5)-(2.*G+2./3.*H_kin)*lambda);
@@ -184,7 +184,7 @@ SimplifiedJ2::plastIntegrator()
 
     double A = 2.*G / (2.*G + 2./3.*H_kin + 2./3.*H_iso);
 
-    double C = 2.*G * lambda / std::sqrt(Voight::Dot(Teta, Teta));
+    double C = 2.*G * lambda / std::sqrt(Voigt::Dot(Teta, Teta));
 
     //  double D = 2./3.*H_kin*lambda/pow(Teta&&Teta, 0.5);
 
@@ -238,7 +238,7 @@ SimplifiedJ2::plastIntegrator()
     plastStrainDev.addVector(0.0, CplastStrainDev, 1.0);
     //cumPlastStrainDev = CcumPlastStrainDev;
     // sigmaY = CsigmaY;
-    VectorND<6> n = Teta*(1./std::sqrt(Voight::Dot(Teta, Teta)));
+    VectorND<6> n = Teta*(1./std::sqrt(Voigt::Dot(Teta, Teta)));
 
     //Vector eta(6);
     //eta.addVector(0, n, pow( (Teta &&  Teta),0.5));

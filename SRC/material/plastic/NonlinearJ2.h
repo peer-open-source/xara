@@ -80,7 +80,7 @@
 //
 #pragma once
 #include <NDMaterial.h>
-#include <Voight.hpp>
+#include <Voigt.hpp>
 #include <MatrixND.h>
 #include <VectorND.h>
 #include <vector>
@@ -178,7 +178,7 @@ private:
   int updateState(const VectorND<6> &eps);
 
 
-  // 6x9 Voight mapping used like: (P^vec6) -> 9x1   and   (P*vec9) -> 6x1
+  // 6x9 Voigt mapping used like: (P^vec6) -> 9x1   and   (P*vec9) -> 6x1
   static constexpr MatrixND<6,9> P {
     // NOTE: this appears transposed because MatrixND is column-major
     1.0000,        0,        0,        0,        0,        0,
@@ -353,7 +353,7 @@ private:
                                   MatrixND<6,6,double> &C) noexcept {
       const size_t nc = past.sig_b.size();
       // const VectorND<6> Pn = P * n;
-      const VectorND<6> Pn = Voight::ReduceVector(n);
+      const VectorND<6> Pn = Voigt::ReduceVector(n);
       for (size_t i=0; i<nc; i++) {
         double phi, dphi;
         switch (bs_integration) {
@@ -368,7 +368,7 @@ private:
         }
         //
         // VectorND<6> Px = P * past.sig_b[i];
-        const VectorND<6> Px = Voight::ReduceVector(past.sig_b[i]);
+        const VectorND<6> Px = Voigt::ReduceVector(past.sig_b[i]);
         
         static constexpr double cc = -mises_rate;
         C.addTensorProduct(Px, Pn,  dphi*theta*cc);

@@ -19,7 +19,7 @@
 #include <VectorND.h>
 #include <cmath>
 
-namespace Voight {
+namespace Voigt {
 
 enum class Basis {
   Stress, Strain, Mixed
@@ -34,7 +34,7 @@ Trace(const VectorND<6> &v)
 }
 
 
-  // // 6x9 Voight mapping used like: (P^vec6) -> 9x1   and   (P*vec9) -> 6x1
+  // // 6x9 Voigt mapping used like: (P^vec6) -> 9x1   and   (P*vec9) -> 6x1
   // static constexpr MatrixND<6,9> P {
   //   // NOTE: this appears transposed because MatrixND is column-major
   //   1.0000,        0,        0,        0,        0,        0,
@@ -283,7 +283,7 @@ static constexpr MatrixND<6,6> IIdevMix = IImix - 1./3.*IIvol;
 //          0         0         0         0    1.0000         0
 //          0         0         0         0         0    1.0000
 
-} // namespace Voight
+} // namespace Voigt
 
 namespace Mises {
 }
