@@ -102,8 +102,8 @@ private:
   static const double sg[numFibers];
   static const double wg[numFibers];
 
-  double h; //plate thickness
-  double d; //distance between plates
+  double h; // plate thickness
+  double d; // distance between plates
 
   NDMaterial* theFibers[2 * 5]; // pointers to 2*five materials (fibers)
 
