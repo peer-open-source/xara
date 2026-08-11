@@ -125,8 +125,6 @@ SphericalIsometry<nn>::initialize(std::array<Node*,nn>& nodes)
     R[init](i,2) = e3[i];
   }
   R[pres] = R[init];
-  // R[pres].zero();
-  // R[pres].addDiagonal(1.0);
 
   //
   //
