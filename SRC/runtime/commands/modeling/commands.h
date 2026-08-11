@@ -35,7 +35,7 @@ extern Tcl_CmdProc  XaraCmd_nodalLoad;
 extern Tcl_CmdProc  TclCommand_addSeries;
 extern Tcl_CmdProc  XaraCmd_pattern;
 extern Tcl_CmdProc  TclCommand_addTimeSeries;
-extern Tcl_CmdProc  TclCommand_addGeomTransf;
+extern Tcl_CmdProc  XaraCmd_geomTransf;
 
 // element.cpp
 extern Tcl_CmdProc  XaraCmd_element;
@@ -147,8 +147,8 @@ constexpr ModelBuilderCommands[] =  {
   {"layer",                TclCommand_addFiberLayer},
   {"Hfiber",               TclCommand_addHFiber},
 
-  {"geomTransf",           TclCommand_addGeomTransf},
-  {"transform",            TclCommand_addGeomTransf},
+  {"geomTransf",           XaraCmd_geomTransf},
+  {"transform",            XaraCmd_geomTransf},
 
   {"pattern",              XaraCmd_pattern},
 //   {"load",             XaraCmd_nodalLoad},
