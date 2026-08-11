@@ -307,55 +307,43 @@ MultiaxialCyclicPlasticity::MultiaxialCyclicPlasticity(int    tag,
 }
 
 
-//destructor
-MultiaxialCyclicPlasticity::~MultiaxialCyclicPlasticity( ) 
-{  } 
+// destructor
+MultiaxialCyclicPlasticity::~MultiaxialCyclicPlasticity() 
+{
+
+} 
 
 
 NDMaterial*
-MultiaxialCyclicPlasticity::getCopy (const char *type)
+MultiaxialCyclicPlasticity::getCopy(const char *type)
 {
-    if (strcmp(type,"PlaneStress2D") == 0 || strcmp(type,"PlaneStress") == 0)
-    {
-    opserr << "MultiaxialCyclicPlasticity type plane stress material is NOT available now....";
-  return 0;
-    }
-    else if (strcmp(type,"PlaneStrain2D") == 0 || strcmp(type,"PlaneStrain") == 0)
-    {
-  MultiaxialCyclicPlasticityPlaneStrain  *clone ;
-  clone = new MultiaxialCyclicPlasticityPlaneStrain(this->getTag(), density, bulk, shear, sqrt(3.0/8.0)*R,
-              Ho, h, m, beta, K0, eta) ; 
-  return clone ;  
+  if (strcmp(type,"PlaneStrain2D") == 0 || strcmp(type,"PlaneStrain") == 0)
+  {
+    MultiaxialCyclicPlasticityPlaneStrain  *clone ;
+    clone = new MultiaxialCyclicPlasticityPlaneStrain(this->getTag(), density, bulk, shear, sqrt(3.0/8.0)*R,
+                Ho, h, m, beta, K0, eta) ; 
+    return clone ;  
   }
-    else if (strcmp(type,"AxiSymmetric2D") == 0 || strcmp(type,"AxiSymmetric") == 0)
-    {
-  MultiaxialCyclicPlasticityAxiSymm  *clone ;
-  clone = new MultiaxialCyclicPlasticityAxiSymm(this->getTag(), density, bulk, shear, sqrt(3.0/8.0)*R,
-              Ho, h, m, beta, K0, eta) ; 
-  return clone ;  
+  else if (strcmp(type,"AxiSymmetric2D") == 0 || strcmp(type,"AxiSymmetric") == 0)
+  {
+    MultiaxialCyclicPlasticityAxiSymm  *clone ;
+    clone = new MultiaxialCyclicPlasticityAxiSymm(this->getTag(), density, bulk, shear, sqrt(3.0/8.0)*R,
+                Ho, h, m, beta, K0, eta) ; 
+    return clone ;
   }
-    else if ((strcmp(type,"ThreeDimensional") == 0) || (strcmp(type,"3D") == 0))
-    {
-  MultiaxialCyclicPlasticity3D  *clone ;
-  clone = new MultiaxialCyclicPlasticity3D(this->getTag(), density, bulk, shear, sqrt(3.0/8.0)*R,
-             Ho, h, m, beta, K0, eta) ; 
-  return clone ;  
-    }
-    else if ( (strcmp(type,"PlateFiber") == 0) )
-    {
-    opserr << "MultiaxialCyclicPlasticity type plate fiber material is NOT available now....";
-  return 0;
-    }
-    // Handle other cases
-    else
-    {
-      opserr << "MultiaxialCyclicPlasticity::getModel failed to get model: " << type << endln;
-      return 0;
-    }
+  else if ((strcmp(type,"ThreeDimensional") == 0) || (strcmp(type,"3D") == 0))
+  {
+    MultiaxialCyclicPlasticity3D  *clone ;
+    clone = new MultiaxialCyclicPlasticity3D(this->getTag(), density, bulk, shear, sqrt(3.0/8.0)*R,
+              Ho, h, m, beta, K0, eta) ; 
+    return clone ;  
+  }
+  return this->NDMaterial::getCopy(type);
 }
 
 //print out material data
-void MultiaxialCyclicPlasticity::Print( OPS_Stream &s, int flag )
+void
+MultiaxialCyclicPlasticity::Print( OPS_Stream &s, int flag )
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
@@ -390,11 +378,12 @@ void MultiaxialCyclicPlasticity::Print( OPS_Stream &s, int flag )
 }
 
 
-void MultiaxialCyclicPlasticity::elastic_integrator()
+void 
+MultiaxialCyclicPlasticity::elastic_integrator()
 {
-  static Matrix dev_strain(3,3) ; //deviatoric strain  
+  static Matrix dev_strain(3,3); //deviatoric strain  
 
-  static Matrix dev_stress(3,3) ; //deviatoric stress
+  static Matrix dev_stress(3,3); //deviatoric stress
 
   // add
   double pressure;                // 1/3 trace(stress) 
@@ -474,18 +463,18 @@ void MultiaxialCyclicPlasticity::elastic_integrator()
   for ( ii = 0; ii < 6; ii++ ) {
     for ( jj = 0; jj < 6; jj++ )  {
 
-          index_map( ii, i, j ) ;
-          index_map( jj, k, l ) ;
+      index_map( ii, i, j ) ;
+      index_map( jj, k, l ) ;
 
-          //elastic terms
-          tangent[i][j][k][l]  = bulk_K0 * IbunI[i][j][k][l] ;
+      //elastic terms
+      tangent[i][j][k][l]  = bulk_K0 * IbunI[i][j][k][l] ;
 
-          tangent[i][j][k][l] += (2.0*shear_K0) * IIdev[i][j][k][l] ;
+      tangent[i][j][k][l] += (2.0*shear_K0) * IIdev[i][j][k][l] ;
 
-          //minor symmetries 
-          tangent [j][i][k][l] = tangent[i][j][k][l] ;
-          tangent [i][j][l][k] = tangent[i][j][k][l] ;
-          tangent [j][i][l][k] = tangent[i][j][k][l] ;
+      //minor symmetries 
+      tangent [j][i][k][l] = tangent[i][j][k][l] ;
+      tangent [i][j][l][k] = tangent[i][j][k][l] ;
+      tangent [j][i][l][k] = tangent[i][j][k][l] ;
 
     } // end for jj
   } // end for ii
@@ -499,7 +488,7 @@ void MultiaxialCyclicPlasticity::elastic_integrator()
 
 
 // set up for initial elastic
-void MultiaxialCyclicPlasticity::doInitialTangent( )
+void MultiaxialCyclicPlasticity::doInitialTangent()
 {
   int ii,jj,i,j,k,l;
 
@@ -527,7 +516,7 @@ void MultiaxialCyclicPlasticity::doInitialTangent( )
 
 
 
-//matrix_index ---> tensor indices i,j
+// matrix_index ---> tensor indices i,j
 void MultiaxialCyclicPlasticity::index_map( int matrix_index, int &i, int &j )
 {
   switch ( matrix_index+1 ) { //add 1 for standard tensor indices
@@ -647,64 +636,6 @@ MultiaxialCyclicPlasticity::revertToStart( ) {
   return 0;
 }
 
-int
-MultiaxialCyclicPlasticity::sendSelf(int commitTag, Channel &theChannel)
-{
-  // we place all the data needed to define material and it's state
-  // int a vector object
-  static Vector data(10); 
-  int cnt = 0;
-  data(cnt++) = this->getTag();
-  data(cnt++) = density;   //add
-  data(cnt++) = bulk;
-  data(cnt++) = shear;
-  data(cnt++) = R;   //add
-  data(cnt++) = Ho;   //add
-  data(cnt++) = h;
-  data(cnt++) = m;
-  data(cnt++) = beta;
-  data(cnt++) = eta;
- 
-  // send the vector object to the channel
-  if (theChannel.sendVector(this->getDbTag(), commitTag, data) < 0) {
-    opserr << "MultiaxialCyclicPlasticity::sendSelf - failed to send vector to channel\n";
-    return -1;
-  }
-
-  return 0;
-}
-
-int
-MultiaxialCyclicPlasticity::recvSelf (int commitTag, Channel &theChannel, 
-       FEM_ObjectBroker &theBroker)
-{
-
-  // recv the vector object from the channel which defines material param and state
-  static Vector data(10);
-  if (theChannel.recvVector(this->getDbTag(), commitTag, data) < 0) {
-    opserr << "MultiaxialCyclicPlasticity::recvSelf - failed to recv vector from channel\n";
-    return -1;
-  }
-
-  // set the material parameters and state variables
-  int cnt = 0;
-  this->setTag(data(cnt++));
-  density = data(cnt++);
-  bulk    = data(cnt++);
-  shear   = data(cnt++);
-  R       = data(cnt++);
-  Ho      = data(cnt++);
-  h       = data(cnt++);
-  m       = data(cnt++);
-  beta    = data(cnt++);
-  eta     = data(cnt++);
-  
- 
-  return 0;
-}
-
-
-
 
 
 double 
@@ -725,7 +656,7 @@ MultiaxialCyclicPlasticity::updateParameter(int responseID, Information &info)
 
 
 // GEOFEAP subroutine model34(d,eps,sig,cc,cee,hn,h1,nhv,isw,n)
-int 
+int
 MultiaxialCyclicPlasticity::plastic_integrator()
 { 
 
@@ -739,7 +670,6 @@ MultiaxialCyclicPlasticity::plastic_integrator()
   static double tolforload= 1.0e-10;     // tol to determine loading/unloading
   static double tolforX   = 1.0e-6;;       // tol for compute norm g1g2 in iteration X[1], X[2]
 
-  double twomu;
   int ii,jj;              // for loop iterators
   int i,j,k,l;
 
@@ -750,13 +680,11 @@ MultiaxialCyclicPlasticity::plastic_integrator()
 
   static Matrix IncrStrain(3,3); // Frank let all Matrix be static
   static Matrix s_n(3,3);        // dev. stress at t_n 
-  static double p_n;             // pressure at t_n
   //static Matrix soinit(3,3);   // save s0_n here
   double normchi=0;
   static Matrix strial(3,3);
   static Matrix chitri(3,3);
   static Matrix alpha_n(3,3); // backstress of loading surface at t_n
-  static double  Psi_split; // Psi for strain split step
   static Matrix temp6(3,3);
   static double dottemp6;
   double norm = 0;
@@ -793,15 +721,17 @@ MultiaxialCyclicPlasticity::plastic_integrator()
   IncrStrain = strain;
   IncrStrain -= strain_n ;       // incremental
 
-  double e;          // incr. vol.strain, trace(incremental strains)
-  e  = IncrStrain(0,0) + IncrStrain(1,1) + IncrStrain(2,2) ;
+  // incr. vol.strain, trace(incremental strains)
+  double e = IncrStrain(0,0) + IncrStrain(1,1) + IncrStrain(2,2) ;
 
   de = IncrStrain ;
   for (int i = 0; i < 3; i++ ) 
     de(i,i) -= ( one3*e ) ;
  
   // compute p and s 
-  p_n = one3 * (stress_n(0,0)+stress_n(1,1)+stress_n(2,2));
+
+  // pressure at t_n
+  double p_n = one3 * (stress_n(0,0)+stress_n(1,1)+stress_n(2,2));
 
 
   s_n = stress_n;
@@ -811,7 +741,7 @@ MultiaxialCyclicPlasticity::plastic_integrator()
   flagfirstload++;
 
   // initialize so_n if it is a very first call of this routine
-  if (flagfirstload==1){
+  if (flagfirstload==1) {
     //opserr<<"MCP::firstload"<<endln;
     so_n=s_n;
     so=so_n;
@@ -825,22 +755,17 @@ MultiaxialCyclicPlasticity::plastic_integrator()
     goto LABEL10;
   }
 
-  so=so_n;
+  so = so_n;
 
 
   // normde=||de||
-  normde=0;
-  for (int i = 0; i < 3; i++ ){
+  normde = 0;
+  for (int i = 0; i < 3; i++ ) {
     for (int j = 0; j < 3; j++ ) {
       normde += de(i,j)*de(i,j) ;
     }
   }
-
-  if (normde >= 0.0) {
-    normde=sqrt(normde); 
-  } else {
-    opserr << "MCP:1061:problem!!"<<endln;
-  }
+  normde=sqrt(normde);
 
   if (normde<=zerotol)
   {
@@ -853,7 +778,7 @@ MultiaxialCyclicPlasticity::plastic_integrator()
     //opserr<<"MCP::small strain incr" <<endln;
     goto LABEL10;
   }
-  MCPparameter(9) = normde ;
+  MCPparameter(9) = normde;
 
 
 
@@ -911,7 +836,7 @@ MultiaxialCyclicPlasticity::plastic_integrator()
         temp=s_n(i,j)-backs_n(i,j);
           n1 += temp*temp;
       }
-    } //end for i 
+    }
     
     if (n1 >= 0.0) {
       n1=sqrt(n1); 
@@ -923,25 +848,26 @@ MultiaxialCyclicPlasticity::plastic_integrator()
         temp=s_n(i,j)-so_n(i,j);
         n2 += temp*temp ;
       }
-    } //end for i 
+    }
 
     if (n2 >= 0.0) {
       n2=sqrt(n2); 
     }
 
-    if (n2==0){ // just unload
+    if (n2==0) { // just unload
       kappa=infinity;
-    } else{
+    }
+    else {
       t1dott2=0;
-      for ( i = 0; i < 3; i++ ){
+      for ( i = 0; i < 3; i++ ) {
         for ( j = 0; j < 3; j++ ) {
           t1dott2 += (s_n(i,j)-backs_n(i,j))*(s_n(i,j)-so_n(i,j)) ;
         }
-      } //end for i 
-        t1dott2=t1dott2/(n1*n2);
+      }
+      t1dott2=t1dott2/(n1*n2);
 
 
-        // find kappa directly for t_n    cf Montans Eq. (15)
+      // find kappa directly for t_n    cf Montans Eq. (15)
       //kappa =-n1/n2*t1dott2+sqrt(R*R/n2/n2-n1*n1/n2/n2*(1-t1dott2*t1dott2));
                     
  
@@ -949,14 +875,14 @@ MultiaxialCyclicPlasticity::plastic_integrator()
       // because Montans requires n1,n2!=0, borja only requires n2!=0
       // which is just unload case for n2=0
 
-      temp=t1dott2*n1*n2,
-      kappa =sqrt(temp*temp+n2*n2*(R*R-normchi*normchi))-t1dott2*n1*n2;
+      temp = t1dott2*n1*n2,
+      kappa =sqrt(temp*temp + n2*n2*(R*R-normchi*normchi))-t1dott2*n1*n2;
       kappa *=1.0/(n2*n2);
 
       if ((fabs(kappa-kappasave)>1e-6)&&((fabs(kappasave)<infinity))) {
-         // opserr<<"MCP:992 big error in last computed X[2]" <<endln;
-      //  opserr<<"MCP:992 kappa-kappaS   ="<<kappa-kappasave   <<endln;  
-      //  opserr<<"MCP:992 kappa="<<kappa<<" kappaS="<<kappasave   <<endln;
+        // opserr<<"MCP:992 big error in last computed X[2]" <<endln;
+        //  opserr<<"MCP:992 kappa-kappaS   ="<<kappa-kappasave   <<endln;  
+        //  opserr<<"MCP:992 kappa="<<kappa<<" kappaS="<<kappasave   <<endln;
       }
       
     }
@@ -971,10 +897,10 @@ MultiaxialCyclicPlasticity::plastic_integrator()
     /// looks (2) is better!!!
   
   kappa = kappasave;
-    //plasticflag_n=plasticflagsave;
+  //plasticflag_n=plasticflagsave;
 
 
-  //(2) compute alpha_n
+  // (2) compute alpha_n
 
   for (int i = 0; i < 3; i++ ){
     for (int j = 0; j < 3; j++ ) {
@@ -996,8 +922,9 @@ MultiaxialCyclicPlasticity::plastic_integrator()
   // step n-> n+1, and Psi is secant of step n only
 
   
-    Psi_split=2.0*shear*(1.0-shear/(shear+((1-beta)*Hn+beta*Ho)/3.0)); // Gang
-    //Psi_split=2.0*shear/(1.0+3.0*shear*((1-beta)/Hn+beta/Ho)); // Borja
+  double  Psi_split; // Psi for strain split step
+  Psi_split=2.0*shear*(1.0-shear/(shear+((1-beta)*Hn+beta*Ho)/3.0)); // Gang
+  //Psi_split=2.0*shear/(1.0+3.0*shear*((1-beta)/Hn+beta/Ho)); // Borja
 
 
   // (4) check for loading/unloading
@@ -1009,14 +936,14 @@ MultiaxialCyclicPlasticity::plastic_integrator()
       load += temp6(i,j)*de(i,j) ;
       temp += temp6(i,j)*temp6(i,j);
     }
-  } //end for i 
+  }
 
   load *= 1.0/(sqrt(temp));
 
 
   if (load < tolforload*normde)  // unloading
   {   
-    if (plasticflag_n==1){
+    if (plasticflag_n == 1){
       debugInfo(2)=1;
       //opserr<<"MCP1091::unload checked!! from plastic, load="<<load<<" normde="<<normde<<endln;
       //opserr<<"MCP1091::plasticflag_n="<<plasticflag_n<<endln;
@@ -1045,7 +972,7 @@ MultiaxialCyclicPlasticity::plastic_integrator()
   // (5) set plasticflag
 
 
- // begin: check for plastic loading if LAST loading is plastic
+  // begin: check for plastic loading if LAST loading is plastic
   if (plasticflag_n==1){    
     strial = s_n + 2.0 * shear * de; 
     chitri = strial ;
@@ -1085,7 +1012,8 @@ MultiaxialCyclicPlasticity::plastic_integrator()
       goto LABEL10;
       //goto LABEL6;
     }
-  } else {  // last loading is NOT plastic, assign plasticflag=0 or 2
+  } 
+  else {  // last loading is NOT plastic, assign plasticflag=0 or 2
     debugInfo(3)=3;
     chitri  = Psi*de;
     chitri += s_n;
@@ -1096,7 +1024,7 @@ MultiaxialCyclicPlasticity::plastic_integrator()
       for (int j = 0; j < 3; j++ ) {
         normchi += chitri(i,j)*chitri(i,j) ;
       }
-    } //end for i 
+    }
       
       // compute normchi
     if (normchi >= 0){
@@ -1119,7 +1047,7 @@ MultiaxialCyclicPlasticity::plastic_integrator()
         for ( j = 0; j < 3; j++ ) {  
           normchi += chitri(i,j)*chitri(i,j) ;
         }
-      } //end for i 
+      }
 
       // compute normchi
       if (normchi >= 0){
@@ -1145,145 +1073,28 @@ MultiaxialCyclicPlasticity::plastic_integrator()
   // (6) if loading within B.S., solve  Psi_n+1, kappa_n+1 (i.e. X[1] and X[2])
  
 LABEL6:
-  if (plasticflag==0){
-  // initialize
+  if (plasticflag==0) {
+    // initialize
 
-    // converge better
-  X[1] = Psi  ;         // stiff at time n
-  X[2] = kappa;         // kappa at time n
-
-
-  //X[1] = 2*shear  ;        // stiff at time n
-  //X[2] = infinity;         // kappa at time n
-    
-  double g1, g2;
-  double aa, bb, cc, dd;  
-
-  Hn  = h* pow(kappa, m) + Ho;
-  Hn1 = h* pow(X[2],m) + Ho;
-  // define g1, g2
-  //g1= 2.0*shear-X[1]-3.0*shear*X[1]*((1-beta)/Hn + beta/Hn1);  // borja
-  g1=X[1]-2.0*shear*(1.0-shear/(shear+((1-beta)*Hn+beta*Hn1)/3.0));    // Gang
-
-  temp6.Zero();
-
-  //temp6 = s-backs + X[1]*de + X[2]*(s+X[1]*de-so);  
-  for ( i = 0; i < 3; i++ ){
-    for ( j = 0; j < 3; j++ ) {
-      temp6(i,j) = s_n(i,j)-backs_n(i,j) + X[1]*de(i,j) + X[2]*(s_n(i,j)+X[1]*de(i,j)-so(i,j));  
-    }
-   } //end for i 
+      // converge better
+    X[1] = Psi  ;         // stiff at time n
+    X[2] = kappa;         // kappa at time n
 
 
-  dottemp6=0;
-  for ( i = 0; i < 3; i++ ){
-    for ( j = 0; j < 3; j++ ) {
-        dottemp6 += temp6(i,j)*temp6(i,j);
-    }
-  } //end for i 
+    //X[1] = 2*shear  ;        // stiff at time n
+    //X[2] = infinity;         // kappa at time n
 
-  if (dottemp6 >=0){
-    g2=R-sqrt(dottemp6);
-  } else {
-    opserr<<"MCP1244::problem, dottemp6<0 "<<dottemp6<<endln;
-    g2=R;
-  }
+    double aa, bb, cc, dd;  
 
-  norm = g1*g1+g2*g2;
-  if (norm >= 0){
-    norm = sqrt(norm);
-  } else { 
-    opserr<<"MCP::problem, norm<0 "<<norm<<endln;
-    norm = 0.0; 
-  }
-
-  
-   icounter = 0;
-   // begin iterations to solve Psi_n+1, Kappa_n+1 !!!!   
-   while ((norm>tolforX)&&(icounter<60)&&(X[2]>0))
-   //while ((icounter<30))
-   { 
-    //   compute Jacobian 
-    //   aa = dg1/dPsi    bb=dg1/dKappa
-    //   cc = dg2/dPsi    dd=dg2/dKappa
-    //  
-    //       | aa  bb |
-    //   J = |        |
-    //       | cc  dd |
-
-
-
-    //Hn  = h* pow(kappa, m) + Ho;
+    Hn  = h* pow(kappa, m) + Ho;
     Hn1 = h* pow(X[2],m) + Ho;
+    // define g1, g2
+    //g1= 2.0*shear-X[1]-3.0*shear*X[1]*((1-beta)/Hn + beta/Hn1);  // borja
+    double g1 = X[1]-2.0*shear*(1.0-shear/(shear+((1-beta)*Hn+beta*Hn1)/3.0));    // Gang
 
+    temp6.Zero();
 
-    //aa = -1.0 - 3.0*shear*((1.0-beta)/Hn + beta/Hn1); // borja
-    //bb = 3.0 * shear * X[1] * beta * m * h * pow(X[2],m-1.0) / pow(Hn1,2); // borja
-
-    // reformulate 
-    aa = 1.0;                                                 // Gang
-    temp=shear + ((1.0-beta)*Hn+beta*Hn1)/3.0;
-
-    bb= -2.0/3.0*beta*shear*shear/(temp*temp)*h*m*pow(X[2],m-1.0);  // Gang
-        // we will have problem if X[2]=0, then bb=NaN. Problem: pow(X[2],m-1)
-
-
-     if (sqrt(dottemp6) > ZERO) {
-      cc = 0 ;
-      for ( i = 0; i < 3; i++ ){
-        for ( j = 0; j < 3; j++ ) {
-           cc += temp6(i,j)*de(i,j);
-        }
-      } 
-      cc *= -(1+X[2])/sqrt(dottemp6);
-
-      dd = 0 ;
-      for ( i = 0; i < 3; i++ ){
-        for ( j = 0; j < 3; j++ ) {
-             dd += temp6(i,j)*(s_n(i,j)+X[1]*de(i,j)-so(i,j));
-        }
-       }  
-        dd *= -1.0/sqrt(dottemp6);
-    } else {
-      opserr<<"MCP:: singularity in Jacobian, dottemp6="<<dottemp6<<endln;
-        //opserr<<"MCP:: icounter="<<icounter<<endln;
-      opserr<<"MCP:: X[1]="<<X[1]<<" X[2]="<<X[2]<<endln;
-      opserr<<"MCP:: plasticflag_n="<<plasticflag_n<<" kappa="<<kappa<<" Psi="<<Psi <<endln;
-      cc = 0;
-      dd = 0;
-    }
-
-    if (fabs(aa*dd-cc*bb)>=ZERO){
-      X[1] += -1.0 /(aa*dd - cc*bb)*( dd*g1 - bb*g2);
-      X[2] += -1.0 /(aa*dd - cc*bb)*(-cc*g1 + aa*g2);
-    } else {
-      opserr<<"MCP:: Fatal error: infinite Jacobian"  <<endln;
-        // remarks: arrive here maybe simply X[2] < 0, s.t. pow() gives NaN -1.#IND
-      // so we must exit the loop once X[2]<0 is found
-            opserr<<"MCP::pow()="<<pow(X[2],m)<<endln;
-      opserr<<"MCP::X[2]="<<X[2]<<endln;  // Gang
-
-      //exit(1);
-    }
- 
-    if (X[2]<=0) {
-        icounter = 100; // go out of the loop
-       //  exit the loop
-    }
-
-        // re-evaluate
-    //Hn  = h* pow(kappa, m) + Ho;
-    Hn1 = h* pow(X[2],m) + Ho;
-
-
-     // update g1, g2
-        // g1= 2.0*shear-X[1]-3.0*shear*X[1]*((1.0-beta)/Hn + beta/Hn1);   // borja
-
-    g1=X[1]-2.0*shear*(1.0-shear/(shear+((1.0-beta)*Hn+beta*Hn1)/3.0));    // Gang
-
-
-     temp6.Zero();
- 
+    //temp6 = s-backs + X[1]*de + X[2]*(s+X[1]*de-so);  
     for ( i = 0; i < 3; i++ ){
       for ( j = 0; j < 3; j++ ) {
         temp6(i,j) = s_n(i,j)-backs_n(i,j) + X[1]*de(i,j) + X[2]*(s_n(i,j)+X[1]*de(i,j)-so(i,j));  
@@ -1291,102 +1102,211 @@ LABEL6:
     }
 
 
-    dottemp6 = 0;
+    dottemp6=0;
     for ( i = 0; i < 3; i++ ){
       for ( j = 0; j < 3; j++ ) {
-        dottemp6 += temp6(i,j)*temp6(i,j);
+          dottemp6 += temp6(i,j)*temp6(i,j);
       }
-     }
-
-    if (dottemp6 >=0) {
-      g2=R-sqrt(dottemp6);
-    } else {
-       // remark: come here wrong because X[2]=0
-             opserr<<"MCP1353::aa="<<aa<<" bb="<<bb<<" cc="<<cc<<" dd="<<dd<<endln;
-       opserr<<"MCP1353::X[2]="<<X[2]<<endln;
-       opserr<<"MCP1353::pow(X[2],m-1)"<<pow(X[2],m-1)<<endln;
-       icounter=1353;
     }
-      norm = g1*g1+g2*g2;
-    if (norm > 0){
+
+    double g2 = R - sqrt(dottemp6);
+
+    norm = g1*g1 + g2*g2;
+    if (norm >= 0){
       norm = sqrt(norm);
     } else { 
+      opserr<<"MCP::problem, norm<0 "<<norm<<endln;
       norm = 0.0; 
     }
- 
-    icounter +=1;
+
     
-   } // end of while loop
- 
-   // begin: check kappa converged to a positive value
-    debugInfo(4)=1;
+    icounter = 0;
+    // begin iterations to solve Psi_n+1, Kappa_n+1 !!!!   
+    while ((norm>tolforX) && (icounter<60)&&(X[2]>0))
+    //while ((icounter<30))
+    { 
+      //   compute Jacobian 
+      //   aa = dg1/dPsi    bb=dg1/dKappa
+      //   cc = dg2/dPsi    dd=dg2/dKappa
+      //  
+      //       | aa  bb |
+      //   J = |        |
+      //       | cc  dd |
 
-    if ((norm > tolforX)&&(X[2]!=0)){
-   opserr<<endln<<endln<<"MCP::X[1] X[2] is not converged!! norm = "<<norm <<" icounter="<<icounter<<endln;
-     opserr<<"MCP::plasticflag_n= "<<plasticflag_n <<" plasticflag="<< plasticflag<<endln;
-   opserr<<"MCP::X[2] ="<< X[2]<<endln<<endln;
-   opserr<<"MCP::debugInfo= "<<debugInfo<<endln;
-   showdebugInfo=1;
-  }
 
-  if (X[2]<=0.0)
-   {   debugInfo(4)=2;
-     
-     //opserr<< endln;
-     //opserr<<"MCP1299::WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endln;
-     //opserr<<"MCP1299::norm = "<<norm <<" icounter="<<icounter<<endln;
-     //opserr<<"MCP1299::kappa= "<<kappa<<" Psi ="<<Psi<<endln;
-     //opserr<<"MCP1299::Negative value for X[2] (kappa_n+1) "<< X[2]<<" set it to 0 "<<endln<<endln;
-       
- 
-       X[2]=0.0;
-     
-     if (unloadflag == 1){
-       debugInfo(4)=3;
-       plasticflag=0;
-       X[1] = 2*shear;
-     } else {
-      chitri = Psi_split*de;
-      chitri += s_n;
-      chitri -= backs_n;
-      normchi=0;
+
+      //Hn  = h* pow(kappa, m) + Ho;
+      Hn1 = h* pow(X[2],m) + Ho;
+
+
+      //aa = -1.0 - 3.0*shear*((1.0-beta)/Hn + beta/Hn1); // borja
+      //bb = 3.0 * shear * X[1] * beta * m * h * pow(X[2],m-1.0) / pow(Hn1,2); // borja
+
+      // reformulate 
+      aa = 1.0;                                                 // Gang
+      temp=shear + ((1.0-beta)*Hn+beta*Hn1)/3.0;
+
+      bb= -2.0/3.0*beta*shear*shear/(temp*temp)*h*m*pow(X[2],m-1.0);  // Gang
+      // we will have problem if X[2]=0, then bb=NaN. Problem: pow(X[2],m-1)
+
+
+      if (sqrt(dottemp6) > ZERO) {
+        cc = 0 ;
+        for ( i = 0; i < 3; i++ ){
+          for ( j = 0; j < 3; j++ ) {
+            cc += temp6(i,j)*de(i,j);
+          }
+        } 
+        cc *= -(1+X[2])/sqrt(dottemp6);
+
+        dd = 0 ;
+        for ( i = 0; i < 3; i++ ){
+          for ( j = 0; j < 3; j++ ) {
+              dd += temp6(i,j)*(s_n(i,j)+X[1]*de(i,j)-so(i,j));
+          }
+        }
+        dd *= -1.0/sqrt(dottemp6);
+      }
+      else {
+        opserr<<"MCP:: singularity in Jacobian, dottemp6="<<dottemp6<<endln;
+          //opserr<<"MCP:: icounter="<<icounter<<endln;
+        opserr<<"MCP:: X[1]="<<X[1]<<" X[2]="<<X[2]<<endln;
+        opserr<<"MCP:: plasticflag_n="<<plasticflag_n<<" kappa="<<kappa<<" Psi="<<Psi <<endln;
+        cc = 0;
+        dd = 0;
+      }
+
+      if (fabs(aa*dd-cc*bb)>=ZERO){
+        X[1] += -1.0 /(aa*dd - cc*bb)*( dd*g1 - bb*g2);
+        X[2] += -1.0 /(aa*dd - cc*bb)*(-cc*g1 + aa*g2);
+      } else {
+        opserr<<"MCP:: Fatal error: infinite Jacobian"  <<endln;
+        // remarks: arrive here maybe simply X[2] < 0, s.t. pow() gives NaN -1.#IND
+        // so we must exit the loop once X[2]<0 is found
+              opserr<<"MCP::pow()="<<pow(X[2],m)<<endln;
+        opserr<<"MCP::X[2]="<<X[2]<<endln;  // Gang
+      }
+  
+      if (X[2]<=0) {
+          icounter = 100; // go out of the loop
+        //  exit the loop
+      }
+
+          // re-evaluate
+      //Hn  = h* pow(kappa, m) + Ho;
+      Hn1 = h* pow(X[2],m) + Ho;
+
+
+      // update g1, g2
+          // g1= 2.0*shear-X[1]-3.0*shear*X[1]*((1.0-beta)/Hn + beta/Hn1);   // borja
+
+      g1=X[1]-2.0*shear*(1.0-shear/(shear+((1.0-beta)*Hn+beta*Hn1)/3.0));    // Gang
+
+
+      temp6.Zero();
+  
       for ( i = 0; i < 3; i++ ){
         for ( j = 0; j < 3; j++ ) {
-          normchi += chitri(i,j)*chitri(i,j) ;
+          temp6(i,j) = s_n(i,j)-backs_n(i,j) + X[1]*de(i,j) + X[2]*(s_n(i,j)+X[1]*de(i,j)-so(i,j));  
         }
-      } //end for i 
-
-      // compute normchi
-      if (normchi >= 0){
-        normchi =sqrt(normchi);
-      } else {
-        opserr<<"MCP 1111::Problem, normchi<0"<<endln;
-      }   
-
-      ftrial=normchi-R;
-      if (ftrial>=0){
-        debugInfo(4)=4;
-        plasticflag=2;
-        X[1]=Psi_split; //Psi_split=2.0*shear*(1-shear/(shear+((1-beta)*Hn+beta*Ho)/3.0)); // Gang
-      } else {
-        debugInfo(4)=X[2];
-        plasticflag=0;  // diverge if it set to 1
-        // question: should plasticflag=0?? or 1?? for this case?
-        X[1]=2.0*shear*(1.0-shear/(shear+((1.0-beta)*Hn+beta*Ho)/3.0));
-        //X[1]=Psi;  // cannot converge if use this
       }
-     }
-       
-  } //end if X[2]<0
-   
- 
- } //end if (plasticflag==0)
+
+
+      dottemp6 = 0;
+      for ( i = 0; i < 3; i++ ){
+        for ( j = 0; j < 3; j++ ) {
+          dottemp6 += temp6(i,j)*temp6(i,j);
+        }
+      }
+
+      if (dottemp6 >=0) {
+        g2 = R - sqrt(dottemp6);
+      }
+      else {
+        // remark: come here wrong because X[2]=0
+              opserr<<"MCP1353::aa="<<aa<<" bb="<<bb<<" cc="<<cc<<" dd="<<dd<<endln;
+        opserr<<"MCP1353::X[2]="<<X[2]<<endln;
+        opserr<<"MCP1353::pow(X[2],m-1)"<<pow(X[2],m-1)<<endln;
+        icounter=1353;
+      }
+        norm = g1*g1+g2*g2;
+      if (norm > 0){
+        norm = sqrt(norm);
+      } else { 
+        norm = 0.0; 
+      }
+  
+      icounter +=1;
+      
+    } // end of while loop
+  
+    // begin: check kappa converged to a positive value
+    debugInfo(4)=1;
+
+    if ((norm > tolforX) && (X[2]!=0)){
+      opserr<<endln<<endln<<"MCP::X[1] X[2] is not converged!! norm = "<<norm <<" icounter="<<icounter<<endln;
+      opserr<<"MCP::plasticflag_n= "<<plasticflag_n <<" plasticflag="<< plasticflag<<endln;
+      opserr<<"MCP::X[2] ="<< X[2]<<endln<<endln;
+      opserr<<"MCP::debugInfo= "<<debugInfo<<endln;
+      showdebugInfo=1;
+    }
+
+    if (X[2]<=0.0)
+    {
+      debugInfo(4)=2;
+      
+      //opserr<< endln;
+      //opserr<<"MCP1299::WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endln;
+      //opserr<<"MCP1299::norm = "<<norm <<" icounter="<<icounter<<endln;
+      //opserr<<"MCP1299::kappa= "<<kappa<<" Psi ="<<Psi<<endln;
+      //opserr<<"MCP1299::Negative value for X[2] (kappa_n+1) "<< X[2]<<" set it to 0 "<<endln<<endln;
+        
+
+      X[2]=0.0;
+      
+      if (unloadflag == 1){
+        debugInfo(4)=3;
+        plasticflag=0;
+        X[1] = 2*shear;
+      } else {
+        chitri = Psi_split*de;
+        chitri += s_n;
+        chitri -= backs_n;
+        normchi=0;
+        for ( i = 0; i < 3; i++ ){
+          for ( j = 0; j < 3; j++ ) {
+            normchi += chitri(i,j)*chitri(i,j) ;
+          }
+        }
+
+        // compute normchi
+        if (normchi >= 0){
+          normchi =sqrt(normchi);
+        } else {
+          opserr<<"MCP 1111::Problem, normchi<0"<<endln;
+        }   
+
+        ftrial=normchi-R;
+        if (ftrial>=0){
+          debugInfo(4)=4;
+          plasticflag=2;
+          X[1]=Psi_split; //Psi_split=2.0*shear*(1-shear/(shear+((1-beta)*Hn+beta*Ho)/3.0)); // Gang
+        } else {
+          debugInfo(4)=X[2];
+          plasticflag=0;  // diverge if it set to 1
+          // question: should plasticflag=0?? or 1?? for this case?
+          X[1]=2.0*shear*(1.0-shear/(shear+((1.0-beta)*Hn+beta*Ho)/3.0));
+          //X[1]=Psi;  // cannot converge if use this
+        }
+      }
+    } //end if X[2]<0
+  } //end if (plasticflag==0)
 
 
 
- // (7) if strain split, calculate ratio alp and secant modulus Psi_split
+  // (7) if strain split, calculate ratio alp and secant modulus Psi_split
 
- if (plasticflag==2) {
+  if (plasticflag==2) {
        // we are here when the loading is partially inside BS, partially on BS
        // alp is defined as epstotal=eps(inside)*alp+eps(outside)*(1-alp)
        // value of Psi between kappa (t=n) inside BS and kappa=0 on BS   
@@ -1400,7 +1320,7 @@ LABEL6:
           chichi += (s_n(i,j)-backs_n(i,j))*(s_n(i,j)-backs_n(i,j));
           chide  += (s_n(i,j)-backs_n(i,j))*de(i,j);
         } // end for j
-      } //end for i 
+      }
 
       // compute strain splitter
       alp = (-chide+sqrt(chide*chide+normde*normde*(R*R-chichi)));
@@ -1440,7 +1360,7 @@ LABEL10:
 
       debugInfo(5)=1;
       // update cauchy stresses using incremental strain
-      twomu=X[1];
+      double twomu = X[1];
 
       s  = s_n ;
       s += twomu * de;
@@ -1458,11 +1378,11 @@ LABEL10:
         for ( j = 0; j < 3; j++ ) {
           temp += temp6(i,j)*temp6(i,j);
         } // end for j
-      } //end for i 
+      }
 
      
-      if (sqrt(temp)-R>=0){
-        if (unloadflag!=1){
+      if (sqrt(temp)-R>=0) {
+        if (unloadflag!=1) {
           plasticflag=1;
         }
 
@@ -1501,7 +1421,7 @@ LABEL10:
     }
 
 
-    twomu   = 2.0 * shear;
+    double twomu   = 2.0 * shear;
     if (plasticflag==1)
     {
       debugInfo(5)=2;
@@ -1529,7 +1449,7 @@ LABEL10:
       for ( j = 0; j < 3; j++ ) {
         normchi += chitri(i,j)*chitri(i,j);
       } // end for j
-    } //end for i 
+    }
   
     if (normchi >= 0) {
       normchi = sqrt (normchi);
@@ -1561,18 +1481,18 @@ LABEL10:
     backs  = backs_n;
     backs +=  two3 * Ho * gamma * chitri/ normchi ;
 
-        s  = s_n + alp * Psi_split * de;
+    s  = s_n + alp * Psi_split * de;
     s += twomu * ((1-alp) * de - gamma * chitri/normchi );  
 
 
     // check stress_n+1 is on the yield surface
-      temp6=s-backs;
+    temp6=s-backs;
     temp=0;
     for ( i = 0; i < 3; i++ ){
       for ( j = 0; j < 3; j++ ) {
         temp += temp6(i,j)*temp6(i,j);
         } // end for j
-    } //end for i 
+    }
 
      
     if ((sqrt(temp)-R>(1.0e-3)*R)||(sqrt(temp)-R<0)){
@@ -1624,7 +1544,7 @@ LABEL10:
         //        C_ep = K IbunI + 2 shear ( theta1* IIdev - theta2 * NbunN)
         // _____________________________________________________________________
 
-                ///opserr<<"MCP tangent! changed July 18"<<endln;
+        ///opserr<<"MCP tangent! changed July 18"<<endln;
         tangent[i][j][k][l]  = (1-alp)* bulk * IbunI[i][j][k][l] ;
         tangent[i][j][k][l] += (1-alp)* 2.0*shear*theta1 * IIdev[i][j][k][l] ;
         tangent[i][j][k][l] -= (1-alp)* 2.0*shear*theta2 * NbunN ;
@@ -1651,10 +1571,10 @@ LABEL10:
 
 
 
-   if (showdebugInfo==1){
+  if (showdebugInfo==1) {
     opserr<<"END OF INTEGRATOR::debugInfo= "<<debugInfo<<endln;   
-   }
-   return 0;
+  }
+  return 0;
 }
 
 
@@ -1684,7 +1604,7 @@ MultiaxialCyclicPlasticity::getMCPparameter()
    for (int j = 0; j < 3; j++ ) {
      norm   += (s(i,j)-backs(i,j)) * (s(i,j)-backs(i,j)) ;
    } // end for j
- } //end for i 
+ }
 
  MCPparameter(6) = sqrt(norm) ;
  MCPparameter(7) = load ;
@@ -1700,3 +1620,63 @@ MultiaxialCyclicPlasticity::getMCPparameter()
  // MCPparameter(9) = normde ;   get directly from subroutine plastic_integrator
  return MCPparameter;
 }
+
+
+
+int
+MultiaxialCyclicPlasticity::sendSelf(int commitTag, Channel &theChannel)
+{
+  // we place all the data needed to define material and it's state
+  // int a vector object
+  static Vector data(10); 
+  int cnt = 0;
+  data(cnt++) = this->getTag();
+  data(cnt++) = density;   //add
+  data(cnt++) = bulk;
+  data(cnt++) = shear;
+  data(cnt++) = R;   //add
+  data(cnt++) = Ho;   //add
+  data(cnt++) = h;
+  data(cnt++) = m;
+  data(cnt++) = beta;
+  data(cnt++) = eta;
+ 
+  // send the vector object to the channel
+  if (theChannel.sendVector(this->getDbTag(), commitTag, data) < 0) {
+    opserr << "MultiaxialCyclicPlasticity::sendSelf - failed to send vector to channel\n";
+    return -1;
+  }
+
+  return 0;
+}
+
+int
+MultiaxialCyclicPlasticity::recvSelf(int commitTag, Channel &theChannel, 
+       FEM_ObjectBroker &theBroker)
+{
+
+  // recv the vector object from the channel which defines material param and state
+  static Vector data(10);
+  if (theChannel.recvVector(this->getDbTag(), commitTag, data) < 0) {
+    opserr << "MultiaxialCyclicPlasticity::recvSelf - failed to recv vector from channel\n";
+    return -1;
+  }
+
+  // set the material parameters and state variables
+  int cnt = 0;
+  this->setTag(data(cnt++));
+  density = data(cnt++);
+  bulk    = data(cnt++);
+  shear   = data(cnt++);
+  R       = data(cnt++);
+  Ho      = data(cnt++);
+  h       = data(cnt++);
+  m       = data(cnt++);
+  beta    = data(cnt++);
+  eta     = data(cnt++);
+  
+ 
+  return 0;
+}
+
+
