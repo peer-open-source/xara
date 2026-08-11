@@ -144,6 +144,10 @@ private:
   static constexpr unsigned int MAXIMUM_ITERATIONS = 1000;
   static constexpr unsigned int N_DIRECT           = 3;
   static constexpr unsigned int N_DIMS             = 6;
+  static constexpr double SQRT23 = 0.81649658092772603; // sqrt(2/3)
+  // static constexpr double SQRT23 = std::sqrt(2. / 3.);
+  // static constexpr double GammaScale = SQRT23; // original (WRONG)
+  static constexpr double GammaScale = 1.0/SQRT23; // correction
 
   // Material properties, set by the constructor
   double elasticModulus;
