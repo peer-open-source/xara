@@ -162,6 +162,26 @@ public:
              << "%)\n";
     }
 
+    // Total row
+    for (std::size_t i = 0; i < line_width; ++i)
+      output.put('-');
+
+    output.put('\n');
+
+    output << std::left
+           << std::setw(step_width) << "Total"
+           << "  "
+           << std::right
+           << std::setw(time_width) << ""
+           << "  "
+           << std::fixed
+           << std::setprecision(0)
+           << std::setw(time_width) << grand_total
+           << " ("
+           << std::setprecision(1)
+           << std::setw(percent_width) << (grand_total > 0.0 ? 100.0 : 0.0)
+           << "%)\n";
+
     output.flags(flags);
     output.precision(precision);
     output.fill(fill);
