@@ -38,7 +38,7 @@ namespace {
     ub[5] = ul[1*ndf+3] - ul[0*ndf+3];
     return wrapper;
   }
-}
+} // namespace
 
 
 template<int ndf>
