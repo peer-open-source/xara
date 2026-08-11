@@ -21,7 +21,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#ifdef _MSC_VER 
+#  include <string.h>
+#  define strcasecmp _stricmp
+#else
+#  include <strings.h>
+#endif
 #include <Logging.h>
 #include <Parsing.h>
 #include <runtimeAPI.h>
