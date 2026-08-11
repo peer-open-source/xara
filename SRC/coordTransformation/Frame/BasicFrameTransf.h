@@ -12,11 +12,10 @@
 //     https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
-
 // 
 // The purpose of this class is to wrap the more general FrameTransform<>
-// templates to reproduce the legacy CrdTransf classes that were derived
-// for elements in a "basic" coordinate system.
+// templates to reproduce the legacy CrdTransf class interface that were derived
+// for elements in a "basic" 2-node coordinate system.
 //
 //
 // Written: Claudio M. Perez
@@ -133,6 +132,7 @@ private:
   static constexpr auto iq = set_indices();
 
 };
+
 } // namespace OpenSees
 
 #include "BasicFrameTransf.tpp"
