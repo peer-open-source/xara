@@ -32,11 +32,11 @@ Matrix BoundingCamClayPlaneStrain::tangent(3,3);
 
 //null constructor
 BoundingCamClayPlaneStrain::BoundingCamClayPlaneStrain() : 
-BoundingCamClay( )
+BoundingCamClay()
 {  
 }
 
-//full constructor
+// full constructor
 BoundingCamClayPlaneStrain::BoundingCamClayPlaneStrain(int tag, double mDen, double C, double bulk, double OCR,
                                                        double mu_o, double alpha, double lambda, double h, double m): 
 BoundingCamClay(tag, ND_TAG_BoundingCamClayPlaneStrain, mDen, C, bulk, OCR, mu_o, alpha, lambda, h, m)
@@ -79,10 +79,10 @@ BoundingCamClayPlaneStrain::setTrialStrain(const Vector &strain_from_element)
 	mEpsilon.Zero();
 	mEpsilon(0) = strain_from_element(0);
 	mEpsilon(1) = strain_from_element(1);
-	mEpsilon(3) = strain_from_element(2);
+	mEpsilon(3) = strain_from_element(2); //
 
     this->plastic_integrator();
-	
+
 	return 0;
 }
 
@@ -90,7 +90,7 @@ BoundingCamClayPlaneStrain::setTrialStrain(const Vector &strain_from_element)
 int 
 BoundingCamClayPlaneStrain::setTrialStrain(const Vector &v, const Vector &r)
 {
-    return this->setTrialStrain (v);
+  return this->setTrialStrain (v);
 }
 
 //send back the strain
@@ -133,7 +133,8 @@ BoundingCamClayPlaneStrain::getTangent()
 } 
 
 //send back the tangent 
-const Matrix& BoundingCamClayPlaneStrain::getInitialTangent() 
+const Matrix& 
+BoundingCamClayPlaneStrain::getInitialTangent() 
 {
     tangent(0,0) = mCep(0,0);
 	tangent(0,1) = mCep(0,1);
