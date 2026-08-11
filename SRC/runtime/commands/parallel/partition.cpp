@@ -49,7 +49,7 @@
 static int partitionModel(PartitionRuntime& part, int eleTag);
 static Tcl_CmdProc opsPartition;
 static Tcl_CmdProc wipePP;
-extern Tcl_CmdProc TclCommand_specifyModel;
+extern Tcl_CmdProc XaraCmd_model;
 
 void 
 Init_PartitionRuntime(Tcl_Interp* interp, MachineBroker* theMachineBroker, FEM_ObjectBroker* theBroker)
@@ -76,7 +76,7 @@ Init_PartitionRuntime(Tcl_Interp* interp, MachineBroker* theMachineBroker, FEM_O
   
   Tcl_CreateCommand(interp, "partition", &opsPartition, (ClientData)part, (Tcl_CmdDeleteProc *)NULL);
   Tcl_CreateCommand(interp, "wipePP",    &wipePP,       (ClientData)part, (Tcl_CmdDeleteProc *)NULL);
-  Tcl_CreateCommand(interp, "model",     &TclCommand_specifyModel,  (ClientData)&part->theDomain, (Tcl_CmdDeleteProc *)NULL);
+  Tcl_CreateCommand(interp, "model",     &XaraCmd_model,  (ClientData)&part->theDomain, (Tcl_CmdDeleteProc *)NULL);
 }
 
 
