@@ -179,8 +179,8 @@ PressureIndependMultiYield::PressureIndependMultiYield (int tag, int nd,
     r = 0.;
   }
 
-  int * temp1 = loadStagex;
-  int * temp2 = ndmx;
+  int *    temp1 = loadStagex;
+  int *    temp2 = ndmx;
   double * temp3 = rhox;
   double * temp6 = frictionAnglex;
   double * temp7 = peakShearStrainx;
@@ -223,7 +223,7 @@ PressureIndependMultiYield::PressureIndependMultiYield (int tag, int nd,
   }
 
   ndmx[matCount] = nd;
-  loadStagex[matCount] = 0;   //default
+  loadStagex[matCount] = 0;   // default
   refShearModulus = refShearModul;
   refBulkModulus = refBulkModul;
   frictionAnglex[matCount] = frictionAng;
@@ -238,7 +238,7 @@ PressureIndependMultiYield::PressureIndependMultiYield (int tag, int nd,
   matN = matCount;
   matCount=newCount;
 
-  theSurfaces = new MultiYieldSurface[numberOfYieldSurf+1]; //first surface not used
+  theSurfaces = new MultiYieldSurface[numberOfYieldSurf+1]; // first surface not used
   committedSurfaces = new MultiYieldSurface[numberOfYieldSurf+1];
   activeSurfaceNum = committedActiveSurf = 0;
 
@@ -247,16 +247,16 @@ PressureIndependMultiYield::PressureIndependMultiYield (int tag, int nd,
 }
 
 
-PressureIndependMultiYield::PressureIndependMultiYield ()
+PressureIndependMultiYield::PressureIndependMultiYield()
  : NDMaterial(0,ND_TAG_PressureIndependMultiYield),
    currentStress(), trialStress(), currentStrain(),
   strainRate(), theSurfaces(0), committedSurfaces(0)
 {
-  //does nothing
+  // does nothing
 }
 
 
-PressureIndependMultiYield::PressureIndependMultiYield (const PressureIndependMultiYield & a)
+PressureIndependMultiYield::PressureIndependMultiYield(const PressureIndependMultiYield & a)
  : NDMaterial(a.getTag(),ND_TAG_PressureIndependMultiYield),
    currentStress(a.currentStress), trialStress(a.trialStress),
   currentStrain(a.currentStrain), strainRate(a.strainRate)
@@ -287,7 +287,8 @@ PressureIndependMultiYield::~PressureIndependMultiYield ()
 }
 
 
-void PressureIndependMultiYield::elast2Plast(void)
+void 
+PressureIndependMultiYield::elast2Plast()
 {
   int loadStage = loadStagex[matN];
   double frictionAngle = frictionAnglex[matN];
@@ -379,7 +380,8 @@ int PressureIndependMultiYield::setTrialStrainIncr(const Vector &strain)
 }
 
 
-int PressureIndependMultiYield::setTrialStrainIncr (const Vector &strain, const Vector &rate)
+int
+PressureIndependMultiYield::setTrialStrainIncr(const Vector &strain, const Vector &rate)
 {
   return setTrialStrainIncr(strain);
 }
@@ -553,13 +555,14 @@ PressureIndependMultiYield::getStress()
 }
 
 
-const Vector & PressureIndependMultiYield::getStrain (void)
+const Vector & 
+PressureIndependMultiYield::getStrain()
 {
   return getCommittedStrain();
 }
 
 
-int PressureIndependMultiYield::commitState (void)
+int PressureIndependMultiYield::commitState()
 {
   int loadStage = loadStagex[matN];
   int numOfSurfaces = numOfSurfacesx[matN];
@@ -583,20 +586,23 @@ int PressureIndependMultiYield::commitState (void)
 }
 
 
-int PressureIndependMultiYield::revertToLastCommit (void)
+int
+PressureIndependMultiYield::revertToLastCommit()
 {
   return 0;
 }
 
 
-NDMaterial * PressureIndependMultiYield::getCopy (void)
+NDMaterial * 
+PressureIndependMultiYield::getCopy()
 {
   PressureIndependMultiYield * copy = new PressureIndependMultiYield(*this);
   return copy;
 }
 
 
-NDMaterial * PressureIndependMultiYield::getCopy (const char *code)
+NDMaterial * 
+PressureIndependMultiYield::getCopy(const char *code)
 {
   if (strcmp(code,"PressureIndependMultiYield") == 0 || strcmp(code,"PlaneStrain") == 0
       || strcmp(code,"ThreeDimensional") == 0) {
@@ -604,7 +610,7 @@ NDMaterial * PressureIndependMultiYield::getCopy (const char *code)
     return copy;
   }
 
-  return 0;
+  return this->NDMaterial::getCopy(code);
 }
 
 
@@ -628,7 +634,8 @@ PressureIndependMultiYield::getOrder() const
 }
 
 
-int PressureIndependMultiYield::setParameter(const char **argv, int argc, Parameter &param)
+int 
+PressureIndependMultiYield::setParameter(const char **argv, int argc, Parameter &param)
 {
   if (argc < 2)
     return -1;
@@ -729,10 +736,10 @@ int PressureIndependMultiYield::sendSelf(int commitTag, Channel &theChannel)
   data(11) = activeSurfaceNum;
 
   temp = currentStress.t2Vector();
-  for(i = 0; i < 6; i++) data(i+12) = temp[i];
+  for(int i = 0; i < 6; i++) data(i+12) = temp[i];
 
   temp = currentStrain.t2Vector();
-  for(i = 0; i < 6; i++) data(i+18) = temp[i];
+  for(int i = 0; i < 6; i++) data(i+18) = temp[i];
 
   for(i = 0; i < numOfSurfaces; i++) {
     int k = 24 + i*8;
@@ -1005,9 +1012,9 @@ PressureIndependMultiYield::Print(OPS_Stream &s, int flag )
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT
       << "{"
-      << "\"type\": \"" << this->getClassType() << "\", "
       << "\"name\": " << this->getTag() << ", "
-      << "\"loadStage\": " <<  loadStagex[matN] 
+      << "\"type\": \"" << this->getClassType() << "\", "
+      << "\"stage\": " <<  loadStagex[matN] 
       << "}";
     return;
   }
@@ -1015,7 +1022,8 @@ PressureIndependMultiYield::Print(OPS_Stream &s, int flag )
 }
 
 
-const Vector & PressureIndependMultiYield::getCommittedStress (void)
+const Vector & 
+PressureIndependMultiYield::getCommittedStress()
 {
 	int ndm = ndmx[matN];
     if (ndmx[matN] == 0) ndm = 2;
@@ -1037,7 +1045,7 @@ const Vector & PressureIndependMultiYield::getCommittedStress (void)
 	}
     else {
         static Vector temp5(5), temp6(6);
-		temp6 = currentStress.t2Vector();
+        temp6 = currentStress.t2Vector();
         temp5[0] = temp6[0];
         temp5[1] = temp6[1];
         temp5[2] = temp6[2];
@@ -1048,31 +1056,32 @@ const Vector & PressureIndependMultiYield::getCommittedStress (void)
 }
 
 // begin change by Alborz Ghofrani - UW --- get 6 components of stress
-const Vector & PressureIndependMultiYield::getStressToRecord (int numOutput)
+const Vector & 
+PressureIndependMultiYield::getStressToRecord(int numOutput)
 {
   int ndm = ndmx[matN];
-    if (ndmx[matN] == 0) ndm = 2;
+  if (ndmx[matN] == 0) ndm = 2;
 
   if (ndm==3) {
-	static Vector temp7(7);
-	temp7 = this->getCommittedStress();
-	if (numOutput == 6)
-	{
-		static Vector temp6(6);
-		temp6[0] = temp7[0];
-		temp6[1] = temp7[1];
-		temp6[2] = temp7[2];
-		temp6[3] = temp7[3];
-		temp6[4] = temp7[4];
-		temp6[5] = temp7[5];
-		return temp6;
-	} else if (numOutput == 7) 
-	{
-		return temp7;
-	} else {
-		opserr << "Wrong number of stress components to record!" << endln;
-		return temp7;
-	}
+    static Vector temp7(7);
+    temp7 = this->getCommittedStress();
+    if (numOutput == 6)
+    {
+      static Vector temp6(6);
+      temp6[0] = temp7[0];
+      temp6[1] = temp7[1];
+      temp6[2] = temp7[2];
+      temp6[3] = temp7[3];
+      temp6[4] = temp7[4];
+      temp6[5] = temp7[5];
+      return temp6;
+    } else if (numOutput == 7) 
+    {
+      return temp7;
+    } else {
+      opserr << "Wrong number of stress components to record!" << endln;
+      return temp7;
+    }
   }
 
   else {
