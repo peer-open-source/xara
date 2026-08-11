@@ -14,6 +14,7 @@ add_library(Xara_Parsing OBJECT)
 target_sources(Xara_InterpreterCore PRIVATE 
   # CommandManager.cpp
   OpenSeesVersion.cpp
+  CommandLibrary.cpp
 )
 
 target_include_directories(Xara_InterpreterCore 
