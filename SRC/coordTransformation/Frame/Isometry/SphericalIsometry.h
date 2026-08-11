@@ -58,6 +58,7 @@ public:
   Vector3D getPositionVariation(int ndf, double* du) final;
   Matrix3D getRotationDelta() final;
   MatrixND<3,6> getRotationGradient(int node) final;
+  MatrixND<3,6> getTranslationGradient(int node) const final;
   MatrixND<6*nn,6*nn> getHessian(const VectorND<6>& pw) final;
 
 private:
@@ -123,8 +124,9 @@ SphericalIsometry<nn>::initialize(std::array<Node*,nn>& nodes)
     R[init](i,1) = e2[i];
     R[init](i,2) = e3[i];
   }
-  R[pres].zero();
-  R[pres].addDiagonal(1.0);
+  R[pres] = R[init];
+  // R[pres].zero();
+  // R[pres].addDiagonal(1.0);
 
   //
   //
@@ -138,7 +140,8 @@ SphericalIsometry<nn>::initialize(std::array<Node*,nn>& nodes)
 
 template <int nn>
 const Matrix3D&
-SphericalIsometry<nn>::getRotation() const {
+SphericalIsometry<nn>::getRotation() const 
+{
   return R[pres];
 }
 
@@ -197,7 +200,8 @@ SphericalIsometry<nn>::getPositionVariation(int ndf, double* du)
 
 template <int nn>
 MatrixND<3,6>
-SphericalIsometry<nn>::getRotationGradient(int node) {
+SphericalIsometry<nn>::getRotationGradient(int node) 
+{
   MatrixND<3,6> Gb{};
   Matrix3D WR{};
   if (node == m_I) {
@@ -212,14 +216,19 @@ SphericalIsometry<nn>::getRotationGradient(int node) {
   return Gb;
 }
 
-// MatrixND<3,6>
-// SphericalIsometry<nn>::getTranslationGradient(int node) final {
-//   return {};
-// }
+
+template <int nn>
+MatrixND<3,6>
+SphericalIsometry<nn>::getTranslationGradient(int node) const 
+{
+  return MatrixND<3,6>{};
+}
+
 
 template <int nn>
 MatrixND<6*nn,6*nn>
-SphericalIsometry<nn>::getHessian(const VectorND<6>& pw) {
+SphericalIsometry<nn>::getHessian(const VectorND<6>& pw) 
+{
   MatrixND<6*nn,6*nn> H{};
   const Matrix3D M = Hat(Vector3D{pw[3], pw[4], pw[5]});
   const double cm = (angle > 1e-14) ? 
