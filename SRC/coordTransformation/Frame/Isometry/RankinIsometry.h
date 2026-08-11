@@ -12,13 +12,6 @@
 //     Int. J. Numer. Meth. Engrg.; https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
-
-//
-// Written: Claudio M. Perez, 
-//          Filip C. Filippou
-//          University of California, Berkeley
-//
-// Developed with FEDEASLab [2].
 //
 // References:
 //
@@ -33,6 +26,13 @@
 //     consistent linearization using projectors", 
 //     Computer Methods in Applied Mechanics and Engineering, 93(3), pp. 353–384. 
 //     Available at: https://doi.org/10.1016/0045-7825(91)90248-5.
+//
+//
+// Written: Claudio M. Perez, 
+//          Filip C. Filippou
+//          University of California, Berkeley
+//
+// Developed with FEDEASLab [2].
 //
 #pragma once
 #include <Vector3D.h>
@@ -141,12 +141,12 @@ public:
         const int b = end_nodes[ib];
         const double sb = sigma(b);
 
-        /*
-        * dn_b = dn_x^T v_b + dn_theta^T theta_b
-        *
-        * dn_x     = (1+n^2) sigma_b/L e2
-        * dn_theta = -(1+n^2) delta_{bI} e3
-        */
+        // 
+        //   dn_b = dn_x^T v_b + dn_theta^T theta_b
+        // with
+        //   dn_x     = (1+n^2) sigma_b/L e2
+        //   dn_theta = -(1+n^2) delta_{bI} e3
+        //
         Vector3D dnx{};
         Vector3D dnt{};
 
@@ -157,14 +157,12 @@ public:
 
         Matrix3D Hxx{},Hxt{},Htx{},Htt{};
 
-        /*
-        * H_ab^{xx}
-        * =
-        * -sigma_a [
-        *   sigma_b/L (B^T m) e1^T
-        *   + m1/L e3 dn_x^T
-        * ].
-        */
+        //
+        // H_ab^{xx} = -sigma_a [
+        //    sigma_b/L (B^T m) e1^T
+        //    + m1/L e3 dn_x^T
+        // ].
+        //
         Hxx.addTensorProduct(Btm, e1, -sa * sb / L);
         Hxx.addTensorProduct(e3, dnx, -sa * m1 / L);
 
@@ -176,13 +174,11 @@ public:
         Hxt.addTensorProduct(e3, dnt, -sa * m1 / L);
 
         /*
-        * Rankin C_a is nonzero only for a = I:
-        *
-        * H_ab^{theta x} = -delta_{aI} m1 e2 dn_x^T
-        *
-        * H_ab^{theta theta}
-        * =
-        * -delta_{aI} m1 e2 dn_theta^T.
+         * Rankin C_a is nonzero only for a = I:
+         *
+         * H_ab^{theta x} = -delta_{aI} m1 e2 dn_x^T
+         *
+         * H_ab^{theta theta}  =  -delta_{aI} m1 e2 dn_theta^T.
         */
         if (a == I) {
           Htx.addTensorProduct(e2, dnx, -m1);
