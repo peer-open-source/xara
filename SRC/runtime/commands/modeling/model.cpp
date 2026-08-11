@@ -45,7 +45,7 @@ extern int RemoveTclDomainCommands(Tcl_Interp* interp);
 
 // 
 int
-TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *argv[])
+XaraCmd_model(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *argv[])
 {
   G3_Runtime *rt = G3_getRuntime(interp);
   Domain *theNewDomain = (Domain*)clientData;
@@ -87,7 +87,7 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
     // TODO: remove ops_TheActiveDomain
     ops_TheActiveDomain = theNewDomain;
 
-    Tcl_CreateCommand(interp, "model", &TclCommand_specifyModel, theNewDomain, nullptr);
+    Tcl_CreateCommand(interp, "model", &XaraCmd_model, theNewDomain, nullptr);
 
     XaraInit_DomainCommands(interp, theNewDomain);
   }
@@ -152,16 +152,16 @@ TclCommand_specifyModel(ClientData clientData, Tcl_Interp *interp, int argc, TCL
                  << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
-        if (strcmp(argv[argPos], "none") == 0) {
+        if (strcasecmp(argv[argPos], "none") == 0) {
           rotationType = Rotations::Parameters::None;
         }
-        else if (strcmp(argv[argPos], "iter") == 0) {
+        else if (strcasecmp(argv[argPos], "iter") == 0) {
           rotationType = Rotations::Parameters::Iter;
         }
-        else if (strcmp(argv[argPos], "incr") == 0) {
+        else if (strcasecmp(argv[argPos], "incr") == 0) {
           rotationType = Rotations::Parameters::Incr;
         }
-        else if (strcmp(argv[argPos], "init") == 0) {
+        else if (strcasecmp(argv[argPos], "init") == 0) {
           rotationType = Rotations::Parameters::Init;
         }
         else {
@@ -295,7 +295,7 @@ XaraCmd_wipe(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *argv
       Tcl_DeleteCommand(interp, ModelBuilderCommands[i].name);
     builtModel = false;
   }
-  Tcl_CreateCommand(interp, "model", &TclCommand_specifyModel, nullptr, nullptr);
+  Tcl_CreateCommand(interp, "model", &XaraCmd_model, nullptr, nullptr);
   Tcl_CreateCommand(interp, "wipe",  &XaraCmd_wipe,    nullptr, nullptr);
 
   ops_Dt = 0.0;
