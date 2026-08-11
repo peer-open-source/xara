@@ -176,7 +176,6 @@ private:
 private:
   // Core update
   int updateState(const VectorND<6> &eps);
-  // bool isLinearHardening() const {return (Ck_.size() == 1 && gammak_[0] == 0.0);}
 
 
   // 6x9 Voight mapping used like: (P^vec6) -> 9x1   and   (P*vec9) -> 6x1
