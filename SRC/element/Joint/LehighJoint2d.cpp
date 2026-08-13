@@ -742,29 +742,27 @@ LehighJoint2d::getResponse(int responseID, Information &eleInfo)
 
 	switch (responseID) {
 	case 1:       
-		if(eleInfo.theVector!=0)
+		if(eleInfo.theVector.Size() != 0)
 		{
 			static Vector R(numDOF);
             R = this->getResistingForce();
-
-			(*(eleInfo.theVector))(0) = R(0);
-			(*(eleInfo.theVector))(1) = R(1);
-			(*(eleInfo.theVector))(2) = R(2);
-			(*(eleInfo.theVector))(3) = R(3);
-			(*(eleInfo.theVector))(4) = R(4);
-			(*(eleInfo.theVector))(5) = R(5);
-			(*(eleInfo.theVector))(6) = R(6);
-			(*(eleInfo.theVector))(7) = R(7);
-			(*(eleInfo.theVector))(8) = R(8);
-			(*(eleInfo.theVector))(9) = R(9);
-			(*(eleInfo.theVector))(10) = R(10);
-			(*(eleInfo.theVector))(11) = R(11);
-
+			(eleInfo.theVector)(0) = R(0);
+			(eleInfo.theVector)(1) = R(1);
+			(eleInfo.theVector)(2) = R(2);
+			(eleInfo.theVector)(3) = R(3);
+			(eleInfo.theVector)(4) = R(4);
+			(eleInfo.theVector)(5) = R(5);
+			(eleInfo.theVector)(6) = R(6);
+			(eleInfo.theVector)(7) = R(7);
+			(eleInfo.theVector)(8) = R(8);
+			(eleInfo.theVector)(9) = R(9);
+			(eleInfo.theVector)(10) = R(10);
+			(eleInfo.theVector)(11) = R(11);
 		}
 		return 0;
 
 	case 2:
-		if (eleInfo.theVector !=0) {
+		if (eleInfo.theVector.Size() != 0) {
 			
 			static Vector fs(numBasicDOF);
 			static Vector P(numDOF);			
@@ -780,47 +778,46 @@ LehighJoint2d::getResponse(int responseID, Information &eleInfo)
 			// determine element force in the local coord 
 			P.addMatrixTransposeVector(0.0,avp,fs,1.0);  // P = avp'*fs 
 
-			(*(eleInfo.theVector))(0) = P(0);
-			(*(eleInfo.theVector))(1) = P(1);
-			(*(eleInfo.theVector))(2) = P(2);
-			(*(eleInfo.theVector))(3) = P(3);
-			(*(eleInfo.theVector))(4) = P(4);
-			(*(eleInfo.theVector))(5) = P(5);
-			(*(eleInfo.theVector))(6) = P(6);
-			(*(eleInfo.theVector))(7) = P(7);
-			(*(eleInfo.theVector))(8) = P(8);
-			(*(eleInfo.theVector))(9) = P(9);
-			(*(eleInfo.theVector))(10) = P(10);
-			(*(eleInfo.theVector))(11) = P(11);
+			((eleInfo.theVector))(0) = P(0);
+			((eleInfo.theVector))(1) = P(1);
+			((eleInfo.theVector))(2) = P(2);
+			((eleInfo.theVector))(3) = P(3);
+			((eleInfo.theVector))(4) = P(4);
+			((eleInfo.theVector))(5) = P(5);
+			((eleInfo.theVector))(6) = P(6);
+			((eleInfo.theVector))(7) = P(7);
+			((eleInfo.theVector))(8) = P(8);
+			((eleInfo.theVector))(9) = P(9);
+			((eleInfo.theVector))(10) = P(10);
+			((eleInfo.theVector))(11) = P(11);
 		}
 		return 0;
 
     case 3:
-		if(eleInfo.theVector!=0) {
+		if(eleInfo.theVector.Size() != 0) {
 
 			for ( int i =0 ; i<numBasicDOF ; i++ )	{
 				
-				(*(eleInfo.theVector))(i) = 0.0;
+				((eleInfo.theVector))(i) = 0.0;
 
 				if ( MaterialPtr[i] != NULL ) 
-					(*(eleInfo.theVector))(i) = MaterialPtr[i]->getStress();
+					((eleInfo.theVector))(i) = MaterialPtr[i]->getStress();
 			}
 		}
 		return 0;
 
 	case 4:
-		if(eleInfo.theVector!=0) {
+		if(eleInfo.theVector.Size() != 0) {
 
 			for ( int i =0 ; i<numBasicDOF ; i++ )	{
 				
-				(*(eleInfo.theVector))(i) = 0.0;
+				((eleInfo.theVector))(i) = 0.0;
 
 				if ( MaterialPtr[i] != NULL ) 
-					(*(eleInfo.theVector))(i) = MaterialPtr[i]->getStrain();
+					((eleInfo.theVector))(i) = MaterialPtr[i]->getStrain();
 			}
 		}
 		return 0;
-	
 	
 
 	default:

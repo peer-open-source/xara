@@ -27,7 +27,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -450,11 +449,6 @@ EmbeddedEPBeamInterface::recvSelf(int commitTag, Channel &theChannel, FEM_Object
     return 0;
 }
 
-int
-EmbeddedEPBeamInterface::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    return 0;
-}
 
 void
 EmbeddedEPBeamInterface::Print(OPS_Stream &s, int flag)

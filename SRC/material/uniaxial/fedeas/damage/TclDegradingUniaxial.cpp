@@ -27,11 +27,7 @@
 #include <elementAPI.h>
 #include <OPS_Globals.h>
 
-#if defined(OPSDEF_LIBDMG) || 1
 #include <fedeas/LibDmg.h>
-#else
-// template<typename T> class Damage1D: public T {using T::T;};
-#endif
 
 static void
 printCommand(int argc, TCL_Char ** const argv)

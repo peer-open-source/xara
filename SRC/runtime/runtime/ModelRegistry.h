@@ -31,6 +31,7 @@
 #include <StaticPattern.h>
 #include <MultiSupportPattern.h>
 #include <Rotations.h>
+#include "ProcessContext.h"
 
 class LoadPattern;
 class StaticPattern;
@@ -39,7 +40,10 @@ class OPS_Stream;
 class ID;
 class Domain;
 class InterpreterResponse;
+class UniaxialMaterial;
+class NDMaterial;
 
+using Xara::ProcessContext;
 
 class ModelRegistry {
 public:
@@ -50,18 +54,37 @@ public:
 
   int getNDM() const;
   int getNDF() const;
+  void setDimension(int ndm, int ndf) {this->ndm = ndm; this->ndf = ndf;}
   Domain *getDomain() const;
-
+#ifdef MODEL_CHANNELS
+  ProcessContext& getParallelContext() {return m_channels;}
+#endif
   //
   // Managing tagged objects
   //
   template<class T> int addTypedObject(int tag, T* obj) {
-    return addRegistryObject(typeid(T).name(), nullptr, tag, obj);
+    auto status = addRegistryObject(typeid(T).name(), nullptr, tag, obj);
+    if constexpr (std::is_same<T, NDMaterial>::value) {
+      if (status == TCL_OK)
+        obj->setDomain(theDomain);
+    }
+    return status;
   }
 
   template<class T, const char* specialize=nullptr> int addTaggedObject(T& obj) {
     int tag = obj.getTag();
-    return addRegistryObject(typeid(T).name(), specialize, tag, &obj);
+    auto status =  addRegistryObject(typeid(T).name(), specialize, tag, &obj);
+
+    //
+    if constexpr (std::is_same<T, NDMaterial>::value) {
+      if (status == TCL_OK)
+        obj.setDomain(theDomain);
+    }
+    // else if constexpr (std::is_same<T, UniaxialMaterial>::value) {
+    //   if (status == 0)
+    //     obj.setDomain(theDomain);
+    // }
+    return status;
   }
 
   constexpr static int SilentLookup = 1;
@@ -142,8 +165,6 @@ public:
          const ID &fixityCodes, 
          double tol=1e-10);
 
-  int buildFE_Model();
-
 //
 private:
   int   addRegistryObject(const char*, const char*, int tag, void* obj); 
@@ -175,6 +196,10 @@ private:
   std::unordered_map<std::string, std::unordered_map<int, TaggedObject*>> m_registry;
   std::unordered_map<std::string, OpenSees::LoadCase> m_cases;
   std::vector<InterpreterResponse*> m_responses;
-};
 
+  // Parallel
+#ifdef MODEL_CHANNELS
+  ProcessContext m_channels;
+#endif
+};
 

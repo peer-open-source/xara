@@ -227,12 +227,11 @@ ThreePointCurve::checkElementState(double springForce)
 		//char *r[1] = {"plasticRotation"};
 		const char *r[1] = {"basicDeformation"};
 
-		Vector *rotVec; //vector of chord rotations at beam-column ends
 
 		// set type of beam-column element response desired
 		theRotations = theElement->setResponse(r, 1, dummy);
 
-		if (theRotations == 0) {
+		if (theRotations == nullptr) {
 		  opserr << "ThreePointCurve::checkElementState, defType = 1, basicDeformations not implemented in element setResponse" << endln;
 		  return -1;
 		}
@@ -242,10 +241,11 @@ ThreePointCurve::checkElementState(double springForce)
 
 		// access the myInfo vector containing the response (new for Version 1.2)
 		Information &theInfo = theRotations->getInformation();
-		rotVec = (theInfo.theVector);
+		 //vector of chord rotations at beam-column ends
+		Vector& rotVec = (theInfo.theVector);
 
-		deform = (fabs((*rotVec)(1)) > fabs((*rotVec)(2))) ?
-			fabs((*rotVec)(1)) : fabs((*rotVec)(2));  //use larger of two end rotations
+		deform = (fabs((rotVec)(1)) > fabs((rotVec)(2))) ?
+			fabs((rotVec)(1)) : fabs((rotVec)(2));  //use larger of two end rotations
 	}
 	else if (defType == 2) // interstory drift
 	{
@@ -268,7 +268,6 @@ ThreePointCurve::checkElementState(double springForce)
 		Response *theForces =0;
 		const char *f[1] = {"localForce"};
 
-		Vector *forceVec; //vector of basic forces from beam column
 
 		// set type of beam-column element response desired
 		theForces    = theElement->setResponse(f, 1, dummy);
@@ -278,18 +277,20 @@ ThreePointCurve::checkElementState(double springForce)
 
 		// access the myInfo vector containing the response (new for Version 1.2)
 		Information &theInfo = theForces->getInformation();
-		forceVec = (theInfo.theVector);
 
-	// Local forces (assuming no element loads)
-	if (forType == 0)
-		force = fabs(springForce); //force in associated hysteretic material
-	else if (forType == 1)
-		force = fabs((*forceVec)(1)); //shear
-	else if (forType == 2) //axial
-		force = fabs((*forceVec)(0));
-	else {
-//		g3ErrorHandler->fatal("WARNING ThreePointCurve - force type flag %i not implemented",forType);
-	}
+		// vector of basic forces from beam column
+		Vector& forceVec = (theInfo.theVector);
+
+		// Local forces (assuming no element loads)
+		if (forType == 0)
+			force = fabs(springForce); //force in associated hysteretic material
+		else if (forType == 1)
+			force = fabs((forceVec)(1)); //shear
+		else if (forType == 2) //axial
+			force = fabs((forceVec)(0));
+		else {
+	//		g3ErrorHandler->fatal("WARNING ThreePointCurve - force type flag %i not implemented",forType);
+		}
 
 	// Determine if (deform,force) is outside limit state surface.
 	//

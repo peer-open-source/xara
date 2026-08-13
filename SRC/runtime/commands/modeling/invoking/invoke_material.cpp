@@ -107,20 +107,20 @@ MaterialTest_setStrainSection(ClientData clientData, Tcl_Interp *interp,
            << "expected " << order << " strain values, but got " << argc - 1 << "\n";
     return TCL_ERROR;
   }
-  Vector data(order);
+  double data[9]{};
+  Vector strain(data,order);
   for (int i = 1; i < argc && i < order; ++i) {
-    double strain;
-    if (Tcl_GetDouble(interp, argv[i], &strain) != TCL_OK) {
+    double e;
+    if (Tcl_GetDouble(interp, argv[i], &e) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
-             << "could not read strain: strainSectionTest strain1? "
-                "strain2? ... strainN?"
+             << "could not read strain"
              << "\n";
       return TCL_ERROR;
     }
-    data(i - 1) = strain;
+    strain(i - 1) = e;
   }
 
-  if (theMaterial->setTrialStrain(data) != 0) {
+  if (theMaterial->setTrialStrain(strain) != 0) {
     opserr << OpenSees::PromptValueError 
            << "failed to set trial strain\n";
     return TCL_ERROR;

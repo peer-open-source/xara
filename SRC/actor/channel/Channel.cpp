@@ -37,6 +37,7 @@
 #include <Message.h>
 #include <MovableObject.h>
 #include <FEM_ObjectBroker.h>
+
 int Channel::numChannel = 0;
 
 Channel::Channel ()
@@ -48,22 +49,22 @@ Channel::Channel ()
 Channel::~Channel()
 {
     
-}    
+}
 
 int
-Channel::isDatastore(void)
+Channel::isDatastore()
 {
   return 0;
 }
 
 int
-Channel::getDbTag(void)
+Channel::getDbTag()
 {
   return 0;
 }
 
 int
-Channel::getTag(void)
+Channel::getTag()
 {
 		return tag;
 }

@@ -3176,23 +3176,6 @@ ForceBeamColumn3dThermal::getInitialDeformations(Vector &v0)
 	 }
   }
 
-  OPS_Stream &operator<<(OPS_Stream &s, ForceBeamColumn3dThermal &E)
-  {
-    E.Print(s);
-    return s;
-  }
-
-  int
-  ForceBeamColumn3dThermal::displaySelf(Renderer &theViewer, int displayMode, float fact, const char** displayModes, int numModes)
-  {
-    static Vector v1(3);
-    static Vector v2(3);
-
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-  }
 
   Response*
   ForceBeamColumn3dThermal::setResponse(const char **argv, int argc, OPS_Stream &output)
@@ -3411,28 +3394,28 @@ ForceBeamColumn3dThermal::getInitialDeformations(Vector &v0)
     // section response -
     else if (strcmp(argv[0],"sectionX") == 0) {
       if (argc > 2) {
-	float sectionLoc = atof(argv[1]);
-	
-	double xi[maxNumSections];
-	double L = crdTransf->getInitialLength();
-	beamIntegr->getSectionLocations(numSections, L, xi);
-	
-	sectionLoc /= L;
-	
-	float minDistance = fabs(xi[0]-sectionLoc);
-	int sectionNum = 0;
-	for (int i = 1; i < numSections; i++) {
-	  if (fabs(xi[i]-sectionLoc) < minDistance) {
-	    minDistance = fabs(xi[i]-sectionLoc);
-	    sectionNum = i;
-	  }
-	}
-	
-	output.tag("GaussPointOutput");
-	output.attr("number",sectionNum+1);
-	output.attr("eta",xi[sectionNum]*L);
-	
-	theResponse = sections[sectionNum]->setResponse(&argv[2], argc-2, output);
+        double sectionLoc = atof(argv[1]);
+
+        double xi[maxNumSections];
+        double L = crdTransf->getInitialLength();
+        beamIntegr->getSectionLocations(numSections, L, xi);
+        
+        sectionLoc /= L;
+        
+        double minDistance = fabs(xi[0]-sectionLoc);
+        int sectionNum = 0;
+        for (int i = 1; i < numSections; i++) {
+          if (fabs(xi[i]-sectionLoc) < minDistance) {
+            minDistance = fabs(xi[i]-sectionLoc);
+            sectionNum = i;
+          }
+        }
+        
+        output.tag("GaussPointOutput");
+        output.attr("number",sectionNum+1);
+        output.attr("eta",xi[sectionNum]*L);
+        
+        theResponse = sections[sectionNum]->setResponse(&argv[2], argc-2, output);
       }
     }
 

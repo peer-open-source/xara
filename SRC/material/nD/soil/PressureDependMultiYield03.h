@@ -17,9 +17,9 @@
 #include <Matrix.h>
 #include "soil/T2Vector.h"
 
-class MultiYieldSurface;
 
 namespace OpenSees {
+class MultiYieldSurface;
 
 class PressureDependMultiYield03 : public NDMaterial
 {
@@ -53,15 +53,15 @@ public:
 
 
      // Default constructor
-     PressureDependMultiYield03 ();
+     PressureDependMultiYield03();
 
      // Copy constructor
-     PressureDependMultiYield03 (const PressureDependMultiYield03 &);
+     PressureDependMultiYield03(const PressureDependMultiYield03 &);
 
      // Destructor: clean up memory storage space.
      virtual ~PressureDependMultiYield03 ();
 
-     double getRho(void) {return rhox[matN];} ;
+     double getRho() {return rhox[matN];} ;
 
      // Sets the values of the trial strain tensor.
      int setTrialStrain (const Vector &strain);
@@ -101,7 +101,7 @@ public:
      NDMaterial *getCopy (const char *code);
 
      // Return the string "PressureDependMultiYield03".
-     const char *getType (void) const ;
+     const char *getType () const ;
 
      // Return ndm.
      int getOrder (void) const ;
@@ -169,9 +169,9 @@ private:
      int    activeSurfaceNum;
      int    committedActiveSurf;
      double modulusFactor;
-	 double initPress;
-	 double damage;
-	 double check;
+    double initPress;
+    double damage;
+    double check;
      T2Vector currentStress;
      T2Vector trialStress;
      T2Vector updatedTrialStress;
@@ -208,7 +208,7 @@ private:
      static T2Vector workT2V;
 	 double maxPress;
 
-     void elast2Plast(void);
+     void elast2Plast();
      // Called by constructor
      void setUpSurfaces(double *);
      double yieldFunc(const T2Vector & stress, const MultiYieldSurface * surfaces,

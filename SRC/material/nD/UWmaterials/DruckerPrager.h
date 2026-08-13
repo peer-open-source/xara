@@ -75,7 +75,7 @@ class DruckerPrager : public NDMaterial
   int sendSelf(int commitTag, Channel &theChannel);  
   int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker); 
   
-  void Print(OPS_Stream &s, int flag =0);
+  void Print(OPS_Stream &s, int flag);
   int setParameter(const char **argv, int argc, Parameter &param);
   int updateParameter(int responseID, Information &eleInformation);
 
@@ -133,8 +133,8 @@ class DruckerPrager : public NDMaterial
   void initialize();	// initializes variables
   int  updateElasticParam(); //updated Elastic Parameters based on mean stress 
   
-  //plasticity integration routine
-  void plastic_integrator();
+  // plasticity integration routine
+  int plastic_integrator();
   
   double Kiso(double alpha1);		// isotropic hardening function
   double Kisoprime(double alpha1);	//

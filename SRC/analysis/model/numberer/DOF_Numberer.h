@@ -60,14 +60,16 @@ class DOF_Numberer: public MovableObject
     virtual int numberDOF(int lastDOF_Group = -1);
     virtual int numberDOF(ID &lastDOF_Groups);    
 
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    virtual int sendSelf(int commitTag, Channel &);
+    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+
+    virtual int setProcessID(int processTag) {return -1;}
+    virtual int setChannels(int numChannels, Channel **theChannels) {return -1;}
     
 
   protected:
-    AnalysisModel *getAnalysisModelPtr(void) const;
-    GraphNumberer *getGraphNumbererPtr(void) const;
+    AnalysisModel *getAnalysisModelPtr() const;
+    GraphNumberer *getGraphNumbererPtr() const;
     
   private:
     AnalysisModel *theAnalysisModel;

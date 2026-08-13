@@ -128,8 +128,8 @@ DistributedSparseGenColLinSOE::setSize(Graph& theGraph)
       colStartA = new int[size + 1];
     }
 
-    ID rowAdata(rowA, nnz);
-    ID colStartAdata(colStartA, size + 1);
+    ID rowAdata(rowA, nnz, false);
+    ID colStartAdata(colStartA, size + 1, false);
     theChannel->recvID(0, 0, rowAdata);
     theChannel->recvID(0, 0, colStartAdata);
   }
@@ -253,8 +253,8 @@ DistributedSparseGenColLinSOE::setSize(Graph& theGraph)
     }
 
 
-    ID rowAdata(rowA, nnz);
-    ID colStartAdata(colStartA, size + 1);
+    ID rowAdata(rowA, nnz, false);
+    ID colStartAdata(colStartA, size + 1, false);
 
     for (int j = 0; j < numChannels; j++) {
       Channel* theChannel = theChannels[j];
@@ -288,49 +288,31 @@ DistributedSparseGenColLinSOE::setSize(Graph& theGraph)
 
   factored = false;
 
-  if (size > Bsize) { // we have to get space for the vectors
+  if (size != Bsize) { // we have to get space for the vectors
 
     // delete the old
-    if (B != 0)
-      delete[] B;
-    if (X != 0)
-      delete[] X;
     if (myB != 0)
       delete[] myB;
 
     // create the new
-    B   = new double[size];
-    X   = new double[size];
+    B.resize(size);
+    X.resize(size);
     myB = new double[size];
 
-    if (B == 0 || X == 0 || colStartA == 0 || myB == 0) {
-      opserr << "WARNING SparseGenColLinSOE::SparseGenColLinSOE :";
-      opserr << " ran out of memory for vectors (size) (";
-      opserr << size << ") \n";
-      size   = 0;
-      Bsize  = 0;
-      result = -1;
-    } else
-      Bsize = size;
+    Bsize = size;
   }
 
   // zero the vectors
+  B.Zero();
+  X.Zero();
   for (int j = 0; j < size; j++) {
-    B[j]   = 0;
-    X[j]   = 0;
     myB[j] = 0;
   }
 
   // create new Vectors objects
   if (size != oldSize) {
-    if (vectX != 0)
-      delete vectX;
-
-    if (vectB != 0)
-      delete vectB;
-
-    vectX   = new Vector(X, size);
-    vectB   = new Vector(B, size);
+    X.resize(size);
+    B.resize(size);
     myVectB = new Vector(myB, size);
   }
 
@@ -506,8 +488,8 @@ DistributedSparseGenColLinSOE::solve(void)
       this->LinearSOE::solve();
 
     // receive X,B and result
-    theChannel->recvVector(0, 0, *vectX);
-    theChannel->recvVector(0, 0, *vectB);
+    theChannel->recvVector(0, 0, X);
+    theChannel->recvVector(0, 0, B);
     theChannel->recvID(0, 0, result);
     factored = true;
   }
@@ -519,15 +501,15 @@ DistributedSparseGenColLinSOE::solve(void)
   else {
 
     // add P0 contribution to B
-    *vectB = *myVectB;
+    B = *myVectB;
 
     // receive X and A contribution from subprocess & add them in
     for (int j = 0; j < numChannels; j++) {
 
       // get X & add
       Channel* theChannel = theChannels[j];
-      theChannel->recvVector(0, 0, *vectX);
-      *vectB += *vectX;
+      theChannel->recvVector(0, 0, X);
+      B += X;
 
       if (factored == false) {
         Vector vectA(workArea, nnz);
@@ -559,8 +541,8 @@ DistributedSparseGenColLinSOE::solve(void)
     // send results back
     for (int j = 0; j < numChannels; j++) {
       Channel* theChannel = theChannels[j];
-      theChannel->sendVector(0, 0, *vectX);
-      theChannel->sendVector(0, 0, *vectB);
+      theChannel->sendVector(0, 0, X);
+      theChannel->sendVector(0, 0, B);
 
       theChannel->sendID(0, 0, result);
     }
@@ -579,7 +561,7 @@ DistributedSparseGenColLinSOE::getB(void)
 
     // send B & recv merged B
     theChannel->sendVector(0, 0, *myVectB);
-    theChannel->recvVector(0, 0, *vectB);
+    theChannel->recvVector(0, 0, B);
   }
 
   //
@@ -588,7 +570,7 @@ DistributedSparseGenColLinSOE::getB(void)
 
   else {
 
-    *vectB = *myVectB;
+    B = *myVectB;
 
     Vector remoteB(workArea, size);
     // receive X and A contribution from subprocess & add them in
@@ -597,17 +579,17 @@ DistributedSparseGenColLinSOE::getB(void)
 
       Channel* theChannel = theChannels[j];
       theChannel->recvVector(0, 0, remoteB);
-      *vectB += remoteB;
+      B += remoteB;
     }
 
     // send results back
     for (int j = 0; j < numChannels; j++) {
       Channel* theChannel = theChannels[j];
-      theChannel->sendVector(0, 0, *vectB);
+      theChannel->sendVector(0, 0, B);
     }
   }
 
-  return *vectB;
+  return B;
 }
 
 

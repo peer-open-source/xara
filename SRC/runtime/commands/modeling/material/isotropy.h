@@ -48,7 +48,7 @@ struct IsotropicParse {
 //
 
 int
-TclCommand_setIsotropicParameters(ClientData, Tcl_Interp *, Tcl_Size argc, TCL_Char **argv);
+XaraCmd_setIsotropicParameters(ClientData, Tcl_Interp *, Tcl_Size argc, TCL_Char **argv);
 
 int isotropic_convert(int flag1, double in1,
                          int flag2, double in2,

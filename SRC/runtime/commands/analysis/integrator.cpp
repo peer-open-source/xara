@@ -17,8 +17,10 @@
 //
 #include <Parsing.h>
 #include <Logging.h>
-#include <assert.h>
+#include <OpenSeesVersion.h>
 #include <runtimeAPI.h>
+
+#include <assert.h>
 #include <Domain.h>
 #include <Node.h>
 #include "BasicAnalysisBuilder.h"
@@ -32,6 +34,8 @@
 
 #include <Newmark.h>
 #include <BackwardEuler.h>
+
+using namespace Xara;
 
 //
 // Helpers
@@ -103,14 +107,14 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
                                        TCL_Char ** const argv, Domain *domain);
 
 
-Tcl_CmdProc TclCommand_newStaticIntegrator;
-Tcl_CmdProc TclCommand_newTransientIntegrator;
+static Tcl_CmdProc XaraCmd_newStaticIntegrator;
+static Tcl_CmdProc XaraCmd_newTransientIntegrator;
 
 //
 // Command invoked to select and construct an integrator
 //
 int
-specifyIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+XaraCmd_integrator(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, nullptr);
@@ -121,10 +125,10 @@ specifyIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char 
     return TCL_ERROR;
   }
 
-  if (TclCommand_newStaticIntegrator(clientData, interp, argc, argv) == TCL_OK)
+  if (XaraCmd_newStaticIntegrator(clientData, interp, argc, argv) == TCL_OK)
     return TCL_OK;
 
-  else if (TclCommand_newTransientIntegrator(clientData, interp, argc, argv) == TCL_OK)
+  else if (XaraCmd_newTransientIntegrator(clientData, interp, argc, argv) == TCL_OK)
     return TCL_OK;
 
   else
@@ -132,8 +136,8 @@ specifyIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char 
 
 }
 
-int
-TclCommand_newStaticIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+static int
+XaraCmd_newStaticIntegrator(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
@@ -172,8 +176,11 @@ TclCommand_newStaticIntegrator(ClientData clientData, Tcl_Interp *interp, int ar
     return TCL_ERROR;
 }
 
-int
-TclCommand_newTransientIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+static int
+XaraCmd_newTransientIntegrator(ClientData clientData, 
+                                Tcl_Interp *interp, 
+                                ArgSize argc, 
+                                TCL_Char ** const argv)
 {
   BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
@@ -212,7 +219,7 @@ TclCommand_newTransientIntegrator(ClientData clientData, Tcl_Interp *interp, int
 
 #include <HSConstraint.h>
 int
-G3Parse_newHSIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, const char *argv[])
+G3Parse_newHSIntegrator(ClientData clientData, Tcl_Interp *interp, ArgSize argc, const char *argv[])
 {
   double arcLength, psi_u, psi_f, u_ref;
 
@@ -259,7 +266,7 @@ G3Parse_newHSIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, con
 }
 
 int
-G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, int argc, const char *argv[])
+G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, ArgSize argc, const char *argv[])
 {
   BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
   enum class Position: int {
@@ -274,7 +281,7 @@ G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, int argc, cons
   std::set<int> positional;
 
   double dLambda;
-  double minIncr, maxIncr;
+  double minIncr, maxIncr, exponent = 1.0;
   int numIter;
   if (argc < 3) {
     opserr << "WARNING incorrect # args - integrator LoadControl dlam <Jd "
@@ -316,7 +323,7 @@ G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, int argc, cons
       i++;
       tracker.consume(Position::IterationTarget);
     }
-    else if (strcmp(argv[i], "-min_step") == 0) {
+    else if ((strcmp(argv[i], "-min_step") == 0) || (strcmp(argv[i], "-min-step") == 0)) {
       if (i + 1 >= argc) {
         opserr << OpenSees::PromptValueError 
                << "parameter missing for -min_step"
@@ -333,7 +340,7 @@ G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, int argc, cons
       i++;
       tracker.consume(Position::MinStepSize);
     }
-    else if (strcmp(argv[i], "-max_step") == 0) {
+    else if ((strcmp(argv[i], "-max_step") == 0) || (strcmp(argv[i], "-max-step") == 0)) {
       if (i + 1 >= argc) {
         opserr << OpenSees::PromptValueError 
                << "parameter missing for -max_step"
@@ -349,6 +356,22 @@ G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, int argc, cons
       }
       i++;
       tracker.consume(Position::MaxStepSize);
+    }
+    else if (strcmp(argv[i], "-exponent") == 0) {
+      if (i + 1 >= argc) {
+        opserr << OpenSees::PromptValueError 
+               << "parameter missing for -exponent"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+
+      if (Tcl_GetDouble(interp, argv[i+1], &exponent) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+               << "invalid -exponent value"
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
+      }
+      i++;
     }
     else {
       positional.insert(i);
@@ -404,7 +427,7 @@ G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, int argc, cons
 
 
   StaticIntegrator *theStaticIntegrator =
-    new LoadControl(dLambda, numIter, minIncr, maxIncr);
+    new LoadControl(dLambda, numIter, minIncr, maxIncr, exponent);
 
 
   builder->set(*theStaticIntegrator);
@@ -413,7 +436,7 @@ G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, int argc, cons
 
 #include <EQPath.h>
 StaticIntegrator*
-G3Parse_newEQPathIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, const char *argv[])
+G3Parse_newEQPathIntegrator(ClientData clientData, Tcl_Interp *interp, ArgSize argc, const char *argv[])
 {
     double arcLength;
     int type;
@@ -506,62 +529,71 @@ G3Parse_newArcLengthIntegrator(ClientData clientData, Tcl_Interp *interp,
 StaticIntegrator*
 G3Parse_newMinUnbalDispNormIntegrator(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char ** const argv)
 {
-    if (argc < 3) {
-      opserr << "WARNING integrator MinUnbalDispNorm lambda11 <Jd minLambda1j "
-                "maxLambda1j>\n";
-      return nullptr;
+  if (argc < 3) {
+    opserr << "WARNING integrator MinUnbalDispNorm lambda11 <Jd minLambda1j maxLambda1j>\n";
+    return nullptr;
+  }
+
+  OpenSeesVersion version = GetCompatibilityVersion(interp);
+
+  double lambda11;
+  if (Tcl_GetDouble(interp, argv[2], &lambda11) != TCL_OK) {
+    opserr << OpenSees::PromptValueError << "expected float for lambda11 but got " << argv[2] << "\n";
+    return nullptr;
+  }
+
+  // 
+  // Optional Arguments
+  //
+  enum {
+    NumIter = 1<<1,
+    MinLamb = 1<<2,
+    MaxLamb = 1<<3
+  };
+  int recvd = 0;
+
+  // set defaults
+  double minlambda = lambda11;
+  double maxlambda = lambda11;
+  int numIter = 1;
+  // int signFirstStepMethod = MinUnbalDispNorm::SIGN_LAST_STEP;
+  TrackSign::Type sign_type = TrackSign::Type::DeltaLambdaStep;
+
+  for (int i=3; i < argc; ++i) {
+    if ((strcmp(argv[i], "-determinant") == 0) || 
+      (strcmp(argv[i], "-det") == 0)) {
+      // signFirstStepMethod = MinUnbalDispNorm::CHANGE_DETERMINANT;
+      if (version >= OpenSeesVersion::X1)
+        sign_type = TrackSign::Type::Determinant;
+      else
+        sign_type = TrackSign::Type::DeterminantOpenSees;
     }
-
-    double lambda11;
-    if (Tcl_GetDouble(interp, argv[2], &lambda11) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "expected float for lambda11 but got " << argv[2] << "\n";
-      return nullptr;
+    else if ((strcmp(argv[i], "-det01") == 0)) {
+      sign_type = TrackSign::Type::DeterminantOpenSees;
     }
+    else if ((recvd&NumIter) == 0) {
+      if (Tcl_GetInt(interp, argv[i], &numIter) != TCL_OK)
+        return nullptr;
+      recvd |= NumIter;
 
-    // 
-    // Optional Arguments
-    //
-    enum {
-      NumIter = 1<<1,
-      MinLamb = 1<<2,
-      MaxLamb = 1<<3
-    };
-    int recvd = 0;
+    } else if ((recvd&MinLamb) == 0) {
+      if (Tcl_GetDouble(interp, argv[i], &minlambda) != TCL_OK)
+        return nullptr;
+      recvd |= MinLamb;
 
-    // set defaults
-    double minlambda = lambda11;
-    double maxlambda = lambda11;
-    int numIter = 1;
-    int signFirstStepMethod = MinUnbalDispNorm::SIGN_LAST_STEP;
-
-    for (int i=3; i < argc; ++i) {
-      if ((strcmp(argv[i], "-determinant") == 0) || 
-          (strcmp(argv[i], "-det") == 0)) {
-          signFirstStepMethod = MinUnbalDispNorm::CHANGE_DETERMINANT;
-
-      } else if ((recvd&NumIter) == 0) {
-        if (Tcl_GetInt(interp, argv[i], &numIter) != TCL_OK)
-          return nullptr;
-        recvd |= NumIter;
-
-      } else if ((recvd&MinLamb) == 0) {
-        if (Tcl_GetDouble(interp, argv[i], &minlambda) != TCL_OK)
-          return nullptr;
-        recvd |= MinLamb;
-
-      } else if ((recvd&MaxLamb) == 0) {
-        if (Tcl_GetDouble(interp, argv[i], &maxlambda) != TCL_OK)
-          return nullptr;
-        recvd |= MaxLamb;
-      }
+    } else if ((recvd&MaxLamb) == 0) {
+      if (Tcl_GetDouble(interp, argv[i], &maxlambda) != TCL_OK)
+        return nullptr;
+      recvd |= MaxLamb;
     }
+  }
 
-    return new MinUnbalDispNorm(lambda11, numIter, minlambda,
-                                maxlambda, signFirstStepMethod);
+  return new MinUnbalDispNorm(lambda11, numIter, minlambda,
+                              maxlambda, sign_type);
 }
 
 StaticIntegrator*
-G3Parse_newDisplacementControlIntegrator(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+G3Parse_newDisplacementControlIntegrator(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
     BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
     Domain *domain = builder->getDomain();

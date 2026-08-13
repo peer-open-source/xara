@@ -147,6 +147,223 @@ public:
   {
     MatrixND<6*nn,6*nn> H{};
 
+    static_assert(nn >= 2, "Requires at least two nodes.");
+
+    constexpr int I = 0;
+    constexpr int J = nn - 1;
+
+    const double L = this->getLength();
+
+    const Vector3D m{pw[3], pw[4], pw[5]};
+    const double m1 = m[0];
+
+    constexpr static Vector3D 
+                   e1{1.0, 0.0, 0.0},
+                   e2{0.0, 1.0, 0.0},
+                   e3{0.0, 0.0, 1.0};
+
+    using Row6 = std::array<double,6>;
+
+    auto sigma = [](int node) -> double {
+      if (node == I)
+        return -1.0;
+      if (node == J)
+        return  1.0;
+      return 0.0;
+    };
+
+    auto addGRow = [](Row6& row,
+                      const MatrixND<3,6>& G,
+                      int r,
+                      double scale) {
+      for (int c = 0; c < 6; ++c)
+        row[c] += scale * G(r,c);
+    };
+
+    auto addScaledRow = [](Row6& row,
+                          const Row6& src,
+                          double scale) {
+      for (int c = 0; c < 6; ++c)
+        row[c] += scale * src[c];
+    };
+
+    auto splitX = [](const Row6& row) -> Vector3D {
+      return Vector3D{row[0], row[1], row[2]};
+    };
+
+    auto splitT = [](const Row6& row) -> Vector3D {
+      return Vector3D{row[3], row[4], row[5]};
+    };
+
+    auto lambdaRow = [&](int b, const MatrixND<3,6>& Gw) -> Row6 {
+      Row6 lam{};
+
+      /*
+      * lambda_b = dQ2/Q2
+      *
+      * =
+      * 1/2 delta_bI (nu_I1 theta_3 - rho_I theta_1)
+      * +
+      * 1/2 delta_bJ (nu_J1 theta_3 - rho_J theta_1)
+      * -
+      * n domega_3.
+      */
+      addGRow(lam, Gw, 2, -n);
+
+      if (b == I) {
+        lam[3] += -0.5 * n13;
+        lam[5] +=  0.5 * n11;
+      }
+      else if (b == J) {
+        lam[3] += -0.5 * n23;
+        lam[5] +=  0.5 * n21;
+      }
+
+      return lam;
+    };
+
+    auto directorRows = [&](int K,
+                            int b,
+                            const MatrixND<3,6>& Gw,
+                            const Row6& lam,
+                            Row6& dnu1,
+                            Row6& dnu2) {
+      dnu1 = {};
+      dnu2 = {};
+
+      double nu1 = 0.0;
+      double nu2 = 0.0;
+      double rho = 0.0;
+
+      if (K == I) {
+        nu1 = n11;
+        nu2 = n12;
+        rho = n13;
+      }
+      else {
+        nu1 = n21;
+        nu2 = n22;
+        rho = n23;
+      }
+
+      /*
+      * d nu_1 =
+      * delta_bK(theta_2 rho - theta_3 nu_2)
+      * - (omega_2 rho - omega_3 nu_2)
+      * - nu_1 lambda.
+      */
+      if (b == K) {
+        dnu1[4] +=  rho;
+        dnu1[5] += -nu2;
+      }
+
+      addGRow(dnu1, Gw, 1, -rho);
+      addGRow(dnu1, Gw, 2,  nu2);
+      addScaledRow(dnu1, lam, -nu1);
+
+      /*
+      * d nu_2 =
+      * delta_bK(theta_3 nu_1 - theta_1 rho)
+      * - (omega_3 nu_1 - omega_1 rho)
+      * - nu_2 lambda.
+      */
+      if (b == K) {
+        dnu2[5] +=  nu1;
+        dnu2[3] += -rho;
+      }
+
+      addGRow(dnu2, Gw, 2, -nu1);
+      addGRow(dnu2, Gw, 0,  rho);
+      addScaledRow(dnu2, lam, -nu2);
+    };
+
+    /*
+    * B = ([e1]_x - n e1 e3^T) / L.
+    *
+    * B^T m = [ 0,
+    *           m3/L,
+    *          -(m2 + n m1)/L ].
+    */
+    const Vector3D Btm{
+      0.0,
+      m[2] / L,
+      -(m[1] + n*m[0]) / L
+    };
+
+    const int end_nodes[2] = {I, J};
+
+    for (int ib = 0; ib < 2; ++ib) {
+      const int b = end_nodes[ib];
+      const double sb = sigma(b);
+
+      const MatrixND<3,6> Gw = this->getRotationGradient(b);
+      const Row6 lam = lambdaRow(b, Gw);
+
+      Row6 dI1{}, dI2{};
+      Row6 dJ1{}, dJ2{};
+
+      directorRows(I, b, Gw, lam, dI1, dI2);
+      directorRows(J, b, Gw, lam, dJ1, dJ2);
+
+      //
+      // dn = 1/2 (d nu_I1 + d nu_J1).
+      //
+      Row6 dn{};
+      for (int c = 0; c < 6; ++c)
+        dn[c] = 0.5 * (dI1[c] + dJ1[c]);
+
+      const Vector3D dnx = splitX(dn);
+      const Vector3D dnt = splitT(dn);
+
+      for (int ia = 0; ia < 2; ++ia) {
+        const int a = end_nodes[ia];
+        const double sa = sigma(a);
+
+        Matrix3D Hxx{};
+        Matrix3D Hxt{};
+        Matrix3D Htx{};
+        Matrix3D Htt{};
+
+        /*
+        * Common aligned-family translational-row blocks:
+        *
+        * H_ab^{xx}
+        * =
+        * -sigma_a [
+        *   sigma_b/L (B^T m) e1^T
+        *   + m1/L e3 dn_x^T
+        * ].
+        *
+        * H_ab^{x theta} = -sigma_a m1/L e3 dn_theta^T.
+        */
+        Hxx.addTensorProduct(Btm, e1, -sa * sb / L);
+        Hxx.addTensorProduct(e3, dnx, -sa * m1 / L);
+
+        Hxt.addTensorProduct(e3, dnt, -sa * m1 / L);
+
+        //
+        // Battini rotational-row blocks:
+        //
+        // H_Kb^{theta x} = 1/2 m1 (e1 dnu_K2_x^T - e2 dnu_K1_x^T)
+        //
+        // H_Kb^{theta theta}  = 1/2 m1 (e1 dnu_K2_theta^T - e2 dnu_K1_theta^T).
+        //
+        const Row6& dK1 = (a == I) ? dI1 : dJ1;
+        const Row6& dK2 = (a == I) ? dI2 : dJ2;
+
+
+        Htx.addTensorProduct(e1, splitX(dK2),  0.5 * m1);
+        Htx.addTensorProduct(e2, splitX(dK1), -0.5 * m1);
+
+        Htt.addTensorProduct(e1, splitT(dK2),  0.5 * m1);
+        Htt.addTensorProduct(e2, splitT(dK1), -0.5 * m1);
+
+        H.assemble(Hxx, 6*a + 0, 6*b + 0, 1.0);
+        H.assemble(Hxt, 6*a + 0, 6*b + 3, 1.0);
+        H.assemble(Htx, 6*a + 3, 6*b + 0, 1.0);
+        H.assemble(Htt, 6*a + 3, 6*b + 3, 1.0);
+      }
+    }
 
     return H;
   }

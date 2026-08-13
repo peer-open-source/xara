@@ -68,7 +68,6 @@ while opensees is writing data. Warning: this is a new feature in hdf5 version 1
 #include "Channel.h"
 #include "Domain.h"
 #include "OPS_Globals.h"
-#include "elementAPI.h"
 #include "ID.h"
 #include "Pressure_ConstraintIter.h"
 #include "Pressure_Constraint.h"
@@ -2151,7 +2150,7 @@ namespace mpco {
 				/*
 				for each mode
 				*/
-				int num_eigen = *OPS_GetNumEigen();
+				int num_eigen = 0; // TODO(cmp) *OPS_GetNumEigen();
 				for (int k = 0; k < num_eigen; k++) {
 					/*
 					buffer response
@@ -4912,6 +4911,7 @@ int MPCORecorder::initialize()
 	hid_t h_gp_info = h5::group::create(m_data->info.h_file_id, "INFO", H5P_DEFAULT, m_data->info.h_group_proplist, H5P_DEFAULT);
 	hid_t h_dset_solvername = h5::dataset::createAndWrite(h_gp_info, "SOLVER_NAME", "OpenSees");
 	status = h5::dataset::close(h_dset_solvername);
+#if 0
 	{
 		std::vector<std::string> version_tokens;
 		utils::strings::split(OPS_VERSION, '.', version_tokens, true);
@@ -4929,6 +4929,7 @@ int MPCORecorder::initialize()
 			status = h5::dataset::close(h_dset_version);
 		}
 	}
+#endif
 	hid_t h_dset_dim = h5::dataset::createAndWrite(h_gp_info, "SPATIAL_DIM", m_data->info.num_dimensions);
 	status = h5::dataset::close(h_dset_dim);
 	status = h5::group::close(h_gp_info);
@@ -5749,6 +5750,8 @@ int MPCORecorder::writeSections()
 			}
 		}
 	}
+
+#if 0
 	/*
 	here we call the OPS_GetSectionForceDeformation to get the class name. This is not necessary, just to
 	give the user more information about the written sections. warning: in this method (writeSections())
@@ -5783,6 +5786,7 @@ int MPCORecorder::writeSections()
 			*/
 		}
 	}
+#endif
 	/*
 	let's find the largest section tag from sec_assignments.
 	note: we are using std::map, which is sorted with the default comparator (std::less),
@@ -6367,7 +6371,8 @@ int MPCORecorder::clearElementRecorders()
 	return 0;
 }
 
-int MPCORecorder::recordResultsOnNodes()
+int
+MPCORecorder::recordResultsOnNodes()
 {
 #ifdef MPCO_TIMING
 	mpco::Timer timer("recordResultsOnNodes"); timer.start();
@@ -6387,7 +6392,7 @@ int MPCORecorder::recordResultsOnNodes()
 	some preprocessing before recording modes of vibration.
 	*/
 	m_data->info.record_eigen_on_this_step = false;
-	int num_eigen = *OPS_GetNumEigen();
+	int num_eigen = 0; // TODO(cmp) *OPS_GetNumEigen();
 	if (num_eigen > 0) { 
 		/*
 		only if we have eigenvalues
@@ -6645,15 +6650,16 @@ MPCORecorder generator
 
 **************************************************************************************/
 
-/* static class instance counter */
-static int mpco_recorder_counter = 0;
 
-void* OPS_MPCORecorder() 
+#include "elementAPI.h"
+void* OPS_ADD_RUNTIME_VPV(OPS_MPCORecorder) 
 {
+
+	static int mpco_recorder_counter = 0;
 	// on first call
 	if (mpco_recorder_counter == 0) {
 		mpco_recorder_counter++;
-		opserr << 
+		opslog << 
 			"MPCO recorder - Written by ASDEA Software Technology: M.Petracca, G.Camata\n"
 			"ASDEA Software Technology: https://asdeasoft.net \n"
 			"STKO (Scientific ToolKit for OpenSees): https://asdeasoft.net/stko/ \n"

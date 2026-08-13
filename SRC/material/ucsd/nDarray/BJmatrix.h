@@ -90,7 +90,7 @@ class BJmatrix : public nDarray
       BJmatrix(int rank, int mrows, int columns, double *initvalues);
       BJmatrix(int rank, int mrows, int columns, double initvalues);
 
-      BJmatrix(char *flag, int dimension ); // create an ident BJmatrix
+      BJmatrix(const char *flag, int dimension ); // create an ident BJmatrix
       BJmatrix(char *matfile); // read from a "standard" BJmatrix file
       BJmatrix(char *matfile, char *outfile); // read from a flat BJmatrix file
                                             // and write test output to another mat file

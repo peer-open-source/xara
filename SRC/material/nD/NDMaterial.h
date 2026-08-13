@@ -38,30 +38,18 @@
 // Revision: A
 //
 #include <cassert>
+#include <Domain.h>
 #include <TaggedObject.h>
 #include <MovableObject.h>
+#include <MaterialBuilder.h>
 class Matrix;
 class ID;
 class Vector;
 class Information;
 class Response;
-namespace OpenSees {
-class FrameMaterial;
-}
+class Domain;
 
 using namespace OpenSees;
-class NDMaterial;
-
-class MaterialBuilder: public TaggedObject
-{
-  public:
-    MaterialBuilder(int tag): TaggedObject(tag) {};
-    virtual ~MaterialBuilder() {};
-
-    virtual NDMaterial *getCopy(const char *type) =0;
-    virtual FrameMaterial* getFrameFiber() {return nullptr;}
-};
-
 
 class NDMaterial : public MaterialBuilder, public MovableObject
 {
@@ -69,6 +57,8 @@ class NDMaterial : public MaterialBuilder, public MovableObject
     NDMaterial(int tag, int classTag);
     NDMaterial();
     virtual ~NDMaterial();
+
+    int setDomain(Domain *domain) {m_domain = domain; return 0;}
 
     virtual NDMaterial *getCopy() = 0;
     virtual NDMaterial *getCopy(const char *type) override;
@@ -101,8 +91,10 @@ class NDMaterial : public MaterialBuilder, public MovableObject
     virtual const char *getType() const = 0;
     virtual int getOrder() const {return 0;};  //??
 
-    virtual Response *setResponse (const char **argv, int argc, OPS_Stream &);
-    virtual int getResponse (int responseID, Information &);
+    virtual Response *setResponse(const char **argv, int argc, OPS_Stream &);
+    virtual int getResponse(int responseID, Information &);
+
+    void Print(OPS_Stream &s, int flag) override;
 
     // Sensitivity
     virtual const Vector & getStressSensitivity         (int gradIndex, bool conditional);
@@ -113,9 +105,26 @@ class NDMaterial : public MaterialBuilder, public MovableObject
     virtual double         getRhoSensitivity            (int gradIndex);
     virtual int            commitSensitivity            (const Vector & strainGradient, int gradIndex, int numGrads);
 
+  
+
+  protected:
+    int getCharacteristicLength(double& l) const { l = c_length; return c_length_set ? 0 : -1;}
+    int getTimeStep(double& dt) const { 
+      if (m_domain) {
+        dt = m_domain->getDT();
+        return 0;
+      } else {
+        return -1;
+      }
+    }
+
   private:
     static Matrix errMatrix;
     static Vector errVector;
+    double c_length = 0.0;     // characteristic length for nonlocal damage models
+    bool c_length_set = false; // flag to indicate if characteristic length has been set
+
+    Domain *m_domain = nullptr; // pointer to the domain in which the material is used
 };
 
 #endif

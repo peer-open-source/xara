@@ -6,46 +6,27 @@
 #==============================================================================
 #
 
-target_sources(OPS_Runtime PRIVATE
+
+add_library(Xara_CommandInterface INTERFACE)
+
+target_include_directories(Xara_CommandInterface INTERFACE 
+  ${OPS_SRC_DIR}/runtime/commands
+  ${OPS_SRC_DIR}/runtime/parsing
+  ${OPS_SRC_DIR}/runtime/runtime
+  ${OPS_SRC_DIR}/runtime/interpreter
+  ${OPS_SRC_DIR}/logging/
+  ${OPS_SRC_DIR}
+)
+
+
+
+target_sources(XaraCmds_General PRIVATE
 # Interpreter
-    "interpreter.cpp"
+    "general.cpp"
     "pragma.cpp"
     "packages.cpp"
     "parallel/sequential.cpp"
-
-# Modeling
-    "modeling/model.cpp"
-    "modeling/nodes.cpp"
-    "modeling/constraint.cpp"
-    "modeling/geomTransf.cpp"
-    
-    "modeling/section.cpp"
-    "modeling/section/shell.cpp"
-    "modeling/section/plane.cpp"
-    "modeling/section/frame.cpp"
-    "modeling/section/truss.cpp"
-
-    "modeling/printing.cpp"
-
-    "modeling/utilities/blockND.cpp"
-    "modeling/utilities/Block2D.cpp"
-    "modeling/utilities/Block3D.cpp"
-
-    "modeling/invoking/invoke.cpp"
-    "modeling/invoking/invoke_uniaxial.cpp"
-    "modeling/invoking/invoke_section.cpp"
-    "modeling/invoking/invoke_stress.cpp"
-
-# Analysis
-    "analysis/algorithm.cpp"
-    "analysis/integrator.cpp"
-    "analysis/transient.cpp"
-    "analysis/analysis.cpp"
-    "analysis/numberer.cpp"
-    "analysis/ctest.cpp"
-    "analysis/solver.cpp"
-    "analysis/solver.hpp"
-    "analysis/sensitivity.cpp"
+    # "parallel/machine.cpp"
 
 # Utilities
     "utilities/utilities.cpp"
@@ -54,9 +35,7 @@ target_sources(OPS_Runtime PRIVATE
 )
 
 add_subdirectory(domain)
-add_subdirectory(parallel)
-add_subdirectory(analysis/modal)
+add_subdirectory(general)
+add_subdirectory(analysis)
 add_subdirectory(modeling)
 
-target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-target_include_directories(OPS_Runtime PUBLIC ${CMAKE_CURRENT_LIST_DIR}/modeling)

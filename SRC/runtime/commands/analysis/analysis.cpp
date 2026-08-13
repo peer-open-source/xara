@@ -56,32 +56,21 @@
 #include <numberer/PlainNumberer.h>
 #include "analysis.h"
 
-
-// extern int OPS_ResponseSpectrumAnalysis(G3_Runtime*);
-extern "C" int OPS_ResetInputNoBuilder(ClientData clientData,
-                                       Tcl_Interp *interp, int cArg, int mArg,
-                                       TCL_Char ** const argv, Domain *domain);
-
-Tcl_CmdProc TclCommand_clearAnalysis;
-extern Tcl_CmdProc TclCommand_setNumberer;
-extern Tcl_CmdProc TclCommand_runNumberer;
-namespace OpenSees {
-Tcl_CmdProc responseSpectrumAnalysis;
-}
+using namespace Xara;
 
 
 //
 // Add commands to the interpreter that take the AnalysisBuilder as clientData.
 //
 int
-G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
+XaraInit_AnalysisCommands(Tcl_Interp *interp, ModelRegistry& context)
 {
   BasicAnalysisBuilder *analysis = new BasicAnalysisBuilder(context);
   Tcl_CreateCommand(interp, "wipeAnalysis", &wipeAnalysis, analysis, nullptr);
   Tcl_CreateCommand(interp, "_clearAnalysis", &TclCommand_clearAnalysis, analysis, nullptr);
 
-  Tcl_CreateCommand(interp, "numberer",   TclCommand_setNumberer, analysis, nullptr);
-  Tcl_CreateCommand(interp, "number",     TclCommand_runNumberer, analysis, nullptr);
+  Tcl_CreateCommand(interp, "numberer",   XaraCmd_numberer, analysis, nullptr);
+  Tcl_CreateCommand(interp, "number",     XaraCmd_number, analysis, nullptr);
 
   Tcl_CreateCommand(interp, "responseSpectrumAnalysis", &OpenSees::responseSpectrumAnalysis, nullptr, nullptr);
 
@@ -100,8 +89,10 @@ G3_AddTclAnalysisAPI(Tcl_Interp *interp, ModelRegistry& context)
 // command invoked to build an Analysis object
 //
 static int
-specifyAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-                TCL_Char ** const argv)
+XaraCmd_analysis(ClientData clientData,
+                 Tcl_Interp *interp, 
+                 ArgSize argc,
+                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
@@ -134,14 +125,16 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   }
 
   else if (((strcmp(argv[1], "VariableTimeStepTransient") == 0) ||
-          (strcmp(argv[1], "TransientWithVariableTimeStep") == 0) ||
-          (strcmp(argv[1], "VariableTransient") == 0))) {
-    opserr << OpenSees::PromptValueError << "Unimplemented\n";
-    return TCL_ERROR;
-
+            (strcmp(argv[1], "TransientWithVariableTimeStep") == 0) ||
+            (strcmp(argv[1], "VariableTransient") == 0))) {
+    // opserr << OpenSees::PromptValueError << "Unimplemented\n";
+    // return TCL_ERROR;
+    builder->setTransientAnalysis();
+    return TCL_OK;
   }
   else {
-    opserr << OpenSees::PromptValueError << "Analysis type '" << argv[1]
+    opserr << OpenSees::PromptValueError
+           << "Analysis type '" << argv[1]
            << "' does not exists (Static or Transient only). \n";
     return TCL_ERROR;
   }
@@ -149,13 +142,16 @@ specifyAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   return TCL_OK;
 }
 
+
 //
 // Command invoked to build the model, i.e. to invoke analyze()
 // on the Analysis object
 //
 static int
-analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-             TCL_Char ** const argv)
+XaraCmd_analyze(ClientData clientData, 
+                Tcl_Interp *interp, 
+                ArgSize argc,
+                TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
@@ -181,6 +177,13 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       else if (strcmp(argv[i], "iteration") == 0) {
         commit = BasicAnalysisBuilder::Iterate;
       }
+      else if (strcmp(argv[i], "update") == 0) {
+        commit = BasicAnalysisBuilder::Update;
+      }
+      else {
+        opserr << OpenSees::PromptValueError << "invalid operation key: " << argv[i] << "\n";
+        return TCL_ERROR;
+      }
     }
   }
 
@@ -188,7 +191,9 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     case BasicAnalysisBuilder::STATIC_ANALYSIS: {
       int numIncr;
       if (argc < 2) {
-        opserr << OpenSees::PromptValueError << "static analysis: analysis numIncr?\n";
+        opserr << OpenSees::PromptValueError
+               << "Missing required arguments for static analysis"
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
 
@@ -199,10 +204,12 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
       break;
     }
     case BasicAnalysisBuilder::TRANSIENT_ANALYSIS: {
+      // analysis numIncr? deltaT? <dtMin? dtMax? Jd?>
       double dT;
       int numIncr;
       if (argc < 3) {
-        opserr << OpenSees::PromptValueError << "transient analysis: analysis numIncr? deltaT?\n";
+        opserr << OpenSees::PromptValueError 
+               << "Missing required arguments for transient analysis\n";
         return TCL_ERROR;
       }
       if (Tcl_GetInt(interp, argv[1], &numIncr) != TCL_OK)
@@ -233,8 +240,8 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
         }
 
         result = builder->analyzeVariable(numIncr, dT, dtMin, dtMax, Jd);
-
-      } else {
+      }
+      else {
         result = builder->analyze(numIncr, dT, commit);
       }
       break;
@@ -253,7 +260,7 @@ analyzeModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
 static int
-initializeAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+initializeAnalysis(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                    TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -266,9 +273,9 @@ initializeAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
 static int
-eigenAnalysis(ClientData clientData,
+XaraCmd_eigen(ClientData clientData,
               Tcl_Interp *interp, 
-              Tcl_Size argc,
+              ArgSize argc,
               TCL_Char ** const argv)
 {
 
@@ -392,7 +399,7 @@ eigenAnalysis(ClientData clientData,
 // TODO: Move this to commands/modeling/damping.cpp? ...but it uses and
 // AnalysisBuilder
 static int
-modalDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_modalDamping(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -401,7 +408,8 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
   if (argc < 2) {
     opserr
-        << OpenSees::PromptValueError << argv[0] << " ?factor - not enough arguments to command\n";
+        << OpenSees::PromptValueError 
+        << argv[0] << " ?factor - not enough arguments to command\n";
     return TCL_ERROR;
   }
 
@@ -475,8 +483,109 @@ modalDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   return TCL_OK;
 }
 
+
 static int
-resetModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_damping(ClientData clientData, 
+                Tcl_Interp *interp, ArgSize argc,
+                TCL_Char ** const argv)
+{
+  assert(clientData != nullptr);
+  BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
+  if (argc < 2) {
+    opserr << OpenSees::PromptValueError
+           << "Missing required argument: damping type\n";
+    return TCL_ERROR;
+  }
+
+  if (strcmp(argv[1], "Modal") == 0) {
+    int numEigen = builder->getNumEigen();
+
+    if (argc < 3) {
+      opserr
+          << OpenSees::PromptValueError 
+          << argv[0] << " ?factor - not enough arguments to command\n";
+      return TCL_ERROR;
+    }
+
+    int numModes = argc - 2;
+
+    if (numEigen == 0) {
+      opserr << G3_WARN_PROMPT 
+            << "- " << argv[0] << " - eigen command should be called first\n";
+
+      numEigen = numModes;
+      builder->newEigenAnalysis(EigenSOE_TAGS_ArpackSOE, 0.0);
+      builder->eigen(numModes, true, true);
+      // return TCL_ERROR;
+    }
+
+    /* 
+     * "quick" modal damping adds modal damping forces to the right-hand side,
+     * but does not add modal damping terms to the dynamic tangent.
+     *
+     * see https://portwooddigital.com/2022/11/08/quick-and-dirty-modal-damping/
+     */
+    bool do_tangent = true;
+    if (strcmp(argv[0], "modalDampingQ") == 0)
+      do_tangent = false;
+
+    double factor = 0;
+    Vector modalDampingValues(numEigen);
+
+    if (numModes != 1 && numModes != numEigen) {
+      // TODO: Just call eigen again?
+      opserr << OpenSees::PromptValueError 
+            << "same number of damping factors as modes must be "
+                "specified\n";
+  //  opserr << " same damping ratio will be applied to all\n";
+      return TCL_ERROR;
+    }
+
+    //
+    // read in values and set factors
+    //
+    if (numModes == numEigen) {
+
+      // read in all factors one at a time
+      for (int i = 0; i < numEigen; ++i) {
+        if (Tcl_GetDouble(interp, argv[1 + i], &factor) != TCL_OK) {
+          opserr << OpenSees::PromptValueError << "could not read factor at position "
+                << i << "\n";
+          return TCL_ERROR;
+        }
+        modalDampingValues[i] = factor;
+      }
+
+    } else {
+      //  read in one & set all factors to that value
+      if (Tcl_GetDouble(interp, argv[1], &factor) != TCL_OK) {
+        opserr << OpenSees::PromptValueError 
+              << "rayleigh alphaM? betaK? betaK0? betaKc? - could not "
+                  "read betaK? \n";
+        return TCL_ERROR;
+      }
+
+      for (int i = 0; i < numEigen; ++i)
+        modalDampingValues[i] = factor;
+    }
+
+    // set factors in domain
+    Domain *theDomain = builder->getDomain();
+    assert(theDomain != nullptr);
+
+    theDomain->setModalDampingFactors(&modalDampingValues, do_tangent);
+    return TCL_OK;
+  }
+  else {
+    opserr << OpenSees::PromptValueError
+           << "Unknown damping type: " << argv[1] << "\n";
+    return TCL_ERROR;
+  }
+}
+
+
+static int
+resetModel(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
@@ -494,7 +603,7 @@ resetModel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char **
 
 
 int
-printIntegrator(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+printIntegrator(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                 TCL_Char ** const argv, OPS_Stream &output)
 {
   assert(clientData != nullptr);
@@ -511,7 +620,8 @@ printIntegrator(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   int flag = 0;
   if (argc > 2) {
     if (Tcl_GetInt(interp, argv[eleArg], &flag) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "print algorithm failed to get integer flag: \n";
+      opserr << OpenSees::PromptValueError 
+             << "print algorithm failed to get integer flag: \n";
       opserr << argv[eleArg] << "\n";
       return TCL_ERROR;
     }
@@ -525,7 +635,7 @@ printIntegrator(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 }
 
 static int
-printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_printA(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   // printA <filename> - m <double> -c <double> -k <double>
   assert(clientData != nullptr);
@@ -561,7 +671,7 @@ printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
         (strcmp(argv[currentArg], "-file") == 0)) {
       currentArg++;
       if (currentArg == argc) {
-        opserr << G3_WARN_PROMPT << "-file missing argument\n";
+        opserr << OpenSees::PromptValueError << "-file missing argument\n";
         return TCL_ERROR;
       }
 
@@ -692,7 +802,7 @@ printA(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
 }
 
 static int
-printB(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_printB(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
@@ -709,7 +819,8 @@ printB(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
         (strcmp(argv[currentArg], "-file") == 0)) {
       currentArg++;
       if (currentArg == argc) {
-        opserr << G3_WARN_PROMPT << "-file missing argument\n";
+        opserr << OpenSees::PromptValueError
+               << "-file missing argument\n";
         return TCL_ERROR;
       }
 
@@ -733,7 +844,8 @@ printB(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
     builder->formUnbalance();
 
     if (theSOE->getNumEqn() == 0) {
-      opserr << OpenSees::PromptValueError << "System of equations is empty\n";
+      opserr << OpenSees::PromptValueError 
+             << "System of equations is empty\n";
       return TCL_ERROR;
     }
 
@@ -757,7 +869,7 @@ printB(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
 
 // This is removed from the Tcl_Interp in model.cpp
 extern int
-TclCommand_clearAnalysis(ClientData cd, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+TclCommand_clearAnalysis(ClientData cd, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
 
   if (cd != nullptr) {
@@ -777,7 +889,7 @@ TclCommand_clearAnalysis(ClientData cd, Tcl_Interp *interp, Tcl_Size argc, TCL_C
 }
 
 static int
-wipeAnalysis(ClientData cd, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+wipeAnalysis(ClientData cd, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   if (cd != nullptr) {
     BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)cd;
@@ -791,8 +903,10 @@ wipeAnalysis(ClientData cd, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const
 // command invoked to allow the ConstraintHandler object to be built
 //
 static int
-specifyConstraintHandler(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-                         TCL_Char ** const argv)
+XaraCmd_constraints(ClientData clientData, 
+                    Tcl_Interp *interp, 
+                    ArgSize argc,
+                    TCL_Char ** const argv)
 {
   
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;

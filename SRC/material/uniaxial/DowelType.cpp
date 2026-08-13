@@ -1464,7 +1464,7 @@ void DowelType::Print(OPS_Stream &s, int flag)
     }
     if (flag == OPS_PRINT_PRINTMODEL_JSON) {
         s << "\t\t\t{" << "\n";
-        s << "\t\t\t\t\"tag\": " << this->getTag() << "," << "\n";
+        s << "\t\t\t\t\"name\": " << this->getTag() << "," << "\n";
         s << "\t\t\t\t\"Fi\": " << fi << "," << "\n";
         s << "\t\t\t\t\"Kp\": " << kp << "," << "\n";
         s << "\t\t\t\t\"Ru\": " << ru << "," << "\n";

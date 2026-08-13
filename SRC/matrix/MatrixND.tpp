@@ -35,7 +35,7 @@ MatrixND<nr, nc, T>::zero() noexcept
 }
 
 template <index_t nr, index_t nc, typename T>
-const double
+double
 MatrixND<nr, nc, T>::norm() const noexcept
 {
   double sum = 0.0;

@@ -36,7 +36,8 @@
 #include <Vector.h> // TODO: remove this include
 #include <TaggedObject.h>
 #include <MovableObject.h>
-// #include <Material.h>
+#include <MaterialBuilder.h>
+
 class ID;
 class Vector;
 class Matrix;
@@ -70,15 +71,15 @@ class UniaxialMaterial :  public TaggedObject, public MovableObject
     virtual int revertToStart() = 0;        
     
     virtual UniaxialMaterial *getCopy() = 0;
-    virtual UniaxialMaterial *getCopy(SectionForceDeformation *s);
+    // virtual UniaxialMaterial *getCopy(SectionForceDeformation *s);
 
 
     // method for this material to update itself according to its new parameters
     virtual void update() {return;}
 
     
-    virtual Response *setResponse (const char **argv, int argc, OPS_Stream &output);
-    virtual int getResponse(int responseID, Information &matInformation);
+    virtual Response *setResponse(const char **argv, int argc, OPS_Stream &);
+    virtual int getResponse(int responseID, Information &);
     virtual bool hasFailed() {return false;}
 
     // AddingSensitivity:BEGIN //////////////////////////////////////////
@@ -93,8 +94,6 @@ class UniaxialMaterial :  public TaggedObject, public MovableObject
     // AddingSensitivity:END ///////////////////////////////////////////
 	  // by SAJalali
     virtual double getEnergy() { return 0; }
-
- private:
 };
 
 #endif

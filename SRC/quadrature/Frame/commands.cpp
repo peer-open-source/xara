@@ -108,18 +108,19 @@ GetBeamIntegration(TCL_Char* type, int n)
 }
 
 extern int
-TclCommand_addBeamIntegration(ClientData clientData, Tcl_Interp *interp,
-                              int argc, TCL_Char ** const argv)
+XaraCmd_beamIntegration(ClientData context, 
+                        Tcl_Interp *interp,
+                        ArgSize argc, TCL_Char ** const argv)
 {
-  assert(clientData != nullptr);
-  ModelRegistry* builder = (ModelRegistry*)clientData;
+  assert(context != nullptr);
+  ModelRegistry* builder = (ModelRegistry*)context;
 
   if (argc < 2) {
     opserr << OpenSees::PromptValueError << "want beamIntegration type tag...\n";
     return TCL_ERROR;
   }
 
-  OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, nullptr);
+  OPS_ResetInputNoBuilder(context, interp, 2, argc, argv, nullptr);
 
   int iTag;
   ID secTags;

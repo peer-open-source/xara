@@ -2490,7 +2490,7 @@ ForceBeamColumn2dThermal::setResponse(const char **argv, int argc, OPS_Stream &o
     // section response -
   } else if (strstr(argv[0],"sectionX") != 0) {
     if (argc > 2) {
-      float sectionLoc = atof(argv[1]);
+      double sectionLoc = atof(argv[1]);
 
       double xi[maxNumSections];
       double L = crdTransf->getInitialLength();
@@ -2498,26 +2498,26 @@ ForceBeamColumn2dThermal::setResponse(const char **argv, int argc, OPS_Stream &o
       
       sectionLoc /= L;
 
-      float minDistance = fabs(xi[0]-sectionLoc);
+      double minDistance = fabs(xi[0]-sectionLoc);
       int sectionNum = 0;
       for (int i = 1; i < numSections; i++) {
-	if (fabs(xi[i]-sectionLoc) < minDistance) {
-	  minDistance = fabs(xi[i]-sectionLoc);
-	  sectionNum = i;
-	}
-	  }
+        if (fabs(xi[i]-sectionLoc) < minDistance) {
+          minDistance = fabs(xi[i]-sectionLoc);
+          sectionNum = i;
+        }
+      }
 
       output.tag("GaussPointOutput");
       output.attr("number",sectionNum+1);
       output.attr("eta",xi[sectionNum]*L);
       
       if (strcmp(argv[2],"dsdh") != 0) {
-	theResponse = sections[sectionNum]->setResponse(&argv[2], argc-2, output);
+        theResponse = sections[sectionNum]->setResponse(&argv[2], argc-2, output);
       } else {
-	int order = sections[sectionNum]->getOrder();
-	theResponse = new ElementResponse(this, 76, Vector(order));
-	Information &info = theResponse->getInformation();
-	info.theInt = sectionNum;
+        int order = sections[sectionNum]->getOrder();
+        theResponse = new ElementResponse(this, 76, Vector(order));
+        Information &info = theResponse->getInformation();
+        info.theInt = sectionNum;
       }
     }
   }
@@ -2531,54 +2531,53 @@ ForceBeamColumn2dThermal::setResponse(const char **argv, int argc, OPS_Stream &o
 
       if (sectionNum > 0 && sectionNum <= numSections && argc > 2) {
 
-	double xi[maxNumSections];
-	double L = crdTransf->getInitialLength();
-	beamIntegr->getSectionLocations(numSections, L, xi);
+        double xi[maxNumSections];
+        double L = crdTransf->getInitialLength();
+        beamIntegr->getSectionLocations(numSections, L, xi);
 
-	output.tag("GaussPointOutput");
-	output.attr("number",sectionNum);
-	output.attr("eta",xi[sectionNum-1]*L);
-	
-	if (strcmp(argv[2],"dsdh") != 0) {
-	  theResponse = sections[sectionNum-1]->setResponse(&argv[2], argc-2, output);
-	} else {
-	  int order = sections[sectionNum-1]->getOrder();
-	  theResponse = new ElementResponse(this, 76, Vector(order));
-	  Information &info = theResponse->getInformation();
-	  info.theInt = sectionNum;
-	}
+        output.tag("GaussPointOutput");
+        output.attr("number",sectionNum);
+        output.attr("eta",xi[sectionNum-1]*L);
+        
+        if (strcmp(argv[2],"dsdh") != 0) {
+          theResponse = sections[sectionNum-1]->setResponse(&argv[2], argc-2, output);
+        } else {
+          int order = sections[sectionNum-1]->getOrder();
+          theResponse = new ElementResponse(this, 76, Vector(order));
+          Information &info = theResponse->getInformation();
+          info.theInt = sectionNum;
+        }
 
-	output.endTag();
+        output.endTag();
 
       } else if (sectionNum == 0) { // argv[1] was not an int, we want all sections, 
 
-	CompositeResponse *theCResponse = new CompositeResponse();
-	int numResponse = 0;
-	double xi[maxNumSections];
-	double L = crdTransf->getInitialLength();
-	beamIntegr->getSectionLocations(numSections, L, xi);
+        CompositeResponse *theCResponse = new CompositeResponse();
+        int numResponse = 0;
+        double xi[maxNumSections];
+        double L = crdTransf->getInitialLength();
+        beamIntegr->getSectionLocations(numSections, L, xi);
 
-	for (int i=0; i<numSections; i++) {
+        for (int i=0; i<numSections; i++) {
 
-	  output.tag("GaussPointOutput");
-	  output.attr("number",i+1);
-	  output.attr("eta",xi[i]*L);
+          output.tag("GaussPointOutput");
+          output.attr("number",i+1);
+          output.attr("eta",xi[i]*L);
 
-	  Response *theSectionResponse = sections[i]->setResponse(&argv[1], argc-1, output);
+          Response *theSectionResponse = sections[i]->setResponse(&argv[1], argc-1, output);
 
-	  if (theSectionResponse != 0) {
-	    numResponse = theCResponse->addResponse(theSectionResponse);
-	  }
+          if (theSectionResponse != 0) {
+            numResponse = theCResponse->addResponse(theSectionResponse);
+          }
 
-	  output.endTag();
+          output.endTag();
 
-	}
+        }
 
-	if (numResponse == 0) // no valid responses found
-	  delete theCResponse;
-	else
-	  theResponse = theCResponse;
-
+        if (numResponse == 0) // no valid responses found
+          delete theCResponse;
+        else
+          theResponse = theCResponse;
       }
     }
   }
@@ -2587,6 +2586,7 @@ ForceBeamColumn2dThermal::setResponse(const char **argv, int argc, OPS_Stream &o
 
   return theResponse;
 }
+
 
 int 
 ForceBeamColumn2dThermal::getResponse(int responseID, Information &eleInfo)
@@ -2916,7 +2916,7 @@ ForceBeamColumn2dThermal::setParameter(const char **argv, int argc, Parameter &p
   // section response -
   if (strstr(argv[0],"sectionX") != 0) {
     if (argc > 2) {
-      float sectionLoc = atof(argv[1]);
+      double sectionLoc = atof(argv[1]);
 
       double xi[maxNumSections];
       double L = crdTransf->getInitialLength();
@@ -2924,13 +2924,13 @@ ForceBeamColumn2dThermal::setParameter(const char **argv, int argc, Parameter &p
       
       sectionLoc /= L;
 
-      float minDistance = fabs(xi[0]-sectionLoc);
+      double minDistance = fabs(xi[0]-sectionLoc);
       int sectionNum = 0;
       for (int i = 1; i < numSections; i++) {
-	if (fabs(xi[i]-sectionLoc) < minDistance) {
-	  minDistance = fabs(xi[i]-sectionLoc);
-	  sectionNum = i;
-	}
+        if (fabs(xi[i]-sectionLoc) < minDistance) {
+          minDistance = fabs(xi[i]-sectionLoc);
+          sectionNum = i;
+        }
       }
 
       return sections[sectionNum]->setParameter(&argv[2], argc-2, param);

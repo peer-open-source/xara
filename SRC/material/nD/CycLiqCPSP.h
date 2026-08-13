@@ -50,36 +50,35 @@ class CycLiqCPSP : public NDMaterial {
   CycLiqCPSP() ;
 
   //full constructor
-  CycLiqCPSP(    int    tag,
-	  int classTag,
-	           double G01,
-	           double kappa1,
-	           double h1,
-	           double Mfc1,       //critical state
-	           double dre11,
-	           double dre21,
-	           double rdr1,
-	           double eta1,
-	           double dir1,
-			   double lamdac1,
-			   double ksi1,
-			   double e01,
-			   double nb1,
-			   double nd1,
-	           double ein1,      //initial void ratio
-		       double rho1=0.0) ;
+  CycLiqCPSP(int    tag,
+            int classTag,
+            double G01,
+            double kappa1,
+            double h1,
+            double Mfc1,       //critical state
+            double dre11,
+            double dre21,
+            double rdr1,
+            double eta1,
+            double dir1,
+            double lamdac1,
+            double ksi1,
+            double e01,
+            double nb1,
+            double nd1,
+            double ein1,      //initial void ratio
+            double rho1=0.0);
 
-  //destructor
-  ~CycLiqCPSP( ) ;
+  ~CycLiqCPSP();
 
-  virtual const char *getClassType(void) const {return "CycLiqCPSP";};
+  const char *getClassType() const override {return "CycLiqCPSP";}
   
   //make a clone of this material
   virtual NDMaterial *getCopy(const char *type);
-  virtual NDMaterial* getCopy (void);
+  virtual NDMaterial* getCopy();
 
  //send back type of material
-  virtual const char* getType( void ) const ;
+  virtual const char* getType() const ;
 
   //send back order of strain in vector form
   virtual int getOrder( void ) const ;
@@ -98,9 +97,8 @@ class CycLiqCPSP : public NDMaterial {
   int revertToStart( ) ;
 
   //sending and receiving
-  int sendSelf(int commitTag, Channel &theChannel) ;  
-  int recvSelf(int commitTag, Channel &theChannel, 
-		       FEM_ObjectBroker & ) ;
+  int sendSelf(int commitTag, Channel &) ;  
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker & ) ;
 
   //print out material data
   void Print(OPS_Stream &s, int flag = 0) ;
@@ -109,7 +107,7 @@ class CycLiqCPSP : public NDMaterial {
   int setParameter(const char **argv, int argc, Parameter &param);
   int updateParameter(int responseID, Information &eleInformation);
 
-  double getRho(void) {return rho;}
+  double getRho() {return rho;}
 
 
 

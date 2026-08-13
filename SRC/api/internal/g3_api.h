@@ -115,7 +115,6 @@ LinearSOE **G3_getLinearSoePtr(G3_Runtime* );
 // RUNTIME
 //
 // Time Series
-// int         G3_addTimeSeries(G3_Runtime *, TimeSeries *);
 TimeSeries *G3_getTimeSeries(G3_Runtime *, G3_Tag);
 // int         G3_removeTimeSeries(G3_Runtime *, G3_Tag);
 

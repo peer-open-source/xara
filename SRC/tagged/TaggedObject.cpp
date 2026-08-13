@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.2 $
-// $Date: 2003-02-14 23:02:10 $
-// $Source: /usr/local/cvs/OpenSees/SRC/tagged/TaggedObject.cpp,v $
-                                                                        
-                                                                        
+//
 // File: ~/taggedt/TaggedObject.C
 //
 // Written: fmk 
@@ -37,7 +32,7 @@
 
 #include "TaggedObject.h"
 
-TaggedObject::TaggedObject(int tag)
+TaggedObject::TaggedObject(Xara::Tag tag)
   :theTag(tag)
 {
 
@@ -45,17 +40,17 @@ TaggedObject::TaggedObject(int tag)
 
 TaggedObject::~TaggedObject()
 {
-    // does nothing
+  // does nothing
 }
  
 void
-TaggedObject::setTag(int newTag) 
+TaggedObject::setTag(Xara::Tag newTag) 
 {
-    theTag = newTag;
+  theTag = newTag;
 }
 
 OPS_Stream &operator<<(OPS_Stream &s, TaggedObject &m)
 {
-    m.Print(s);
-    return s;
+  m.Print(s);
+  return s;
 }

@@ -142,5 +142,5 @@ EigenSOE::formSystem(AnalysisModel &model, bool generalized)
       }
     }
   }
-  return 0;
+  return result;
 }

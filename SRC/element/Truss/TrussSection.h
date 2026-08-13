@@ -53,10 +53,7 @@ public:
   ~TrussSection();
 
   const char*
-  getClassType() const override
-  {
-    return "TrussSection";
-  }
+  getClassType() const override {return "TrussSection";}
 
   // public methods to obtain information about dof & connectivity
   int getNumExternalNodes() const override;
@@ -81,8 +78,8 @@ public:
   const Vector& getResistingForceIncInertia() override;
 
   void zeroLoad() override;
-  int addLoad(ElementalLoad* theLoad, double loadFactor) override;
-  int addInertiaLoadToUnbalance(const Vector& accel);
+  int addLoad(ElementalLoad*, double loadFactor) override;
+
 
   // MovableObject interface
   int sendSelf(int commitTag, Channel&) override;
@@ -91,7 +88,7 @@ public:
   // TaggedObject interface
   void Print(OPS_Stream& s, int flag) override;
 
-  Response* setResponse(const char** argv, int argc, OPS_Stream& s);
+  Response* setResponse(const char** argv, int argc, OPS_Stream&);
   int getResponse(int responseID, Information& );
 
   // Sensitivity
@@ -113,7 +110,7 @@ private:
     FrameStress::N,
   };
 
-  // private attributes - a copy for each object of the class
+  // private attributes
   ID connectedExternalNodes; // contains the tags of the end nodes
   int dimension;             // truss in 2 or 3d domain
   int numDOF;                // number of dof for truss

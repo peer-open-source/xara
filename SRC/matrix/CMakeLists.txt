@@ -4,13 +4,8 @@
 #                Pacific Earthquake Engineering Research Center
 #
 #==============================================================================
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  target_compile_options(OPS_Matrix PRIVATE -fno-math-errno 
-                                            -fno-signaling-nans 
-                                            -fno-trapping-math 
-#                                           -fassociative-math
-)
-endif()
+
+target_link_libraries(OPS_Matrix PRIVATE Xara::FastMath)
 
 target_sources(OPS_Matrix
   PRIVATE

@@ -19,27 +19,34 @@
 // and removed from the interpreter as simply as the other commands.
 static Tcl_CmdProc wipeAnalysis;
 //
-static Tcl_CmdProc specifyAnalysis;
-static Tcl_CmdProc eigenAnalysis;
-static Tcl_CmdProc printA;
-static Tcl_CmdProc printB;
+static Tcl_CmdProc XaraCmd_analysis;
+static Tcl_CmdProc XaraCmd_analyze;
+static Tcl_CmdProc XaraCmd_eigen;
+static Tcl_CmdProc XaraCmd_printA;
+static Tcl_CmdProc XaraCmd_printB;
 static Tcl_CmdProc initializeAnalysis;
 static Tcl_CmdProc resetModel;
-static Tcl_CmdProc analyzeModel;
-static Tcl_CmdProc specifyConstraintHandler;
-static Tcl_CmdProc modalDamping;
+static Tcl_CmdProc XaraCmd_constraints;
+static Tcl_CmdProc XaraCmd_modalDamping;
+
+Tcl_CmdProc TclCommand_clearAnalysis;
+extern Tcl_CmdProc XaraCmd_numberer;
+extern Tcl_CmdProc XaraCmd_number;
+
+namespace OpenSees {
+Tcl_CmdProc responseSpectrumAnalysis;
+}
 
 // commands/analysis/integrator.cpp
-extern Tcl_CmdProc specifyIntegrator;
+extern Tcl_CmdProc XaraCmd_integrator;
 
 // commands/analysis/solver.cpp
-extern Tcl_CmdProc specifySOE;
-extern Tcl_CmdProc specifySysOfEqnTable;
-extern Tcl_CmdProc TclCommand_systemSize;
+extern Tcl_CmdProc XaraCmd_system;
+extern Tcl_CmdProc XaraCmd_systemSize;
 
 // commands/analysis/algorithm.cpp
-extern Tcl_CmdProc TclCommand_specifyAlgorithm;
-extern Tcl_CmdProc TclCommand_numIter;
+extern Tcl_CmdProc XaraCmd_algorithm;
+extern Tcl_CmdProc XaraCmd_numIter;
 extern Tcl_CmdProc TclCommand_accelCPU;
 extern Tcl_CmdProc TclCommand_totalCPU;
 extern Tcl_CmdProc TclCommand_solveCPU;
@@ -59,29 +66,29 @@ struct char_cmd {
   const char* name;
   Tcl_CmdProc*  func;
 } const tcl_analysis_cmds[] =  {
-    {"system",              &specifySysOfEqnTable},
-    {"systemSize",          &TclCommand_systemSize},
+    {"system",              &XaraCmd_system},
+    {"systemSize",          &XaraCmd_systemSize},
 
     {"test",                &specifyCTest},
     {"testIter",            &getCTestIter},
     {"testNorms",           &getCTestNorms},
-    {"integrator",          &specifyIntegrator},
-    {"constraints",         &specifyConstraintHandler},
+    {"integrator",          &XaraCmd_integrator},
+    {"constraints",         &XaraCmd_constraints},
 
-    {"eigen",               &eigenAnalysis},
-    {"analysis",            &specifyAnalysis},
+    {"eigen",               &XaraCmd_eigen},
+    {"analysis",            &XaraCmd_analysis},
 
-    {"analyze",             &analyzeModel},
+    {"analyze",             &XaraCmd_analyze},
     {"initialize",          &initializeAnalysis},
-    {"modalDamping",        &modalDamping},
-    {"modalDampingQ",       &modalDamping},
-    {"printA",              &printA},
-    {"printB",              &printB},
+    {"modalDamping",        &XaraCmd_modalDamping},
+    {"modalDampingQ",       &XaraCmd_modalDamping},
+    {"printA",              &XaraCmd_printA},
+    {"printB",              &XaraCmd_printB},
     {"reset",               &resetModel},
 
   // From algorithm.cpp
-    {"algorithm",           &TclCommand_specifyAlgorithm},
-    {"numIter",             &TclCommand_numIter},
+    {"algorithm",           &XaraCmd_algorithm},
+    {"numIter",             &XaraCmd_numIter},
     {"numFact",             &TclCommand_numFact},
     {"accelCPU",            &TclCommand_accelCPU},
     {"totalCPU",            &TclCommand_totalCPU},

@@ -589,7 +589,7 @@ FiberSection2dInt::getSectionDeformation (void)
 }
 
 int 
-FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, double L)
+FiberSection2dInt::setTrialSectionDeformationB(const Vector &deforms, double L)
 {
   int res = 0;
 
@@ -738,8 +738,7 @@ FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, double L)
           Fxy += 0.0;
           syCommit[jj] += ssy*A;
           Atot += A; 
-          stifstyF +=tsy*A;
-
+          stifstyF += tsy*A;
         }
         else {            // concrete
           //double y = matData[2*fibNum] - yBar;
@@ -833,18 +832,19 @@ FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, double L)
       }
     }
 
-    iterOut[jj]=iter;
-    exOut[jj]=ex;
-    eyCommit[jj]=ey;
-    e1Commit[jj]=e1;
-    e2Commit[jj]=e2;
+    iterOut[jj] = iter;
+    exOut[jj] = ex;
+    eyCommit[jj] = ey;
+    e1Commit[jj] = e1;
+    e2Commit[jj] = e2;
 
     double dTdEy;
     double dTdGamma;
     double dSydGamma;
     double dSydEy;
 
-    if ((std::fabs(gamma) <= DBL_EPSILON)||(std::fabs(alfa[jj]) <= DBL_EPSILON)||(std::fabs(alfa[jj]-PI/2.0) <= DBL_EPSILON)) {
+    if ((std::fabs(gamma) <= DBL_EPSILON)||(std::fabs(alfa[jj]) <= DBL_EPSILON) || 
+        (std::fabs(alfa[jj]-PI/2.0) <= DBL_EPSILON)) {
       dTdEy = 0;
       dTdGamma = (-Fcu1F + Fcu2F)/(2.*sqrt(pow(ex - ey,2)));
       dSydGamma = 0;
@@ -951,7 +951,7 @@ FiberSection2dInt::setTrialSectionDeformationB (const Vector &deforms, double L)
 
 
 const Matrix&
-FiberSection2dInt::getInitialTangent(void)    
+FiberSection2dInt::getInitialTangent()    
 {
   kData[0] = 0.0; kData[1] = 0.0; kData[2] = 0.0; kData[3] = 0.0; kData[4] = 0.0; kData[5] = 0.0;
   kData[6] = 0.0; kData[7] = 0.0; kData[8] = 0.0;
@@ -969,7 +969,6 @@ FiberSection2dInt::getInitialTangent(void)
     double A = matData[2*i+1];
 
     if (tag>1000){            // to distinguish concrete & steel tag>1000 => steel
-
       double tsy = theMat1->getInitialTangent();
       stifstyF =tsy*A;
     }
@@ -1010,10 +1009,11 @@ FiberSection2dInt::getStressResultant()
   return *s;
 }
 
+
 FrameSection*
 FiberSection2dInt::getFrameCopy()
 {
-  FiberSection2dInt *theCopy = new FiberSection2dInt ();
+  FiberSection2dInt *theCopy = new FiberSection2dInt();
   theCopy->setTag(this->getTag());
 
   theCopy->numFibers = numFibers;
@@ -1116,7 +1116,7 @@ FiberSection2dInt::getOrder () const
 }
 
 int
-FiberSection2dInt::commitStateB(void)            
+FiberSection2dInt::commitStateB()            
 {
   int err = 0;
 
@@ -1124,16 +1124,17 @@ FiberSection2dInt::commitStateB(void)
     err += theMaterials1[i]->commitState();
     err += theMaterials2[i]->commitState();
   }
+
   for (int H = 0; H < numHFibers; H++)
-    for (int jj = 0; jj < NStrip; jj++) err += theHMaterials[H * numHFibers + jj]->commitState();
+    for (int jj = 0; jj < NStrip; jj++)
+      err += theHMaterials[H * numHFibers + jj]->commitState();
 
   eCommit = e;
 
   for (int jj = 0; jj < NStrip; jj++){
-      iterCommit[jj] = iterOut[jj];
-      alfaCommit[jj] = alfa[jj];
-      exCommit[jj] = exOut[jj];
-
+    iterCommit[jj] = iterOut[jj];
+    alfaCommit[jj] = alfa[jj];
+    exCommit[jj] = exOut[jj];
   }
 
   return err;
@@ -1160,12 +1161,12 @@ FiberSection2dInt::revertToLastCommitB(double L)
   for (int jj = 0; jj < NStrip; jj++) {
     double tavg;
     if (jj<NStrip1)
-        tavg=tavg1;
+      tavg = tavg1;
     else {
-        if (jj<NStrip2+NStrip1)
-            tavg=tavg2;
-        else
-            tavg=tavg3;
+      if (jj<NStrip2+NStrip1)
+        tavg = tavg2;
+      else
+        tavg = tavg3;
     }
 
     double stifstxF, stifstyF, stifcu11F, stifcu12F, stifcu22F, stifcu21F, Fcu1F, Fcu2F;
@@ -1191,12 +1192,12 @@ FiberSection2dInt::revertToLastCommitB(double L)
      double root = sqrt(pow(-ex + ey,2) + pow(gamma,2));
 
      if (std::fabs(alfa[jj] - PI/2) <= DBL_EPSILON) {
-         e1 = ex; 
-         e2 = ey; 
+        e1 = ex; 
+        e2 = ey; 
      }
      else {
-         e1 = ey - gamma/2*tan(alfa[jj]);                          
-         e2 = ex + gamma/2*tan(alfa[jj]);
+        e1 = ey - gamma/2*tan(alfa[jj]);                          
+        e2 = ex + gamma/2*tan(alfa[jj]);
      }
 
 
@@ -1555,24 +1556,19 @@ FiberSection2dInt::recvSelf(int commitTag, Channel &theChannel,
       // create memory to hold material pointers and fiber data
       numFibers = data(1);
       if (numFibers != 0) {
-    theMaterials1 = new UniaxialMaterial *[numFibers];
-    theMaterials2 = new UniaxialMaterial *[numFibers];
+        theMaterials1 = new UniaxialMaterial *[numFibers];
+        theMaterials2 = new UniaxialMaterial *[numFibers];
 
-    if (theMaterials1 == 0) {
-      opserr <<"FiberSection2dInt::recvSelf -- failed to allocate Material pointers\n";
-      exit(-1);
-    }
+        if (theMaterials1 == 0) {
+          opserr <<"FiberSection2dInt::recvSelf -- failed to allocate Material pointers\n";
+          exit(-1);
+        }
 
-    for (int j=0; j<numFibers; j++){
-      theMaterials1[j] = 0;
-      theMaterials2[j] = 0;
-    }
-    matData = new double [numFibers*2];
-
-    if (matData == 0) {
-      opserr <<"FiberSection2dInt::recvSelf  -- failed to allocate double array for material data\n";
-      exit(-1);
-    }
+        for (int j=0; j<numFibers; j++){
+          theMaterials1[j] = 0;
+          theMaterials2[j] = 0;
+        }
+        matData = new double [numFibers*2];
       }
     }
 
@@ -1591,21 +1587,19 @@ FiberSection2dInt::recvSelf(int commitTag, Channel &theChannel,
       // if material pointed to is blank or not of corrcet type, 
       // release old and create a new one
       if (theMaterials1[i] == 0){
-    theMaterials1[i] = theBroker.getNewUniaxialMaterial(classTag);
-    theMaterials2[i] = theBroker.getNewUniaxialMaterial(classTag);
-
+        theMaterials1[i] = theBroker.getNewUniaxialMaterial(classTag);
+        theMaterials2[i] = theBroker.getNewUniaxialMaterial(classTag);
       }
       else if (theMaterials1[i]->getClassTag() != classTag) {
-    delete theMaterials1[i];
-    theMaterials1[i] = theBroker.getNewUniaxialMaterial(classTag);    
-    delete theMaterials2[i];
-    theMaterials2[i] = theBroker.getNewUniaxialMaterial(classTag);      
-
+        delete theMaterials1[i];
+        theMaterials1[i] = theBroker.getNewUniaxialMaterial(classTag);    
+        delete theMaterials2[i];
+        theMaterials2[i] = theBroker.getNewUniaxialMaterial(classTag);
       }
 
       if (theMaterials1[i] == 0) {
-    opserr <<"FiberSection2dInt::recvSelf -- failed to allocate double array for material data\n";
-    exit(-1);
+        opserr <<"FiberSection2dInt::recvSelf -- failed to allocate double array for material data\n";
+        exit(-1);
       }
 
       theMaterials1[i]->setDbTag(dbTag);
@@ -1650,6 +1644,7 @@ FiberSection2dInt::Print(OPS_Stream &s, int flag)
     }
   }
 }
+
 
 Response*
 FiberSection2dInt::setResponse(const char **argv, int argc, OPS_Stream &output)    
@@ -2036,66 +2031,69 @@ FiberSection2dInt::setResponse(const char **argv, int argc, OPS_Stream &output)
 
 
 int 
-FiberSection2dInt::getResponse(int responseID, Information &sectInfo)
+FiberSection2dInt::getResponse(int responseID, Information &info)
 {
   switch (responseID) {
 
   case 1:
-    return sectInfo.setVector(this->getSectionDeformation());
+    return info.setVector(this->getSectionDeformation());
 
   case 2:
-    return sectInfo.setVector(this->getStressResultant());
+    return info.setVector(this->getStressResultant());
 
   case 3:
-    return sectInfo.setMatrix(this->getSectionTangent());
+    return info.setMatrix(this->getSectionTangent());
 
   case 4: {
-    Vector &theVec = *(sectInfo.theVector);
+    // Vector &theVec = sectInfo.theVector;
     const Vector &e = this->getSectionDeformation();
     const Vector &s = this->getStressResultant();
     int order = this->getOrder();
+    int result = 0;
     for (int i = 0; i < order; i++) {
-      theVec(i) = e(i);
-      theVec(i+order) = s(i);
+      result += info.setVector(i,       e(i));
+      result += info.setVector(i+order, s(i));
+      // theVec(i) = e(i);
+      // theVec(i+order) = s(i);
     }
-    return sectInfo.setVector(theVec);
+    return result; //sectInfo.setVector(theVec);
   }
 
   case 105:
-    return sectInfo.setVector(this->getSigmaY());
+    return info.setVector(this->getSigmaY());
 
   case 106:
-    return sectInfo.setVector(this->getTau());
+    return info.setVector(this->getTau());
 
   case 107:
-    return sectInfo.setVector(this->getAlpha());
+    return info.setVector(this->getAlpha());
 
   case 108:
-    return sectInfo.setVector(this->getIter());
+    return info.setVector(this->getIter());
 
   case 109:
-    return sectInfo.setVector(this->getEX());
+    return info.setVector(this->getEX());
 
   case 110:
-    return sectInfo.setVector(this->getEY());
+    return info.setVector(this->getEY());
 
   case 111:
-    return sectInfo.setVector(this->getE1());
+    return info.setVector(this->getE1());
 
   case 112:
-    return sectInfo.setVector(this->getE2());
+    return info.setVector(this->getE2());
 
   case 113:
-    return sectInfo.setVector(this->getSX());
+    return info.setVector(this->getSX());
 
   case 114:
-    return sectInfo.setVector(this->getSY());
+    return info.setVector(this->getSY());
 
   case 115:
-    return sectInfo.setVector(this->getS1());
+    return info.setVector(this->getS1());
 
   case 116:
-    return sectInfo.setVector(this->getS2());
+    return info.setVector(this->getS2());
 
   default:
     return -1;

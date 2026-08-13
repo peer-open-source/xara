@@ -1977,15 +1977,6 @@ Node::setCrds(const Vector &newCrds)
   }
 }
 
-#if 1
-
-int
-Node::getDisplayCrds(Vector &res, double fact, int mode)
-{
-  return -1;
-}
-
-#endif
 
 
 // Add Pointer to NodalThermalAction id applicable------begin-----L.Jiang, [SIF]
@@ -2014,6 +2005,7 @@ Node::resetGlobalMatrices()
   numMatrices = 0;
   return 0;
 }
+
 
 int
 Node::setGlobalMatrices()

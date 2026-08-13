@@ -34,7 +34,6 @@
 #include <Channel.h>
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <ContactMaterial2D.h>
@@ -112,7 +111,8 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_BeamContact2D)
 }
 
 // constructors
-BeamContact2D::BeamContact2D(int tag, int Nd1, int Nd2, int NdS, int NdL, NDMaterial &theMat,
+BeamContact2D::BeamContact2D(int tag, int Nd1, int Nd2, int NdS, int NdL, 
+	                         NDMaterial &theMat,
                              double width, double tolG, double tolF, int cSwitch)
   :Element(tag,ELE_TAG_BeamContact2D),
     theMaterial(0),
@@ -976,11 +976,6 @@ BeamContact2D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &th
 	return 0;
 }
 
-int
-BeamContact2D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	return 0;
-}
 
 void
 BeamContact2D::Print(OPS_Stream &s, int flag)

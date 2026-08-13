@@ -409,9 +409,9 @@ RemoveRecorder::checkEleRemoval(Element *theEle, Response *eleResponse,
 
       eleResponse->getResponse();
 
-      Vector *result  = theInfo.theVector;
-      currentValue    = (*result)(0);
-      checkwallvalue1 = (*result)(1);
+      Vector &result  = theInfo.theVector;
+      currentValue    = (result)(0);
+      checkwallvalue1 = (result)(1);
     }
     //
 

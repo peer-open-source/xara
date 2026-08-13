@@ -57,6 +57,7 @@
 #include <ProfileSPDLinDirectSolver.h>
 #include <PlainHandler.h>
 #include <TransformationConstraintHandler.h>
+#include <ProcessContext.h>
 
 
 static std::unordered_map<int, std::string> AnalyzeFailedMessage {
@@ -706,6 +707,14 @@ BasicAnalysisBuilder::set(DOF_Numberer* obj)
   theNumberer = obj;
 
   domainStamp = 0;
+
+
+  // parallel
+#ifdef MODEL_CHANNELS
+  ProcessContext& channels = context.getParallelContext();
+#endif
+  theNumberer->setChannels(channels.getNumChannels(), channels.getChannels());
+  theNumberer->setProcessID(channels.getProcessID());
   return;
 }
 
@@ -743,6 +752,15 @@ BasicAnalysisBuilder::set(LinearSOE* obj, bool free)
     theEigenSOE->setLinearSOE(*theSOE);
 
   domainStamp = 0;
+
+  // parallel
+#ifdef MODEL_CHANNELS
+  ProcessContext& channels = context.getParallelContext();
+#else
+  ProcessContext& channels = m_channels
+#endif
+  theSOE->setChannels(channels.getNumChannels(), channels.getChannels());
+  theSOE->setProcessID(channels.getProcessID());
 }
 
 

@@ -34,7 +34,8 @@ PDeltaFrameTransf<nn,ndf>::PDeltaFrameTransf(int tag,
   : FrameTransform<nn,ndf>(tag),
     offset_flags(offset_flags),
     linear(tag, vecxz, offset, offset_flags),
-    consistent_tangent(ctan)
+    consistent_tangent(ctan),
+    vz(vecxz)
 {
 
 }
@@ -46,12 +47,14 @@ PDeltaFrameTransf<nn,ndf>::~PDeltaFrameTransf()
 
 }
 
+
 template <int nn, int ndf>
 int
 PDeltaFrameTransf<nn,ndf>::commit()
 {
   return linear.commit();
 }
+
 
 template <int nn, int ndf>
 int
@@ -283,9 +286,9 @@ PDeltaFrameTransf<nn,ndf>::Print(OPS_Stream &s, int flag)
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"" << this->getClassType() << "\"";
     s << ", \"vecxz\": [" 
-      // << vz[0] << ", " 
-      // << vz[1] << ", "
-      // << vz[2] 
+      << vz[0] << ", " 
+      << vz[1] << ", "
+      << vz[2] 
       << "]";
     if (offsets != nullptr) {
       s << ", \"offsets\": [";

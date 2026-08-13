@@ -19,12 +19,6 @@
 **                                                                    **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.26 $                                                              
-// $Date: 2010-09-13 21:29:28 $                                                                  
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/NDMaterial.cpp,v $                                                                
-                                                                        
-// File: ~/material/NDMaterial.C
 //
 // Written: MHS 
 // Created: Feb 2000
@@ -33,7 +27,6 @@
 // Description: This file contains the class implementation for NDMaterial.
 //
 #include <NDMaterial.h>
-// #include <FrameWrapper.h>
 #include <Information.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -95,7 +88,7 @@ NDMaterial::getCopy(const char *type)
     return clone;
   }
   else if (strcmp(type,"BeamFiber2dPS") == 0 ||
-          strcmp(type,"TimoshenkoFiber2dPS") == 0) {
+           strcmp(type,"TimoshenkoFiber2dPS") == 0) {
     NDMaterial *copy = this->getCopy("PlaneStress");
     BeamFiberMaterial2dPS *clone = new BeamFiberMaterial2dPS(this->getTag(),*copy);
     delete copy;
@@ -144,7 +137,7 @@ NDMaterial::getStrain()
 }
 #endif
 
-//Functions for obtaining and updating temperature-dependent information Added by L.Jiang [SIF]
+// Functions for obtaining and updating temperature-dependent information Added by L.Jiang [SIF]
 double
 NDMaterial::getThermalTangentAndElongation(double &TempT, double &ET, double &Elong)
 {
@@ -170,7 +163,7 @@ NDMaterial::getTempAndElong()
 Response*
 NDMaterial::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
-  Response *theResponse =0;
+  Response *theResponse = nullptr;
   const char *matType = this->getType();
 
   output.tag("NdMaterialOutput");
@@ -186,7 +179,7 @@ NDMaterial::setResponse(const char **argv, int argc, OPS_Stream &output)
       output.tag("ResponseType","sigma11");
       output.tag("ResponseType","sigma22");
       output.tag("ResponseType","sigma12");
-        } else if (strcmp(matType,"ThreeDimensional") == 0 && size == 6) {
+    } else if (strcmp(matType,"ThreeDimensional") == 0 && size == 6) {
       output.tag("ResponseType","sigma11");
       output.tag("ResponseType","sigma22");
       output.tag("ResponseType","sigma33");
@@ -228,7 +221,6 @@ NDMaterial::setResponse(const char **argv, int argc, OPS_Stream &output)
 		  output.tag("ResponseType", "Temp");
 		  output.tag("ResponseType", "Elong");
 	  }
-	  //opserr<<"tempElong "<<this->getTempAndElong()<<endln;
 	  theResponse = new MaterialResponse(this, 3, this->getTempAndElong());
   }
   //end of adding output request,L.Jiang [SIF]
@@ -252,7 +244,7 @@ NDMaterial::setResponse(const char **argv, int argc, OPS_Stream &output)
   return theResponse;
 }
 
-int 
+int
 NDMaterial::getResponse(int responseID, Information &matInfo)
 {
   switch (responseID) {
@@ -265,6 +257,7 @@ NDMaterial::getResponse(int responseID, Information &matInfo)
     // Massimo Petracca - 28/12/2021: adding missing responseID
   case 3:
       return matInfo.setVector(this->getTempAndElong());
+
   case 4:
       return matInfo.setMatrix(this->getTangent());
 
@@ -322,3 +315,14 @@ NDMaterial::commitSensitivity(const Vector & strainSensitivity, int gradIndex, i
 }
 // AddingSensitivity:END //////////////////////////////////////////
 
+void
+NDMaterial::Print(OPS_Stream &s, int flag)
+{
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\"";
+    s << "}";
+    return;
+  }
+}

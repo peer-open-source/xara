@@ -149,13 +149,13 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ElasticForceBeamColumnWarping2d)
     // check sections
     const ID& secTags = theRule->getSectionTags();
     SectionForceDeformation** sections = new SectionForceDeformation *[secTags.Size()];
-    for(int i=0; i<secTags.Size(); i++) {
-	sections[i] = OPS_getSectionForceDeformation(secTags(i));
-	if(sections[i] == 0) {
-	    opserr<<"section "<<secTags(i)<<"not found\n";
-	    delete [] sections;
-	    return 0;
-	}
+    for (int i=0; i<secTags.Size(); i++) {
+      sections[i] = OPS_getSectionForceDeformation(secTags(i));
+      if(sections[i] == 0) {
+          opserr<<"section "<<secTags(i)<<"not found\n";
+          delete [] sections;
+          return 0;
+      }
     }
 
     Element *theEle =  new ElasticForceBeamColumnWarping2d(iData[0],iData[1],iData[2],secTags.Size(),sections,*bi,*theTransf,mass);

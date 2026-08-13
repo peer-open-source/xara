@@ -51,13 +51,13 @@ class DistributedProfileSPDLinSOE : public ProfileSPDLinSOE
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addB(const Vector &, const ID &, double fact = 1.0);    
     int setB(const Vector &, double fact = 1.0);            
-    void zeroB(void);
-    int setSize(Graph &theGraph);
-    int solve(void);
-    const Vector &getB(void);
+    void zeroB();
+    int setSize(Graph &);
+    int solve();
+    const Vector &getB();
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
     friend class ProfileSPDLinSolver;    
     friend class ProfileSPDLinDirectSolver;
     friend class ProfileSPDLinDirectBlockSolver;
@@ -66,8 +66,8 @@ class DistributedProfileSPDLinSOE : public ProfileSPDLinSOE
     friend class ProfileSPDLinSubstrSolver;
     friend class ProfileSPDLinSubstrThreadSolver;
 
-    int setProcessID(int processTag);
-    int setChannels(int numChannels, Channel **theChannels);
+    int setProcessID(int processTag) override;
+    int setChannels(int numChannels, Channel **theChannels) override;
 
   private:
     int processID;

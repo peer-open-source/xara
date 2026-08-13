@@ -99,7 +99,7 @@ PathSeries::PathSeries(int tag,
   } else {
     while (theFile >> dataPoint)
       numDataPoints++;
-  }   
+  }
   theFile.close();
 
   //

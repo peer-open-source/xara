@@ -54,12 +54,11 @@ class ParallelNumberer: public DOF_Numberer
     int numberDOF(int lastDOF = -1);
     int numberDOF(ID &lastDOFs);    
 
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &) override;
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
-    virtual int setProcessID(int domainTag);
-    virtual int setChannels(int numChannels, Channel **theChannels);
+    int setProcessID(int domainTag) override;
+    int setChannels(int numChannels, Channel **theChannels) override;
 
   protected:
     int mergeSubGraph(Graph &theGraph, Graph &theSubGraph, ID &vertexTags, ID &vertexRefs, ID &theSubdomainMap);

@@ -19,7 +19,6 @@
 #include <CrdTransf.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <Parameter.h>
 #include <ElementResponse.h>
@@ -35,7 +34,7 @@ Vector PrismShearFrame2d::theVector(6);
 PrismShearFrame2d::PrismShearFrame2d(int tag, int Nd1, int Nd2, double e, double g, double a,
                                      double iz, double avy, CrdTransf& coordTransf, double r,
                                      int cm)
- : Element(tag, ELE_TAG_PrismShearFrame2d),
+ : Element(tag, -1),
    connectedExternalNodes(2),
    theCoordTransf(nullptr),
    E(e),

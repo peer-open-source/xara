@@ -24,7 +24,9 @@
 //    1........2 |-> x
 //
 // Reference:
-// K. Kolozvari, K. Kalbasi, K. Orakcal & J. W. Wallace (2021), "Three-dimensional model for nonlinear analysis of slender flanged reinforced concrete walls", Engineering Structures.
+// K. Kolozvari, K. Kalbasi, K. Orakcal & J. W. Wallace (2021), 
+//  "Three-dimensional model for nonlinear analysis of slender flanged reinforced concrete walls", 
+//  Engineering Structures.
 //
 // Source: /usr/local/cvs/OpenSees/SRC/element/mvlem/MVLEM_3D.cpp
 //
@@ -95,8 +97,7 @@ public:
 	// public methods for output    
 	int sendSelf(int commitTag, Channel &theChannel);
 	int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-	int displaySelf(Renderer& theViewer, int displayMode, float fact, const char** modes, int numMode);
-	void Print(OPS_Stream &s, int flag = 0);
+	void Print(OPS_Stream &s, int flag);
 	Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 	int getResponse(int responseID, Information &eleInformation);
 

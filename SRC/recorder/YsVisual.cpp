@@ -77,7 +77,8 @@ YsVisual::~YsVisual()
 		delete pView;
 }
 
-int  YsVisual::record(int cTag, double d)
+int  
+YsVisual::record(int cTag, double d)
 {
 int res = 0;
 
@@ -85,7 +86,6 @@ int res = 0;
 	{
     	pView->clearImage();
     	pView->startImage();
-    	ysEle->displaySelf(*pView, displayMode, 1);
     	pView->doneImage();
 	}
 	else 

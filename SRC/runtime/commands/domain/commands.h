@@ -30,7 +30,7 @@ Tcl_CmdProc nodeUnbalance;
 Tcl_CmdProc nodeEigenvector;
 Tcl_CmdProc nodeRotation;
 // setters
-Tcl_CmdProc setNodeCoord;
+Tcl_CmdProc XaraCmd_setNodeCoord;
 Tcl_CmdProc setNodeDisp;
 Tcl_CmdProc setNodeVel;
 Tcl_CmdProc setNodeAccel;
@@ -135,7 +135,7 @@ Tcl_CmdProc setLoadConst;
 
 Tcl_CmdProc setCreep;
 
-Tcl_CmdProc getLoadFactor;
+Tcl_CmdProc XaraCmd_getLoadFactor;
 
 Tcl_CmdProc printModelGID;
 
@@ -165,7 +165,7 @@ Tcl_CmdProc findID;
 
 Tcl_CmdProc nodeResponse;
 
-Tcl_CmdProc calculateNodalReactions;
+Tcl_CmdProc XaraCmd_reactions;
 
 Tcl_CmdProc getNodeTags;
 Tcl_CmdProc retainedNodes;

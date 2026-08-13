@@ -41,7 +41,6 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <Information.h>
 #include <ElementResponse.h>
 
@@ -1544,18 +1543,7 @@ GradientInelasticBeamColumn2d::getResponse(int responseID, Information &eleInfo)
 	}
 }
 
-// Definition of Method to Display Element
-int
-GradientInelasticBeamColumn2d::displaySelf(Renderer& theViewer, int displayMode, float fact, const char** displayModes, int numModes)
-{
-    static Vector v1(3);
-    static Vector v2(3);
 
-    theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-    theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-    return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 // Definition of Methods Dealing with Parallel Processing
 int

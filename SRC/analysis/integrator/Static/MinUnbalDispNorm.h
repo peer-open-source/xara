@@ -36,6 +36,7 @@
 #define MinUnbalDispNorm_h
 
 #include <StaticIntegrator.h>
+#include <control/TrackSign.h>
 
 class LinearSOE;
 class AnalysisModel;
@@ -53,7 +54,7 @@ class MinUnbalDispNorm : public StaticIntegrator
 
     MinUnbalDispNorm(double lambda1, int specNumIterStep, 
 		     double dlambda1min, double dlambda1max,
-		     int signFirstStepMethod = SIGN_LAST_STEP);
+		     TrackSign::Type signFirstStepMethod );//= SIGN_LAST_STEP);
 
     ~MinUnbalDispNorm();
 
@@ -87,30 +88,44 @@ public:
     // int newStepSens(int gradIndex);
     ////////////////////Sensitivity End/////////////////////////////////////
 
+  private:
+    const double dLambda1min, dLambda1max;       // min & max values for dlambda1 at step (i) 
+    const double specNumIncrStep;    // Jd
 
-  protected:
+    //
+    double dLambda1LastStep;                  // dLambda1 at step (i-1)
+    double numLastIter; // number of iterations at step (i-1), J(i-1)
+    double deltaLambdaStep, currentLambda; // dLambda(i) & current value of lambda 
+    // sign switching
+    int signLastDeltaLambdaStep;           // sign of dLambda(i-1)
+    double signLastDeterminant;
+    int    signFirstStepMethod;
+
+    TrackSign track_sign;
+    
+    struct {
+      double dlamda;
+    } incr;
+    struct {
+      double dlamda;
+      int num_iter;
+    } trial;
+
+    Vector *deltaUhat, *deltaUbar, *deltaU, *deltaUstep; // vectors for disp measures
+    Vector *phat; 	                                 // the reference load vector
+    int newStepSensitivity(double dLambda);
+
+
+    ///////////////////////////////////////Abbas/////////////////////////////////////////
+
+//   protected:
+  private:
      double dlambdadh; // deltaLambdaI1 for the first iteration J=1
      double Dlambdadh;// deltaLambdaIJ: for J>1
      double dLambda;
      double calldLambda1dh;//Abbas
      int CallParam;
 
-  private:
-    double dLambda1LastStep;                  // dLambda1 at step (i-1)
-    double specNumIncrStep, numIncrLastStep;    // Jd & J(i-1) 
-    double dLambdaj; //for J>1
- 
-    Vector *deltaUhat, *deltaUbar, *deltaU, *deltaUstep; // vectors for disp measures
-    Vector *phat; 	                                 // the reference load vector
-
-    double deltaLambdaStep, currentLambda; // dLambda(i) & current value of lambda  
-    int signLastDeltaLambdaStep;           // sign of dLambda(i-1)
-    double dLambda1min, dLambda1max;       // min & max values for dlambda1 at step (i) 
-    double signLastDeterminant;
-    int    signFirstStepMethod;
-
- // int theDofID, theDof; 
-    ///////////////////////////////////////Abbas/////////////////////////////////////////
     // Pointers used for sensitivity analysis
     Vector  *dUhatdh,*dUIJdh, *Residual,*Residual2, *sensU,*d_deltaU_dh, *dphatdh, *dLAMBDAdh ;
     // the created pointers shown above are
@@ -124,9 +139,8 @@ public:
 
       
     double dLambdaStepDh ;//Abbas
-    double minIncrement, maxIncrement; // min/max values of deltaU at (i)
+    // const double minIncrement, maxIncrement; // min/max values of deltaU at (i)
 
-    // adding sensitivity
     int gradNumber;
     int sensitivityFlag;
 };

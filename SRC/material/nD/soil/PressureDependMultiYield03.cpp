@@ -1013,7 +1013,7 @@ NDMaterial * PressureDependMultiYield03::getCopy (const char *code)
 }
 
 
-const char * PressureDependMultiYield03::getType (void) const
+const char * PressureDependMultiYield03::getType() const
 {
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 2;
@@ -1022,7 +1022,8 @@ const char * PressureDependMultiYield03::getType (void) const
 }
 
 
-int PressureDependMultiYield03::getOrder (void) const
+int
+PressureDependMultiYield03::getOrder() const
 {
   int ndm = ndmx[matN];
   if (ndmx[matN] == 0) ndm = 2;
@@ -1031,7 +1032,8 @@ int PressureDependMultiYield03::getOrder (void) const
 }
 
 
-int PressureDependMultiYield03::setParameter(const char **argv, int argc, Parameter &param)
+int
+PressureDependMultiYield03::setParameter(const char **argv, int argc, Parameter &param)
 {
   /*if (argc < 1)
     return -1;

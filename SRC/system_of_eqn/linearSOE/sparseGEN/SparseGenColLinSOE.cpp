@@ -162,7 +162,6 @@ SparseGenColLinSOE::setSize(Graph& theGraph)
 {
 
   int result  = 0;
-  int oldSize = size;
   size        = theGraph.getNumVertex();
 
   // fist itearte through the vertices of the graph to get nnz

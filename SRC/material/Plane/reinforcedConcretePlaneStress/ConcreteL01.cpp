@@ -1038,12 +1038,12 @@ ConcreteL01::getResponse(int responseID, Information& matInfo)
   if (responseID == 100) {
     matInfo.theDouble = this->getPD();
   } else if (responseID == 101) {
-    Vector* theVector = matInfo.theVector;
-    X                 = (*theVector)(0);
-    K                 = (*theVector)(1);
-    D                 = (*theVector)(2);
-    beta              = (*theVector)(3);
-    epslonTP          = (*theVector)(4);
+    Vector& theVector = matInfo.theVector;
+    X                 = (theVector)(0);
+    K                 = (theVector)(1);
+    D                 = (theVector)(2);
+    beta              = (theVector)(3);
+    epslonTP          = (theVector)(4);
   } else
     return this->UniaxialMaterial::getResponse(responseID, matInfo);
 

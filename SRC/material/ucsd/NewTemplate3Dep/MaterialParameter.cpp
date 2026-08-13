@@ -69,7 +69,7 @@ MaterialParameter::MaterialParameter(const double *Material_Parameter_in,
         if (!Material_Parameter) {
             opserr << "MaterialParameter::Insufficient memory! " << endln;
             exit (1);
-        }        
+        }
         for (int i = 0; i < Num_Material_Parameter; i++)
             Material_Parameter[i] = Material_Parameter_in[i];
     }
@@ -84,7 +84,7 @@ MaterialParameter::MaterialParameter(const double *Material_Parameter_in,
         if (!Internal_Scalar) {
             opserr << "MaterialParameter::Insufficient memory! " << endln;
             exit (1);
-        }        
+        }
         for (int i = 0; i < Num_Internal_Scalar; i++)
             Internal_Scalar[i] = Internal_Scalar_in[i];
     }
@@ -99,7 +99,7 @@ MaterialParameter::MaterialParameter(const double *Material_Parameter_in,
         if (!Internal_Tensor) {
             opserr << "MaterialParameter::Insufficient memory! " << endln;
             exit (1);
-        }        
+        }
         for (int i = 0; i < Num_Internal_Tensor; i++)
             Internal_Tensor[i] = Internal_Tensor_in[i];
     }

@@ -175,11 +175,24 @@ printDomain(OPS_Stream &s, ModelRegistry* builder, int flag)
       }
       s << "\n" << tab << tab << "]";
     }
+    // //
+    // s << ",\n";
+    // //
+    // {
+    //   s << tab << tab << "\"materials\": {\n";
+    //   s << tab << tab << tab << "\"Solid\": [],\n";
+    //   // TODO: for each NDMaterial, do getCopy("ThreeDimensional") and print their getClassType
+    //   s << tab << tab << tab << "\"PlaneStress\": [],\n";
+    //   s << tab << tab << tab << "\"PlaneStrain\": [],\n";
+    //   s << tab << tab << tab << "\"Axisymmetric\": [],\n";
+    //   s << tab << tab << tab << "\"Frame\": [],\n";
+    //   s << "\n" << tab << tab << "}";
+    // }
     //
     s << ",\n";
     //
     {
-      s << tab << tab << "\"nDMaterials\": [\n";        
+      s << tab << tab << "\"nDMaterials\": [\n";
       builder->printRegistry<NDMaterial>(s, flag);
       s << "\n" << tab << tab << "]";
     }
@@ -187,7 +200,7 @@ printDomain(OPS_Stream &s, ModelRegistry* builder, int flag)
     s << ",\n";
     //
     {
-      s << tab << tab << "\"uniaxialMaterials\": [\n";        
+      s << tab << tab << "\"uniaxialMaterials\": [\n";
       builder->printRegistry<UniaxialMaterial>(s, flag);
       s << "\n" << tab << tab << "]";
     }
@@ -221,6 +234,25 @@ printDomain(OPS_Stream &s, ModelRegistry* builder, int flag)
         first_mp = false;
       }
       s << "\n" << tab << tab << "]";
+    }
+    //
+    s << ",\n";
+    //
+    {
+      s << tab << tab << "\"damping\": {\n";
+      const Vector* modal_damping = theDomain->getModalDampingFactors();
+      if (modal_damping != nullptr) {
+        s << tab << tab << tab << "\"modal\": {\n";
+        bool first = true;
+        for (int i = 0; i < modal_damping->Size(); i++) {
+          if (!first)
+            s << ",\n";
+
+          first = false;
+        }
+        s << "}";
+      }
+      s << "\n" << tab << tab << "}";
     }
     //
     s << ",\n";
@@ -270,6 +302,12 @@ printDomain(OPS_Stream &s, ModelRegistry* builder, int flag)
       numPrinted = 0;
       while ((theEle = theElementss()) != nullptr) {
         theEle->Print(s, flag);
+
+        // s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+        // s << "\"name\": " << theEle->getTag() << ", ";
+        // s << "\"type\": \"" << theEle->getClassType() << "\" ";
+        // s << "}";
+
         numPrinted += 1;
         if (numPrinted < numToPrint)
           s << ",\n";
@@ -312,36 +350,10 @@ printDomain(OPS_Stream &s, ModelRegistry* builder, int flag)
 
     return;
   }
-      
-#if 0 
-  s << "Current Domain Information\n";
-  s << "\tCurrent Time: " << theDomain->getCurrentTime();
-  // s << "\ntCommitted Time: " << committedTime << "\n";    
-  s << "NODE DATA: NumNodes: " << theDomain->getNumNodes() << "\n";  
-  theNodes->Print(s, flag);
-  
-  s << "ELEMENT DATA: NumEle: " << theElements->getNumComponents() << "\n";
-  theElements->Print(s, flag);
-  
-  s << "\nSP_Constraints: numConstraints: " << theSPs->getNumComponents() << "\n";
-  theSPs->Print(s, flag);
-  
-  s << "\nPressure_Constraints: numConstraints: " << thePCs->getNumComponents() << "\n";
-  thePCs->Print(s, flag);
-  
-  s << "\nMP_Constraints: numConstraints: " << theMPs->getNumComponents() << "\n";
-  theMPs->Print(s, flag);
-  
-  s << "\nLOAD PATTERNS: numPatterns: " << theLoadPatterns->getNumComponents() << "\n\n";
-  theLoadPatterns->Print(s, flag);
-  
-  s << "\nPARAMETERS: numParameters: " << theParameters->getNumComponents() << "\n\n";
-  theParameters->Print(s, flag);
-#endif
 }
 
 int
-TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+XaraCmd_print(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
 
@@ -373,7 +385,7 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
 
   while (currentArg < argc) {
 
-    // if 'print ele i j k..' print out some elements
+    // if 'print ele i j k..' print elements
     if ((strcmp(argv[currentArg], "-ele") == 0) ||
         (strcmp(argv[currentArg], "-element") == 0)  ||
         (strcmp(argv[currentArg], "ele") == 0)) {
@@ -401,7 +413,8 @@ TclCommand_print(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char *
       for (int i = currentArg; i < argc; i++) {
         int tag;
         if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "print -material failed to get integer tag: " << argv[i]
+          opserr << OpenSees::PromptValueError 
+                 << "print -material failed to get integer tag: " << argv[i]
                  << "\n";
           return TCL_ERROR;
         }

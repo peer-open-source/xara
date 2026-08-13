@@ -366,7 +366,7 @@ ManzariDafalias::getCopy(const char *type)
 }
 
 int 
-ManzariDafalias::commitState(void)
+ManzariDafalias::commitState()
 {
     Vector n(6), d(6), b(6), R(6);
     double cos3Theta, h, psi, aB, aD, b0, A, D, B, C;
@@ -390,20 +390,6 @@ ManzariDafalias::commitState(void)
 //      double p = one3*GetTrace(mSigma);
 //      opserr << "Committed stress (tag = " << this->getTag() << ") = " << mSigma << "Yield = " << GetF(mSigma, mAlpha) << endln << "p = " << p << ", q = " << q << ", eta = " << q/p << endln;
  
-// opserr << "psi = " << psi << endln;
-// opserr << "alpha_b = " << aB << endln;
-// opserr << "alpha_d = " << aD << endln;
-// opserr << "b0 = " << b0 << endln;
-// opserr << "d = " << d;
-// opserr << "b = " << b;
-// opserr << "h = " << h << endln;
-// opserr << "A = " << A << endln;
-// opserr << "D = " << D << endln;
-// opserr << "B = " << B << endln;
-// opserr << "C = " << C << endln;
-// opserr << "R = " << R;
-// opserr << "n = " << n;
-//  opserr << endln;
 
     if (GetTrace(mSigma) > 0.01 * m_P_atm)
         mUseElasticTan = false;
@@ -411,13 +397,15 @@ ManzariDafalias::commitState(void)
     return 0;
 }
 
-int ManzariDafalias::revertToLastCommit (void)
+int 
+ManzariDafalias::revertToLastCommit()
 {
     // need to be added
     return 0;
 }
 
-int ManzariDafalias::revertToStart(void)
+int 
+ManzariDafalias::revertToStart()
 {
     // added: C.McGann, U.Washington for InitialStateAnalysis
     if (ops_InitialStateAnalysis) {
@@ -515,168 +503,6 @@ ManzariDafalias::getResponse(int responseID, Information &matInfo)
         default:
             return -1;
     }
-}
-
-int
-ManzariDafalias::sendSelf(int commitTag, Channel &theChannel)
-{
-    int res = 0;
-
-    // place data in a vector
-    static Vector data(97);
-
-    data(0) = this->getTag();
-
-    data(1)  = m_G0;
-    data(2)  = m_nu;
-    data(3)  = m_e_init;
-    data(4)  = m_Mc;
-    data(5)  = m_c;
-    data(6)  = m_lambda_c;
-    data(7)  = m_e0;
-    data(8)  = m_ksi;
-    data(9)  = m_P_atm;
-    data(10) = m_m;
-    data(11) = m_h0;
-    data(12) = m_ch;
-    data(13) = m_nb;
-    data(14) = m_A0;
-    data(15) = m_nd;
-    data(16) = m_z_max;
-    data(17) = m_cz;    
-    data(18) = massDen;
-    
-    data(19) = mTolF;
-    data(20) = mTolR;
-    data(21) = mJacoType;
-    data(22) = mScheme;
-    data(23) = mTangType;
-    data(24) = 0; // used to be filled with mOrgTanType
-    data(25) = mElastFlag;
-
-    data(26) = mEpsilon(0);        data(32) = mEpsilon_n(0);    data(38) = mSigma(0);    data(44) = mSigma_n(0);
-    data(27) = mEpsilon(1);        data(33) = mEpsilon_n(1);    data(39) = mSigma(1);    data(45) = mSigma_n(1);
-    data(28) = mEpsilon(2);        data(34) = mEpsilon_n(2);    data(40) = mSigma(2);    data(46) = mSigma_n(2);
-    data(29) = mEpsilon(3);        data(35) = mEpsilon_n(3);    data(41) = mSigma(3);    data(47) = mSigma_n(3);
-    data(30) = mEpsilon(4);        data(36) = mEpsilon_n(4);    data(42) = mSigma(4);    data(48) = mSigma_n(4);
-    data(31) = mEpsilon(5);        data(37) = mEpsilon_n(5);    data(43) = mSigma(5);    data(49) = mSigma_n(5);
-
-    data(50) = mEpsilonE(0);       data(56) = mEpsilonE_n(0);   data(62) = mAlpha(0);    data(68) = mAlpha_n(0);
-    data(51) = mEpsilonE(1);       data(57) = mEpsilonE_n(1);   data(63) = mAlpha(1);    data(69) = mAlpha_n(1);
-    data(52) = mEpsilonE(2);       data(58) = mEpsilonE_n(2);   data(64) = mAlpha(2);    data(70) = mAlpha_n(2);
-    data(53) = mEpsilonE(3);       data(59) = mEpsilonE_n(3);   data(65) = mAlpha(3);    data(71) = mAlpha_n(3);
-    data(54) = mEpsilonE(4);       data(60) = mEpsilonE_n(4);   data(66) = mAlpha(4);    data(72) = mAlpha_n(4);
-    data(55) = mEpsilonE(5);       data(61) = mEpsilonE_n(5);   data(67) = mAlpha(5);    data(73) = mAlpha_n(5);
-
-    data(74) = mFabric(0);         data(80) = mFabric_n(0);     data(86) = mAlpha_in_n(0);
-    data(75) = mFabric(1);         data(81) = mFabric_n(1);     data(87) = mAlpha_in_n(1);
-    data(76) = mFabric(2);         data(82) = mFabric_n(2);     data(88) = mAlpha_in_n(2);
-    data(77) = mFabric(3);         data(83) = mFabric_n(3);     data(89) = mAlpha_in_n(3);
-    data(78) = mFabric(4);         data(84) = mFabric_n(4);     data(90) = mAlpha_in_n(4);
-    data(79) = mFabric(5);         data(85) = mFabric_n(5);     data(91) = mAlpha_in_n(5);
-
-    data(92) = mDGamma_n;
-    data(93) = mDGamma;
-    data(94) = mK;
-    data(95) = mG;
-    data(96) = m_Pmin;
-
-
-    
-    res = theChannel.sendVector(this->getDbTag(), commitTag, data);
-    if (res < 0) {
-        opserr << "WARNING: ManzariDafalias::sendSelf - failed to send vector to channel" << endln;
-        return -1;
-    }
-    
-    return 0;
-}
-
-int 
-ManzariDafalias::recvSelf(int commitTag, Channel &theChannel, 
-                                         FEM_ObjectBroker &theBroker)    
-{
-    int res = 0;
-
-    // receive data
-    static Vector data(97);
-    res = theChannel.recvVector(this->getDbTag(), commitTag, data);
-    if (res < 0) {
-        opserr << "WARNING: ManzariDafalias::recvSelf - failed to receive vector from channel" << endln;
-        return -1;
-    }
-
-    // set member variables
-    this->setTag((int)data(0));
-
-    m_G0        = data(1);    
-    m_nu        = data(2);
-    m_e_init    = data(3);
-    m_Mc        = data(4);
-    m_c         = data(5);
-    m_lambda_c  = data(6);
-    m_e0        = data(7);
-    m_ksi       = data(8);
-    m_P_atm     = data(9);
-    m_m         = data(10);
-    m_h0        = data(11);
-    m_ch        = data(12);
-    m_nb        = data(13);
-    m_A0        = data(14);
-    m_nd        = data(15);
-    m_z_max     = data(16);
-    m_cz        = data(17);
-    massDen     = data(18);
-
-    mTolF        = data(19); 
-    mTolR        = data(20); 
-    mJacoType    = (int)data(21); 
-    mScheme      = (int)data(22); 
-    mTangType    = (int)data(23); 
-    // mOrgTangType = (int)data(24); 
-    mElastFlag   = (int)data(25); 
-
-    mEpsilon(0)  = data(26);    mEpsilon_n(0)  = data(32);     mSigma(0) = data(38);      mSigma_n(0) = data(44); 
-    mEpsilon(1)  = data(27);    mEpsilon_n(1)  = data(33);     mSigma(1) = data(39);      mSigma_n(1) = data(45); 
-    mEpsilon(2)  = data(28);    mEpsilon_n(2)  = data(34);     mSigma(2) = data(40);      mSigma_n(2) = data(46); 
-    mEpsilon(3)  = data(29);    mEpsilon_n(3)  = data(35);     mSigma(3) = data(41);      mSigma_n(3) = data(47); 
-    mEpsilon(4)  = data(30);    mEpsilon_n(4)  = data(36);     mSigma(4) = data(42);      mSigma_n(4) = data(48); 
-    mEpsilon(5)  = data(31);    mEpsilon_n(5)  = data(37);     mSigma(5) = data(43);      mSigma_n(5) = data(49); 
-                                                                      
-    mEpsilonE(0) = data(50);    mEpsilonE_n(0) = data(56);     mAlpha(0) = data(62);      mAlpha_n(0) = data(68); 
-    mEpsilonE(1) = data(51);    mEpsilonE_n(1) = data(57);     mAlpha(1) = data(63);      mAlpha_n(1) = data(69); 
-    mEpsilonE(2) = data(52);    mEpsilonE_n(2) = data(58);     mAlpha(2) = data(64);      mAlpha_n(2) = data(70); 
-    mEpsilonE(3) = data(53);    mEpsilonE_n(3) = data(59);     mAlpha(3) = data(65);      mAlpha_n(3) = data(71); 
-    mEpsilonE(4) = data(54);    mEpsilonE_n(4) = data(60);     mAlpha(4) = data(66);      mAlpha_n(4) = data(72); 
-    mEpsilonE(5) = data(55);    mEpsilonE_n(5) = data(61);     mAlpha(5) = data(67);      mAlpha_n(5) = data(73); 
-
-    mFabric(0)   = data(74);    mFabric_n(0)   = data(80);     mAlpha_in_n(0) = data(86);  
-    mFabric(1)   = data(75);    mFabric_n(1)   = data(81);     mAlpha_in_n(1) = data(87);  
-    mFabric(2)   = data(76);    mFabric_n(2)   = data(82);     mAlpha_in_n(2) = data(88);  
-    mFabric(3)   = data(77);    mFabric_n(3)   = data(83);     mAlpha_in_n(3) = data(89);  
-    mFabric(4)   = data(78);    mFabric_n(4)   = data(84);     mAlpha_in_n(4) = data(90);  
-    mFabric(5)   = data(79);    mFabric_n(5)   = data(85);     mAlpha_in_n(5) = data(91);  
-
-    mDGamma_n = data(92);
-    mDGamma   = data(93); 
-    mK        = data(94); 
-    mG        = data(95); 
-    m_Pmin    = data(96); 
-
-    mVoidRatio  = m_e_init - (1 + m_e_init) * GetTrace(mEpsilon);
-
-    //GetElasticModuli(mSigma, mVoidRatio, mK, mG);
-    mCe  = GetStiffness(mK, mG);
-    mCep = mCe;
-    mCep_Consistent = mCe;
-
-    return 0;
-}
-
-void ManzariDafalias::Print(OPS_Stream &s, int flag )
-{
-    s << "ManzariDafalias Material, tag: " << this->getTag() << endln;
-    s << "Type: " << this->getType() << endln;
 }
 
 int
@@ -4071,12 +3897,6 @@ ManzariDafalias::NewtonRes_negP(const Vector& x, const Vector& inVar)
 
 
 
-
-
-
-
-
-
 Vector
 ManzariDafalias::GetResidual(const Vector& x, const Vector& inVar)
 {
@@ -4753,37 +4573,8 @@ ManzariDafalias::Elastic2Plastic()
     if (curM > m_Mc)
     {  
          m_Mc = 1.1 * curM;
-    //     opserr << "Outside Bounding!" << endln;
-    //     opserr << "Before = " << mSigma;
-    //     mAlpha = mAlpha_n = (m_Mc - m_m) / curM * GetDevPart(mSigma) / p;
-    //     mSigma = mSigma_n = one3 * GetTrace(mSigma) * mI1 + (m_Mc / curM) * GetDevPart(mSigma);
-    //     mAlpha_in = mAlpha_in_n = mAlpha;
-    //     opserr << "After = " << mSigma << endln;
     }
-    // Vector n(6), d(6), b(6), R(6);
-    // double cos3Theta, h, psi, aB, aD, b0, A, D, B, C;
-
-
-    // GetStateDependent(mSigma, mAlpha, mFabric, mVoidRatio, mAlpha_in, 
-    //           n, d, b, cos3Theta, h, psi, aB, aD, b0, A, D, B, C, R);
-    //  double q = sqrt(1.5 * DoubleDot2_2_Contr(GetDevPart(mSigma), GetDevPart(mSigma)));
-    //  opserr << "Committed stress (tag = " << this->getTag() << ") = " << mSigma << "Yield = " << GetF(mSigma, mAlpha) << endln << "p = " << p << ", q = " << q << ", eta = " << q/p << endln;
-
-    //  opserr << "psi = " << psi << endln;
-    //  opserr << "alpha_b = " << aB << endln;
-    //  opserr << "alpha_d = " << aD << endln;
-    //  opserr << "b0 = " << b0 << endln;
-    //  opserr << "d = " << d;
-    //  opserr << "b = " << b;
-    //  opserr << "h = " << h << endln;
-    //  opserr << "A = " << A << endln;
-    //  opserr << "D = " << D << endln;
-    //  opserr << "B = " << B << endln;
-    //  opserr << "C = " << C << endln;
-    //  opserr << "R = " << R;
-    //  opserr << "n = " << n;
-    //  opserr << endln;
-     return 0;
+    return 0;
 }
 
 
@@ -5164,3 +4955,180 @@ ManzariDafalias::getPStrain()
 } 
 
 
+
+int
+ManzariDafalias::sendSelf(int commitTag, Channel &theChannel)
+{
+    int res = 0;
+
+    // place data in a vector
+    static Vector data(97);
+
+    data(0) = this->getTag();
+
+    data(1)  = m_G0;
+    data(2)  = m_nu;
+    data(3)  = m_e_init;
+    data(4)  = m_Mc;
+    data(5)  = m_c;
+    data(6)  = m_lambda_c;
+    data(7)  = m_e0;
+    data(8)  = m_ksi;
+    data(9)  = m_P_atm;
+    data(10) = m_m;
+    data(11) = m_h0;
+    data(12) = m_ch;
+    data(13) = m_nb;
+    data(14) = m_A0;
+    data(15) = m_nd;
+    data(16) = m_z_max;
+    data(17) = m_cz;    
+    data(18) = massDen;
+    
+    data(19) = mTolF;
+    data(20) = mTolR;
+    data(21) = mJacoType;
+    data(22) = mScheme;
+    data(23) = mTangType;
+    data(24) = 0; // used to be filled with mOrgTanType
+    data(25) = mElastFlag;
+
+    data(26) = mEpsilon(0);        data(32) = mEpsilon_n(0);    data(38) = mSigma(0);    data(44) = mSigma_n(0);
+    data(27) = mEpsilon(1);        data(33) = mEpsilon_n(1);    data(39) = mSigma(1);    data(45) = mSigma_n(1);
+    data(28) = mEpsilon(2);        data(34) = mEpsilon_n(2);    data(40) = mSigma(2);    data(46) = mSigma_n(2);
+    data(29) = mEpsilon(3);        data(35) = mEpsilon_n(3);    data(41) = mSigma(3);    data(47) = mSigma_n(3);
+    data(30) = mEpsilon(4);        data(36) = mEpsilon_n(4);    data(42) = mSigma(4);    data(48) = mSigma_n(4);
+    data(31) = mEpsilon(5);        data(37) = mEpsilon_n(5);    data(43) = mSigma(5);    data(49) = mSigma_n(5);
+
+    data(50) = mEpsilonE(0);       data(56) = mEpsilonE_n(0);   data(62) = mAlpha(0);    data(68) = mAlpha_n(0);
+    data(51) = mEpsilonE(1);       data(57) = mEpsilonE_n(1);   data(63) = mAlpha(1);    data(69) = mAlpha_n(1);
+    data(52) = mEpsilonE(2);       data(58) = mEpsilonE_n(2);   data(64) = mAlpha(2);    data(70) = mAlpha_n(2);
+    data(53) = mEpsilonE(3);       data(59) = mEpsilonE_n(3);   data(65) = mAlpha(3);    data(71) = mAlpha_n(3);
+    data(54) = mEpsilonE(4);       data(60) = mEpsilonE_n(4);   data(66) = mAlpha(4);    data(72) = mAlpha_n(4);
+    data(55) = mEpsilonE(5);       data(61) = mEpsilonE_n(5);   data(67) = mAlpha(5);    data(73) = mAlpha_n(5);
+
+    data(74) = mFabric(0);         data(80) = mFabric_n(0);     data(86) = mAlpha_in_n(0);
+    data(75) = mFabric(1);         data(81) = mFabric_n(1);     data(87) = mAlpha_in_n(1);
+    data(76) = mFabric(2);         data(82) = mFabric_n(2);     data(88) = mAlpha_in_n(2);
+    data(77) = mFabric(3);         data(83) = mFabric_n(3);     data(89) = mAlpha_in_n(3);
+    data(78) = mFabric(4);         data(84) = mFabric_n(4);     data(90) = mAlpha_in_n(4);
+    data(79) = mFabric(5);         data(85) = mFabric_n(5);     data(91) = mAlpha_in_n(5);
+
+    data(92) = mDGamma_n;
+    data(93) = mDGamma;
+    data(94) = mK;
+    data(95) = mG;
+    data(96) = m_Pmin;
+
+
+    
+    res = theChannel.sendVector(this->getDbTag(), commitTag, data);
+    if (res < 0) {
+        opserr << "WARNING: ManzariDafalias::sendSelf - failed to send vector to channel" << endln;
+        return -1;
+    }
+    
+    return 0;
+}
+
+int 
+ManzariDafalias::recvSelf(int commitTag, Channel &theChannel, 
+                                         FEM_ObjectBroker &theBroker)    
+{
+    int res = 0;
+
+    // receive data
+    static Vector data(97);
+    res = theChannel.recvVector(this->getDbTag(), commitTag, data);
+    if (res < 0) {
+        opserr << "WARNING: ManzariDafalias::recvSelf - failed to receive vector from channel" << endln;
+        return -1;
+    }
+
+    // set member variables
+    this->setTag((int)data(0));
+
+    m_G0        = data(1);    
+    m_nu        = data(2);
+    m_e_init    = data(3);
+    m_Mc        = data(4);
+    m_c         = data(5);
+    m_lambda_c  = data(6);
+    m_e0        = data(7);
+    m_ksi       = data(8);
+    m_P_atm     = data(9);
+    m_m         = data(10);
+    m_h0        = data(11);
+    m_ch        = data(12);
+    m_nb        = data(13);
+    m_A0        = data(14);
+    m_nd        = data(15);
+    m_z_max     = data(16);
+    m_cz        = data(17);
+    massDen     = data(18);
+
+    mTolF        = data(19); 
+    mTolR        = data(20); 
+    mJacoType    = (int)data(21); 
+    mScheme      = (int)data(22); 
+    mTangType    = (int)data(23); 
+    // mOrgTangType = (int)data(24); 
+    mElastFlag   = (int)data(25); 
+
+    mEpsilon(0)  = data(26);    mEpsilon_n(0)  = data(32);     mSigma(0) = data(38);      mSigma_n(0) = data(44); 
+    mEpsilon(1)  = data(27);    mEpsilon_n(1)  = data(33);     mSigma(1) = data(39);      mSigma_n(1) = data(45); 
+    mEpsilon(2)  = data(28);    mEpsilon_n(2)  = data(34);     mSigma(2) = data(40);      mSigma_n(2) = data(46); 
+    mEpsilon(3)  = data(29);    mEpsilon_n(3)  = data(35);     mSigma(3) = data(41);      mSigma_n(3) = data(47); 
+    mEpsilon(4)  = data(30);    mEpsilon_n(4)  = data(36);     mSigma(4) = data(42);      mSigma_n(4) = data(48); 
+    mEpsilon(5)  = data(31);    mEpsilon_n(5)  = data(37);     mSigma(5) = data(43);      mSigma_n(5) = data(49); 
+                                                                      
+    mEpsilonE(0) = data(50);    mEpsilonE_n(0) = data(56);     mAlpha(0) = data(62);      mAlpha_n(0) = data(68); 
+    mEpsilonE(1) = data(51);    mEpsilonE_n(1) = data(57);     mAlpha(1) = data(63);      mAlpha_n(1) = data(69); 
+    mEpsilonE(2) = data(52);    mEpsilonE_n(2) = data(58);     mAlpha(2) = data(64);      mAlpha_n(2) = data(70); 
+    mEpsilonE(3) = data(53);    mEpsilonE_n(3) = data(59);     mAlpha(3) = data(65);      mAlpha_n(3) = data(71); 
+    mEpsilonE(4) = data(54);    mEpsilonE_n(4) = data(60);     mAlpha(4) = data(66);      mAlpha_n(4) = data(72); 
+    mEpsilonE(5) = data(55);    mEpsilonE_n(5) = data(61);     mAlpha(5) = data(67);      mAlpha_n(5) = data(73); 
+
+    mFabric(0)   = data(74);    mFabric_n(0)   = data(80);     mAlpha_in_n(0) = data(86);  
+    mFabric(1)   = data(75);    mFabric_n(1)   = data(81);     mAlpha_in_n(1) = data(87);  
+    mFabric(2)   = data(76);    mFabric_n(2)   = data(82);     mAlpha_in_n(2) = data(88);  
+    mFabric(3)   = data(77);    mFabric_n(3)   = data(83);     mAlpha_in_n(3) = data(89);  
+    mFabric(4)   = data(78);    mFabric_n(4)   = data(84);     mAlpha_in_n(4) = data(90);  
+    mFabric(5)   = data(79);    mFabric_n(5)   = data(85);     mAlpha_in_n(5) = data(91);  
+
+    mDGamma_n = data(92);
+    mDGamma   = data(93); 
+    mK        = data(94); 
+    mG        = data(95); 
+    m_Pmin    = data(96); 
+
+    mVoidRatio  = m_e_init - (1 + m_e_init) * GetTrace(mEpsilon);
+
+    //GetElasticModuli(mSigma, mVoidRatio, mK, mG);
+    mCe  = GetStiffness(mK, mG);
+    mCep = mCe;
+    mCep_Consistent = mCe;
+
+    return 0;
+}
+
+void 
+ManzariDafalias::Print(OPS_Stream &s, int flag )
+{
+    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+        s << OPS_PRINT_JSON_MATE_INDENT << "{";
+        s << "\"name\": " << this->getTag() << ", ";
+        s << "\"type\": \"" << this->getType() << "\", ";
+        s << "\"G0\": " << m_G0 << ", ";
+        s << "\"nu\": " << m_nu << ", ";
+        s << "\"e_init\": " << m_e_init << ", ";
+        s << "\"Mc\": " << m_Mc << ", ";
+        s << "\"c\": " << m_c << ", ";
+        s << "\"lambda_c\": " << m_lambda_c << ", ";
+        s << "\"e0\": " << m_e0 << ", ";
+        s << "\"ksi\": " << m_ksi;
+        s << "}";
+    }
+    s << "ManzariDafalias Material, tag: " << this->getTag() << endln;
+    s << "Type: " << this->getType() << endln;
+}

@@ -50,7 +50,8 @@ int  Element::numMatrices(0);
 //        of external nodes for the element.
 
 Element::Element(int tag, int cTag) 
-  : TaggedObject(tag), MovableObject(cTag)
+  : TaggedObject(tag)
+  , MovableObject(cTag)
   , alphaM(0.0), betaK(0.0), betaK0(0.0), betaKc(0.0)
   , domain(nullptr)
   , Kc(0), previousK(0), numPreviousK(0), index(-1), nodeIndex(-1)
@@ -274,15 +275,15 @@ Element::getResistingForceIncInertia()
   // perform: R = R - M * a
   //
 
-  int loc = 0;
   Node **theNodes = this->getNodePtrs();
   int numNodes = this->getNumExternalNodes();
 
-  int i;
+
+  int loc = 0;
   for (int i=0; i<numNodes; i++) {
-    const Vector &acc = theNodes[i]->getAccel();
-    for (int i=0; i<acc.Size(); i++) { // TODO!!!!! Should i be j?????
-      (*theVector2)(loc++) = acc(i);
+    const Vector &acc = theNodes[i]->getTrialAccel();
+    for (int j=0; j<acc.Size(); j++) {
+      (*theVector2)(loc++) = acc(j);
     }
   }
   theVector->addMatrixVector(1.0, this->getMass(), *theVector2, +1.0);
@@ -320,7 +321,7 @@ Element::getResistingForceIncInertia()
 
 
 const Vector &
-Element::getRayleighDampingForces(void) 
+Element::getRayleighDampingForces() 
 {
 
   if (index == -1) {
@@ -705,7 +706,7 @@ double Element::getCharacteristicLength(void)
       double ijLength = 0;
       for (int k=0; k<iDOF && k<jDOF; k++) {
         ijLength += (jCoords(k)-iCoords(k))*(jCoords(k)-iCoords(k)); //Tesser
-      }        
+      }
       ijLength = sqrt(ijLength);
       if (ijLength > cLength)
         cLength = ijLength;

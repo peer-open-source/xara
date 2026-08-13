@@ -2771,8 +2771,22 @@ int Inno3DPnPJoint::getResponse(int responseID, Information &eleInfo)
 	case -1:
 		return -1;
 
-	case 1:       
-		if(eleInfo.theVector!=0)
+	case 1:
+		{
+			// transformation from LOCAL to GLOBAL (EXT disp)
+			Vector UeprCommit_G(30);
+			UeprCommit_G.Zero();
+			
+			UeprCommit_G.addMatrixTransposeVector(0.0, Transf, UeprCommit, 1.0);
+			return eleInfo.setVector(UeprCommit_G);
+		}
+		
+	case 2:
+	    {
+			return eleInfo.setVector(UeprIntCommit);
+		}
+		
+	case 3:
 		{
 			// transformation from LOCAL to GLOBAL (EXT disp)
 			Vector UeprCommit_G(30);
@@ -2780,109 +2794,65 @@ int Inno3DPnPJoint::getResponse(int responseID, Information &eleInfo)
 			
 			UeprCommit_G.addMatrixTransposeVector(0.0, Transf, UeprCommit, 1.0);
 			
-			// opserr << "getResponse -- case 1: " << UeprCommit_G << endln;
-			// opserr << "getResponse -- case 1: " << UeprCommit << endln;
-			
 			for (int j=0; j<30; j++)
 				{
-					(*(eleInfo.theVector))(j) =  UeprCommit_G(j);
-				}
-		}
-		// opserr << "getResponse: END " << "case 1" <<endln;
-		return 0;
-		
-	case 2:       
-		if(eleInfo.theVector!=0)
-		{
-			for (int j=0; j<4; j++)
-				{
-					(*(eleInfo.theVector))(j) =  UeprIntCommit(j);
-
-				}
-		}
-		// opserr << "getResponse: END " << "case 2" <<endln;
-		return 0;
-		
-	case 3:       
-		if(eleInfo.theVector!=0)
-		{
-			// transformation from LOCAL to GLOBAL (EXT disp)
-			Vector UeprCommit_G(30);
-			UeprCommit_G.Zero();
-			
-			UeprCommit_G.addMatrixTransposeVector(0.0, Transf, UeprCommit, 1.0);
-			
-			// opserr << "getResponse -- case 1: " << UeprCommit_G <<endln;
-			// opserr << "getResponse -- case 1: " << UeprCommit <<endln;
-			
-			for (int j=0; j<30; j++)
-				{
-					(*(eleInfo.theVector))(j) =  UeprCommit_G(j);
+					((eleInfo.theVector))(j) =  UeprCommit_G(j);
 				}
 
 			// no transformation is needed (INT disp)
 			for (int k=0; k<4; k++)
 				{
-					(*(eleInfo.theVector))(30+k) =  UeprIntCommit(k);
+					((eleInfo.theVector))(30+k) =  UeprIntCommit(k);
 
 				}
 				
 		}
-		// opserr << "getResponse: END " << "case 3" <<endln;
 		return 0;
 
-	case 4:       
-		if(eleInfo.theVector!=0)
+	case 4:
 		{
 			for (int j=0; j<34; j++)
 				{
-					(*(eleInfo.theVector))(j) =  R(j);
+					((eleInfo.theVector))(j) =  R(j);
 				}
 		}
-		// opserr << "getResponse: END " << "case 4" <<endln;
 		return 0;
 
 	case 5:
-		if(eleInfo.theVector!=0)
 		{
 			for ( int i =0 ; i<32 ; i++ )
 			{
-				(*(eleInfo.theVector))(i) = 0.0;
-				if ( MaterialPtr[i] != NULL ) 
-					(*(eleInfo.theVector))(i) = MaterialPtr[i]->getStress();
+				((eleInfo.theVector))(i) = 0.0;
+				if ( MaterialPtr[i] != nullptr ) 
+					((eleInfo.theVector))(i) = MaterialPtr[i]->getStress();
 			}
 		}
-		// opserr << "getResponse: END " << "case 5" <<endln;
 		return 0;
 		
 	case 6:
-		if(eleInfo.theVector!=0)
 		{
 			for ( int i =0 ; i<32 ; i++ )
 			{
-				(*(eleInfo.theVector))(i) = 0.0;
-				if ( MaterialPtr[i] != NULL ) 
-					(*(eleInfo.theVector))(i) = MaterialPtr[i]->getStrain();
+				((eleInfo.theVector))(i) = 0.0;
+				if ( MaterialPtr[i] != nullptr ) 
+					((eleInfo.theVector))(i) = MaterialPtr[i]->getStrain();
 			}
 		}
-		// opserr << "getResponse: END " << "case 6" <<endln;
 		return 0;
 
 	case 7:
-		if(eleInfo.theVector!=0)
 		{
 			for ( int i =0 ; i<32 ; i++ )
 			{
-				(*(eleInfo.theVector))(i) = 0.0;
-				(*(eleInfo.theVector))(i+32) = 0.0;
-				if ( MaterialPtr[i] != NULL )
+				((eleInfo.theVector))(i) = 0.0;
+				((eleInfo.theVector))(i+32) = 0.0;
+				if ( MaterialPtr[i] != nullptr )
 				{
-					(*(eleInfo.theVector))(i) 	 = MaterialPtr[i]->getStrain();
-					(*(eleInfo.theVector))(i+32) = MaterialPtr[i]->getStress();
+					((eleInfo.theVector))(i) 	 = MaterialPtr[i]->getStrain();
+					((eleInfo.theVector))(i+32) = MaterialPtr[i]->getStress();
 				}
 			}
 		}
-		// opserr << "getResponse: END " << "case 7" <<endln;
 		return 0;
 
 	// case 6:
@@ -2904,22 +2874,11 @@ int Inno3DPnPJoint::getResponse(int responseID, Information &eleInfo)
 		// }
 		// return 0;
 
-	default:
-		// opserr << "getResponse: END " << "default return -1" <<endln;
+	default: {
 		return -1;
+	}
 	}
 	return -1;
 	
 }
 
-
-int Inno3DPnPJoint::setParameter (char **argv, int argc, Information &info)
-{
-	return -1;
-}
- 
- 
-int Inno3DPnPJoint::updateParameter (int parameterID, Information &info)
-{
-	return -1;
-}

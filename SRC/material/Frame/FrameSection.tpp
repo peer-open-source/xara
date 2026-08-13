@@ -107,19 +107,7 @@ FrameSection::getTangent(State state) noexcept
 
   OpenSees::MatrixND<n,n> kout{};
 
-  OpenSees::MatrixND<12,12> Ks = this->getFullTangent(state);
-
-
-  if (getenv("XARA_OLD_WARP")) [[unlikely]] {
-    constexpr FrameLayout iw = WarpIndex(n, scheme);
-    constexpr
-    OpenSees::MatrixND<12,12> L  = ConstraintMatrix(iw);
-    OpenSees::MatrixND<12,12> LKL = Ks*L;
-    for (int i=0; i<m; i++)
-      for (int j=0; j<m; j++)
-        Ks(i,j) = LKL(i,j);
-  }
-
+  const OpenSees::MatrixND<12,12> Ks = this->getFullTangent(state);
 
   for (int i=0; i<n; i++) {
     for (int j=0; j<n; j++) {
@@ -149,7 +137,6 @@ FrameSection::setTrialState(const OpenSees::VectorND<n>& e) noexcept
 
   const ID& layout = this->getType();
 
-  constexpr FrameLayout l = WarpIndex(n, scheme);
 
   for (int i=0; i<n; i++) {
     for (int j=0; j<m; j++)
@@ -170,38 +157,6 @@ FrameSection::setTrialState(const OpenSees::VectorND<n>& e) noexcept
         trial[j] = e[i];
   }
 #endif
-  // Case 2 and 3
-  // If element has a twisting DOF and no Bishear
-  // DOF, then twist == alpha, where alpha is the
-  // bishear DOF.
-  // Note that elem_twist and elem_bishear are computable
-  // at compile time, so this branch can theoretically be 
-  // optimized out by the compiler, however this might be 
-  // optimistic
-  //
-  if ((l.v[0] == -1) && getenv("XARA_OLD_WARP")) [[unlikely]]
-  {
-    for (int j=0; j<m; j++)
-      switch (layout(j)) {
-        case FrameStress::Bishear:
-          // Set alpha = tau
-          if (l.m[0] != -1)
-            trial[j] = e[l.m[0]];
-          break;
-        case FrameStress::Qy:
-          // Set alpha_y = gamma_y
-          if (l.n[1] != -1)
-            trial[j] = e[l.n[1]];
-          break;
-        case FrameStress::Qz:
-          // Set alpha_z = gamma_z
-          if (l.n[2] != -1)
-            trial[j] = e[l.n[2]];
-          break;
-        default:
-          ;
-      }
-  }
   return this->setTrialSectionDeformation(trial);
 }
 

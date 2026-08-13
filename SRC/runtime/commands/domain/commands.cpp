@@ -94,7 +94,7 @@ static struct {
   // DAMPING
   {"rayleigh",            &TclCommand_rayleighDamping},
   
-  {"getLoadFactor",       &getLoadFactor},
+  {"getLoadFactor",       &XaraCmd_getLoadFactor},
 
   //
   {"basicDeformation",    &basicDeformation},
@@ -116,12 +116,12 @@ static struct {
   {"nodeEigenvector",     &nodeEigenvector},
   {"nodeReaction",        &nodeReaction},
 
-  {"reactions",           &calculateNodalReactions},
+  {"reactions",           &XaraCmd_reactions},
 
   {"setNodeVel",          &setNodeVel},
   {"setNodeDisp",         &setNodeDisp},
   {"setNodeAccel",        &setNodeAccel},
-  {"setNodeCoord",        &setNodeCoord},
+  {"setNodeCoord",        &XaraCmd_setNodeCoord},
   {"setNodePressure",     &setNodePressure},
 
   {"nodeRotation",        &nodeRotation},
@@ -193,7 +193,7 @@ RemoveTclDomainCommands(Tcl_Interp* interp)
 }
 
 int
-AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
+XaraInit_DomainCommands(Tcl_Interp *interp, Domain* the_domain)
 {
 
   ClientData domain = (ClientData)the_domain;
@@ -246,19 +246,22 @@ AddTclDomainCommands(Tcl_Interp *interp, Domain* the_domain)
 #include <StaticPattern.h>
 
 int
-getLoadFactor(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-              TCL_Char ** const argv)
+XaraCmd_getLoadFactor(ClientData clientData, 
+                      Tcl_Interp *interp, 
+                      ArgSize argc,
+                      TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain* domain = (Domain*)clientData; 
 
   if (argc < 2) {
     opserr << OpenSees::PromptValueError 
-           << "no load pattern supplied -- getLoadFactor\n";
+           << "no load pattern supplied"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
-  int tag;
+  Xara::Tag tag;
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError 
            << "reading load pattern tag\n";

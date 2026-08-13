@@ -22,8 +22,7 @@
 // $Date: 2005-12-06 22:20:18 $
 // $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/sparseGEN/DistributedSparseGenRowLinSOE.h,v $
 
-#ifndef DistributedSparseGenRowLinSOE_h
-#  define DistributedSparseGenColLinSOE_h
+#pragma once
 
 // Written: fmk
 // Created: 04/05
@@ -101,5 +100,3 @@ private:
   int remoteDataLoc;
 };
 
-
-#endif

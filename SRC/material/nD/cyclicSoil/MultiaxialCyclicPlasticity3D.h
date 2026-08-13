@@ -67,7 +67,7 @@ class MultiaxialCyclicPlasticity3D : public MultiaxialCyclicPlasticity {
   
 
   //elastic constructor
-  MultiaxialCyclicPlasticity3D( int tag, double rho, double K, double G ) ;
+  // MultiaxialCyclicPlasticity3D( int tag, double rho, double K, double G ) ;
 
   //destructor
   ~MultiaxialCyclicPlasticity3D( ) ;

@@ -45,7 +45,7 @@ double NineFourNodeQuadUP::dvolq[4];
 NineFourNodeQuadUP::NineFourNodeQuadUP(int tag,
     int nd1, int nd2, int nd3, int nd4,int nd5, int nd6, int nd7, int nd8,int nd9,
     NDMaterial &m, const char *type, double t, double bulk, double r,
-          double p1, double p2, double b1, double b2)
+    double p1, double p2, double b1, double b2)
 : Element(tag, ELE_TAG_Nine_Four_Node_QuadUP),
   connectedExternalNodes(9),
   Ki(nullptr), Q(22), applyLoad(0), thickness(t), kc(bulk), rho(r),
@@ -152,10 +152,10 @@ NineFourNodeQuadUP::setDomain(Domain *theDomain)
     }
   }
 
-  int dof;
+
   bool allZero = true;
   for (i=0; i<nenu; i++) {
-    dof = theNodes[i]->getNumberDOF();
+    int dof = theNodes[i]->getNumberDOF();
     if ((i<nenp && dof != 3) || (i>=nenp && dof != 2)) {
       opserr << "FATAL ERROR NineFourNodeQuadUP, has wrong number of DOFs at its nodes "
          << this->getTag();
@@ -177,45 +177,46 @@ NineFourNodeQuadUP::setDomain(Domain *theDomain)
     this->Element::link(*theDomain);
 }
 
+
 int
 NineFourNodeQuadUP::commitState()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    // call element commitState to do any base class stuff
-    if ((retVal = this->Element::commitState()) != 0) {
-      opserr << "Nine_Four_Node_Quad_UP::commitState () - failed in base class";
-    }
+  // call element commitState to do any base class stuff
+  if ((retVal = this->Element::commitState()) != 0) {
+    opserr << "Nine_Four_Node_Quad_UP::commitState () - failed in base class";
+  }
 
-    // Loop over the integration points and commit the material states
-    for (int i = 0; i < nintu; i++)
-      retVal += theMaterial[i]->commitState();
+  // Loop over the integration points and commit the material states
+  for (int i = 0; i < nintu; i++)
+    retVal += theMaterial[i]->commitState();
 
-    return retVal;
+  return retVal;
 }
 
 int
 NineFourNodeQuadUP::revertToLastCommit()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    // Loop over the integration points and revert to last committed state
-    for (int i = 0; i < nintu; i++)
-        retVal += theMaterial[i]->revertToLastCommit();
+  // Loop over the integration points and revert to last committed state
+  for (int i = 0; i < nintu; i++)
+      retVal += theMaterial[i]->revertToLastCommit();
 
-    return retVal;
+  return retVal;
 }
 
 int
 NineFourNodeQuadUP::revertToStart()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    // Loop over the integration points and revert states to start
-    for (int i = 0; i < nintu; i++)
-        retVal += theMaterial[i]->revertToStart();
+  // Loop over the integration points and revert states to start
+  for (int i = 0; i < nintu; i++)
+      retVal += theMaterial[i]->revertToStart();
 
-    return retVal;
+  return retVal;
 }
 
 int
@@ -264,10 +265,11 @@ NineFourNodeQuadUP::update()
   return ret;
 }
 
+
 const Matrix&
 NineFourNodeQuadUP::getTangentStiff()
 {
-  int i, j, j2, j2m1, ik, ib, jk, jb;
+  int i, j, j2, j2m1, ik, jk;
   static Matrix B(3,nenu*2);
   static Matrix BTDB(nenu*2,nenu*2);
 
@@ -285,14 +287,14 @@ NineFourNodeQuadUP::getTangentStiff()
     const Matrix &D = theMaterial[i]->getTangent();
 
     for (j=0; j<nenu; j++) {
-        j2 = j*2+1;
-        j2m1 = j*2;
-        B(0,j2m1) = shgu[0][j][i];
-        B(0,j2)   = 0.;
-        B(1,j2m1) = 0.;
-        B(1,j2)   = shgu[1][j][i];
-        B(2,j2m1) = shgu[1][j][i];
-        B(2,j2)   = shgu[0][j][i];
+      j2 = j*2+1;
+      j2m1 = j*2;
+      B(0,j2m1) = shgu[0][j][i];
+      B(0,j2)   = 0.;
+      B(1,j2m1) = 0.;
+      B(1,j2)   = shgu[1][j][i];
+      B(2,j2m1) = shgu[1][j][i];
+      B(2,j2)   = shgu[0][j][i];
     }
 
     // Perform numerical integration
@@ -301,20 +303,25 @@ NineFourNodeQuadUP::getTangentStiff()
   }
 
   for (i = 0; i < nenu; i++) {
-      if (i<nenp) ik = i*3;
-      if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
-      ib = i*2;
+    if (i<nenp) 
+      ik = i*3;
+    if (i>=nenp)
+      ik = nenp*3 + (i-nenp)*2;
+    int ib = i*2;
 
-      for (j = 0; j < nenu; j++) {
-          if (j<nenp) jk = j*3;
-          if (j>=nenp) jk = nenp*3 + (j-nenp)*2;
-          jb = j*2;
+    for (j = 0; j < nenu; j++) {
+      if (j<nenp)
+        jk = j*3;
+      if (j>=nenp)
+        jk = nenp*3 + (j-nenp)*2;
 
-          K(ik,jk) += BTDB(ib,jb);
-          K(ik+1,jk) += BTDB(ib+1,jb);
-          K(ik,jk+1) += BTDB(ib,jb+1);
-          K(ik+1,jk+1) += BTDB(ib+1,jb+1);
-      }
+      int jb = j*2;
+
+      K(ik,jk) += BTDB(ib,jb);
+      K(ik+1,jk) += BTDB(ib+1,jb);
+      K(ik,jk+1) += BTDB(ib,jb+1);
+      K(ik+1,jk+1) += BTDB(ib+1,jb+1);
+    }
   }
 
   return K;
@@ -377,6 +384,7 @@ NineFourNodeQuadUP::getInitialStiff()
   Ki = new Matrix(K);
   return *Ki;
 }
+
 
 const Matrix&
 NineFourNodeQuadUP::getDamp()
@@ -496,13 +504,13 @@ NineFourNodeQuadUP::getMass()
 }
 
 void
-NineFourNodeQuadUP::zeroLoad(void)
+NineFourNodeQuadUP::zeroLoad()
 {
-    Q.Zero();
-    applyLoad = 0;
-    appliedB[0] = 0.0;
-    appliedB[1] = 0.0;
-    return;
+  Q.Zero();
+  applyLoad = 0;
+  appliedB[0] = 0.0;
+  appliedB[1] = 0.0;
+  return;
 }
 
 int
@@ -523,6 +531,7 @@ NineFourNodeQuadUP::addLoad(ElementalLoad *theLoad, double loadFactor)
   return -1;
 }
 
+
 int
 NineFourNodeQuadUP::addInertiaLoadToUnbalance(const Vector &accel)
 {
@@ -535,16 +544,16 @@ NineFourNodeQuadUP::addInertiaLoadToUnbalance(const Vector &accel)
   ra.Zero();
 
   for (i=0; i<nenu; i++) {
-      const Vector &Raccel = theNodes[i]->getRV(accel);
-      if ((i<nenp && 3 != Raccel.Size()) || (i>=nenp && 2 != Raccel.Size())) {
-         opserr << "NineFourNodeQuadUP::addInertiaLoadToUnbalance matrix and vector sizes are incompatible\n";
-         return -1;
-      }
+    const Vector &Raccel = theNodes[i]->getRV(accel);
+    if ((i<nenp && 3 != Raccel.Size()) || (i>=nenp && 2 != Raccel.Size())) {
+        opserr << "NineFourNodeQuadUP::addInertiaLoadToUnbalance matrix and vector sizes are incompatible\n";
+        return -1;
+    }
 
-        if (i<nenp) ik = i*3;
-      if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
-      ra[ik] = Raccel(0);
-      ra[ik+1] = Raccel(1);
+    if (i<nenp) ik = i*3;
+    if (i>=nenp) ik = nenp*3 + (i-nenp)*2;
+    ra[ik] = Raccel(0);
+    ra[ik+1] = Raccel(1);
   }
 
   // Compute mass matrix

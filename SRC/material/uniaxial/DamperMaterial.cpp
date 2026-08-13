@@ -289,8 +289,8 @@ DamperMaterial::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
-    s << "\"name\": \"DamperMaterial\", ";
-    s << "\"tag\": " << this->getTag() << ", ";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"DamperMaterial\", ";
     if (theMaterial != nullptr)
       s << "\"material\": " << theMaterial->getTag();
     else

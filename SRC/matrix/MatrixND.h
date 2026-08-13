@@ -86,7 +86,7 @@ struct alignas(64) MatrixND {
     return sum;
   }
 
-  const double norm() const noexcept;
+  double norm() const noexcept;
 
   constexpr double determinant() const;
 

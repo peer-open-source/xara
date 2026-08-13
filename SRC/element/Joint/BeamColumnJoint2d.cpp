@@ -1305,35 +1305,19 @@ BeamColumnJoint2d::getResponse(int responseID, Information &eleInfo)
 	double bsFac, bsFbd, isFac, isFbd; 
 
 	switch (responseID) {
-	case 1:       
-		if(eleInfo.theVector!=0)
+	case 1:
 		{
-			(*(eleInfo.theVector))(0) = UeprCommit(0);
-			(*(eleInfo.theVector))(1) = UeprCommit(1);
-			(*(eleInfo.theVector))(2) = UeprCommit(2);
-			(*(eleInfo.theVector))(3) = UeprCommit(3);
-			(*(eleInfo.theVector))(4) = UeprCommit(4);
-			(*(eleInfo.theVector))(5) = UeprCommit(5);
-			(*(eleInfo.theVector))(6) = UeprCommit(6);
-			(*(eleInfo.theVector))(7) = UeprCommit(7);
-			(*(eleInfo.theVector))(8) = UeprCommit(8);
-			(*(eleInfo.theVector))(9) = UeprCommit(9);
-			(*(eleInfo.theVector))(10) = UeprCommit(10);
-			(*(eleInfo.theVector))(11) = UeprCommit(11);
+			return eleInfo.setVector(UeprCommit);
 		}
 		return 0;
 
 	case 2:
-		if (eleInfo.theVector !=0) {
-			(*(eleInfo.theVector))(0) = UeprIntCommit(0);
-			(*(eleInfo.theVector))(1) = UeprIntCommit(1);
-			(*(eleInfo.theVector))(2) = UeprIntCommit(2);
-			(*(eleInfo.theVector))(3) = UeprIntCommit(3);
+		{
+			return eleInfo.setVector(UeprIntCommit);
 		}
 		return 0;
 
 	case 3:
-
 		for (ty =0; ty <12; ty++)
 		{
 			U(ty) = UeprCommit(ty);
@@ -1363,7 +1347,6 @@ BeamColumnJoint2d::getResponse(int responseID, Information &eleInfo)
 		def(2) = delta(12);  // contribution due to shear panel
 
 		def(3) = def(0) + def(1) + def(2);  // total joint deformation
-
 
 		return eleInfo.setVector(def);
 	default:

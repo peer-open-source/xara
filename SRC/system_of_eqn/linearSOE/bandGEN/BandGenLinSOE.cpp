@@ -120,81 +120,79 @@ BandGenLinSOE::~BandGenLinSOE()
 int 
 BandGenLinSOE::setSize(Graph &theGraph)
 {
-    int result = 0;
-    int oldSize = size;
-    size = theGraph.getNumVertex();
-    factored = false;
-    
-    /*
-     * determine the number of superdiagonals and subdiagonals
-     */
-    
-    numSubD = 0;
-    numSuperD = 0;
+  int result = 0;
+  size = theGraph.getNumVertex();
+  factored = false;
 
-    Vertex *vertexPtr;
-    VertexIter &theVertices = theGraph.getVertices();
-    
-    while ((vertexPtr = theVertices()) != nullptr) {
-      int vertexNum = vertexPtr->getTag();
-      const ID &theAdjacency = vertexPtr->getAdjacency();
-      for (int i=0; i<theAdjacency.Size(); i++) {
-          int otherNum = theAdjacency(i);
-          int diff = vertexNum - otherNum;
-          if (diff > 0) {
-            if (diff > numSuperD)
-              numSuperD = diff;
-          } else 
-            if (diff < numSubD)
-              numSubD = diff;
-      }
+  /*
+    * determine the number of superdiagonals and subdiagonals
+    */
+
+  numSubD = 0;
+  numSuperD = 0;
+
+  Vertex *vertexPtr;
+  VertexIter &theVertices = theGraph.getVertices();
+
+  while ((vertexPtr = theVertices()) != nullptr) {
+    int vertexNum = vertexPtr->getTag();
+    const ID &theAdjacency = vertexPtr->getAdjacency();
+    for (int i=0; i<theAdjacency.Size(); i++) {
+        int otherNum = theAdjacency(i);
+        int diff = vertexNum - otherNum;
+        if (diff > 0) {
+          if (diff > numSuperD)
+            numSuperD = diff;
+        } else 
+          if (diff < numSubD)
+            numSubD = diff;
     }
-    numSubD *= -1;
+  }
+  numSubD *= -1;
 
-    int newSize = size * (2*numSubD + numSuperD +1);
-    if (newSize > Asize) { // we have to get another space for A
+  int newSize = size * (2*numSubD + numSuperD +1);
+  if (newSize > Asize) { 
+    // we have to get another space for A
+    if (A != 0) 
+        delete [] A;
 
-        if (A != 0) 
-            delete [] A;
+    A = new double[newSize];
+    Asize = newSize;
+  }
 
-        A = new double[newSize];
-        Asize = newSize;
-    }
+  // zero the matrix
+  for (int i=0; i<Asize; i++)
+    A[i] = 0;
 
-    // zero the matrix
-    for (int i=0; i<Asize; i++)
-        A[i] = 0;
-    
-    if (size > Bsize) { // we have to get space for the vectors
-      // delete the old        
-      if (B != nullptr) delete [] B;
-      if (X != nullptr) delete [] X;
+  if (size > Bsize) {
+    // we have to get space for the vectors
+    // delete the old
+    if (B != nullptr) delete [] B;
+    if (X != nullptr) delete [] X;
 
-      // create the new
-      B = new double[size];
-      X = new double[size];
+    // create the new
+    B = new double[size];
+    X = new double[size];
 
-      Bsize = size;
-    }
+    Bsize = size;
+  }
 
-    // get new Vector objects if size has changes
-    vectX.setData(X,size);
-    vectB.setData(B,size);
+  // get new Vector objects if size has changes
+  vectX.setData(X,size);
+  vectB.setData(B,size);
 
-    // zero the vectors
-    vectX.Zero();
-    vectB.Zero();
-    
-    // invoke setSize() on the Solver
-    LinearSOESolver *theSolvr = this->getSolver();
-    int solverOK = theSolvr->setSize();
-    if (solverOK < 0) {
-        // opserr << "WARNING:BandGenLinSOE::setSize :";
-        // opserr << " solver failed setSize()\n";
-        return solverOK;
-    }    
+  // zero the vectors
+  vectX.Zero();
+  vectB.Zero();
 
-    return result;
+  // invoke setSize() on the Solver
+  LinearSOESolver *theSolvr = this->getSolver();
+  int solverOK = theSolvr->setSize();
+  if (solverOK < 0) {
+    return solverOK;
+  }
+
+  return result;
 }
 
 int 

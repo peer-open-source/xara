@@ -5,7 +5,7 @@
 #
 #==============================================================================
 
-target_sources(OPS_Runtime PRIVATE dispatch.cpp)
+target_sources(XaraCmds_Modeling PRIVATE dispatch.cpp)
 
 target_sources(OPS_Material
   PRIVATE

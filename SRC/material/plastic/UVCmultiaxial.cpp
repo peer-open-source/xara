@@ -1,13 +1,16 @@
 //
 // Created by Alex Hartloper on 09.07.18.
 //
+// [1] A. R. Hartloper, A. De Castro E Sousa, and D. G. Lignos, 
+//     “Constitutive Modeling of Structural Steels: Nonlinear Isotropic/Kinematic Hardening Material Model and Its Calibration,” 
+//     J. Struct. Eng., vol. 147, no. 4, p. 04021031, Apr. 2021, doi: 10.1061/(ASCE)ST.1943-541X.0002964.
 
 #include "UVCmultiaxial.h"
 #include <VectorND.h>
 using namespace OpenSees;
 #include <cmath>
 #include <iostream>
-#include "Voight.hpp"
+#include "Voigt.hpp"
 
 #include <Channel.h>
 #include <Information.h>
@@ -125,8 +128,9 @@ nonzero
 * @param cK backstress kinematic hardening moduli
 * @param gammaK controls the saturation rate of the kinematic hardening
 */
-UVCmultiaxial::UVCmultiaxial(int tag, double E, double poissonRatio, double sy0, double qInf,
-                             double b, double dInf, double a,
+UVCmultiaxial::UVCmultiaxial(int tag, double E, double poissonRatio, double sy0, 
+                             double qInf, double b, 
+                             double dInf, double a,
                              const std::vector<double>& cK,
                              const std::vector<double>& gammaK)
  : NDMaterial(tag, ND_TAG_UVCmultiaxial),
@@ -220,7 +224,10 @@ UVCmultiaxial::UVCmultiaxial()
 
 /* ----------------------------------------------------------------------------------------------------------------- */
 
-UVCmultiaxial::~UVCmultiaxial() {}
+UVCmultiaxial::~UVCmultiaxial() 
+{
+
+}
 
 /* ----------------------------------------------------------------------------------------------------------------- */
 
@@ -240,7 +247,6 @@ UVCmultiaxial::returnMapping()
   double consistParam = 0.;
   double pMultNumer = 0.;
   double pMultDenom;
-  const double SQRT23 = std::sqrt(2. / 3.);
 
   // Elastic trial step
   VectorND<6> alpha {}; // = Vector(N_DIMS);
@@ -256,7 +262,7 @@ UVCmultiaxial::returnMapping()
   for (unsigned int i = 0; i < N_DIRECT; ++i)
     stressDeviatoric[i] = stressTrial[i] - stressHydro;
   stressRelative     = stressDeviatoric - alpha;
-  double stressRelativeNorm = std::sqrt(Voight::Dot(stressRelative, stressRelative));
+  double stressRelativeNorm = std::sqrt(Voigt::Dot(stressRelative, stressRelative));
   flowNormal         = stressRelative / (RETURN_MAP_TOL + stressRelativeNorm);
 
   // Yield condition
@@ -280,15 +286,15 @@ UVCmultiaxial::returnMapping()
     for (unsigned int i = 0; i < nBackstresses; ++i) {
       double eK = calculateEk(i);
       kinematicModulus +=
-          cK[i] * eK - SQRT23 * gammaK[i] * eK * Voight::Dot(flowNormal, alphaKConverged[i]);
-      alphaUpd +=
-          eK * alphaKConverged[i] + SQRT23*cK[i] / gammaK[i] * (1. - eK) * flowNormal;
+          cK[i] * eK - GammaScale * gammaK[i] * eK * Voigt::Dot(flowNormal, alphaKConverged[i]);
+      alphaUpd +=  eK * alphaKConverged[i] + SQRT23*cK[i] / gammaK[i] * (1. - eK) * flowNormal;
     }
-    double aDotN = Voight::Dot(alphaUpd - alpha, flowNormal);
+    double aDotN = Voigt::Dot(alphaUpd - alpha, flowNormal);
 
     // Local Newton step
     pMultNumer = stressRelativeNorm -
                  (2. * shearModulus * consistParam + SQRT23*fy + aDotN);
+    // Eq. (13) of [1]
     pMultDenom =
         -2.0 * shearModulus * (1. + (kinematicModulus + isotropicModulus) / (3. * shearModulus));
     consistParam   = consistParam - pMultNumer / pMultDenom;
@@ -343,8 +349,7 @@ UVCmultiaxial::calculateStiffness(double consistParam, double stressRelativeNorm
   }
   else // plastic loading
   {
-    double beta, theta_1, theta_2, theta_3,
-        id2OutId2, nOutN, alphaOutN;
+    double beta, theta_1, theta_2, theta_3, id2OutId2, nOutN, alphaOutN;
     // 2nd order identity tensor
     std::vector<double> id2(6);
     id2[0] = id2[1] = id2[2] = 1.0;
@@ -363,13 +368,13 @@ UVCmultiaxial::calculateStiffness(double consistParam, double stressRelativeNorm
     double Hkin = 0.;
     for (unsigned int i = 0; i < nBackstresses; ++i) {
       double eK = calculateEk(i);
-      Hkin +=  cK[i]*eK - std::sqrt(2. / 3.) * gammaK[i] * eK * dotprod6(flowNormal, alphaKConverged[i]);
+      Hkin +=  cK[i]*eK - GammaScale * gammaK[i] * eK * dotprod6(flowNormal, alphaKConverged[i]);
     }
 
     beta    = 1.0 + (Hkin + Hiso) / (3.0 * shearModulus);
     theta_1 = 1.0 - 2.0*shearModulus * consistParam / stressRelativeNorm;
     theta_3 = 1.0 / (beta * stressRelativeNorm);
-    theta_2 = 1.0 / beta + (dotprod6(flowNormal, alphaDiff)) * theta_3 - (1.0 - theta_1);
+    theta_2 = 1.0 / beta + dotprod6(flowNormal, alphaDiff) * theta_3 - (1.0 - theta_1);
     stiffnessTrial.Zero();
     for (unsigned int i = 0; i < N_DIMS; ++i) {
       for (unsigned int j = 0; j < N_DIMS; ++j) {
@@ -694,19 +699,31 @@ UVCmultiaxial::Print(OPS_Stream& s, int flag)
     }
   }
 
-  // if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-  if (flag == 25000) {
-    s << "\t\t\t{";
-    s << "\"name\": \"" << this->getTag() << "\", ";
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"UVCmultiaxial\", ";
     s << "\"E\": " << elasticModulus << ", ";
-    s << "\"fy\": " << initialYield << ", ";
+    s << "\"nu\": " << poissonRatio << ", ";
+    s << "\"Fy\": " << initialYield << ", ";
     s << "\"Q\": " << qInf << ", ";
     s << "\"b\": " << bIso << ", ";
-    for (unsigned int i = 0; i < nBackstresses; ++i) {
-      s << "\"C\": " << cK[i] << ", ";
-      s << "\"gam\": " << gammaK[i] << ", ";
+    s << "\"D\": " << dInf << ", ";
+    s << "\"a\": " << aIso << ", ";
+
+    s << "\"C\": [";
+    for (size_t i=0;i<cK.size();i++) {
+      s << cK[i];
+      if (i < cK.size()-1) s << ", ";
     }
+    s << "], ";
+    s << "\"gamma\": [";
+    for (size_t i=0;i<gammaK.size();i++) {
+      s << gammaK[i];
+      if (i < gammaK.size()-1) s << ", ";
+    }
+    s << "]";
+    s << "}";
   }
 }
 

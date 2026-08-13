@@ -22,8 +22,7 @@
 // $Date: 2010-03-05 22:32:36 $
 // /usr/local/cvs/OpenSees/SRC/api/elementAPI.h
 //
-#ifndef _eleAPI
-#define _eleAPI
+#pragma once
 
 // #define OPS_Error ops_error_
 #define OPS_GetIntInput ops_getintinput_
@@ -86,7 +85,7 @@ extern CrdTransf* OPS_GetCrdTransf(int crdTag);
 extern FE_Datastore* OPS_GetFEDatastore();
 
 extern "C" bool* OPS_builtModel(void);
-int OPS_numIter();
+
 
 extern "C" {
 #endif // __cplusplus
@@ -110,6 +109,5 @@ const char* OPS_GetInterpPWD();
 }
 #endif // __cplusplus
 
-#endif // _eleAPI
 
 #include <api/runtimeAPI.h>

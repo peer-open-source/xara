@@ -12,7 +12,7 @@ target_sources(OPS_Material
         RotationShearCurve.cpp
         ShearCurve.cpp
         ThreePointCurve.cpp
-        WrapperLimitCurve.cpp
+        # WrapperLimitCurve.cpp
     PUBLIC
         AxialCurve.h
         LimitCurve.h

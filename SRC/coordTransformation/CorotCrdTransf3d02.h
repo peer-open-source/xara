@@ -33,7 +33,7 @@ public:
     CorotCrdTransf3d02();
     ~CorotCrdTransf3d02();
 
-    const char *getClassType() const {return "CorotCrdTransf3d02";};
+    const char *getClassType() const {return "CorotCrdTransf3d02";}
 
     int initialize(Node *nodeIPointer, Node *nodeJPointer);
     int update();       // Set RI,RJ,Rbar, Ln, e and ul
@@ -54,7 +54,7 @@ public:
     const Matrix &getGlobalStiffMatrix(const Matrix &basicStiff, const Vector &basicForce);
     const Matrix &getInitialGlobalStiffMatrix(const Matrix &basicStiff);
 
-    virtual CrdTransf *getCopy() final;
+    CrdTransf *getCopy3d() final;
 
     // method used to rotate consistent mass matrix
     const Matrix &getGlobalMatrixFromLocal(const Matrix &local);
@@ -69,7 +69,7 @@ public:
     int sendSelf(int cTag, Channel &theChannel);
     int recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
-    void Print(OPS_Stream &s, int flag = 0);
+    void Print(OPS_Stream &s, int flag);
     
 private:
     // compute the transformation matrix

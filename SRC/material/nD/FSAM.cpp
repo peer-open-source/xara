@@ -414,8 +414,8 @@ FSAM::FSAM (int tag,
 	theResponses[0] = theMaterial[5]->setResponse(argv, 1, theDummyStream);
 
 	if (theResponses[0] == 0) {
-			opserr << " FSAM::FSAM - failed to get cracking strain for material with tag: " << tag << "\n";
-			exit(-1);
+		opserr << " FSAM::FSAM - failed to get cracking strain for material with tag: " << tag << "\n";
+		exit(-1);
 	}
 
 	//argv[0] = "getInputParameters"; // to get input parameters from ConcreteCM

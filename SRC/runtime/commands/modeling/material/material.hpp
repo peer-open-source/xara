@@ -13,46 +13,63 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// |       Stress            |          Strain         |      Reduced Ordering     |
+// | xx  yy   zz xy  yz  xz  | xx  yy   zz xy  yz  xz  |   0   1   2   3   4   5   |
+// |  0   1   2   3  [.] [.] |  0  1   2   3  (.) (.)  |  xx  yy  zz  xy ......... | Axisymmetric      |
+// |  0   1  (.)  2  (.) (.) |  0  1  [.]  2  [.] [.]  |  xx  yy  xy ............. | PlaneStress/Membrane |
+// |  0   1  [.]  2  [.] [.] |  0  1  (.)  2  (.) (.)  |  xx  yy  xy ............. | PlaneStrain       |
+// |  0   1  (.)  2  [.] [.] |  0  1  [.]  2  (.) (.)  |  xx  yy  xy ............. | ThinShell         |
+// |  0  (.) (.)  1  (.)  2  |  0 [.] [.]  1  [.]  2   |  xx  xy  xz ............. | BeamFiber         |
+// |  0  (.) (.)  1  [.] [.] |  0 [.] [.]  1  (.) (.)  |  xx  xy  ................ | BeamFiber2D02     |
+// |  0  (.) (.)  1  (.) (.) |  0 [.] [.]  1  [.] [.]  |  xx  xy  ................ | BeamFiber2D       |
+// |  0  (.) (.) [.] (.) [.] |  0 [.] [.] (.) [.] (.)  |  xx  .................... | Uniaxial          |
+// |  0   1  (.)  2   3   4  |  0  1  [.]  2   3   4   |  xx  yy  xy  yz  xz ..... | ThickShell        |
+// |  0   1   2   3   4   5  |  0  1   2   3   4   5   |  xx  yy  zz  xy  yz  xz   | ThreeDimensional  |
+//
+// (.): zero
+// [.]: implicitly determined
+//
+// |        Explicit          |   Implicit Stress        |  Implicit Strain         |
+// |   0   1   2   3   4   5  |   0   1   2   3   4   5  |   0   1   2   3   4   5  |
+// |  xx  yy  zz  xy ........ |  yz  xz  ..............  |  ......................  | Generalized Plane Strain
+// |  xx  yy  zz  xy ........ |  yz  xz  ..............  |  ......................  | Axisymmetric
+// |  xx  yy  xy ............ |  ......................  |  zz  yz  xz ...........  | PlaneStress
+// |  xx  yy  xy ............ |  zz  yz  xz ...........  |  ......................  | PlaneStrain
+// |  xx  yy  xy ............ |  yz  xz  ..............  |  zz  ..................  | ThinShell
+// |  xx  xy  xz ............ |  ......................  |  yy  zz  yz ...........  | 3D Shear Beam
+// |  xx  xy  ............... |  ......................  |  yy  zz  yz  xz .......  | BeamFiber2D
+// |  xx  xy  ............... |  yz  xz  ..............  |  yy  zz  ..............  | BeamFiber2D02
+// |  xx  ................... |  xy  xz  ..............  |  yy  zz  yz ...........  | 2D/3D Euler Beam
+// |  xx  yy  xy  yz  xz .... |  ......................  |  zz  ..................  | Mindlin Shell
+// |  xx  ................... |  ......................  |  yy  zz  xy  yz  xz ...  | Uniaxial Stress
+// |  xx  ................... |  yy  zz  xy  yz  xz ...  |  ......................  | Uniaxial Strain
+// |  yz  xz  ............... |  xx  yy  zz  xy .......  |  ......................  | Anti-plane Strain
+// |  xx  yy  zz  xy  yz  xz  |  ......................  |  ......................  | Continuum Solid
 //
 //
-//                 stress         |          strain
-//          1   2   3   4   5   6 |  
-//         xx  yy  zz  xy  yz  xz |  11  22  33  12  23  31
-//    PSn:  1   2       3         |   1   2   0   3   0   0
-//    PSe:  1   2   0   3   -   ? |   1   2  [1]  3  [2] [3]
-//    PF :  1   2   -   3   4   5 |   1   2  [1]  3   4   5
-//    BF :  1   0   0   2   0   3 |   1  [1] [2]  2  [3]  3
-//    AS?:  1   2   3   4   -   
-//
-// strains ordered  00, 11, 22, 01  
-//            i.e.  11, 22, 33, 12 
-//
-//            strain(0) =   eps_00
-//            strain(1) =   eps_11
-//            strain(2) =   eps_22
-//            strain(3) = 2*eps_01
-//
-//  same ordering for stresses but no 2 
 //
 //
 // strains ordered : eps11, eps22, eps33, 2*eps12, 2*eps23, 2*eps31 
 // NDmaterial  strain order       = 11, 22, 33, 12, 23, 31 
 // PlaneStress strain order       = 11, 22, 12, 33, 23, 31
-// BeamFiber   strain order       = 11, 12, 31, 22, 33, 23
+// BeamFiber3D strain order       = 11, 12, 31, 22, 33, 23
 // PlateFiber strain order        = 11, 22, 12, 23, 31, 33
+// 
 //                                   0   1   2   3   4   5
 
 // Platefiber: 22, 33, 13, and 23 are condensed out.
 
-// PlateFiberMaterial strain order =  11, 22, 12, 23, 31, 33
 
-//
+//      | Stress     |  Strain      | 
 //      0  1  2  3  4  5
-// ND : 11 22 33   12   23   31
-// PS : 11 22 12   33   23   31 
-// PF : 11 22 12   23   31   33 | 
-// BF : 11 12 13 | 22   33   23 
-// AS : 11 22 33 12
+//   ND : 11  22  33   12   23   31
+//   PS : 11  22  12   33   23   31 
+//   PF : 11  22  12   23   31   33 | 
+//   F3 : 11  12  13 | 22   33   23 
+//   F2 : 11  12     | 11   12      | 
+//   AS : 11  22  33 12
+//  
+// ---------------------------------------
 //
 #include <tcl.h>
 #include <string>
@@ -70,7 +87,6 @@ extern Tcl_CmdProc TclCommand_newJ2Material;
 extern Tcl_CmdProc TclCommand_newPlasticMaterial;
 extern Tcl_CmdProc TclCommand_newConcreteMaterial;
 // concrete_asd.cpp
-extern Tcl_CmdProc TclCommand_addASDConcrete1D;
 extern Tcl_CmdProc TclCommand_addASDConcrete3D;
 // wrapper.cpp
 extern Tcl_CmdProc TclCommand_addWrappingMaterial;
@@ -191,7 +207,11 @@ static std::unordered_map<std::string, Tcl_CmdProc*> MaterialLibrary = {
   {"J2",                               dispatch<TclCommand_newPlasticMaterial>},
   {"J2Plasticity",                     dispatch<TclCommand_newPlasticMaterial>},
   {"GeneralizedJ2",                    dispatch<TclCommand_newPlasticMaterial>},
+
+  {"PlasticJ2",                        dispatch<TclCommand_newPlasticMaterial>},
   {"NonlinearJ2",                      dispatch<TclCommand_newPlasticMaterial>},
+  {"NonlinearJ2-UVC",                  dispatch<TclCommand_newPlasticMaterial>},
+
   {"J2N",                              dispatch<TclCommand_newPlasticMaterial>},
   {"J2L",                              dispatch<TclCommand_newPlasticMaterial>},
   {"J2Thermal",                        dispatch<TclCommand_newPlasticMaterial>},

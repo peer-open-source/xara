@@ -2257,7 +2257,7 @@ ForceBeamColumn2d::setResponse(const char **argv, int argc, OPS_Stream &output)
     // section response -
   } else if (strstr(argv[0],"sectionX") != 0) {
     if (argc > 2) {
-      float sectionLoc = atof(argv[1]);
+      double sectionLoc = atof(argv[1]);
 
       double xi[MaxNumSections];
       double L = crdTransf->getInitialLength();
@@ -2776,7 +2776,7 @@ ForceBeamColumn2d::setParameter(const char **argv, int argc, Parameter &param)
   // section response -
   if (strstr(argv[0],"sectionX") != 0) {
     if (argc > 2) {
-      float sectionLoc = atof(argv[1]);
+      double sectionLoc = atof(argv[1]);
 
       double xi[MaxNumSections];
       double L = crdTransf->getInitialLength();

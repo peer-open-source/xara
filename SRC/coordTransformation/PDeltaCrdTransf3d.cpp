@@ -123,7 +123,7 @@ PDeltaCrdTransf3d::~PDeltaCrdTransf3d()
 }
 
 int
-PDeltaCrdTransf3d::commitState(void)
+PDeltaCrdTransf3d::commitState()
 {
   return 0;
 }

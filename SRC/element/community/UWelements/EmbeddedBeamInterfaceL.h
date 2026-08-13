@@ -47,43 +47,46 @@ class EmbeddedBeamInterfaceL : public Element
 {
 public:
     EmbeddedBeamInterfaceL(int tag);
-    EmbeddedBeamInterfaceL(int tag, std::vector <int> beamTag, std::vector <int> solidTag, int crdTransfTag,
+    EmbeddedBeamInterfaceL(int tag, std::vector <int> beamTag, std::vector <int> solidTag, 
+        CrdTransf &,
         std::vector <double>  beamRho, std::vector <double>  beamTheta, std::vector <double>  solidXi,
         std::vector <double>  solidEta, std::vector <double>  solidZeta, double radius, std::vector <double> area,
-        std::vector <double> length, bool writeConnectivity = false, const char * connectivityFN = "");
+        std::vector <double> length, 
+        Domain &,
+        bool writeConnectivity = false, const char * connectivityFN = "");
+
     EmbeddedBeamInterfaceL();
     ~EmbeddedBeamInterfaceL();
 
-    const char *getClassType(void) const { return "EmbeddedBeamInterfaceL"; };
+    const char *getClassType() const { return "EmbeddedBeamInterfaceL"; }
 
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
 
-    int getNumDOF(void);
-    void setDomain(Domain *theDomain);
+    int getNumDOF();
+    void setDomain(Domain *);
 
     // public methods to set the state of the element    
-    int commitState(void);
-    int revertToLastCommit(void);
-    int revertToStart(void);
-    int update(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
+    int update();
 
     // public methods to obtain stiffness, mass, damping and residual information    
-    const Matrix &getTangentStiff(void);
-    const Matrix &getInitialStiff(void);
+    const Matrix &getTangentStiff();
+    const Matrix &getInitialStiff();
 
-    const Vector &getResistingForce(void);
+    const Vector &getResistingForce();
 
     // public methods for element output
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker
         &theBroker);
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
-    void Print(OPS_Stream &s, int flag = 0);
 
-    Response *setResponse(const char **argv, int argc,
-        OPS_Stream &s);
+    void Print(OPS_Stream &s, int flag);
+
+    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 
     int getResponse(int responseID, Information &eleInformation);
 

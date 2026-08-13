@@ -78,8 +78,6 @@ class ProfileSPDLinSOE : public LinearSOE
     int size, profileSize;    
     double *A;
     Vector B, X;
-    Vector vectX;
-    Vector vectB;
     int *iDiagLoc;
     int Asize, Bsize;
     bool isAfactored, isAcondensed;

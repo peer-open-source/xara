@@ -32,7 +32,8 @@ target_include_directories(OPS_SysOfEqn     PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 #
 
 add_library(OPS_SuperLU_Dist OBJECT EXCLUDE_FROM_ALL)
-target_link_libraries(OPS_SuperLU_Dist PUBLIC SUPERLU_DIST)
+
+target_link_libraries(OPS_SuperLU_Dist PUBLIC SUPERLU_DIST OPS_SysOfEqn)
 target_sources(OPS_SuperLU_Dist
     PRIVATE 
         DistributedSuperLU.cpp
@@ -43,5 +44,10 @@ target_sources(OPS_SuperLU_Dist
         DistributedSparseGenColLinSOE.h
         DistributedSparseGenRowLinSOE.h
 )
-target_include_directories(OPS_SuperLU_Dist PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+
+target_include_directories(OPS_SuperLU_Dist PUBLIC 
+  ${CMAKE_CURRENT_LIST_DIR}
+  ${OPS_Includes}
+  ${OPS_BUNDLED_DIR}/SuperLU_DIST_4.3/SRC
+)
 

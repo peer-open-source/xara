@@ -212,22 +212,22 @@ ParallelNumberer::numberDOF(int lastDOF)
 
       int loc = 0;
       for (int l=0; l<numChannels; l++) {
-	const ID &theSubdomain = *theSubdomainIDs[l];
-	int numVertexSubdomain = theSubdomain.Size()/2;
+        const ID &theSubdomain = *theSubdomainIDs[l];
+        int numVertexSubdomain = theSubdomain.Size()/2;
 
-	for (int i=0; i<numVertexSubdomain; i++) {
-	  int vertexTagMerged = theSubdomain(i+numVertexSubdomain);
-	  //  int refTag = vertexRefs[vertexTags.getLocation(vertexTagMerged)];
-	  if (theOrderedRefs->getLocation(vertexTagMerged) == -1)
-	    (*theOrderedRefs)[loc++] = vertexTagMerged;
-	}
+        for (int i=0; i<numVertexSubdomain; i++) {
+          int vertexTagMerged = theSubdomain(i+numVertexSubdomain);
+          //  int refTag = vertexRefs[vertexTags.getLocation(vertexTagMerged)];
+          if (theOrderedRefs->getLocation(vertexTagMerged) == -1)
+            (*theOrderedRefs)[loc++] = vertexTagMerged;
+        }
       }
 
       // now order those not yet ordered in p0
       for (int j=0; j<numVertexP0; j++) {
-	int refTagP0 = vertexTags[j];
-	if (theOrderedRefs->getLocation(refTagP0) == -1)
-	  (*theOrderedRefs)[loc++] = refTagP0;
+        int refTagP0 = vertexTags[j];
+        if (theOrderedRefs->getLocation(refTagP0) == -1)
+          (*theOrderedRefs)[loc++] = refTagP0;
       }	
     }
 
@@ -236,7 +236,7 @@ ParallelNumberer::numberDOF(int lastDOF)
       int vertexTag = (*theOrderedRefs)(i);
       //      int vertexTag = vertexTags[vertexRefs.getLocation(tag)];
       Vertex *vertexPtr = theGraph.getVertexPtr(vertexTag);
-      int numDOF= vertexPtr->getColor();
+      int numDOF = vertexPtr->getColor();
       vertexPtr->setTmp(count);
       count += numDOF;
     }
@@ -271,10 +271,10 @@ ParallelNumberer::numberDOF(int lastDOF)
       int numVertexSubdomain = theSubdomain.Size()/2;
 
       for (int i=0; i<numVertexSubdomain; i++) {
-	int vertexTagMerged = theSubdomain[numVertexSubdomain+i];
-	Vertex *vertexPtr = theGraph.getVertexPtr(vertexTagMerged);
-	int startDOF = vertexPtr->getTmp();
-	theSubdomain[i+numVertexSubdomain] = startDOF;
+        int vertexTagMerged = theSubdomain[numVertexSubdomain+i];
+        Vertex *vertexPtr = theGraph.getVertexPtr(vertexTagMerged);
+        int startDOF = vertexPtr->getTmp();
+        theSubdomain[i+numVertexSubdomain] = startDOF;
       }
 
       theChannel->sendID(0, 0, theSubdomain);
@@ -317,8 +317,7 @@ ParallelNumberer::numberDOF(int lastDOF)
           const ID&retainedDOFs = mpPtr->getRetainedDOFs();
           for (int i=0; i<constrainedDOFs.Size(); i++) {
             int dofC = constrainedDOFs(i);
-            int dofR = retainedDOFs(i);
-            int dofID = retainedDOFIDs(dofR);
+            int dofID = retainedDOFIDs(retainedDOFs(i));
             dofPtr->setID(dofC, dofID);
           }
         }
@@ -329,7 +328,7 @@ ParallelNumberer::numberDOF(int lastDOF)
   // iterate through the FE_Element getting them to set their IDs
   FE_EleIter &theEle = theModel->getFEs();
   FE_Element *elePtr;
-  while ((elePtr = theEle()) != 0)
+  while ((elePtr = theEle()) != nullptr)
     elePtr->setID();
 
   theModel->clearDOFGroupGraph();
@@ -414,8 +413,8 @@ ParallelNumberer::sendSelf(int cTag, Channel &theChannel)
     bool found = false;
     for (int i=0; i<numChannels; i++)
       if (theChannels[i] == &theChannel) {
-	sendID = i+1;
-	found = true;
+        sendID = i+1;
+        found = true;
       }
 
     // if new object, enlarge Channel pointers to hold new channel * & allocate new ID
@@ -424,13 +423,13 @@ ParallelNumberer::sendSelf(int cTag, Channel &theChannel)
       Channel **nextChannels = new Channel *[nextNumChannels];
 
       for (int i=0; i<numChannels; i++)
-	nextChannels[i] = theChannels[i];
+        nextChannels[i] = theChannels[i];
       nextChannels[numChannels] = &theChannel;
       
       numChannels = nextNumChannels;
-      
-      if (theChannels != 0)
-	delete [] theChannels;
+
+      if (theChannels != nullptr)
+        delete [] theChannels;
       
       theChannels = nextChannels;
       
@@ -502,12 +501,12 @@ ParallelNumberer::numberDOF(ID &lastDOFs)
       DOF_Group *dofPtr;	
       dofPtr = theModel->getDOF_GroupPtr(dofTag);
       if (dofPtr == 0) {
-	result = -4;
+        result = -4;
       } else {
-	const ID &theID = dofPtr->getID();
-	int idSize = theID.Size();
-	for (int j=0; j<idSize; j++)
-	  if (theID(j) == -2) dofPtr->setID(j, startID++);
+        const ID &theID = dofPtr->getID();
+        int idSize = theID.Size();
+        for (int j=0; j<idSize; j++)
+          if (theID(j) == -2) dofPtr->setID(j, startID++);
       }
     }
   } 
@@ -524,7 +523,7 @@ ParallelNumberer::numberDOF(ID &lastDOFs)
     Vertex *vertexPtr;
     int loc = 0;
     VertexIter &theVertices = theGraph.getVertices();
-    while ((vertexPtr = theVertices()) != 0) {
+    while ((vertexPtr = theVertices()) != nullptr) {
       vertexTags[loc] = vertexPtr->getTag();
       vertexRefs[loc] = vertexPtr->getRef();
       loc++;

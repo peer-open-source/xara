@@ -18,7 +18,7 @@
 **                                                                    **
 ** ****************************************************************** */
 
-//Modified Ibarra-Medina-Krawinkler with Bilinear hysteretic response
+// Modified Ibarra-Medina-Krawinkler with Bilinear hysteretic response
 
 //**********************************************************************                                                                    
 // Code Developed by: Dimitrios G. Lignos
@@ -113,12 +113,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_Bilin)
                             dData[10], dData[11], dData[12], dData[13], dData[14],
                             dData[15], dData[16], dData[17], dData[18], dData[19],
                             dData[20], dData[21], dData[22], dData[23]); // Updated: Filipe Ribeiro and Andre Barbosa
-   
-  }
- 
-  if (theMaterial == 0) {
-    opserr << "WARNING could not create uniaxialMaterial of type Bilin Material\n";
-    return 0;
   }
  
   return theMaterial;

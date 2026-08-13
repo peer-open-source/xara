@@ -109,7 +109,7 @@ Vector::~Vector()
 int 
 Vector::setData(double *newData, int size)
 {
-  assert(size >  0);
+  assert(size >=  0);
 
   if (theData != nullptr && fromFree == 0) {
     delete [] theData;

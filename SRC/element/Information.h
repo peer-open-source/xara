@@ -31,8 +31,8 @@
 
 #include <OPS_Globals.h>
 #include <fstream>
+#include <Vector.h>
 
-using std::ofstream;
 class ID;
 class Matrix;
 class Vector;
@@ -46,7 +46,7 @@ enum InfoType {
   MatrixType
 };
 
-#define VIRTUAL
+
 class Information
 {
   public:
@@ -58,30 +58,39 @@ class Information
     Information(const Matrix &val);
     Information(const ID &val1, const Vector &val2);
     
-    VIRTUAL ~Information();
+    ~Information();
     
-    VIRTUAL int setInt(int newInt);
-    VIRTUAL int setDouble(double newDouble);
-    VIRTUAL int setID(const ID &newID);
-    VIRTUAL int setVector(const Vector &newVector);
-    VIRTUAL int setMatrix(const Matrix &newMatrix);
-    VIRTUAL int setString(const char *theString);
+    int setInt(int newInt);
+    int setDouble(double newDouble);
+    int setID(const ID &newID);
+    int setVector(const Vector &);
+    int setVector(int i, double value);
+    int setVectorAt(const Vector &, int start);
+    int setMatrix(const Matrix &);
+    int setMatrix(int i, int j, double value);
+    int setString(const char *);
+
+    int setMessage(const char *msg) {message = msg; return 0;}
+    const char* getMessage() {return message;}
     
-    VIRTUAL void Print(OPS_Stream &s, int flag = 0);
-    VIRTUAL void Print(ofstream &s, int flag = 0);
-    VIRTUAL const Vector &getData(void);
+    void Print(OPS_Stream &s, int flag = 0);
+    void Print(std::ofstream &s, int flag = 0);
+    const Vector &getData();
 
     // data that is stored in the information object
     InfoType	theType;    // information about data type
-    int		theInt;     // an integer value
+    int		  theInt;     // an integer value
     double	theDouble;  // a double value
-    ID		*theID;     // pointer to an ID object, created elsewhere
-    Vector 	*theVector; // pointer to a Vector object, created elsewhere
-    Matrix	*theMatrix; // pointer to a Matrix object, created elsewhere
-    char        *theString; // pointer to string
+    ID		  *theID;     // pointer to an ID object, created elsewhere
+    Vector 	 theVector; //
+    Matrix	*theMatrix; //
+    char    *theString; // pointer to string
 
   private:
-
+    // small vector to avoid dynamic allocation
+    static constexpr int small_vector_size = 12;
+    double small_vector[small_vector_size];
+    const char* message = "";
 };
 
 #endif

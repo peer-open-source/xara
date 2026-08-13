@@ -128,12 +128,8 @@ DisplacementControl::newStep()
 
   // get pointers to AnalysisModel and LinearSOE
   AnalysisModel *theModel = this->getAnalysisModel();
-  LinearSOE *theLinSOE = this->getLinearSOE();    
-  if (theModel == 0 || theLinSOE == 0) {
-    opserr << "WARNING DisplacementControl::newStep ";
-    opserr << "No AnalysisModel or LinearSOE has been set\n";
-    return -1;
-  }
+  LinearSOE *theLinSOE = this->getLinearSOE();
+  assert(theModel != nullptr && theLinSOE != nullptr);
 
   // determine increment for this step
 //   double gamma = 1.0;
@@ -154,7 +150,6 @@ DisplacementControl::newStep()
   this->formTangent(tangFlag);
   theLinSOE->setB(*phat);
   if (theLinSOE->solve() < 0) {
-     opserr << "DisplacementControl::newStep() - failed in solver\n";
      return -1;
   }
 
@@ -171,7 +166,6 @@ DisplacementControl::newStep()
   // determine delta lambda(1) == dlambda    
   double dlambda = theIncrement/dUahat; // this is the dlambda of the 1st step
 
- // calldLambda1dh=theIncrement;
   deltaLambdaStep = dlambda;
   currentLambda += dlambda;
 

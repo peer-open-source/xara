@@ -41,18 +41,22 @@ using std::nothrow;
 
 ProfileSPDLinSOE::ProfileSPDLinSOE(ProfileSPDLinSolver &the_Solver)
 :LinearSOE(the_Solver, LinSOE_TAGS_ProfileSPDLinSOE),
- size(0), profileSize(0), A(0), B(0), X(0), vectX(0), vectB(0),
- iDiagLoc(0), Asize(0), Bsize(0), isAfactored(false), isAcondensed(false),
+ size(0), profileSize(0), A(0), B(0), X(0), 
+ iDiagLoc(0), Asize(0), Bsize(0), 
+ isAfactored(false), 
+ isAcondensed(false),
  numInt(0) 
 {
-    the_Solver.setLinearSOE(*this);
+  the_Solver.setLinearSOE(*this);
 }
 
 
 ProfileSPDLinSOE::ProfileSPDLinSOE(int classTag)
 :LinearSOE(classTag),
- size(0), profileSize(0), A(0), B(0), X(0), vectX(0), vectB(0),
- iDiagLoc(0), Asize(0), Bsize(0), isAfactored(false), isAcondensed(false),
+ size(0), profileSize(0), A(0), 
+ B(0), X(0), 
+ iDiagLoc(0), Asize(0), Bsize(0), 
+ isAfactored(false), isAcondensed(false),
  numInt(0) 
 {
 
@@ -61,19 +65,20 @@ ProfileSPDLinSOE::ProfileSPDLinSOE(int classTag)
 
 ProfileSPDLinSOE::ProfileSPDLinSOE(ProfileSPDLinSolver &the_Solver, int classTag)
 :LinearSOE(the_Solver, classTag),
- size(0), profileSize(0), A(0), B(0), X(0), vectX(0), vectB(0),
+ size(0), profileSize(0), A(0), B(0), X(0), 
  iDiagLoc(0), Asize(0), Bsize(0), isAfactored(false), isAcondensed(false),
  numInt(0) 
 {
-    the_Solver.setLinearSOE(*this);
+  the_Solver.setLinearSOE(*this);
 }
 
 
 ProfileSPDLinSOE::ProfileSPDLinSOE(int N, int *iLoc,
 				   ProfileSPDLinSolver &the_Solver)
 :LinearSOE(the_Solver, LinSOE_TAGS_ProfileSPDLinSOE),
- size(0), profileSize(0), A(nullptr), B(N), X(N), vectX(0), vectB(0),
- iDiagLoc(0), Asize(0), Bsize(0), isAfactored(false), isAcondensed(false),
+ size(0), profileSize(0), A(nullptr), B(N), X(N), 
+ iDiagLoc(0), Asize(0), Bsize(0), 
+ isAfactored(false), isAcondensed(false),
  numInt(0)
 {
     size = N;
@@ -460,12 +465,12 @@ ProfileSPDLinSOE::setProfileSPDSolver(ProfileSPDLinSolver &newSolver)
     newSolver.setLinearSOE(*this);
 
     if (size != 0) {
-	int solverOK = newSolver.setSize();
-	if (solverOK < 0) {
-	    opserr << "WARNING:ProfileSPDLinSOE::setSolver :";
-	    opserr << "the new solver could not setSeize() - staying with old\n";
-	    return -1;
-	}
+        int solverOK = newSolver.setSize();
+        if (solverOK < 0) {
+            opserr << "WARNING:ProfileSPDLinSOE::setSolver :";
+            opserr << "the new solver could not setSeize() - staying with old\n";
+            return -1;
+        }
     }
     
     return this->setSolver(newSolver);

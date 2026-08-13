@@ -47,30 +47,30 @@
 
 
 Newmark::Newmark(int classTag)
-    : TransientIntegrator(classTag),
-      unknown(Unknown::Displacement), gamma(0), beta(0), 
-      c1(0.0), c2(0.0), c3(0.0), 
-      Ut(0), Utdot(0), Utdotdot(0), U(0), Udot(0), Udotdot(0),
-      determiningMass(false),
-      sensitivityFlag(0), gradNumber(0), massMatrixMultiplicator(0),
-      dampingMatrixMultiplicator(0), assemblyFlag(0), independentRHS(),
-      dUn(), dVn(), dAn()
+  : TransientIntegrator(classTag),
+    unknown(Unknown::Displacement), gamma(0), beta(0), 
+    c1(0.0), c2(0.0), c3(0.0), 
+    Ut(0), Utdot(0), Utdotdot(0), U(0), Udot(0), Udotdot(0),
+    determiningMass(false),
+    sensitivityFlag(0), gradNumber(0), massMatrixMultiplicator(0),
+    dampingMatrixMultiplicator(0), assemblyFlag(0), independentRHS(),
+    dUn(), dVn(), dAn()
 {
     
 }
 
 
 Newmark::Newmark(double _gamma, double _beta, int uFlag, int iFlag, bool aflag, int classTag_)
-    : TransientIntegrator(classTag_),
-      gamma(_gamma), beta(_beta), 
-      unknown(uFlag), unknown_initialize(iFlag),
-      c1(0.0), c2(0.0), c3(0.0), 
-      Ut(nullptr), Utdot(nullptr), Utdotdot(nullptr), 
-      U(nullptr),  Udot(nullptr),  Udotdot(nullptr),
-      determiningMass(false),
-      sensitivityFlag(0), gradNumber(0), massMatrixMultiplicator(0),
-      dampingMatrixMultiplicator(0), assemblyFlag(aflag), independentRHS(),
-      dUn(), dVn(), dAn()
+  : TransientIntegrator(classTag_),
+    gamma(_gamma), beta(_beta), 
+    unknown(uFlag), unknown_initialize(iFlag),
+    c1(0.0), c2(0.0), c3(0.0), 
+    Ut(nullptr), Utdot(nullptr), Utdotdot(nullptr), 
+    U(nullptr),  Udot(nullptr),  Udotdot(nullptr),
+    determiningMass(false),
+    sensitivityFlag(0), gradNumber(0), massMatrixMultiplicator(0),
+    dampingMatrixMultiplicator(0), assemblyFlag(aflag), independentRHS(),
+    dUn(), dVn(), dAn()
 {
 
 }
@@ -100,7 +100,8 @@ Newmark::~Newmark()
 }
 
 
-int Newmark::newStep(double deltaT)
+int
+Newmark::newStep(double deltaT)
 {
 
     if (deltaT <= 0.0)  {

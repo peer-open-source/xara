@@ -756,25 +756,24 @@ Concrete02Thermal::Compr_Envlp (double epsc, double &sigc, double &Ect)
 }
 
 int
-Concrete02Thermal::getVariable(const char *varName, Information &theInfo)
+Concrete02Thermal::getVariable(const char *varName, Information &info)
 {
   if (strcmp(varName,"ec") == 0) {
-    theInfo.theDouble = epsc0;
+    info.theDouble = epsc0;
     return 0;
   } else if (strcmp(varName,"ElongTangent") == 0) {
-    Vector *theVector = theInfo.theVector;
-    if (theVector != 0) {
-      double tempT, ET, Elong, TempTmax;
-      tempT = (*theVector)(0);
-	  ET = (*theVector)(1);
-	  Elong = (*theVector)(2);
-      TempTmax = (*theVector)(3);
-      this->getElongTangent(tempT, ET, Elong, TempTmax);
-	  (*theVector)(0) = tempT;
-      (*theVector)(1) = ET;
-      (*theVector)(2) = Elong;
-	  (*theVector)(3) = TempTmax;
-    }
+    Vector &theVector = info.theVector;
+    double tempT, ET, Elong, TempTmax;
+    tempT = theVector(0);
+    ET = theVector(1);
+    Elong = theVector(2);
+    TempTmax = theVector(3);
+    this->getElongTangent(tempT, ET, Elong, TempTmax);
+    theVector(0) = tempT;
+    theVector(1) = ET;
+    theVector(2) = Elong;
+    theVector(3) = TempTmax;
+
     return 0;
   }
   return -1;

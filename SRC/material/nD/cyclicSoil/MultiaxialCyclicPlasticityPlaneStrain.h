@@ -65,7 +65,7 @@ class MultiaxialCyclicPlasticityPlaneStrain : public MultiaxialCyclicPlasticity 
                  double viscosity=0 ) ;
 
   //elastic constructor // add density by Gang Wang
-  MultiaxialCyclicPlasticityPlaneStrain( int tag, double rho, double K, double G ) ;
+  // MultiaxialCyclicPlasticityPlaneStrain( int tag, double rho, double K, double G ) ;
 
   //destructor
   ~MultiaxialCyclicPlasticityPlaneStrain( ) ;

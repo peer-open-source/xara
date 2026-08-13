@@ -87,7 +87,6 @@ MumpsParallelSOE::setSize(Graph &theGraph)
   int newNNZ = 0;
   size = theGraph.getNumVertex();
   int mySize = size;
-  //opserr << "MumpsParallelSOE: size : " << size << endln;
 
   VertexIter &theVertices = theGraph.getVertices();
   while ((theVertex = theVertices()) != 0) {
@@ -107,6 +106,7 @@ MumpsParallelSOE::setSize(Graph &theGraph)
   }
 
   nnz = newNNZ;
+
 
   if (processID != 0) {
 
@@ -147,8 +147,11 @@ MumpsParallelSOE::setSize(Graph &theGraph)
     size = maxVertexTag;
   }
 
-  size+=1; // vertices numbered 0 through n-1
+  size += 1; // vertices numbered 0 through n-1
 
+  //
+  //
+  //
   if (nnz > Asize) { // we have to get more space for A and rowA and colA
 
     if (A != 0) delete [] A;
@@ -165,13 +168,6 @@ MumpsParallelSOE::setSize(Graph &theGraph)
       colA[i]=0;
     }
 
-    if (rowA == 0 || A == 0 || colA == 0) {
-      opserr << "WARNING SparseGenColLinSOE::SparseGenColLinSOE :";
-      opserr << " ran out of memory for A and rowA with nnz = ";
-      opserr << nnz << " \n";
-      size = 0; Asize = 0; nnz = 0;
-	result =  -1;
-    } 
     Asize = nnz;
   }
 
@@ -229,62 +225,62 @@ MumpsParallelSOE::setSize(Graph &theGraph)
       
       theVertex = theGraph.getVertexPtr(a);
       if (theVertex != 0) {
-	
-	int vertexTag = theVertex->getTag();
-	rowA[lastLoc++] = vertexTag; // place diag in first
-	const ID &theAdjacency = theVertex->getAdjacency();
-	int idSize = theAdjacency.Size();
-	
-	// now we have to place the entries in the ID into order in rowA
-	
-	if (matType != 0) {
-	  
-	  // symmetric
-	  for (int i=0; i<idSize; i++) {
-	    int row = theAdjacency(i);
-	    if (row > vertexTag) {
-	      bool foundPlace = false;
-	      // find a place in rowA for current col
-	      for (int j=startLoc; j<lastLoc; j++)
-		if (rowA[j] > row) { 
-		  // move the entries already there one further on
-		  // and place col in current location
-		  for (int k=lastLoc; k>j; k--)
-		    rowA[k] = rowA[k-1];
-		  rowA[j] = row;
-		  foundPlace = true;
-		  j = lastLoc;
-		}
-	      
-	      if (foundPlace == false) // put in at the end
-		rowA[lastLoc] = row;
-	      lastLoc++;
-	    }
-	  }
-	  
-	} else {
+        
+        int vertexTag = theVertex->getTag();
+        rowA[lastLoc++] = vertexTag; // place diag in first
+        const ID &theAdjacency = theVertex->getAdjacency();
+        int idSize = theAdjacency.Size();
+        
+        // now we have to place the entries in the ID into order in rowA
+        
+        if (matType != 0) {
+          
+          // symmetric
+          for (int i=0; i<idSize; i++) {
+            int row = theAdjacency(i);
+            if (row > vertexTag) {
+              bool foundPlace = false;
+              // find a place in rowA for current col
+              for (int j=startLoc; j<lastLoc; j++)
+                if (rowA[j] > row) { 
+                  // move the entries already there one further on
+                  // and place col in current location
+                  for (int k=lastLoc; k>j; k--)
+                    rowA[k] = rowA[k-1];
+                  rowA[j] = row;
+                  foundPlace = true;
+                  j = lastLoc;
+                }
 
-	  // unsymmetric	  
-	  for (int i=0; i<idSize; i++) {
-	    int row = theAdjacency(i);
-	    bool foundPlace = false;
-	    // find a place in rowA for current col
-	    for (int j=startLoc; j<lastLoc; j++)
-	      if (rowA[j] > row) { 
-		// move the entries already there one further on
-		// and place col in current location
-		for (int k=lastLoc; k>j; k--)
-		  rowA[k] = rowA[k-1];
-		rowA[j] = row;
-		foundPlace = true;
-		j = lastLoc;
-	      }
-	    if (foundPlace == false) // put in at the end
-	      rowA[lastLoc] = row;
-	    
-	    lastLoc++;
-	  }
-	}
+              if (foundPlace == false) // put in at the end
+                rowA[lastLoc] = row;
+              lastLoc++;
+            }
+          }
+
+        } else {
+
+          // unsymmetric	  
+          for (int i=0; i<idSize; i++) {
+            int row = theAdjacency(i);
+            bool foundPlace = false;
+            // find a place in rowA for current col
+            for (int j=startLoc; j<lastLoc; j++)
+              if (rowA[j] > row) { 
+                // move the entries already there one further on
+                // and place col in current location
+                for (int k=lastLoc; k>j; k--)
+                  rowA[k] = rowA[k-1];
+                rowA[j] = row;
+                foundPlace = true;
+                j = lastLoc;
+              }
+            if (foundPlace == false) // put in at the end
+              rowA[lastLoc] = row;
+            
+            lastLoc++;
+          }
+        }
       }
       colStartA[a+1] = lastLoc;
       startLoc = lastLoc;
@@ -312,7 +308,7 @@ MumpsParallelSOE::setSize(Graph &theGraph)
 
 
 int 
-MumpsParallelSOE::solve(void)
+MumpsParallelSOE::solve()
 {
   int resSolver = 0;
 
@@ -438,12 +434,11 @@ MumpsParallelSOE::setB(const Vector &v, double fact)
     }
   }
 
-   //opserr << "MumpsParallelSOE::setB() - end()\n";
   return 0;
 }
 
 void 
-MumpsParallelSOE::zeroB(void)
+MumpsParallelSOE::zeroB()
 {
   double *Bptr = myB;
   for (int i=0; i<size; i++)
@@ -452,7 +447,7 @@ MumpsParallelSOE::zeroB(void)
 
 
 const Vector &
-MumpsParallelSOE::getB(void)
+MumpsParallelSOE::getB()
 {
 
   if (processID != 0) {

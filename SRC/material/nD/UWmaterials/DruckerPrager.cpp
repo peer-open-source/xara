@@ -41,20 +41,23 @@
 #include <Information.h>
 #include <GenericResponse.h>
 #include <Parameter.h>
+#include <VectorND.h>
 
 #include <string.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
 
-const double DruckerPrager :: one3   = 1.0 / 3.0 ;
-const double DruckerPrager :: two3   = 2.0 / 3.0 ;
-const double DruckerPrager :: root23 = sqrt( 2.0 / 3.0 ) ;
+using namespace OpenSees;
+
+const double DruckerPrager::one3   = 1.0 / 3.0 ;
+const double DruckerPrager::two3   = 2.0 / 3.0 ;
+const double DruckerPrager::root23 = sqrt( 2.0 / 3.0 ) ;
 
 
 
 DruckerPrager::DruckerPrager(int tag, int classTag, double bulk, double shear, double s_y, double r,
-			                                        double r_bar, double Kinfinity, double Kinit, double d1,
-			                                        double d2, double H, double t, double mDen, double atm)
+							double r_bar, double Kinfinity, double Kinit, double d1,
+							double d2, double H, double t, double mDen, double atm)
   : NDMaterial(tag,classTag),
     mEpsilon(6), 
     mEpsilon_n_p(6),
@@ -102,7 +105,7 @@ DruckerPrager::DruckerPrager(int tag, int classTag, double bulk, double shear, d
 }
    
 //null constructor
-DruckerPrager ::DruckerPrager  () 
+DruckerPrager::DruckerPrager  () 
     : NDMaterial(),
     mEpsilon(6), 
     mEpsilon_n_p(6),
@@ -140,7 +143,7 @@ DruckerPrager ::DruckerPrager  ()
 }
 
 //destructor
-DruckerPrager::~DruckerPrager  ()
+DruckerPrager::~DruckerPrager()
 {
 }
 
@@ -233,12 +236,13 @@ DruckerPrager::commitState()
     return 0;
 }
  
-int DruckerPrager::revertToLastCommit (void)
+int 
+DruckerPrager::revertToLastCommit()
 {
     return 0;
 }
 
-int DruckerPrager::revertToStart(void)
+int DruckerPrager::revertToStart()
 {
 	if (ops_InitialStateAnalysis) {
 		// do nothing, keep state variables from last step
@@ -253,8 +257,8 @@ int DruckerPrager::revertToStart(void)
 
 //--------------------Plasticity-------------------------------------
 //plasticity integration routine
-void
-DruckerPrager::plastic_integrator( ) 
+int
+DruckerPrager::plastic_integrator() 
 {
 	bool okay;		// boolean variable to ensure satisfaction of multisurface kuhn tucker conditions
 	double f1;
@@ -268,7 +272,6 @@ DruckerPrager::plastic_integrator( )
 	Vector s(6);
 	Vector eta(6);
 	Vector dev_ep(6);
-	Vector Jact(2);
 
 	double fTOL;
 	double gTOL;
@@ -277,14 +280,6 @@ DruckerPrager::plastic_integrator( )
 	
 	double NormCep;
 
-	double alpha1;			// hardening parameter for DP surface
-	double alpha2;			// hardening parameter for tension cut-off
-	Vector n(6);			// normal to the yield surface in strain space
-	Vector R(2);			// residual vector
-	Vector gamma(2);		// vector of consistency parameters
-	Vector dgamma(2);		// incremental vector of consistency parameters
-	Matrix g(2,2);			// jacobian of the corner region (return map)
-	Matrix g_contra(2,2);	// inverse of jacobian of the corner region
 
 	// set trial state:
 
@@ -352,30 +347,39 @@ DruckerPrager::plastic_integrator( )
 		mState(2) = Invariant_ep;
 		mState(3) = norm_dev_ep;
 		mState(4) = norm_ep;
-		return;
+		return 0;
 	}
-	else {
-		// plastic correction required
-		okay = false;
 
-		// determine number of active surfaces.  size & fill Jact
-		if ( (f1 > fTOL ) && (f2 <= fTOL) ) {
-			// f1 surface only
-			Jact(0) = 1;
-			Jact(1) = 0;
-		}
-		else if ( (f1 <= fTOL ) && (f2 > fTOL) ) {
-			// f2 surface only
-			Jact(0) = 0;
-			Jact(1) = 1;
-		}
-		else if ( (f1 > fTOL ) && (f2 > fTOL) ) {
-			// both surfaces active
-			Jact(0) = 1;
-			Jact(1) = 1;
-		}
-	} 
+	// plastic correction required
+	okay = false;
 
+	VectorND<2> Jact{};
+	// determine number of active surfaces.  size & fill Jact
+	if ( (f1 > fTOL ) && (f2 <= fTOL) ) {
+		// f1 surface only
+		Jact(0) = 1;
+		Jact(1) = 0;
+	}
+	else if ( (f1 <= fTOL ) && (f2 > fTOL) ) {
+		// f2 surface only
+		Jact(0) = 0;
+		Jact(1) = 1;
+	}
+	else if ( (f1 > fTOL ) && (f2 > fTOL) ) {
+		// both surfaces active
+		Jact(0) = 1;
+		Jact(1) = 1;
+	}
+
+
+	double alpha1;			// hardening parameter for DP surface
+	double alpha2;			// hardening parameter for tension cut-off
+	Vector n(6);			// normal to the yield surface in strain space
+	Vector R(2);			// residual vector
+	Vector gamma(2);		// vector of consistency parameters
+	Vector dgamma(2);		// incremental vector of consistency parameters
+	Matrix g(2,2);			// jacobian of the corner region (return map)
+	Matrix g_contra(2,2);	// inverse of jacobian of the corner region
 	//-----------------MultiSurface Placity Return Map--------------------------------------
 	while (!okay) {
 
@@ -473,10 +477,8 @@ DruckerPrager::plastic_integrator( )
 				Jact(0) = 1;
 				Jact(1) = 1;
 				count += 1;
-
 			} else {
 				okay = true;
-
 			}
 		} else if ((Jact(0) == 0) && (Jact(1) == 1)) {
 			// f1 will always be less than f1_tr
@@ -504,18 +506,17 @@ DruckerPrager::plastic_integrator( )
 		}
 
 		if ( count > 3 ) {
-			opserr << "Jact = " << Jact;
+			opserr << "Jact = " << Vector(Jact);
 			opserr << "count = " << count << endln;
 		}
 
 	} // end of while(!okay) loop
 
 
-	//update everything and return!
+	// update everything and return!
 
 	Vector b1(6);
 	Vector b2(6);
-	Vector n_covar(6);
 	Vector temp1(6);
 	Vector temp2(6);
 
@@ -526,12 +527,14 @@ DruckerPrager::plastic_integrator( )
 	//update epsilon_n1_p
 	//first calculate n_covar
 	// n_a = G_ab * n^b = covariant
-	n_covar(0) = n(0);
-	n_covar(1) = n(1);
-	n_covar(2) = n(2);
+	Vector n_covar(6);
+	n_covar(0) =   n(0);
+	n_covar(1) =   n(1);
+	n_covar(2) =   n(2);
 	n_covar(3) = 2*n(3);
 	n_covar(4) = 2*n(4);
 	n_covar(5) = 2*n(5);
+
 	mEpsilon_n1_p = mEpsilon_n_p + (mrho_bar*gamma(0) + gamma(1))*mI1 + gamma(0)*n_covar;
 
 		
@@ -597,11 +600,12 @@ DruckerPrager::plastic_integrator( )
 	mState(3) = norm_dev_ep;
 	mState(4) = norm_ep;
 
-	return;
+	return 0;
 }
 
+
 int 
-DruckerPrager::updateElasticParam( )
+DruckerPrager::updateElasticParam()
 {
     double Sigma_mean = 0.0;
 	if ( mElastFlag == 1 && mFlag == 1) {
@@ -618,18 +622,20 @@ DruckerPrager::updateElasticParam( )
 	return 0;
 }
 
-double DruckerPrager::Kiso(double alpha1)
+double 
+DruckerPrager::Kiso(double alpha1)
 {
 	return msigma_y + mtheta * mHard * alpha1 + (mKinf - mKo) * (1 - exp(-mdelta1 * alpha1));
 }
 
 
-double DruckerPrager::Kisoprime(double alpha1)
+double 
+DruckerPrager::Kisoprime(double alpha1)
 {
 	return mtheta * mHard + (mKinf - mKo) * mdelta1*  exp(-mdelta1 * alpha1);
 }
 
-double DruckerPrager:: T(double alpha2) 
+double DruckerPrager::T(double alpha2) 
 {
 	return mTo * exp(-mdelta2 * alpha2);
 }
@@ -641,14 +647,15 @@ double DruckerPrager::deltaH(double dGamma)
 }
 
 
-Vector DruckerPrager::getState()
+Vector 
+DruckerPrager::getState()
 {
 	return mState;
 }
 
 
 Response*
-DruckerPrager::setResponse (const char **argv, int argc, OPS_Stream &output)
+DruckerPrager::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
 	Response *theResponse =0;
 	const char *matType = this->getType();
@@ -667,7 +674,8 @@ DruckerPrager::setResponse (const char **argv, int argc, OPS_Stream &output)
 		return 0;
 }
 
-int DruckerPrager::getResponse(int responseID, Information &matInfo)
+int 
+DruckerPrager::getResponse(int responseID, Information &matInfo)
 {
 	switch (responseID) {
 		case -1:

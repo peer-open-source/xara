@@ -15,7 +15,8 @@
 
 //
 // Description: LinearFrameTransf implements a linearized euclidean transformation
-// for a spatial frame
+// for a spatial frame under the newer FrameTransform<> interface.
+//
 //
 // Written: Claudio Perez
 //
@@ -63,7 +64,6 @@ public:
   VectorND<nn*ndf> getStateVariation() final;
 
   Matrix3D getRotation() const noexcept final {
-    // return this->getInitialRotation();
     return R;
   }
 
@@ -89,7 +89,7 @@ public:
           
 private:
 
-  inline int // VectorND<nn*ndf> 
+  inline int
   pull(VectorND<nn*ndf>& ug, 
               const Matrix3D& R, 
               const std::array<Vector3D, nn> *offset = nullptr,

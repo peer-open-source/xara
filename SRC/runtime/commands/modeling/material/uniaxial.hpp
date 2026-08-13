@@ -275,6 +275,7 @@ UniaxialLibrary {
     {"Steel",                  dispatch<TclCommand_newPlasticMaterial>},
     {"Steel01",                dispatch<TclCommand_newFedeasSteel>     },
     {"Steel02",                dispatch<TclCommand_newFedeasSteel>     },
+    {"Steel03",                dispatch<TclCommand_newFedeasSteel>     },
     {"Steel2",                 dispatch<TclCommand_newFedeasSteel>     },
     {"Steel4",                 dispatch<OPS_Steel4>                    },
     {"RambergOsgood",          dispatch<OPS_RambergOsgoodSteel>        },
@@ -492,8 +493,8 @@ UniaxialLibrary {
 
     {"ASD_SMA_3K",             dispatch<OPS_ASD_SMA_3K>                },
 
-    // {"ASDConcrete1D",          dispatch<TclCommand_addASDConcrete1D>   },
-    {"ASDConcrete1D",          dispatch<OPS_ASDConcrete1DMaterial>     },
+    {"ASDConcrete1D",          dispatch<TclCommand_addASDConcrete1D>   },
+    // {"ASDConcrete1D",          dispatch<OPS_ASDConcrete1DMaterial>     },
 
     {"HystereticPoly",         dispatch<OPS_HystereticPoly>            },
 

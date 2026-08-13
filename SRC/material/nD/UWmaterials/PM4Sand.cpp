@@ -25,6 +25,7 @@
 // Last Modified:  Aug 2019
 
 // Description: This file contains the implementation for the PM4Sand class.
+//
 // PM4Sand(Version 3.1): A Sand Plasticity Model For Earthquake Engineering Applications
 // by R.W.Boulanger and K.Ziotopoulou
 // Oct 2017
@@ -135,11 +136,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_PM4SandMaterial)
 		oData[3], oData[4], oData[5], oData[6], oData[7], oData[8],
 		oData[9], oData[10], oData[11], oData[12], oData[13], oData[14],
 		oData[15], oData[16], oData[17], oData[18], oData[19], (int)oData[20], (int)oData[21], oData[22], oData[23]);
-
-
-	if (theMaterial == 0) {
-		opserr << "WARNING ran out of memory for nDMaterial PM4Sand material with tag: " << tag << endln;
-	}
 
 	return theMaterial;
 }
@@ -1351,6 +1347,7 @@ void PM4Sand::ForwardEuler(const Vector& CurStress, const Vector& CurStrain, con
 	return;
 }
 // -------------------------------------------------------------------------------------------------------
+
 /*************************************************************/
 // Integrator Constraining Maximum Strain Increment
 /*************************************************************/
@@ -1415,6 +1412,7 @@ void PM4Sand::MaxStrainInc(const Vector& CurStress, const Vector& CurStrain, con
 	return;
 }
 // -------------------------------------------------------------------------------------------------------
+
 /*************************************************************/
 // Modified-Euler Integrator
 /*************************************************************/
@@ -1669,6 +1667,7 @@ void PM4Sand::ModifiedEuler(const Vector& CurStress, const Vector& CurStrain, co
 
 }
 // -------------------------------------------------------------------------------------------------------
+
 /*************************************************************/
 // Runge-Kutta Integrator
 /*************************************************************/

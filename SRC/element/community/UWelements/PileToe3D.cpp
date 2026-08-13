@@ -37,14 +37,12 @@
 #include <Node.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <Parameter.h>
 
 #include <math.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 
 #include <elementAPI.h>
@@ -493,12 +491,6 @@ PileToe3D::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBro
   return 0;
 }
 
-
-int
-PileToe3D::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-  return 0;
-}
 
 
 void

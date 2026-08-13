@@ -255,7 +255,6 @@ ShearCurve::checkElementState(double springForce)
 
 		const char *r[1] = {"basicDeformation"}; // must be implemented in element
 
-		Vector *rotVec; //vector of chord rotations at beam-column ends
 
 		// set type of beam-column element response desired
 		theRotations = theElement->setResponse(r, 1, dummy);
@@ -270,10 +269,11 @@ ShearCurve::checkElementState(double springForce)
 
 		// access the myInfo vector containing the response (new for Version 1.2)
 		Information &theInfo = theRotations->getInformation();
-		rotVec = (theInfo.theVector);
+		 //vector of chord rotations at beam-column ends
+		Vector& rotVec = (theInfo.theVector);
 
-		deform = (fabs((*rotVec)(1)) > fabs((*rotVec)(2))) ? 
-			fabs((*rotVec)(1)) : fabs((*rotVec)(2));  //use larger of two end rotations
+		deform = (fabs((rotVec)(1)) > fabs((rotVec)(2))) ? 
+			fabs((rotVec)(1)) : fabs((rotVec)(2));  //use larger of two end rotations
 	}
 	else if (defType == 2) // interstory drift
 	{
@@ -299,7 +299,6 @@ ShearCurve::checkElementState(double springForce)
 		const char *f[1] = {"localForce"}; // does not include influence of P-delta
 								     // for P-delta use forType = 0
 
-		Vector *forceVec; //vector of basic forces from beam column
 
 		// set type of beam-column element response desired
 		theForces    = theElement->setResponse(f, 1, dummy);
@@ -309,20 +308,21 @@ ShearCurve::checkElementState(double springForce)
 
 		// access the myInfo vector containing the response (new for Version 1.2)
 		Information &theInfo = theForces->getInformation();
-		forceVec = (theInfo.theVector);
+		//vector of basic forces from beam column
+		Vector& forceVec = (theInfo.theVector);
 
 	// Local forces (assuming no element loads)
 	if (forType == 0)
 		force = fabs(springForce);    // force in associated LimitState material
 	else if (forType == 1) 
-		force = fabs((*forceVec)(1)); // shear
+		force = fabs((forceVec)(1)); // shear
 	else if (forType == 2) 
-		force = fabs((*forceVec)(0)); // axial
+		force = fabs((forceVec)(0)); // axial
 	else {
 //		g3ErrorHandler->fatal("WARNING ShearCurve - force type flag %i not implemented",forType);
 	}
 
-	P = fabs((*forceVec)(0));
+	P = fabs((forceVec)(0));
 
 	// Determine if (deform,force) is outside limit state surface.
 	// 
@@ -332,12 +332,7 @@ ShearCurve::checkElementState(double springForce)
 //	double deformSurface = findLimit(force); // deform on surface at force	SDK
 
 
-//opserr << "The shear force in the element is: " << force << endln;
 
-
-//opserr << "State flag............................:" << stateFlag << endln;
-//opserr << "Shear force in the column.........: " << force << endln;
-//opserr << "forceSurface: " << forceSurface << endln;
 
 	if (stateFlag == 0) //prior to failure
 	{
@@ -350,9 +345,6 @@ ShearCurve::checkElementState(double springForce)
 //			g3ErrorHandler->warning("ShearCurve - failure detected at deform = %f (Kdeg = %f) ", deform, Kdeg);
 //opserr << "*********************" << endln;
         opserr << "ShearCurve - failure detected....."<< endln;//SDK
-
-       // opserr << "deformSurface: " << deformSurface << endln; //SDK
-  
       
 
 
@@ -383,7 +375,7 @@ ShearCurve::checkElementState(double springForce)
 
 
 double
-ShearCurve::getDegSlope(void)
+ShearCurve::getDegSlope()
 {
 	return Kdeg;
 }

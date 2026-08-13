@@ -35,7 +35,6 @@ UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 ********************************************************************************* */
 
 #include "AxEqDispBeamColumn2d.h"
-#include <elementAPI.h>
 #include <OPS_Globals.h>
 
 #include <Information.h>
@@ -65,11 +64,12 @@ Matrix AxEqDispBeamColumn2d::K(6, 6);
 Vector AxEqDispBeamColumn2d::P(6);
 double AxEqDispBeamColumn2d::workArea[100];
 
-static int numMyDBEle = 0;
 
+#include <elementAPI.h>
 void *
 OPS_ADD_RUNTIME_VPV(OPS_AxEqDispBeamColumn2d)
 {
+  static int numMyDBEle = 0;
   // print out a message about who wrote this element & any copyright info wanted
   if (numMyDBEle == 0) {
     opslog << "AxEqDispBeamColumn2d element - Written by Danilo Tarquini 2017 \n";
@@ -1583,19 +1583,6 @@ AxEqDispBeamColumn2d::Print(OPS_Stream &s, int flag)
     theSections[i]->Print(s, flag);
 }
 
-// method displaynig element (for output)
-int
-AxEqDispBeamColumn2d::displaySelf(Renderer &theViewer, int displayMode, float fact,
-                                  const char **displayModes, int numModes)
-{
-  static Vector v1(3);
-  static Vector v2(3);
-
-  theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-  theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-  return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 // method for outputting the element response (set the element response)
 Response *

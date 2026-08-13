@@ -33,7 +33,7 @@
 // col storage scheme this is what will have to stick with).
 //
 // What: "@(#) DistributedSparseGenColLinSOE.h, revA"
-
+#pragma once
 
 #include <SparseGenColLinSOE.h>
 #include <Vector.h>
@@ -59,12 +59,13 @@ public:
 
   int sendSelf(int commitTag, Channel& theChannel);
   int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
+
+  int setProcessID(int processTag) override;
+  int setChannels(int numChannels, Channel** theChannels) override;
+
   friend class SuperLU;
   friend class ThreadedSuperLU;
   friend class DistributedSuperLU;
-
-  int setProcessID(int processTag);
-  int setChannels(int numChannels, Channel** theChannels);
 
 private:
   int processID;

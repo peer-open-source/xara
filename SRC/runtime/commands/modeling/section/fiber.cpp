@@ -35,7 +35,7 @@
 #include <NDFiberSectionWarping2d.h>
 #include <FiberSection2dInt.h>
 #include <FiberSection3d.h>
-#include <MixedFrameSection.h>
+#include <MultiaxialFiberSection.h>
 #include <FrameFiberSection3d.h>
 #include <FrameSolidSection3d.h>
 #include <FrameTraceSection3d.h>
@@ -151,22 +151,22 @@ initSectionCommands(ClientData clientData,
 
     if (options.isND) {
       if (options.isMixed) {
-        auto sec = new MixedFrameSection(secTag, 
+        auto sec = new MultiaxialFiberSection(secTag, 
                           options.reserve, 
                           shape_data.mixed_form, 
                           options.wagner,
                           options.num_threads);
-        sbuilder = new FiberSectionBuilder<3, NDMaterial, MixedFrameSection>(*builder, *sec);
+        sbuilder = new FiberSectionBuilder<3, NDMaterial, MultiaxialFiberSection>(*builder, *sec);
         section = sec;
       }
       else if (options.isNew) {
         if (!getenv("XARA_OLD_WARP")) {
-          auto sec = new MixedFrameSection(secTag, 
+          auto sec = new MultiaxialFiberSection(secTag, 
                                            options.reserve, 
                                            shape_data.mixed_form, 
                                            options.wagner,
                                            options.num_threads);
-          sbuilder = new FiberSectionBuilder<3, NDMaterial, MixedFrameSection>(*builder, *sec);
+          sbuilder = new FiberSectionBuilder<3, NDMaterial, MultiaxialFiberSection>(*builder, *sec);
           section = sec;
         } else {
           auto sec = new FrameTraceSection3d(secTag, options.reserve, options.wagner);
@@ -314,11 +314,13 @@ initSectionCommands(ClientData clientData,
 }
 
 int
-TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
-                           TCL_Char ** const argv)
+XaraCmd_section_Fiber(ClientData context, 
+                      Tcl_Interp *interp, 
+                      ArgSize argc,
+                      TCL_Char ** const argv)
 {
-  assert(clientData != nullptr);
-  ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);
+  assert(context != nullptr);
+  ModelRegistry* builder = static_cast<ModelRegistry*>(context);
 
   // Check if we are being invoked from Python or Tcl
   bool openseespy = false;
@@ -340,7 +342,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
 
-  int secTag;
+  Xara::Tag secTag;
   if (Tcl_GetInt(interp, argv[2], &secTag) != TCL_OK) {
     opserr << OpenSees::PromptValueError 
            << "failed to parse section tag " << argv[2]
@@ -390,9 +392,9 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   // bool shape_done = false;
 
   if (builder->getNDF() <= 6)
-    shape_data.mixed_form = MixedFrameSection::MixedType::UT;//Energetic;
+    shape_data.mixed_form = MultiaxialFiberSection::MixedType::UT;//Energetic;
   else 
-    shape_data.mixed_form = MixedFrameSection::MixedType::None;
+    shape_data.mixed_form = MultiaxialFiberSection::MixedType::None;
 
   UniaxialMaterial *torsion = nullptr;
   bool deleteTorsion = false;
@@ -490,20 +492,20 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
       if ((strcmp(argv[iarg + 1], "None") == 0) || 
           (strcmp(argv[iarg + 1], "NV") == 0) ||
           (strcmp(argv[iarg + 1], "NT") == 0)) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::None;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::None;
       } else if ((strcmp(argv[iarg + 1], "constant") == 0) || 
                  (strcmp(argv[iarg + 1], "geometric") == 0) ||
                  (strcmp(argv[iarg + 1], "UG") == 0)) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::Constant;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::Constant;
       } else if (strcmp(argv[iarg + 1],  "UT") == 0) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::UT;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::UT;
       } else if (strcmp(argv[iarg + 1],  "U02") == 0) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::U02;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::U02;
       } else if ((strcmp(argv[iarg + 1], "energetic") == 0) || 
                  (strcmp(argv[iarg + 1], "UE") == 0) ) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::Energetic;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::Energetic;
       } else if (strcmp(argv[iarg + 1],  "NR") == 0) {
-        shape_data.mixed_form = MixedFrameSection::MixedType::Equilibrium;
+        shape_data.mixed_form = MultiaxialFiberSection::MixedType::Equilibrium;
       } else {
         opserr << OpenSees::PromptValueError 
                << "invalid mixed type value: " << argv[iarg + 1]
@@ -713,7 +715,7 @@ TclCommand_addFiberSection(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   // initialize  the fiber section (for building)
-  if (initSectionCommands(clientData, interp, secTag, torsion, shape_data, options) != TCL_OK) {
+  if (initSectionCommands(context, interp, secTag, torsion, shape_data, options) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "error constructing the section\n";
     return TCL_ERROR;
   }
@@ -756,7 +758,8 @@ TclCommand_addPatch(ClientData clientData,
 
   // make sure at least one other argument to contain patch type
   if (argc < 2) {
-    opserr << OpenSees::PromptValueError << "need to specify a patch type \n";
+    opserr << OpenSees::PromptValueError 
+           << "need to specify a patch type \n";
     return TCL_ERROR;
   }
 
@@ -885,14 +888,14 @@ TclCommand_addPatch(ClientData clientData,
 
   else if (strcmp(argv[1], "circ") == 0) {
     int numSubdivRad, numSubdivCirc, matTag;
-    double yCenter, zCenter;
-    Vector centerPosition(2);
+    VectorND<2> pcenter{};
     double intRad, extRad;
     double startAng, endAng;
 
     int argi = 2;
     if (argc < 11) {
-      opserr << OpenSees::PromptValueError << "invalid number of parameters: patch circ matTag "
+      opserr << OpenSees::PromptValueError 
+             << "invalid number of parameters: patch circ matTag "
                 "numSubdivCirc numSubdivRad yCenter zCenter intRad extRad "
                 "startAng endAng\n";
       return TCL_ERROR;
@@ -900,8 +903,8 @@ TclCommand_addPatch(ClientData clientData,
 
     if (Tcl_GetInt(interp, argv[argi++], &matTag) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
-             << "invalid matTag: patch circ matTag numSubdivCirc "
-                "numSubdivRad yCenter zCenter intRad extRad startAng endAng\n";
+             << "invalid matTag: " << argv[argi-1]
+             << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
@@ -916,12 +919,12 @@ TclCommand_addPatch(ClientData clientData,
       return TCL_ERROR;
     }
 
-    if (Tcl_GetDouble(interp, argv[argi++], &yCenter) != TCL_OK) {
+    if (Tcl_GetDouble(interp, argv[argi++], &pcenter[0]) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid yCenter\n";
       return TCL_ERROR;
     }
 
-    if (Tcl_GetDouble(interp, argv[argi++], &zCenter) != TCL_OK) {
+    if (Tcl_GetDouble(interp, argv[argi++], &pcenter[1]) != TCL_OK) {
       opserr << OpenSees::PromptValueError << "invalid zCenter\n";
       return TCL_ERROR;
     }
@@ -946,12 +949,12 @@ TclCommand_addPatch(ClientData clientData,
       return TCL_ERROR;
     }
 
-    centerPosition(0) = yCenter;
-    centerPosition(1) = zCenter;
-
     // create patch
-    CircPatch patch(matTag, numSubdivCirc, numSubdivRad, centerPosition,
-                    intRad, extRad, startAng, endAng);
+    CircPatch patch(matTag, 
+                    numSubdivCirc, numSubdivRad, 
+                    pcenter,
+                    intRad, extRad, 
+                    startAng, endAng);
 
     // add patch to section
     int error = fiberSectionRepr->addPatch(patch);

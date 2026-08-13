@@ -1094,9 +1094,9 @@ BeamGT::getResponse(int responseID, Information &eleInformation)
 {
     const Vector& disp1 = theNodes[0]->getTrialDisp();
     const Vector& disp2 = theNodes[1]->getTrialDisp();
+	int status = 0;
 	
     const Vector  diff  = disp2-disp1;
-//				opserr<<"En getResponse"<<"\n";
     switch (responseID) {
     case -1:
         return -1;
@@ -1105,45 +1105,39 @@ BeamGT::getResponse(int responseID, Information &eleInformation)
         return eleInformation.setVector(this->getResistingForce());
 
     case 2:
-        if (eleInformation.theVector != 0) {
-            for (int i = 0; i < 2; i++)
-                (*(eleInformation.theVector))(i) = theMaterial[i]->getStress();
-                   (*(eleInformation.theVector))(2) = theMaterial2->getStress();       		
-                  (*(eleInformation.theVector))(3) = theMaterial3->getStress();     
-        }
-        return 0;
+		for (int i=0; i< 2; i++)
+			status += eleInformation.setVector(i, theMaterial[i]->getStress());
+		status += eleInformation.setVector(2, theMaterial2->getStress());
+		status += eleInformation.setVector(3, theMaterial3->getStress());
+		return status;
 
     case 3:
-        if (eleInformation.theVector != 0) {
-            for (int i = 0; i < 2; i++)
-                (*(eleInformation.theVector))(i) = theMaterial[i]->getStrain();
-			 (*(eleInformation.theVector))(2) = theMaterial2->getStrain();
-			 (*(eleInformation.theVector))(3) = theMaterial3->getStrain();
-		}
-        return 0;
+		for (int i=0; i< 2; i++)
+			status += eleInformation.setVector(i, theMaterial[i]->getStrain());
+		status += eleInformation.setVector(2, theMaterial2->getStrain());
+		status += eleInformation.setVector(3, theMaterial3->getStrain());
+        return status;
 
-    case 13:
-        if (eleInformation.theMatrix != 0) {
-            for (int i = 0; i < 2; i++){
-	      (*(eleInformation.theMatrix))(i,i) = theMaterial[i]->getTangent();
+    case 13: {
+		for (int i = 0; i < 2; i++){
+			status += eleInformation.setMatrix(i,i, theMaterial[i]->getTangent());
 		}
-			(*(eleInformation.theMatrix))(2,2) = theMaterial2->getTangent();
-			(*(eleInformation.theMatrix))(3,3) = theMaterial3->getTangent();
-		}
-        return 0;
+		status += eleInformation.setMatrix(2,2, theMaterial2->getTangent());
+		status += eleInformation.setMatrix(3,3, theMaterial3->getTangent());
+		return status;
+	}
 
     case 4:
-        if (eleInformation.theVector != 0) {
+        if (eleInformation.theVector.Size() != 0) {
             for (int i = 0; i < 2; i++) {
-                (*(eleInformation.theVector))(i) = theMaterial[i]->getStrain();
-                (*(eleInformation.theVector))(i+4) = theMaterial[i]->getStress();    
+                ((eleInformation.theVector))(i) = theMaterial[i]->getStrain();
+                ((eleInformation.theVector))(i+4) = theMaterial[i]->getStress();    
 			}
-			     (*(eleInformation.theVector))(2) = theMaterial2->getStrain();
-			     (*(eleInformation.theVector))(6) = theMaterial2->getStress();   
+			((eleInformation.theVector))(2) = theMaterial2->getStrain();
+			((eleInformation.theVector))(6) = theMaterial2->getStress();   
 
-			     (*(eleInformation.theVector))(3) = theMaterial3->getStrain();
-			     (*(eleInformation.theVector))(7) = theMaterial3->getStress();    
-
+			((eleInformation.theVector))(3) = theMaterial3->getStrain();
+			((eleInformation.theVector))(7) = theMaterial3->getStress();
 		}
         return 0;    
 

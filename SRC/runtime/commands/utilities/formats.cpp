@@ -27,7 +27,9 @@ extern int binaryToText(const char *inputFile, const char *outputFile);
 extern int textToBinary(const char *inputFile, const char *outputFile);
 
 int
-convertBinaryToText(ClientData clientData, Tcl_Interp *interp, int argc,
+XaraCmd_convertBinaryToText(ClientData clientData, 
+                    Tcl_Interp *interp, 
+                    ArgSize argc,
                     TCL_Char ** const argv)
 {
   if (argc < 3) {
@@ -43,7 +45,7 @@ convertBinaryToText(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-convertTextToBinary(ClientData clientData, Tcl_Interp *interp, int argc,
+XaraCmd_convertTextToBinary(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                     TCL_Char ** const argv)
 {
   if (argc < 3) {
@@ -59,7 +61,7 @@ convertTextToBinary(ClientData clientData, Tcl_Interp *interp, int argc,
 }
 
 int
-stripOpenSeesXML(ClientData clientData, Tcl_Interp *interp, int argc,
+XaraCmd_stripOpenSeesXML(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                  TCL_Char ** const argv)
 {
 

@@ -88,38 +88,36 @@ class ForceBeamColumn3dThermal: public Element
   
   ~ForceBeamColumn3dThermal();
 
-  const char *getClassType(void) const {return "ForceBeamColumn3dThermal";};
+  const char *getClassType() const {return "ForceBeamColumn3dThermal";}
   
-  int getNumExternalNodes(void) const;
-  const ID &getExternalNodes(void);
-  Node **getNodePtrs(void);
+  int getNumExternalNodes() const;
+  const ID &getExternalNodes();
+  Node **getNodePtrs();
   
-  int getNumDOF(void);
+  int getNumDOF();
   
   void setDomain(Domain *theDomain);
   int setDamping(Domain *theDomain, Damping *theDamping);
-  int commitState(void);
-  int revertToLastCommit(void);        
-  int revertToStart(void);
-  int update(void);    
+  int commitState();
+  int revertToLastCommit();        
+  int revertToStart();
+  int update();    
   
-  const Matrix &getTangentStiff(void);
-  const Matrix &getInitialStiff(void);
-  const Matrix &getMass(void);    
+  const Matrix &getTangentStiff();
+  const Matrix &getInitialStiff();
+  const Matrix &getMass();    
   
-  void zeroLoad(void);	
+  void zeroLoad();	
   int addLoad(ElementalLoad *theLoad, double loadFactor);
   int addInertiaLoadToUnbalance(const Vector &accel);
   
-  const Vector &getResistingForce(void);
-  const Vector &getDampingForce(void);
-  const Vector &getResistingForceIncInertia(void);            
+  const Vector &getResistingForce();
+  const Vector &getDampingForce();
+  const Vector &getResistingForceIncInertia();            
   
   int sendSelf(int cTag, Channel &theChannel);
   int recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-  int displaySelf(Renderer &theViewer, int displayMode, float fact, const char** displayModes = 0, int numModes = 0);
-  
-  friend OPS_Stream &operator<<(OPS_Stream &s, ForceBeamColumn3dThermal &E);        
+    
   void Print(OPS_Stream &s, int flag =0);    
   
   Response *setResponse(const char **argv, int argc, OPS_Stream &s);
@@ -146,7 +144,7 @@ class ForceBeamColumn3dThermal: public Element
   void getForceInterpolatMatrix(double xi, Matrix &b, const ID &code);
   void getDistrLoadInterpolatMatrix(double xi, Matrix &bp, const ID &code);
   void compSectionDisplacements(Vector sectionCoords[], Vector sectionDispls[]) const;
-  void initializeSectionHistoryVariables (void);
+  void initializeSectionHistoryVariables ();
   
   // Reactions of basic system due to element loads
   void computeReactions(double *p0);

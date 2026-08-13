@@ -38,7 +38,8 @@ class J2CyclicBoundingSurface3D : public J2CyclicBoundingSurface
   public : 
 
   //full constructor
-  J2CyclicBoundingSurface3D(int tag, double G, double K, double su, double rho, double h, double m, double h0, double chi, double beta);
+  J2CyclicBoundingSurface3D(int tag, double G, double K, 
+                            double su, double rho, double h, double m, double h0, double chi, double beta);
 
   //null constructor
   J2CyclicBoundingSurface3D();
@@ -46,9 +47,9 @@ class J2CyclicBoundingSurface3D : public J2CyclicBoundingSurface
   //destructor
   ~J2CyclicBoundingSurface3D();
 
-  NDMaterial *getCopy(void);
-  const char *getType(void) const;
-  int getOrder(void) const;
+  NDMaterial *getCopy() override;
+  const char *getType() const;
+  int getOrder() const;
 
   int setTrialStrain(const Vector &strain_from_element);
 

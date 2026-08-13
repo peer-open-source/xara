@@ -64,6 +64,7 @@ public:
 
   virtual Vector3D  getPositionVariation(int ndf, double* du) =0; 
   virtual MatrixND<6*nn,6*nn> getRotationJacobian(const VectorND<6*nn>&pl) {
+    // from obsolete interface, deprecated.
     return MatrixND<6*nn,6*nn> {};
   }
   virtual Matrix3D  getRotationDelta() =0;
@@ -170,6 +171,11 @@ public:
     for (int i=0; i<3; i++)
       dX[i] = XJ[i] - XI[i];
 
+    if (offsets != nullptr) [[unlikely]] {
+      dX.addVector(1.0, (*offsets)[nn-1],  1.0);
+      dX.addVector(1.0, (*offsets)[   0], -1.0);
+    }
+
     L = dX.norm();
     Ln = L;
     Vector3D e1 = dX/L;
@@ -196,6 +202,9 @@ public:
 
     const Vector& XC = nodes[ic]->getCrds();
     Xc = Vector3D {XC[0], XC[1], XC[2]};
+    if (offsets != nullptr) [[unlikely]] {
+      Xc.addVector(1.0, (*offsets)[ic],  1.0);
+    }
     // Cbar
     c[init] = R[init]^Xc;
 

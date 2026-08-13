@@ -52,16 +52,16 @@ namespace Transform {
 enum Action : int {
   None        = 0,
 
-  Logarithm   = 1u << 0,
+  Logarithm   = 1u << 0, // 3
   // LocalOffset = 1u << 1,
-  Isometry    = 1u << 2,
-  Rotation    = 1u << 3,
-  Offset      = 1u << 4,
+  Isometry    = 1u << 2, // 2.1
+  Rotation    = 1u << 3, // 2.2
+  Offset      = 1u << 4, // 1
   Bubnov      = 1u << 6,
   Adjoint     = 1u << 7,
   Tangent     = 1u << 8,
-  Total  = (1u<<0)
-         | (1u<<1)
+  Total  = (1u<<0) // Logarithm
+         | (1u<<1) // 
          | (1u<<2) | (1u<<3) | (1u<<4) | (1u<<5) 
          | (1u<<6)| (1u<<7)
          | (1u<<8)
@@ -81,7 +81,7 @@ public:
 
   virtual Vector3D  getNodePosition(int tag) =0;
   virtual Vector3D  getNodeRotationLogarithm(int tag) =0;
-  virtual Vector3D getNodeRotationUpdateLogarithm(int tag) {
+  virtual Vector3D  getNodeRotationUpdateLogarithm(int tag) {
     return Vector3D{};
   }
 #if 0

@@ -18,33 +18,36 @@
 #include <Parsing.h>
 
 // modeling/model.cpp
-extern Tcl_CmdProc  TclCommand_wipeModel;
-extern Tcl_CmdProc  buildModel;
+extern Tcl_CmdProc  XaraCmd_wipe;
+extern Tcl_CmdProc  XaraCmd_build;
+
+// response.cpp
+extern Tcl_CmdProc  XaraCmd_setResponse;
+extern Tcl_CmdProc  XaraCmd_getResponse;
 
 // modeling/nodes.cpp
-extern Tcl_CmdProc  TclCommand_getNDM;
-extern Tcl_CmdProc  TclCommand_getNDF;
-extern Tcl_CmdProc  TclCommand_addNode;
-extern Tcl_CmdProc  TclCommand_addNodalMass;
-extern Tcl_CmdProc  TclCommand_addNodalLoad;
-// 
+extern Tcl_CmdProc  XaraCmd_getNDM;
+extern Tcl_CmdProc  XaraCmd_getNDF;
+extern Tcl_CmdProc  XaraCmd_node;
+extern Tcl_CmdProc  XaraCmd_mass;
+extern Tcl_CmdProc  XaraCmd_nodalLoad;
 extern Tcl_CmdProc  TclCommand_addSeries;
-extern Tcl_CmdProc  TclCommand_addPattern;
+extern Tcl_CmdProc  XaraCmd_pattern;
 extern Tcl_CmdProc  TclCommand_addTimeSeries;
-extern Tcl_CmdProc  TclCommand_addGeomTransf;
+extern Tcl_CmdProc  XaraCmd_geomTransf;
 
 // element.cpp
-extern Tcl_CmdProc  TclCommand_addElement;
+extern Tcl_CmdProc  XaraCmd_element;
 
 // blockND.cpp
-extern Tcl_CmdProc  TclCommand_doBlock2D;
-extern Tcl_CmdProc  TclCommand_doBlock3D;
+extern Tcl_CmdProc      XaraCmd_block2D;
+extern Tcl_CmdProc      XaraCmd_block3D;
 
 // uniaxial.cpp
-extern Tcl_CmdProc  TclCommand_addUniaxialMaterial;
+extern Tcl_CmdProc  XaraCmd_uniaxialMaterial;
 
 // section.cpp
-extern Tcl_CmdProc  TclCommand_addSection;
+extern Tcl_CmdProc  XaraCmd_section;
 extern Tcl_CmdProc  TclCommand_addPatch;
 extern Tcl_CmdProc  TclCommand_addFiberLayer;
 // extern Tcl_CmdProc  TclCommand_addRemoFiber;
@@ -61,7 +64,7 @@ extern Tcl_CmdProc TclCommand_addSP;
 extern Tcl_CmdProc TclCommand_constrain;
 extern Tcl_CmdProc TclCommand_addHomogeneousBC;
 extern Tcl_CmdProc TclCommand_addHomogeneousBC_X;
-extern Tcl_CmdProc TclCommand_addHomogeneousBC_Y; 
+extern Tcl_CmdProc TclCommand_addHomogeneousBC_Y;
 extern Tcl_CmdProc TclCommand_addHomogeneousBC_Z;
 extern Tcl_CmdProc TclCommand_addEqualDOF_MP;
 extern Tcl_CmdProc TclCommand_addEqualDOF_MP_Mixed;
@@ -71,7 +74,7 @@ extern Tcl_CmdProc TclCommand_addImposedMotionSP;
 extern Tcl_CmdProc TclCommand_addGroundMotion;
 
 // Loads
-// extern Tcl_CmdProc  TclCommand_addNodalLoad;
+// extern Tcl_CmdProc  XaraCmd_nodalLoad;
 Tcl_CmdProc TclCommand_addElementalLoad;
 
 // Other
@@ -85,22 +88,25 @@ Tcl_CmdProc TclCommand_addDamageModel;
 Tcl_CmdProc TclCommand_addParameter;
 Tcl_CmdProc TclCommand_mesh;
 Tcl_CmdProc TclCommand_remesh;
-Tcl_CmdProc TclCommand_backgroundMesh; 
-Tcl_CmdProc TclCommand_addBeamIntegration;
+Tcl_CmdProc TclCommand_backgroundMesh;
+Tcl_CmdProc XaraCmd_beamIntegration;
 
 //
 Tcl_CmdProc TclCommand_addFrictionModel;
 Tcl_CmdProc TclCommand_addLimitCurve;
-Tcl_CmdProc TclCommand_addNDMaterial;
+Tcl_CmdProc XaraCmd_nDMaterial;
 
 // invoking.cpp
-Tcl_CmdProc TclCommand_invoke;
+Tcl_CmdProc XaraCmd_invoke;
 
 // printing.cpp
-Tcl_CmdProc TclCommand_print;
+Tcl_CmdProc XaraCmd_print;
 Tcl_CmdProc TclCommand_classType;
 
 Tcl_CmdProc TclCommand_addMaterial;
+#ifdef XARA_ENABLE_CUDA
+extern Tcl_CmdProc XaraCmd_cuda;
+#endif
 
 namespace OpenSees {
 struct CommandTableEntry {
@@ -108,49 +114,52 @@ struct CommandTableEntry {
   Tcl_CmdProc*  func;
 }
 constexpr ModelBuilderCommands[] =  {
-  {"build",                buildModel},
+  {"build",                XaraCmd_build},
 
-  {"getNDM",               TclCommand_getNDM},
-  {"getNDF",               TclCommand_getNDF},
-  {"node",                 TclCommand_addNode},
-  {"mass",                 TclCommand_addNodalMass},
-  {"element",              TclCommand_addElement},
+  {"getNDM",               XaraCmd_getNDM},
+  {"getNDF",               XaraCmd_getNDF},
+  {"node",                 XaraCmd_node},
+  {"mass",                 XaraCmd_mass},
+  {"element",              XaraCmd_element},
 
-  {"print",                TclCommand_print},
+  {"print",                XaraCmd_print},
   {"classType",            TclCommand_classType},
-  {"printModel",           TclCommand_print},
+  {"printModel",           XaraCmd_print},
 
   {"fix",                  TclCommand_addHomogeneousBC},
   {"fixX",                 TclCommand_addHomogeneousBC_X},
   {"fixY",                 TclCommand_addHomogeneousBC_Y},
   {"fixZ",                 TclCommand_addHomogeneousBC_Z},
 
-// 
-  {"with",                 TclCommand_invoke},
-  {"invoke",               TclCommand_invoke},
+//
+  {"with",                 XaraCmd_invoke},
+  {"invoke",               XaraCmd_invoke},
 // Materials & sections
-  {"uniaxialMaterial",     TclCommand_addUniaxialMaterial},
-  {"nDMaterial",           TclCommand_addNDMaterial},
+  {"uniaxialMaterial",     XaraCmd_uniaxialMaterial},
+  {"nDMaterial",           XaraCmd_nDMaterial},
   {"material",             TclCommand_addMaterial},
-  {"beamIntegration",      TclCommand_addBeamIntegration},
+  {"beamIntegration",      XaraCmd_beamIntegration},
 
-  {"section",              TclCommand_addSection},
+  {"setResponse",          XaraCmd_setResponse},
+  {"getResponse",          XaraCmd_getResponse},
+
+  {"section",              XaraCmd_section},
   {"patch",                TclCommand_addPatch},
   {"fiber",                TclCommand_addFiber},
   {"layer",                TclCommand_addFiberLayer},
   {"Hfiber",               TclCommand_addHFiber},
 
-  {"geomTransf",           TclCommand_addGeomTransf},
-  {"transform",            TclCommand_addGeomTransf},
+  {"geomTransf",           XaraCmd_geomTransf},
+  {"transform",            XaraCmd_geomTransf},
 
-  {"pattern",              TclCommand_addPattern},
-//   {"load",             TclCommand_addNodalLoad},
-  {"nodalLoad",            TclCommand_addNodalLoad},
+  {"pattern",              XaraCmd_pattern},
+//   {"load",             XaraCmd_nodalLoad},
+  {"nodalLoad",            XaraCmd_nodalLoad},
   {"timeSeries",           TclCommand_addTimeSeries},
 
   {"equalDOF",             TclCommand_addEqualDOF_MP},
   {"rigidLink",            TclCommand_RigidLink},
-  
+
   {"sp",                   TclCommand_addSP},
   {"constrain",            TclCommand_constrain},
   {"groundMotion",         TclCommand_addGroundMotion},
@@ -159,8 +168,8 @@ constexpr ModelBuilderCommands[] =  {
 
   {"eleLoad",              TclCommand_addElementalLoad},
 
-  {"block2D",              TclCommand_doBlock2D},
-  {"block3D",              TclCommand_doBlock3D},
+  {"block2D",                  XaraCmd_block2D},
+  {"block3D",                  XaraCmd_block3D},
   {"rigidDiaphragm",       &TclCommand_RigidDiaphragm},
 
 /*
@@ -202,8 +211,11 @@ constexpr ModelBuilderCommands[] =  {
 // command for updating properties of soil materials, by ZHY
    {"updateParameter", TclCommand_UpdateParameter},
 #endif
-
+#ifdef XARA_ENABLE_CUDA
+  {"cuda", XaraCmd_cuda},
+#endif
 };
+
 } // namespace OpenSees
 
 Tcl_CmdProc TclCommand_Package;
@@ -227,4 +239,3 @@ Tcl_CmdProc TclCommand_addElementRayleigh;
 
 // Added by Alborz Ghofrani - U.Washington
 Tcl_CmdProc TclCommand_GenerateInterfacePoints;
-

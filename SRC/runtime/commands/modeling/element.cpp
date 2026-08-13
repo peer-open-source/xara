@@ -55,20 +55,19 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData clientData, Tcl_Interp *interp
 
 class TclBasicBuilder;
 typedef int (G3_TclElementCommand)(ClientData, Tcl_Interp*, int, const char** const, Domain*, TclBasicBuilder*);
-G3_TclElementCommand TclBasicBuilder_addMultipleShearSpring;
-G3_TclElementCommand TclBasicBuilder_addMultipleNormalSpring;
+static Tcl_CmdProc XaraCmd_addMultipleShearSpring;
+static Tcl_CmdProc TclBasicBuilder_addMultipleNormalSpring;
 G3_TclElementCommand TclBasicBuilder_addMasonPan12;
 G3_TclElementCommand TclBasicBuilder_addMasonPan3D;
 G3_TclElementCommand TclBasicBuilder_addBeamGT;
 
 
 int
-TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+XaraCmd_element(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   using OpenSees::Library::ElementLibrary;
 
   G3_Runtime *rt = G3_getRuntime(interp);
-  TclBasicBuilder *theTclBuilder = (TclBasicBuilder*)G3_getSafeBuilder(rt);
 
   assert(clientData != nullptr);
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
@@ -98,7 +97,7 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
     theEle = (*cmd->second)(rt, argc, &argv[0]);
   }
 
-  else if (strcmp(argv[1], "ElasticTimoshenkoBeam") == 0) {
+  else if (strcasecmp(argv[1], "ElasticTimoshenkoBeam") == 0) {
     if (ndm == 2)
       theEle = OPS_ElasticTimoshenkoBeam2d(rt, argc, argv);
     else
@@ -113,49 +112,49 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
   }
 
 #if defined(_HAVE_LHNMYS) || defined(OPSDEF_ELEMENT_LHNMYS)
-  else if (strcmp(argv[1], "beamColumn2DwLHNMYS") == 0) {
+  else if (strcasecmp(argv[1], "beamColumn2DwLHNMYS") == 0) {
     theEle = OPS_BeamColumn2DwLHNMYS(rt, argc, argv);
 
-  } else if (strcmp(argv[1], "beamColumn2dDamage") == 0) {
+  } else if (strcasecmp(argv[1], "beamColumn2dDamage") == 0) {
     theEle = OPS_Beam2dDamage(rt, argc, argv);
 
-  } else if (strcmp(argv[1], "beamColumn2DwLHNMYS_Damage") == 0) {
+  } else if (strcasecmp(argv[1], "beamColumn2DwLHNMYS_Damage") == 0) {
     theEle = OPS_BeamColumn2DwLHNMYS_Damage(rt, argc, argv);
 
-  } else if (strcmp(argv[1], "beamColumn3DwLHNMYS") == 0) {
+  } else if (strcasecmp(argv[1], "beamColumn3DwLHNMYS") == 0) {
     theEle = OPS_BeamColumn3DwLHNMYS(rt, argc, argv);
   }
 #endif
 
 
-  else if ((strcmp(argv[1], "pyMacro2D") == 0) ||
-             (strcmp(argv[1], "PY_Macro2D") == 0)) {
+  else if ((strcasecmp(argv[1], "pyMacro2D") == 0) ||
+           (strcasecmp(argv[1], "PY_Macro2D") == 0)) {
 
     theEle = OPS_PY_Macro2D(rt, argc, argv);
   }
 
-  else if ((strcmp(argv[1], "TFPbearing") == 0) ||
-           (strcmp(argv[1], "TFP") == 0) ||
-           (strcmp(argv[1], "TPFbearing") == 0) ||
-           (strcmp(argv[1], "TPF") == 0)) {
+  else if ((strcasecmp(argv[1], "TFPbearing") == 0) ||
+           (strcasecmp(argv[1], "TFP") == 0) ||
+           (strcasecmp(argv[1], "TPFbearing") == 0) ||
+           (strcasecmp(argv[1], "TPF") == 0)) {
 
     theEle = OPS_TFP_Bearing(rt, argc, argv);
   }
 
-  else if ((strcmp(argv[1], "MultiFP2d") == 0) ||
-            (strcmp(argv[1], "MultiFPB2d") == 0)) {
+  else if ((strcasecmp(argv[1], "MultiFP2d") == 0) ||
+           (strcasecmp(argv[1], "MultiFPB2d") == 0)) {
 
     theEle = OPS_MultiFP2d(rt, argc, argv);
   }
 
 // Other
-  else if ((strcmp(argv[1], "CoupledZeroLength") == 0) ||
-             (strcmp(argv[1], "ZeroLengthCoupled") == 0)) {
+  else if ((strcasecmp(argv[1], "CoupledZeroLength") == 0) ||
+           (strcasecmp(argv[1], "ZeroLengthCoupled") == 0)) {
     theEle = OPS_CoupledZeroLength(rt, argc, argv);
   }
 
-  else if (strcmp(argv[1], "ElastomericBearing") == 0 ||
-          (strcmp(argv[1], "ElastomericBearingPlasticity")) == 0) {
+  else if (strcasecmp(argv[1], "ElastomericBearing") == 0 ||
+          (strcasecmp(argv[1], "ElastomericBearingPlasticity")) == 0) {
 
     if (ndm == 2)
       theEle = OPS_ElastomericBearingPlasticity2d(rt, argc, argv);
@@ -163,15 +162,15 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
       theEle = OPS_ElastomericBearingPlasticity3d(rt, argc, argv);
   }
 
-  else if (strcmp(argv[1], "ElastomericBearingBoucWen") == 0 ||
-          (strcmp(argv[1], "ElastomericBearingBW")) == 0) {
+  else if (strcasecmp(argv[1], "ElastomericBearingBoucWen") == 0 ||
+          (strcasecmp(argv[1], "ElastomericBearingBW")) == 0) {
     if (ndm == 2)
       theEle = OPS_ElastomericBearingBoucWen2d(rt, argc, argv);
     else
       theEle = OPS_ElastomericBearingBoucWen3d(rt, argc, argv);
   }
 
-  else if (strcmp(argv[1], "ElastomericBearingUFRP") == 0) {
+  else if (strcasecmp(argv[1], "ElastomericBearingUFRP") == 0) {
     if (ndm == 2)
       theEle = OPS_ElastomericBearingUFRP2d(rt, argc, argv);
     else {;}
@@ -195,49 +194,38 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
       return TCL_OK;
   }
 
-#if 0 && defined(OPSDEF_ELEMENT_FEAP)
-  if (strcmp(argv[1], "fTruss") == 0) {
-    int eleArgStart = 1;
-    int result = TclBasicBuilder_addFeapTruss(
-        clientData, interp, argc, argv, theTclDomain, theTclBuilder, eleArgStart);
-    return result;
-
-  }
-#endif // _OPS_Element_FEAP
-
   //
   // Other
   //
-  else if (strcmp(argv[1], "genericClient") == 0) {
+  else if (strcasecmp(argv[1], "genericClient") == 0) {
     return TclBasicBuilder_addGenericClient(clientData, interp, argc, argv);
   }
 
-  else if (strcmp(argv[1], "genericCopy") == 0) {
+  else if (strcasecmp(argv[1], "genericCopy") == 0) {
     return TclBasicBuilder_addGenericCopy(clientData, interp, argc, argv);
 
-  } else if ((strcmp(argv[1], "inelastic2dYS01") == 0) ||
-             (strcmp(argv[1], "inelastic2dYS02") == 0) ||
-             (strcmp(argv[1], "inelastic2dYS03") == 0) ||
-             (strcmp(argv[1], "inelastic2dYS04") == 0) ||
-             (strcmp(argv[1], "inelastic2dYS05") == 0)) {
+  } else if ((strcasecmp(argv[1], "inelastic2dYS01") == 0) ||
+             (strcasecmp(argv[1], "inelastic2dYS02") == 0) ||
+             (strcasecmp(argv[1], "inelastic2dYS03") == 0) ||
+             (strcasecmp(argv[1], "inelastic2dYS04") == 0) ||
+             (strcasecmp(argv[1], "inelastic2dYS05") == 0)) {
     return TclBasicBuilder_addElement2dYS(clientData, interp, argc, argv);
 
-  } else if ((strcmp(argv[1], "element2dGNL") == 0) ||
-             (strcmp(argv[1], "elastic2dGNL") == 0)) {
+  } else if ((strcasecmp(argv[1], "element2dGNL") == 0) ||
+             (strcasecmp(argv[1], "elastic2dGNL") == 0)) {
     return TclBasicBuilder_addElastic2dGNL(clientData, interp, argc, argv);
   }
 
-  else if ((strcmp(argv[1], "multipleShearSpring") == 0) ||
-           (strcmp(argv[1], "MSS") == 0)) {
-    int result = TclBasicBuilder_addMultipleShearSpring(
-        clientData, interp, argc, argv, theTclDomain, theTclBuilder);
-    return result;
+  else if ((strcasecmp(argv[1], "multipleShearSpring") == 0) ||
+           (strcasecmp(argv[1], "MSS") == 0)) {
+    return XaraCmd_addMultipleShearSpring(clientData, interp, argc, argv);
   }
 
-  else if ((strcmp(argv[1], "multipleNormalSpring") == 0) ||
-           (strcmp(argv[1], "MNS") == 0)) {
-    return TclBasicBuilder_addMultipleNormalSpring(clientData, interp, argc, argv, theTclDomain, theTclBuilder);
+  else if ((strcasecmp(argv[1], "multipleNormalSpring") == 0) ||
+           (strcasecmp(argv[1], "MNS") == 0)) {
+    return TclBasicBuilder_addMultipleNormalSpring(clientData, interp, argc, argv);
   }
+
 #if 0
   else {
 
@@ -251,7 +239,7 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
     bool found = false;
     int result = TCL_ERROR;
     while (eleCommands != NULL && found == false) {
-      if (strcmp(argv[1], eleCommands->funcName) == 0) {
+      if (strcasecmp(argv[1], eleCommands->funcName) == 0) {
 
         OPS_ResetInputNoBuilder(clientData, interp, 2, argc, argv, theTclDomain);
         void *theRes = (*(eleCommands->funcPtr))();
@@ -288,18 +276,12 @@ TclCommand_addElement(ClientData clientData, Tcl_Interp *interp, int argc, TCL_C
 #include <YamamotoBiaxialHDR.h>
 #include <WheelRail.h>
 
-int
-TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp,
-                                       int argc, TCL_Char ** const argv,
-                                       Domain *theTclDomain, 
-                                       [[maybe_unused]] TclBasicBuilder* unused)
+static int
+XaraCmd_addMultipleShearSpring(ClientData context, Tcl_Interp *interp,
+                                       ArgSize argc, TCL_Char ** const argv)
 {
-  ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
+  ModelRegistry *builder = static_cast<ModelRegistry*>(context);
 
-  if (builder == 0 || clientData == 0) {
-    opserr << OpenSees::PromptValueError << "builder has been destroyed - multipleShearSpring\n";
-    return TCL_ERROR;
-  }
 
   // 3-dim, 6-dof
   int ndm = builder->getNDM();
@@ -314,7 +296,7 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
   }
 
   // arguments (necessary)
-  int eleTag;
+  Xara::Tag eleTag;
   int iNode;
   int jNode;
   int nSpring;
@@ -508,7 +490,8 @@ TclBasicBuilder_addMultipleShearSpring(ClientData clientData, Tcl_Interp *interp
   }
 
   // then add the multipleShearSpring to the domain
-  if (theTclDomain->addElement(theElement) == false) {
+  Domain* domain = builder->getDomain();
+  if (domain->addElement(theElement) == false) {
     opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
     opserr << "multipleShearSpring element: " << eleTag << OpenSees::SignalMessageEnd;
     delete theElement;
@@ -533,10 +516,9 @@ errDetected(bool ifNoError, const char *msg)
 };
 
 
-int
+static int
 TclBasicBuilder_addMultipleNormalSpring(ClientData clientData, Tcl_Interp *interp,
-                                        Tcl_Size argc, TCL_Char ** const argv,
-                                        Domain *theTclDomain, TclBasicBuilder *theTclBuilder)
+                                        Tcl_Size argc, TCL_Char ** const argv)
 {
 
   assert(clientData != nullptr);
@@ -798,9 +780,11 @@ error:
                     material, shape, size, lambda, oriYp, oriX, mass);
 
   // then add the multipleNormalSpring to the domain
-  if (theTclDomain->addElement(theElement) == false) {
-    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
-    opserr << "multipleNormalSpring element: " << eleTag << OpenSees::SignalMessageEnd;
+  Domain* domain = builder->getDomain();
+  if (domain->addElement(theElement) == false) {
+    opserr << OpenSees::PromptValueError 
+           << "could not add element to the domain"
+           << OpenSees::SignalMessageEnd;
     delete theElement;
     return TCL_ERROR;
   }

@@ -35,7 +35,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -1212,18 +1211,7 @@ DispBeamColumn3dWithSensitivity::Print(OPS_Stream &s, int flag)
   }
 }
 
-int
-DispBeamColumn3dWithSensitivity::displaySelf(Renderer &theViewer, int displayMode,
-                                             float fact, const char **modes, int numMode)
-{
-  static Vector v1(3);
-  static Vector v2(3);
 
-  theNodes[0]->getDisplayCrds(v1, fact, displayMode);
-  theNodes[1]->getDisplayCrds(v2, fact, displayMode);
-
-  return theViewer.drawLine(v1, v2, 1.0, 1.0, this->getTag());
-}
 
 Response *
 DispBeamColumn3dWithSensitivity::setResponse(const char **argv, int argc,

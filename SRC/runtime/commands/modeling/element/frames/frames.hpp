@@ -79,5 +79,6 @@ CreateExactFrame(int tag,
                  std::vector<FrameSection*>& sections,
                  BeamIntegration& beamIntegr,
                  CrdTransf& theTransf,
+                 FrameTransformBuilder& tb,
                  const FrameOptions& options,
                  double mass);

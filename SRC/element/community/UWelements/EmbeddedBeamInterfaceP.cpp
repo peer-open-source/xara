@@ -27,7 +27,6 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 #include <Information.h>
@@ -92,10 +91,13 @@ EmbeddedBeamInterfaceP::EmbeddedBeamInterfaceP(int tag) :
 
 }
 
-EmbeddedBeamInterfaceP::EmbeddedBeamInterfaceP(int tag, std::vector <int> beamTag, std::vector <int> solidTag, int crdTransfTag,
+EmbeddedBeamInterfaceP::EmbeddedBeamInterfaceP(int tag, std::vector <int> beamTag, std::vector <int> solidTag, 
+    CrdTransf &theCrdTransf,
     std::vector <double>  beamRho, std::vector <double>  beamTheta, std::vector <double>  solidXi, std::vector <double>  solidEta,
-    std::vector <double>  solidZeta, double radius, std::vector <double> area, std::vector <double> length, double penaltyParam, 
-    bool writeConnectivity, const char * connectivityFN, Domain &theDomain)
+    std::vector <double>  solidZeta, double radius, std::vector <double> area, std::vector <double> length, 
+    Domain &theDomain,
+    double penaltyParam, 
+    bool writeConnectivity, const char * connectivityFN)
   : Element(tag, ELE_TAG_EmbeddedBeamInterfaceP),
     m_beam_radius(radius), m_ep(penaltyParam), mQa(3, 3), mQb(3, 3), mQc(3, 3),
     mBphi(3, 12), mBu(3, 12), mHf(3, 12), m_Ns(8)
@@ -217,9 +219,9 @@ EmbeddedBeamInterfaceP::EmbeddedBeamInterfaceP(int tag, std::vector <int> beamTa
 
     // get the coordinate transformation object
     // TODO: this should happend before the constructor - cmp
-    crdTransf = G3_getSafeBuilder(rt)->getTypedObject<CrdTransf>(crdTransfTag)->getCopy3d();
+    crdTransf = theCrdTransf.getCopy3d();
 
-
+#if 0
     if (writeConnectivity)
     {
         FileStream connFile(connectivityFN, APPEND);
@@ -239,7 +241,7 @@ EmbeddedBeamInterfaceP::EmbeddedBeamInterfaceP(int tag, std::vector <int> beamTa
         connFile << endln;
         connFile.close();
     }
-
+#endif
 }
 
 EmbeddedBeamInterfaceP::EmbeddedBeamInterfaceP()
@@ -351,11 +353,6 @@ EmbeddedBeamInterfaceP::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectB
     return 0;
 }
 
-int
-EmbeddedBeamInterfaceP::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-    return 0;
-}
 
 void
 EmbeddedBeamInterfaceP::Print(OPS_Stream &s, int flag)

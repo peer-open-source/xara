@@ -47,18 +47,18 @@ class MachineBroker
     virtual ~MachineBroker();
 
     // methods to return info about local process id and num processes
-    virtual int getPID(void) = 0;
-    virtual int getNP(void)  = 0;
+    virtual int getPID() = 0;
+    virtual int getNP()  = 0;
 
     // methods to get and free Actors
-    virtual int shutdown(void);    
-    virtual int runActors(void);
+    virtual int shutdown();    
+    virtual int runActors();
     virtual Channel *startActor(int actorType, int compDemand = 0);
     virtual int finishedWithActor(Channel *);
 
     // methods to get and free Channels (processes)
-    virtual Channel *getMyChannel(void)        =0;
-    virtual Channel *getRemoteProcess(void)    =0;
+    virtual Channel *getMyChannel()            =0;
+    virtual Channel *getRemoteProcess()        =0;
     virtual int freeProcess(Channel *)         =0;
     
     void setObjectBroker(FEM_ObjectBroker *theBroker);

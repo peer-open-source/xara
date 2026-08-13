@@ -337,7 +337,7 @@ TransientDomainDecompositionAnalysis::initialize()
       if (this->domainChanged() < 0) {
         opserr << "DirectIntegrationAnalysis::initialize() - domainChanged() failed\n";
         return -1;
-      }        
+      }
     }
     if (theIntegrator->initialize() < 0) {
         opserr << "DirectIntegrationAnalysis::initialize() - integrator initialize() failed\n";

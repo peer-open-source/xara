@@ -5,7 +5,7 @@
 #
 #==============================================================================
 
-target_link_libraries(OPS_Runtime PRIVATE OPS_Element)
+target_link_libraries(XaraCmds_Modeling PRIVATE OPS_Element)
 
 target_sources(OPS_Element
     PRIVATE
