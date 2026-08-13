@@ -42,7 +42,6 @@ Earthquake Engineering and Structural Dynamics laboratory, 2019
 
 
 
-
 #ifdef _USRDLL
 #define OPS_Export extern "C" _declspec(dllexport)
 #elif _MACOSX

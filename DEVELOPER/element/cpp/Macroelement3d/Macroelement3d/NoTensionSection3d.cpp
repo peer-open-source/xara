@@ -41,7 +41,7 @@ Last edit: 26 Feb 2019
 #include <Vector.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <MatrixUtil.h>
+// #include <MatrixUtil.h>
 #include <Parameter.h>
 /* -------------------------------------------------------------------------- */
 #include <limits>
@@ -56,7 +56,7 @@ Last edit: 26 Feb 2019
 
 ID NoTensionSection3d::code(4);
 
-NoTensionSection3d::NoTensionSection3d(void) 
+NoTensionSection3d::NoTensionSection3d() 
 	:SectionForceDeformation(0, 0), k(0.0), kg(0.0), t(0.0), L(0.0), J(0.0), fc(0.0), e(4), r(0), muMax(0), triangular(false),
 	eCommitted(4), sCommitted(4), s(4), D(4,4), Dtrial(4,4), Dcommitted(4,4), nSections(0), IPfactor(1.0), stronger(false), elastic(false), crushing(true)
 {

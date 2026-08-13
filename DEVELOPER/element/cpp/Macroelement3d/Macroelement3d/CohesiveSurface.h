@@ -42,7 +42,7 @@ Last edit: 27 Feb 2019
 class CohesiveSurface
 {
 public:
-	CohesiveSurface(void);
+	CohesiveSurface();
 	CohesiveSurface(Matrix& Kpen, double c, double mu0, double muR, double beta, double dropDrift, bool elasticSolution);
 	~CohesiveSurface(void);
 

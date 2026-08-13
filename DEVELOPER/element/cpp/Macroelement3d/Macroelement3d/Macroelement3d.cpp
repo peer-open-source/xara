@@ -3646,7 +3646,7 @@ Macroelement3d::setRayleighDampingFactors(double alpham, double betak, double be
 
 
 const Matrix &
-Macroelement3d::getDamp(void)
+Macroelement3d::getDamp()
 {
 	if (index == -1) {
 		this->setRayleighDampingFactors(alphaM, betaK, betaK0, betaKc);
@@ -3685,7 +3685,7 @@ Macroelement3d::getDamp(void)
 
 
 const Vector &
-Macroelement3d::getRayleighDampingForces(void)
+Macroelement3d::getRayleighDampingForces()
 {
 
 	if (index == -1) {
