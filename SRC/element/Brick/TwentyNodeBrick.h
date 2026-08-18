@@ -76,7 +76,6 @@ class TwentyNodeBrick: public Element
     ~TwentyNodeBrick();
 
     const char *getClassType(void) const {return "TwentyNodeBrick";}
-    static constexpr const char* class_name = "TwentyNodeBrick";
 
     int getNumExternalNodes () const;
     const ID &getExternalNodes ();
@@ -91,7 +90,7 @@ class TwentyNodeBrick: public Element
     int revertToStart ();
 
     // update, Guanzhou added Apr. 2004 to update incremental strain in the domain
-    int update(void);
+    int update();
     
     // public methods to obtain stiffness, mass, damping and residual information    
     // We haven't build the following functions. 
@@ -114,7 +113,7 @@ class TwentyNodeBrick: public Element
     // public methods for element output
     int sendSelf (int commitTag, Channel &);
     int recvSelf (int commitTag, Channel &, FEM_ObjectBroker   &);
-    void Print(OPS_Stream &s, int flag =0);   
+    void Print(OPS_Stream &s, int flag);   
     //    Do nothing with void Print (OPS_Stream &s, int flag =0);
     //    use Brick3D report.  08/16/00
     Response *setResponse (const char **argv, int argc, Information &eleInformation, OPS_Stream &s);
@@ -166,7 +165,7 @@ class TwentyNodeBrick: public Element
     //int  LM[60]; // for 20noded x 3 = 60
   public:
     
-    void incremental_Update(void);
+    void incremental_Update();
     //void iterative_Update(void);
 
     tensor H_3D(double r1, double r2, double r3);
@@ -179,11 +178,11 @@ class TwentyNodeBrick: public Element
     tensor getStiffnessTensor();
 
     void set_strain_stress_tensor(FILE *fp, double * u);
-    tensor getMassTensor(void);
+    tensor getMassTensor();
 
     tensor Jacobian_3D(tensor dh);
     tensor Jacobian_3Dinv(tensor dh);
-    tensor Nodal_Coordinates(void);
+    tensor Nodal_Coordinates();
 
     tensor incr_disp();
     tensor total_disp();
@@ -195,7 +194,7 @@ class TwentyNodeBrick: public Element
 
 
     int  get_global_number_of_node(int local_node_number);
-    int  get_Brick_Number(void);
+    int  get_Brick_Number();
 
 
     //int * get_LM(void);
