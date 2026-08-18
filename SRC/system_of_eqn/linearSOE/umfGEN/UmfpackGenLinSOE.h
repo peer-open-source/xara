@@ -48,19 +48,20 @@ public:
     int addB(const Vector &, const ID &, double fact = 1.0);    
     int setB(const Vector &, double fact = 1.0);        
     
-    void zeroA();
-    void zeroB();
-    
+    void zeroA() override;
+    void zeroB() override;
+    int solve() override;
+
     const Vector &getX();
-    const Vector &getB();    
+    const Vector &getB();
     double normRHS();
 
     void setX(int loc, double value);        
     void setX(const Vector &x);        
     int setUmfpackGenLinSolver(UmfpackGenLinSolver &newSolver);    
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker); 
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker); 
 
     // int saveSparseA(OPS_Stream& output, int baseIndex = 0) override;
 
@@ -70,6 +71,7 @@ private:
     Vector X,B;
     std::vector<int> Ap, Ai;
     std::vector<double> Ax;
+    UmfpackGenLinSolver *theSolver;
 };
 
 
