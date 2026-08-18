@@ -37,6 +37,7 @@
 #include <Matrix.h>
 #include <Node.h>
 #include <Domain.h>
+#include <analysis/fe_ele/ElementFE.h>
 
 Element  *ops_TheActiveElement = nullptr;
 
@@ -70,6 +71,13 @@ Element::~Element()
     delete [] previousK;
   }
 }
+
+FE_Element*
+Element::createFE_Element(int tag)
+{
+  return new ElementFE(tag, this);
+}
+
 
 int
 Element::commitState()
@@ -419,9 +427,9 @@ Element::addInertiaLoadToUnbalance(const Vector &accel)
 */
 
 bool
-Element::isSubdomain(void)
+Element::isSubdomain()
 {
-    return false;
+  return false;
 }
 
 Response*

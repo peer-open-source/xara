@@ -79,6 +79,8 @@ class Element : public TaggedObject, public MovableObject
         this->link(*theDomain);
     }
 
+    virtual FE_Element* createFE_Element(int tag);
+
     // methods dealing with committed state and update
     virtual int  commitState();
     virtual int  revertToLastCommit() = 0;
