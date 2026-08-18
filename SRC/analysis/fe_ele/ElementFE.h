@@ -38,6 +38,7 @@ class ElementFE: public FE_Element
   public:
     ElementFE(int tag, Element *);
     ~ElementFE() override;
+    const char* getClassName() const override {return "ElementFE";}
 
     // public methods for setting/obtaining mapping information
     int  setID(AnalysisModel &) override;
