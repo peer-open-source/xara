@@ -192,7 +192,7 @@ CosseratFrame3d01<nen,nwm>::setNodes()
     lagrange<nen>(pres[i].point, xn, pres[i].shape);
   }
 
-  // Zero out the state of the Gauss pres
+  // Zero the state of the Gauss points
   this->revertToStart();
 
   return 0;
@@ -206,6 +206,7 @@ CosseratFrame3d01<nen,nwm>::revertToStart()
   if (transform->revertToStart() != 0)
     return -2;
 
+  // R0 = Eye3;
   Vector3D E1{}, E2{}, E3{};
   transform->getLocalAxes(E1, E2, E3);
 
@@ -215,10 +216,10 @@ CosseratFrame3d01<nen,nwm>::revertToStart()
     R0(i,2) =  E3[i];
   }
 
-  // Revert the of the Gauss pres to start
+  // Revert the of the Gauss points to start
   for (GaussPoint& point : pres) {
     point.curvature.zero();
-    point.rotation = Eye3; //R0;
+    point.rotation = Eye3;//R0;
     if (point.material->revertToStart() != 0)
       return -1;
   }
@@ -424,6 +425,7 @@ CosseratFrame3d01<nen,nwm>::update()
   // K += 0.5*Kg.transpose();
 
   // Apply element loads
+  // VectorND<nen*ndf> pf{};
   for (FrameLoad* load : frame_loads) {
     for (auto [xp, wp] : load->quadrature()) {
       const double w  = wp*jxs;
@@ -440,7 +442,7 @@ CosseratFrame3d01<nen,nwm>::update()
         q = theNodes[0]->getTrialRotation().slerp(
           theNodes[nen-1]->getTrialRotation(), xp);
       }
-      Matrix3D R  = MatrixFromVersor(q);
+      Matrix3D R  = MatrixFromVersor(q);//*R0.transpose();
 #ifndef _MSC_VER
       Unroll<0,nen>([&](auto i_) constexpr {
         constexpr int i = i_.value;
@@ -453,6 +455,7 @@ CosseratFrame3d01<nen,nwm>::update()
 #endif
     }
   }
+
   return 0;
 }
 
@@ -895,8 +898,8 @@ CosseratFrame3d01<nen,nwm>::Print(OPS_Stream& stream, int flag)
     stream << pres[pres.size() - 1].material->getTag() << "]";
     stream << ", ";
 
-    stream << "\"transform\": "; // transform->getTag()  ;
-    transform->Print(stream, flag);
+    stream << "\"transform\": " << transform->getTag()  ;
+    // transform->Print(stream, flag);
     stream << "}";
   }
 }
