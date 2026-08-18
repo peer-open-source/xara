@@ -34,6 +34,7 @@ class Vector;
 class Matrix;
 class Element;
 class Integrator;
+class LinearSOE;
 class StaticIntegrator;
 class AnalysisModel;
 
@@ -42,7 +43,9 @@ class FE_Element: public TaggedObject
 {
   public:
     FE_Element(int tag, int numDOF_Group, int ndof);
-    virtual ~FE_Element();    
+    virtual ~FE_Element();
+
+    virtual const char *getClassName() const =0;
 
     static constexpr int MaxNumDOFs = 100; //
 
@@ -65,6 +68,7 @@ class FE_Element: public TaggedObject
     virtual void  addMtoTang (double fact = 1.0) ;
     virtual void  addKpToTang(double fact = 1.0, int numP = 0);
     virtual int   storePreviousK(int numP);
+    virtual int   assemble(Integrator&, LinearSOE&);
 
     // methods used by integrator to build residual    
     virtual void  zeroResidual();    

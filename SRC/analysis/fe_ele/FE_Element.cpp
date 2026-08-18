@@ -38,6 +38,7 @@
 #include <AnalysisModel.h>
 #include <Matrix.h>
 #include <Vector.h>
+#include <LinearSOE.h>
 
 #define MAX_NUM_DOF 64
 
@@ -239,3 +240,9 @@ FE_Element::commitSensitivity(int gradNum, int numGrads)
 
 // AddingSensitivity:END ////////////////////////////////////
 
+
+int
+FE_Element::assemble(Integrator &theIntegrator, LinearSOE &theSOE)
+{
+  return theSOE.addA(this->getTangent(&theIntegrator), this->getID(), 1.0);
+}
