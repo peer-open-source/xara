@@ -54,18 +54,17 @@ FullGenLinSOE::FullGenLinSOE(int N, FullGenLinSolver &theSolvr)
  matA(nullptr),
  factored(false)
 {
-    size = N;
-    A = new double[size*size]{};
-    matA  = new Matrix(A, size, size);
+  size = N;
+  A = new double[size*size]{};
+  matA  = new Matrix(A, size, size);
 
-    theSolvr.setLinearSOE(*this);
-    
-    // invoke setSize() on the Solver        
-    if (theSolvr.setSize() < 0) {
-	// opserr << "WARNING :FullGenLinSOE::FullGenLinSOE :";
-	// opserr << " solver failed setSize() in constructor\n";
-    }    
-    
+  theSolvr.setLinearSOE(*this);
+  
+  // invoke setSize() on the Solver        
+  if (theSolvr.setSize() < 0) {
+// opserr << "WARNING :FullGenLinSOE::FullGenLinSOE :";
+// opserr << " solver failed setSize() in constructor\n";
+  }    
 }
 
     
@@ -83,6 +82,7 @@ FullGenLinSOE::getNumEqn() const
 {
   return size;
 }
+
 
 int 
 FullGenLinSOE::setSize(Graph &theGraph)

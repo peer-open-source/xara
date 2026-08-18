@@ -16,9 +16,7 @@
 // Purpose: This file contains the code for implementing the methods
 // of the SubdomainFE class interface.
 //
-// Written: fmk
-// Created: 11/96
-// Revision: A
+// Written: cmp
 //
 #include <SubdomainFE.h>
 #include <stdlib.h>
@@ -106,20 +104,20 @@ SubdomainFE::~SubdomainFE()
 
   // delete tangent and residual if created specially
   if (numDOF > MAX_NUM_DOF) {
-      if (theTangent != nullptr)
-        delete theTangent;
-      if (theResidual != nullptr) 
-        delete theResidual;
+    if (theTangent != nullptr)
+      delete theTangent;
+    if (theResidual != nullptr) 
+      delete theResidual;
   }
 
   // if this is the last SubdomainFE, clean up the
   // storage for the matrix and vector objects
   if (numFEs == 0) {
     for (int i=0; i<MAX_NUM_DOF; i++) {
-        if (theVectors && theVectors[i] != nullptr)
-            delete theVectors[i];
-        if (theMatrices && theMatrices[i] != nullptr)
-            delete theMatrices[i];
+      if (theVectors && theVectors[i] != nullptr)
+        delete theVectors[i];
+      if (theMatrices && theMatrices[i] != nullptr)
+        delete theMatrices[i];
     }
     delete [] theMatrices;
     delete [] theVectors;
