@@ -55,56 +55,65 @@ UmfpackGenLinSolver::getDeterminant()
   return doDet? det : OpenSees::Constants::nan;
 }
 
-int
+int 
 UmfpackGenLinSolver::solve()
 {
-    int n = theSOE->X.Size();
-    int nnz = (int)theSOE->Ai.size();
-    if (n == 0 || nnz==0) return 0;
-    
-    int* Ap = &(theSOE->Ap[0]);
-    int* Ai = &(theSOE->Ai[0]);
-    double* Ax = &(theSOE->Ax[0]);
-    double* X = &(theSOE->X(0));
-    double* B = &(theSOE->B(0));
+  return this->solve(theSOE->getB(), theSOE->X);
+}
 
-    // check if symbolic is done
-    assert(Symbolic != 0);
-    // if (Symbolic == 0) {
-    //     opserr<<"WARNING: setSize has not been called -- Umfpackgenlinsolver::solve\n";
-    //     return -1;
-    // }
-    
-    //  perform the numerical factorization
-    // numerical analysis
-    void* Numeric = nullptr;
-    int status = umfpack_di_numeric(Ap,Ai,Ax,Symbolic,&Numeric,Control,Info);
-
-    // check error
-    if (status!=UMFPACK_OK) {
-      // TODO
-      // opserr<<"WARNING: numeric analysis returns "<<status<<" -- Umfpackgenlinsolver::solve\n";
-      return -1;
-    }
-
-    // solve
-    status = umfpack_di_solve(UMFPACK_A,Ap,Ai,Ax,X,B,Numeric,Control,Info);
-    
-    if (doDet == true)
-      umfpack_di_get_determinant(&det, nullptr, Numeric, Info);
-
-    // delete Numeric
-    if (Numeric != nullptr) {
-      umfpack_di_free_numeric(&Numeric);
-    }
-
-    // check error
-    if (status != UMFPACK_OK) {
-      // opserr<<"WARNING: solving returns "<<status<<" -- Umfpackgenlinsolver::solve\n";
-      return -1;
-    }
-
+int
+UmfpackGenLinSolver::solve(const Vector& Bv, Vector& Xv)
+{
+  // int n = theSOE->X.Size();
+  int n = (int)Xv.Size();
+  int nnz = (int)theSOE->Ai.size();
+  if (n == 0 || nnz==0)
     return 0;
+
+  double* X = &(Xv(0));
+  const double* B = &(Bv(0));
+
+  int* Ap = &(theSOE->Ap[0]);
+  int* Ai = &(theSOE->Ai[0]);
+  double* Ax = &(theSOE->Ax[0]);
+
+  // check if symbolic is done
+  assert(Symbolic != 0);
+  // if (Symbolic == 0) {
+  //     opserr<<"WARNING: setSize has not been called -- Umfpackgenlinsolver::solve\n";
+  //     return -1;
+  // }
+  
+  //  perform the numerical factorization
+  // numerical analysis
+  void* Numeric = nullptr;
+  int status = umfpack_di_numeric(Ap,Ai,Ax,Symbolic,&Numeric,Control,Info);
+
+  // check error
+  if (status!=UMFPACK_OK) {
+    // TODO
+    // opserr<<"WARNING: numeric analysis returns "<<status<<" -- Umfpackgenlinsolver::solve\n";
+    return -1;
+  }
+
+  // solve
+  status = umfpack_di_solve(UMFPACK_A,Ap,Ai,Ax,X,B,Numeric,Control,Info);
+  
+  if (doDet == true)
+    umfpack_di_get_determinant(&det, nullptr, Numeric, Info);
+
+  // delete Numeric
+  if (Numeric != nullptr) {
+    umfpack_di_free_numeric(&Numeric);
+  }
+
+  // check error
+  if (status != UMFPACK_OK) {
+    // opserr<<"WARNING: solving returns "<<status<<" -- Umfpackgenlinsolver::solve\n";
+    return -1;
+  }
+
+  return 0;
 }
 
 
@@ -126,7 +135,7 @@ UmfpackGenLinSolver::setSize()
 
     // symbolic analysis
     if (Symbolic != nullptr) {
-	umfpack_di_free_symbolic(&Symbolic);
+      umfpack_di_free_symbolic(&Symbolic);
     }
 
     //  perform a column pre-ordering to reduce fill-in
@@ -135,9 +144,9 @@ UmfpackGenLinSolver::setSize()
 
     // check error
     if (status!=UMFPACK_OK) {
-	// opserr<<"WARNING: symbolic analysis returns "<<status<<" -- Umfpackgenlinsolver::setsize\n";
-	Symbolic = 0;
-	return -1;
+      // opserr<<"WARNING: symbolic analysis returns "<<status<<" -- Umfpackgenlinsolver::setsize\n";
+      Symbolic = 0;
+      return -1;
     }
     return 0;
 }
