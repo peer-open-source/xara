@@ -14,6 +14,7 @@
 #include <ModelRegistry.h>
 
 #include <Brick.h>
+#include <Brick02.h>
 // #define XARA_HAVE_H8E12
 #ifdef XARA_HAVE_H8E12
 # include <H8E12.h>
@@ -129,9 +130,13 @@ TclBasicBuilder_addBrick(ClientData clientData,
   // now create the Brick and add it to the Domain
   Element *theBrick = nullptr;
   if (strcmp(argv[1], "stdBrick") == 0) {
-    theBrick = new Brick(BrickId, node_tags, *theMaterial, b1, b2, b3);
-
-  } else if (strcmp(argv[1], "bbarBrickWithSensitivity") == 0) {
+    if (getenv("XARA_BRICK02") != nullptr) {
+      theBrick = new Brick02(BrickId, node_tags, *theMaterial, b1, b2, b3);
+    } else {
+      theBrick = new Brick(BrickId, node_tags, *theMaterial, b1, b2, b3);
+    }
+  }
+  else if (strcmp(argv[1], "bbarBrickWithSensitivity") == 0) {
     theBrick = new BbarBrickWithSensitivity(BrickId, 
                                             node_tags[0], node_tags[1], node_tags[2], node_tags[3],
                                             node_tags[4], node_tags[5], node_tags[6], node_tags[7],

@@ -8,6 +8,7 @@
 target_sources(OPS_Element
   PRIVATE
     Brick.cpp
+    Brick02.cpp
     Twenty_Node_Brick.cpp
     BrickUP.cpp
     BbarBrick.cpp

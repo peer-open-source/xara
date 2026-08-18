@@ -260,7 +260,7 @@ extern "C" int rssi_(int *n, int *ia, int *ja, double *a, double *rhs,
 #endif
 
 int
-ItpackLinSolver::solve(void)
+ItpackLinSolver::solve()
 {
   // Let ITPACK fill in default parameter values
   dfault_(iparm, rparm);
@@ -325,16 +325,13 @@ ItpackLinSolver::solve(void)
 
   switch (method) {
   case ItpackJCG:
-    jcg_(&n, iaPtr, jaPtr, aPtr, bPtr, xPtr,
-	 iwksp, &nwksp, wksp, iparm, rparm, &ier);
+    jcg_(&n, iaPtr, jaPtr, aPtr, bPtr, xPtr,iwksp, &nwksp, wksp, iparm, rparm, &ier);
     break;
   case ItpackJSI: case ItpackJ:
-    jsi_(&n, iaPtr, jaPtr, aPtr, bPtr, xPtr,
-	 iwksp, &nwksp, wksp, iparm, rparm, &ier);
+    jsi_(&n, iaPtr, jaPtr, aPtr, bPtr, xPtr,iwksp, &nwksp, wksp, iparm, rparm, &ier);
     break;
   case ItpackSOR: case ItpackGS: case ItpackSORFixed:
-    sor_(&n, iaPtr, jaPtr, aPtr, bPtr, xPtr,
-	 iwksp, &nwksp, wksp, iparm, rparm, &ier);
+    sor_(&n, iaPtr, jaPtr, aPtr, bPtr, xPtr,iwksp, &nwksp, wksp, iparm, rparm, &ier);
     break;
   case ItpackSSORCG:
     ssorcg_(&n, iaPtr, jaPtr, aPtr, bPtr, xPtr,
