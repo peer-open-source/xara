@@ -137,7 +137,7 @@ private:
   double xn[nen];
   double jxs;
 
-  Matrix3D R0;
+  Matrix3D R0; // TODO: Remove
 
   std::set<FrameLoad*> frame_loads;
 
