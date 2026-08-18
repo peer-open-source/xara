@@ -45,7 +45,7 @@ class FE_Element: public TaggedObject
     FE_Element(int tag, int numDOF_Group, int ndof);
     virtual ~FE_Element();
 
-    virtual const char *getClassName() const =0;
+    virtual const char *getClassName() const {return "";}//=0;
 
     static constexpr int MaxNumDOFs = 100; //
 
