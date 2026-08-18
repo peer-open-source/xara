@@ -109,15 +109,15 @@ MPIDiagonalSolver::solve(void)
        MPI_Barrier(MPI_COMM_WORLD);
       
        if ((i != processID ) && (myNeighbors[i]==1)) {
-	 // cached neighbors
-	 int* temp = ((theSOE->myActualNeighborsSharedDOFs).find(i)->second);
-	 for (int k=0; k<theSOE->maxShared; k++)
-	   temp[k] = maxDOFsSharedArray[k];
+        // cached neighbors
+        int* temp = ((theSOE->myActualNeighborsSharedDOFs).find(i)->second);
+        for (int k=0; k<theSOE->maxShared; k++)
+          temp[k] = maxDOFsSharedArray[k];
 
-	 //	 int* data = new int[2*myNeighborsSizes[i]];
-	 int* data = new int[myNeighborsSizes[i]];
-	 theSOE->myActualNeighborsBsToSend[i]= new double[myNeighborsSizes[i]];
-	 intersectionsAB(myDOFs, (theSOE->myActualNeighborsSharedDOFs).find(i)->second, size, myNeighborsSizes[i], A, maxSharedA, B, maxSharedB,data,i);
+        //	 int* data = new int[2*myNeighborsSizes[i]];
+        int* data = new int[myNeighborsSizes[i]];
+        theSOE->myActualNeighborsBsToSend[i]= new double[myNeighborsSizes[i]];
+        intersectionsAB(myDOFs, (theSOE->myActualNeighborsSharedDOFs).find(i)->second, size, myNeighborsSizes[i], A, maxSharedA, B, maxSharedB,data,i);
        }
     }
     //
@@ -128,9 +128,9 @@ MPIDiagonalSolver::solve(void)
     if(!isAfactored) {
       double invaii;
       for (int i=0; i<size; i++) {
-	invaii = 1/A[i];
-	X[i] = B[i]*invaii;
-	A[i] = invaii;
+        invaii = 1/A[i];
+        X[i] = B[i]*invaii;
+        A[i] = invaii;
       }
       notSet = false;
       theSOE->isAfactored = true;
@@ -141,31 +141,31 @@ MPIDiagonalSolver::solve(void)
     int ct =0;
     for (int i=0; i<maxNeighbors; i++) {
       if ((i != processID ) && (myNeighbors[i]==1)) {
-	MPI_Irecv(((theSOE->myActualNeighborsSharedBs).find(i)->second), maxShared, MPI_DOUBLE, i, MPI_ANY_TAG, MPI_COMM_WORLD, &theRequests[ct++]);
+        MPI_Irecv(((theSOE->myActualNeighborsSharedBs).find(i)->second), maxShared, MPI_DOUBLE, i, MPI_ANY_TAG, MPI_COMM_WORLD, &theRequests[ct++]);
       }
     }
     for (int i=0; i<maxNeighbors; i++) {
       if ((i != processID ) && (myNeighbors[i]==1)) {
-	int upto = myNeighborsSizes[i];
-	double* tmpptr = (theSOE->myActualNeighborsBsToSend).find(i)->second;
-	int* tmpptr2 = (theSOE->myActualNeighborsSharedDOFs).find(i)->second;
-	for (int jj=0; jj<upto; jj++) 
-	  tmpptr[jj] = B[tmpptr2[jj]];
-	//	  tmpptr[jj] = B[tmpptr2[2*jj]];
+        int upto = myNeighborsSizes[i];
+        double* tmpptr = (theSOE->myActualNeighborsBsToSend).find(i)->second;
+        int* tmpptr2 = (theSOE->myActualNeighborsSharedDOFs).find(i)->second;
+        for (int jj=0; jj<upto; jj++) 
+          tmpptr[jj] = B[tmpptr2[jj]];
+        //	  tmpptr[jj] = B[tmpptr2[2*jj]];
 
-	//MPI_Send(tmpptr, upto, MPI_DOUBLE, i, i, MPI_COMM_WORLD);
+        //MPI_Send(tmpptr, upto, MPI_DOUBLE, i, i, MPI_COMM_WORLD);
 
-	// gnp changing to isend
-	//MPI_Isend(tmpptr, upto, MPI_DOUBLE, i, i, MPI_COMM_WORLD,&requests[ct++]);
+        // gnp changing to isend
+        //MPI_Isend(tmpptr, upto, MPI_DOUBLE, i, i, MPI_COMM_WORLD,&requests[ct++]);
       }
     }
 
     /////////////////////////gnp next change
     for (int i=0; i<maxNeighbors; i++) {
       if ((i != processID ) && (myNeighbors[i]==1)) {
-	int upto = myNeighborsSizes[i];
-	double* tmpptr = (theSOE->myActualNeighborsBsToSend).find(i)->second;
-	MPI_Isend(tmpptr, upto, MPI_DOUBLE, i, i, MPI_COMM_WORLD, &theRequests[ct++]);
+        int upto = myNeighborsSizes[i];
+        double* tmpptr = (theSOE->myActualNeighborsBsToSend).find(i)->second;
+        MPI_Isend(tmpptr, upto, MPI_DOUBLE, i, i, MPI_COMM_WORLD, &theRequests[ct++]);
       }
     }
     /////////////////////////gnp next change ENDS
@@ -174,12 +174,12 @@ MPIDiagonalSolver::solve(void)
 
     for (int i=0; i<maxNeighbors; i++) {
       if ((i != processID ) && (myNeighbors[i]==1)) {
-	int* posloc = (theSOE->myActualNeighborsSharedDOFs).find(i)->second;
-	double* dat =  (theSOE->myActualNeighborsSharedBs).find(i)->second;
-	// update RHS
-	for (int k =0; k<myNeighborsSizes[i]; k++) 
-	  B[posloc[k]] += dat[k];
-	//	  B[posloc[2*k]] += dat[k];
+        int* posloc = (theSOE->myActualNeighborsSharedDOFs).find(i)->second;
+        double* dat =  (theSOE->myActualNeighborsSharedBs).find(i)->second;
+        // update RHS
+        for (int k =0; k<myNeighborsSizes[i]; k++) 
+          B[posloc[k]] += dat[k];
+        //	  B[posloc[2*k]] += dat[k];
       }
     }
     // done updating RHS, solve step
@@ -194,9 +194,9 @@ MPIDiagonalSolver::solve(void)
     /// Link to ibm ESSL library in datastar or bluegene else uncomment above for loop 
     /// for general case and comment below call 
     //    dvem(size, B,1,A,1,X,1);
-    
-	delete []theRequests;
-	delete []theStatuses;
+
+    delete []theRequests;
+    delete []theStatuses;
 
     //if we get here we are done and return
     return 0;
@@ -237,35 +237,35 @@ MPIDiagonalSolver::intersectionsAB(ID& arrayA, int* arrayB, int sizeA, int sizeB
   if (notSet) {
     while ( (i<sizeA) && (j<sizeB) ) {
       if ( arrayA[i] == arrayB[j] ) {
-	A[i]+= sharedA[j];
-	B[i]+= sharedB[j];
-	storage[ct++] = i;
-	//	storage[2*ct] = i;
-	//	storage[2*ct+1] = j;
-	//	ct++;
-	i++;
-	j++;
+        A[i]+= sharedA[j];
+        B[i]+= sharedB[j];
+        storage[ct++] = i;
+        //	storage[2*ct] = i;
+        //	storage[2*ct+1] = j;
+        //	ct++;
+        i++;
+        j++;
       }
       else if (arrayA[i] > arrayB[j] ) {
-	j++;
+        j++;
       }
       else {
-	i++;
+        i++;
       }
     }
   }
   else {
     while ( (i<sizeA) && (j<sizeB) ) {
       if ( arrayA[i] == arrayB[j] ) {
-	B[i]+= sharedB[j];
-	i++;
-	j++;
+        B[i]+= sharedB[j];
+        i++;
+        j++;
       }
       else if (arrayA[i] > arrayB[j] ) {
-	j++;
+        j++;
       }
       else {
-	i++;
+        i++;
       }
     }
   }
