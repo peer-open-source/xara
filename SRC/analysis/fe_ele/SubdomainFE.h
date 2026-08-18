@@ -38,6 +38,7 @@ class SubdomainFE: public FE_Element
   public:
     SubdomainFE(int tag, Element *theElement);
     ~SubdomainFE() override;
+    const char* getClassName() const override {return "SubdomainFE";}
 
     // public methods for setting/obtaining mapping information
     virtual int setID(AnalysisModel &);
