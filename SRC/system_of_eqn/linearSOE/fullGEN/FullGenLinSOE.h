@@ -47,12 +47,11 @@ class FullGenLinSOE : public LinearSOE
 {
   public:
     FullGenLinSOE(FullGenLinSolver &);        
-    FullGenLinSOE(int N, FullGenLinSolver &);        
-    FullGenLinSOE();
+    FullGenLinSOE(int N, FullGenLinSolver &);
 
     ~FullGenLinSOE();
 
-    int getNumEqn(void) const;
+    int getNumEqn() const;
     int setSize(Graph &theGraph);
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addB(const Vector &, const ID &, double fact = 1.0);    
