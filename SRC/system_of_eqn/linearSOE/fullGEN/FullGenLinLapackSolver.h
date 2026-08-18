@@ -37,19 +37,22 @@ class FullGenLinLapackSolver : public FullGenLinSolver
     FullGenLinLapackSolver();    
     ~FullGenLinLapackSolver();
 
-    int solve(void);
-    int setSize(void);
+    int solve();
+    int solve(const Vector& B, Vector& X) override;
+    int setSize();
     
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
+    virtual int setLinearSOE(FullGenLinSOE &theSOE);
+
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     virtual double getDeterminant() override;
-    
+
   private:
     int *iPiv;
     int sizeIpiv;
     double det;
+    FullGenLinSOE *theSOE;
     void setDeterminant();
 };
 
