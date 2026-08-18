@@ -68,8 +68,8 @@ extern Tcl_CmdProc TclCommand_addHomogeneousBC_Y;
 extern Tcl_CmdProc TclCommand_addHomogeneousBC_Z;
 extern Tcl_CmdProc TclCommand_addEqualDOF_MP;
 extern Tcl_CmdProc TclCommand_addEqualDOF_MP_Mixed;
-extern Tcl_CmdProc TclCommand_RigidLink;
-extern Tcl_CmdProc TclCommand_RigidDiaphragm;
+extern Tcl_CmdProc XaraCmd_rigidLink;
+extern Tcl_CmdProc XaraCmd_rigidDiaphragm;
 extern Tcl_CmdProc TclCommand_addImposedMotionSP;
 extern Tcl_CmdProc TclCommand_addGroundMotion;
 
@@ -158,7 +158,7 @@ constexpr ModelBuilderCommands[] =  {
   {"timeSeries",           TclCommand_addTimeSeries},
 
   {"equalDOF",             TclCommand_addEqualDOF_MP},
-  {"rigidLink",            TclCommand_RigidLink},
+  {"rigidLink",            XaraCmd_rigidLink},
 
   {"sp",                   TclCommand_addSP},
   {"constrain",            TclCommand_constrain},
@@ -170,7 +170,7 @@ constexpr ModelBuilderCommands[] =  {
 
   {"block2D",                  XaraCmd_block2D},
   {"block3D",                  XaraCmd_block3D},
-  {"rigidDiaphragm",       &TclCommand_RigidDiaphragm},
+  {"rigidDiaphragm",       &XaraCmd_rigidDiaphragm},
 
 /*
   {"mp",                   TclCommand_addMP},
