@@ -13,6 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
+#include <CommandLibrary.h>
 #include <string>
 #include <unordered_map>
 #include <algorithm>
@@ -212,7 +213,8 @@ namespace OpenSees {
 namespace Library {
 
 const static
-std::unordered_map<std::string, Tcl_CmdProc *, CaseInsensitive, CaseInsensitive> 
+CommandLibrary 
+// std::unordered_map<std::string, Tcl_CmdProc *, CaseInsensitive, CaseInsensitive> 
 ElementLibrary = {
 // Link
   {"twoNodeLink",               TclCommand_addTwoNodeLink},
@@ -263,6 +265,8 @@ ElementLibrary = {
   {"elasticBeamColumn",            TclBasicBuilder_addElasticBeam},
   {"elasticBeam",                  TclBasicBuilder_addElasticBeam},
   {"PrismFrame",                   TclBasicBuilder_addElasticBeam},
+  {"ElasticFrame",                 TclBasicBuilder_addElasticBeam},
+
   // Nonlinear, nonstandard
   {"BeamWithHinges",               TclBasicBuilder_addBeamWithHinges},
   {"dispBeamColumnInt",            TclBasicBuilder_addDispBeamColumnInt},
@@ -274,6 +278,10 @@ ElementLibrary = {
   {"ForceFrame",                   TclBasicBuilder_addForceBeamColumn},
   {"MixedFrame",                   TclBasicBuilder_addForceBeamColumn},
   {"ExactFrame",                   TclBasicBuilder_addForceBeamColumn},
+  {"ExactFrame02",                 TclBasicBuilder_addForceBeamColumn},
+  {"CosseratFrame",                TclBasicBuilder_addForceBeamColumn},
+  {"CosseratFrame01",              TclBasicBuilder_addForceBeamColumn},
+  {"CosseratFrame02",              TclBasicBuilder_addForceBeamColumn},
   {"ShearFrame",                   TclBasicBuilder_addForceBeamColumn},
   {"ForceDeltaFrame",              TclBasicBuilder_addForceBeamColumn},
   {"ForceBeamColumn",              TclBasicBuilder_addForceBeamColumn},
