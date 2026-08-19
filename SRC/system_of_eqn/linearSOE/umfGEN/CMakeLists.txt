@@ -14,7 +14,11 @@ target_sources(OPS_SysOfEqn
   PRIVATE
     UmfpackGenLinSOE.cpp
     UmfpackGenLinSolver.cpp
+    UmfpackLinSOE02.cpp
+    UmfpackSolver02.cpp
+  PUBLIC
+    UmfpackLinSOE02.h
+    UmfpackSolver02.h
 )
 
 target_include_directories(OPS_SysOfEqn PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-
