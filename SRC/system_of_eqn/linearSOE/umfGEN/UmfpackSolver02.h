@@ -1,10 +1,9 @@
-
-// Description: This file contains the class definition for
-// UmfpackSolver02. It solves an UmfpackLinSOE02 by calling UMFPACK.
 //
-
-#ifndef UmfpackSolver02_h
-#define UmfpackSolver02_h
+// Description: This file contains the class definition for
+// UmfpackSolver02.
+// It solves an SparseGenCSC by calling UMFPACK.
+//
+#pragma once
 
 #include <LinearSOESolver.h>
 #include "../../../../OTHER/UMFPACK/umfpack.h"
@@ -13,7 +12,7 @@
 
 class Channel;
 class FEM_ObjectBroker;
-class UmfpackLinSOE02;
+class SparseGenCSC;
 class Vector;
 
 class UmfpackSolver02 : public LinearSOESolver
@@ -31,7 +30,7 @@ public:
     int solve(const Vector &, Vector &) override;
     int setSize() override;
 
-    int setLinearSOE(UmfpackLinSOE02 &);
+    int setLinearSOE(SparseGenCSC &);
 
     int sendSelf(int commitTag, Channel &) override;
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
@@ -44,9 +43,7 @@ private:
     void *symbolic;
     std::array<double, UMFPACK_CONTROL> control;
     std::array<double, UMFPACK_INFO> info;
-    UmfpackLinSOE02 *theSOE;
+    SparseGenCSC *theSOE;
     double determinant;
     bool doDeterminant;
 };
-
-#endif
