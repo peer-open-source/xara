@@ -19,7 +19,7 @@
 #include <UmfpackGenLinSOE.h>
 #include <UmfpackGenLinSolver.h>
 #include <UmfpackSolver02.h>
-#include <UmfpackLinSOE02.h>
+#include <SparseGenCSC.h>
 
 
 LinearSOE*
@@ -57,8 +57,7 @@ TclDispatch_newUmfpackLinearSOE(ClientData clientData,
 
 //  return new UmfpackGenLinSOE(*theSolver, factLVALUE, factorOnce, false);
   if (strstr(argv[1], "02") != nullptr) {
-    return new UmfpackLinSOE02(*new UmfpackSolver02(doDet));
+    return new SparseGenCSC(*new UmfpackSolver02(doDet));
   }
   return new UmfpackGenLinSOE(*new UmfpackGenLinSolver(doDet));
 }
-
