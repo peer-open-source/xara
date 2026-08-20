@@ -1,5 +1,5 @@
 #==============================================================================
-# 
+#
 #        OpenSees -- Open System For Earthquake Engineering Simulation
 #                Pacific Earthquake Engineering Research Center
 #
@@ -14,10 +14,10 @@ target_sources(OPS_SysOfEqn
   PRIVATE
     UmfpackGenLinSOE.cpp
     UmfpackGenLinSolver.cpp
-    UmfpackLinSOE02.cpp
+    SparseGenCSC.cpp
     UmfpackSolver02.cpp
   PUBLIC
-    UmfpackLinSOE02.h
+    SparseGenCSC.h
     UmfpackSolver02.h
 )
 

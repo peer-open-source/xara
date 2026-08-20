@@ -18,14 +18,14 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// Description: This file contains the class definition for 
+// Description: This file contains the class definition for
 // NewtonRaphson. NewtonRaphson is a class which uses the
 // Newton-Raphson solution algorithm to solve the equations.
-// 
+//
 // What: "@(#)NewtonRaphson.C, revA"
-// 
-// Written: fmk 
-// Created: Sun Sept 15 15:06:47: 1996 
+//
+// Written: fmk
+// Created: Sun Sept 15 15:06:47: 1996
 //
 #include <NewtonRaphson.h>
 #include <IncrementalIntegrator.h>
@@ -34,14 +34,15 @@
 #include <FEM_ObjectBroker.h>
 #include <ConvergenceTest.h>
 #include <ID.h>
+#include <utility/XaraTimer.h>
 
 
-NewtonRaphson::NewtonRaphson(IncrementalIntegrator::TangentFlagType prediction_tangent, 
+NewtonRaphson::NewtonRaphson(IncrementalIntegrator::TangentFlagType prediction_tangent,
                              IncrementalIntegrator::TangentFlagType correction_tangent,
-                            double iFact, 
+                            double iFact,
                             double cFact)
 :EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonRaphson),
- prediction_tangent(prediction_tangent), 
+ prediction_tangent(prediction_tangent),
  correction_tangent(correction_tangent),
  iFactor(iFact), cFactor(cFact)
 {
@@ -50,7 +51,7 @@ NewtonRaphson::NewtonRaphson(IncrementalIntegrator::TangentFlagType prediction_t
 
 NewtonRaphson::NewtonRaphson()
     :EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonRaphson),
-    prediction_tangent(CURRENT_TANGENT), 
+    prediction_tangent(CURRENT_TANGENT),
     correction_tangent(CURRENT_TANGENT),
     iFactor(0.), cFactor(1.)
 {
@@ -61,11 +62,12 @@ NewtonRaphson::NewtonRaphson()
 
 NewtonRaphson::~NewtonRaphson()
 {
-  
+  if (getenv("XARA_PROFILE"))
+    timer.print(std::cerr);
 }
 
 
-int 
+int
 NewtonRaphson::solveCurrentStep()
 {
   // set up some pointers and check they are valid
@@ -79,14 +81,15 @@ NewtonRaphson::solveCurrentStep()
       opserr << "WARNING NewtonRaphson::solveCurrentStep() - setLinks() has";
       opserr << " not been called - or no ConvergenceTest has been set\n";
       return SolutionAlgorithm::BadAlgorithm;
-  }        
+  }
 
   //
   // 1 Form unbalance
   //
+  timer.start<Steps::Residual>();
   if (theIntegrator->formUnbalance() < 0)
     return SolutionAlgorithm::BadFormResidual;
-
+  timer.stop<Steps::Residual>();
 
   // Its prbably good to pass theTest as an argument to solveCurrentStep.
   if (theTest->start(*theSOE) < 0)
@@ -104,7 +107,7 @@ NewtonRaphson::solveCurrentStep()
     //
     // 2.1 Form tangent
     //
-
+    timer.start<Steps::Tangent>();
     if (numIterations == 0) {
       SOLUTION_ALGORITHM_tangentFlag = prediction_tangent;
       if (theIntegrator->formTangent(prediction_tangent) < 0)
@@ -115,22 +118,28 @@ NewtonRaphson::solveCurrentStep()
       if (theIntegrator->formTangent(correction_tangent, iFactor, cFactor) < 0)
         return SolutionAlgorithm::BadFormTangent;
     }
+    timer.stop<Steps::Tangent>();
 
     //
     // 2.2 Solve for dx
     //
-    if (theSOE->solve() < 0) 
+    timer.start<Steps::Solve>();
+    if (theSOE->solve() < 0)
       return SolutionAlgorithm::BadLinearSolve;
+    timer.stop<Steps::Solve>();
 
+    timer.start<Steps::Update>();
     if (theIntegrator->update(theSOE->getX()) < 0)
       return SolutionAlgorithm::BadStepUpdate;
+    timer.stop<Steps::Update>();
 
     //
     // 2.3 Form updated residual
     //
-
+    timer.start<Steps::Residual>();
     if (theIntegrator->formUnbalance() < 0)
       return SolutionAlgorithm::BadFormResidual;
+    timer.stop<Steps::Residual>();
 
     //
     // 2.4 Test on updated residual
@@ -139,13 +148,13 @@ NewtonRaphson::solveCurrentStep()
     numIterations++;
     this->record(numIterations);
 
-  }  while (result == ConvergenceTest::Continue);
+  } while (result == ConvergenceTest::Continue);
 
   if (result == ConvergenceTest::Failure)
     return SolutionAlgorithm::TestFailed;
 
   // if postive result, we are returning what the convergence test
-  // returned which should be the number of iterations  
+  // returned which should be the number of iterations
   return result;
 }
 
@@ -162,8 +171,8 @@ NewtonRaphson::sendSelf(int cTag, Channel &theChannel)
 }
 
 int
-NewtonRaphson::recvSelf(int cTag, 
-                        Channel &theChannel, 
+NewtonRaphson::recvSelf(int cTag,
+                        Channel &theChannel,
                         FEM_ObjectBroker &theBroker)
 {
   static Vector data(3);
@@ -190,5 +199,3 @@ NewtonRaphson::getNumIterations() const
 {
   return numIterations;
 }
-
-
