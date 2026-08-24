@@ -207,6 +207,7 @@ Tcl_CmdProc TclBasicBuilder_addElastic2dGNL;
 Tcl_CmdProc TclBasicBuilder_addKikuchiBearing;
 Tcl_CmdProc TclBasicBuilder_addGenericCopy;
 Tcl_CmdProc TclBasicBuilder_addGenericClient;
+Tcl_CmdProc XaraElem_Rosenbrock;
 
 namespace OpenSees {
 
@@ -353,6 +354,7 @@ ElementLibrary = {
   {"BrickUP",                   TclBasicBuilder_addBrickUP},
   {"20_8_BrickUP",              TclBasicBuilder_addTwentyEightNodeBrickUP},
   {"20NodeBrick",               TclBasicBuilder_addTwentyNodeBrick},
+  {"H20",                       TclBasicBuilder_addTwentyNodeBrick},
   {"bbarBrickUP",               TclBasicBuilder_addBBarBrickUP},
 
 //
@@ -388,7 +390,8 @@ ElementLibrary = {
   {"SPFBearing",                TclCommand_addSingleFPBearing},
 
 // Other
-  {"WheelRail",                 TclBasicBuilder_addWheelRail},
+  {"WheelRail",                  TclBasicBuilder_addWheelRail},
+  {"Rosenbrock",                 XaraElem_Rosenbrock},
 };
 
 } // namespace OpenSees 
