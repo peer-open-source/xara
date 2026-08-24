@@ -40,7 +40,7 @@
 
 
 int
-getNodeTags(ClientData clientData,
+XaraCmd_getNodeTags(ClientData clientData,
             Tcl_Interp *interp, 
             ArgSize argc,
             TCL_Char ** const argv)
@@ -63,7 +63,7 @@ getNodeTags(ClientData clientData,
 
 
 int
-findID(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
+XaraCmd_findID(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *theDomain = (Domain*)clientData;
@@ -339,7 +339,7 @@ XaraCmd_nodePressure(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
 
 
 int
-nodeBounds(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
+XaraCmd_nodeBounds(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
@@ -946,7 +946,7 @@ XaraCmd_reactions(ClientData clientData,
 
 
 int
-nodeCoord(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
+XaraCmd_nodeCoord(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
@@ -1059,7 +1059,7 @@ retainedNodes(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
 
 
 int
-nodeDOFs(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
+XaraCmd_nodeDOFs(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
