@@ -59,26 +59,23 @@ XaraCmd_block2D(ClientData clientData,
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[2], &numY) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
-    opserr << " : invalid numY: " << argv[2] << "\n";
+    opserr << OpenSees::PromptValueError << "invalid numY: " << argv[2] << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[3], &startNodeNum) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
-    opserr << " : invalid startNode: " << argv[3] << "\n";
+    opserr << OpenSees::PromptValueError << "invalid startNode: " << argv[3] << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[4], &startEleNum) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "block2D numX? numY? startNode? startEle? eleType? eleArgs?";
-    opserr << " : invalid startEle: " << argv[4] << "\n";
+    opserr << OpenSees::PromptValueError << "invalid startEle: " << argv[4] << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
 
-  MatrixND<9,3> Coordinates;
+  MatrixND<9,3> Coordinates{};
   Coordinates.zero();
 
-  static ID     haveNode(9);
+  static ID haveNode(9);
   for (int k=0; k<9; k++)
     haveNode(k) = -1;
 
