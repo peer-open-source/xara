@@ -38,6 +38,7 @@
 
 #include <EquiSolnAlgo.h>
 #include <Vector.h>
+class LineSearch;
 
 class Accelerator;
 
@@ -51,23 +52,17 @@ class AcceleratedNewton: public EquiSolnAlgo
   
   int getNumFactorizations() const override {return numFactorizations;}
   int getNumIterations()  const override {return numIterations;}
-  //double getTotalTimeCPU(void)   {return totalTimeCPU;}
-  //double getTotalTimeReal(void)  {return totalTimeReal;}
-  //double getSolveTimeCPU(void)   {return solveTimeCPU;}
-  //double getSolveTimeReal(void)  {return solveTimeReal;}
-  //double getAccelTimeCPU(void)   {return accelTimeCPU;}
-  //double getAccelTimeReal(void)  {return accelTimeReal;}
   
   virtual int sendSelf(int commitTag, Channel &);
   virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
   void Print(OPS_Stream &, int flag) const final;    
   
 
-  
  private:
   int tangent;
   
   Accelerator *theAccelerator;
+  LineSearch *search;
   
   // Storate for accelerated mod-Newton prediction
   Vector *vAccel;
