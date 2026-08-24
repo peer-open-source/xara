@@ -35,19 +35,22 @@ UmfpackSolver02::solve(const Vector &B, Vector &X)
     return -1;
 
   const int size = X.Size();
-  const int nnz = static_cast<int>(theSOE->Ai.size());
+  const int nnz = static_cast<int>(theSOE->getRowIndices().size());
   if (size == 0 || nnz == 0)
     return 0;
 
   if (symbolic == nullptr)
     return -1;
 
-  if (B.Size() != size || static_cast<int>(theSOE->Ap.size()) != size + 1)
+  if (B.Size() != size || static_cast<int>(theSOE->getPointers().size()) != size + 1)
     return -1;
 
   void *numeric = nullptr;
-  int status = umfpack_di_numeric(theSOE->Ap.data(), theSOE->Ai.data(),
-                                  theSOE->Ax.data(), symbolic, &numeric,
+  int status = umfpack_di_numeric(theSOE->getPointers().data(), 
+                                  theSOE->getRowIndices().data(),
+                                  theSOE->getValues().data(), 
+                                  symbolic, 
+                                  &numeric,
                                   control.data(), info.data());
   if (status != UMFPACK_OK) {
     if (numeric != nullptr)
@@ -55,8 +58,13 @@ UmfpackSolver02::solve(const Vector &B, Vector &X)
     return -1;
   }
 
-  status = umfpack_di_solve(UMFPACK_A, theSOE->Ap.data(), theSOE->Ai.data(),
-                            theSOE->Ax.data(), &X(0), &B(0), numeric,
+  status = umfpack_di_solve(UMFPACK_A, 
+                            theSOE->getPointers().data(), 
+                            theSOE->getRowIndices().data(),
+                            theSOE->getValues().data(), 
+                            &X(0),
+                            &B(0),
+                            numeric,
                             control.data(), info.data());
 
   if (doDeterminant)
@@ -78,19 +86,21 @@ UmfpackSolver02::setSize()
     return -1;
   }
 
-  const int size = theSOE->X.Size();
+  const int size = theSOE->getX().Size();
   const int nnz = static_cast<int>(theSOE->Ai.size());
   if (size == 0 || nnz == 0)
     return 0;
 
-  if (static_cast<int>(theSOE->Ap.size()) != size + 1)
+  if (static_cast<int>(theSOE->getPointers().size()) != size + 1)
     return -1;
 
   const int status = umfpack_di_symbolic(size, size,
-                                         theSOE->Ap.data(),
-                                         theSOE->Ai.data(),
-                                         theSOE->Ax.data(),
-                                         &symbolic, control.data(), info.data());
+                                         theSOE->getPointers().data(),
+                                         theSOE->getRowIndices().data(),
+                                         theSOE->getValues().data(),
+                                         &symbolic, 
+                                         control.data(), 
+                                         info.data());
   if (status != UMFPACK_OK) {
     this->clearSymbolic();
     return -1;
@@ -109,13 +119,13 @@ UmfpackSolver02::setLinearSOE(SparseGenCSC &soe)
 int
 UmfpackSolver02::sendSelf(int, Channel &)
 {
-  return 0;
+  return -1;
 }
 
 int
 UmfpackSolver02::recvSelf(int, Channel &, FEM_ObjectBroker &)
 {
-  return 0;
+  return -1;
 }
 
 double
