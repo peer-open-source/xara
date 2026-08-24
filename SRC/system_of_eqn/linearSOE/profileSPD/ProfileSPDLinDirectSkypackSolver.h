@@ -43,8 +43,8 @@ class ProfileSPDLinDirectSkypackSolver : public ProfileSPDLinSolver
     ProfileSPDLinDirectSkypackSolver(int mCols, int mRows);    
     virtual ~ProfileSPDLinDirectSkypackSolver();
 
-    virtual int solve(void);        
-    virtual int setSize(void);    
+    virtual int solve();
+    virtual int setSize();    
 
     virtual int setProfileSOE(ProfileSPDLinSOE &theSOE);
 
