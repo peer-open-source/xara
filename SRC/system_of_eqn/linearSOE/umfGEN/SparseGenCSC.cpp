@@ -20,12 +20,7 @@ SparseGenCSC::SparseGenCSC(UmfpackSolver02 &theSolver,
                                  std::size_t maxScatter)
   : LinearSOE(theSolver, -1),
     X(), B(), Ap(), Ai(), Ax(),
-#if 1
     cache(maxScatter)
-#else
-    scatterCache(), scatterCacheBytes(0),
-    maxScatterCacheBytes(maxScatterBytes)
-#endif
 {
   theSolver.setLinearSOE(*this);
 }
@@ -48,7 +43,7 @@ SparseGenCSC::~SparseGenCSC() = default;
 int
 SparseGenCSC::getNumEqn() const
 {
-    return X.Size();
+  return X.Size();
 }
 
 int
@@ -70,9 +65,7 @@ SparseGenCSC::setSize(Graph &theGraph)
   Ap.clear();
   Ai.clear();
   Ax.clear();
-  cache.scatterCache.clear();
-  cache.scatterCache.rehash(0);
-  cache.scatterCacheBytes = 0;
+  cache.reset();
 
   Ap.reserve(static_cast<std::size_t>(size) + 1);
   Ai.reserve(estimatedNnz);
@@ -80,25 +73,25 @@ SparseGenCSC::setSize(Graph &theGraph)
 
   std::vector<int> rows;
   for (int col = 0; col < size; ++col) {
-      vertex = theGraph.getVertexPtr(col);
-      if (vertex == nullptr) {
-          opserr << "WARNING SparseGenCSC::setSize() - vertex " << col
-                  << " is not in graph\n";
-          return -1;
-      }
+    vertex = theGraph.getVertexPtr(col);
+    if (vertex == nullptr) {
+      opserr << "WARNING SparseGenCSC::setSize() - vertex " << col
+              << " is not in graph\n";
+      return -1;
+    }
 
-      const ID &adjacency = vertex->getAdjacency();
-      rows.clear();
-      rows.reserve(static_cast<std::size_t>(adjacency.Size()) + 1);
-      rows.push_back(vertex->getTag());
-      for (int i = 0; i < adjacency.Size(); ++i) {
-          rows.push_back(adjacency(i));
-      }
+    const ID &adjacency = vertex->getAdjacency();
+    rows.clear();
+    rows.reserve(static_cast<std::size_t>(adjacency.Size()) + 1);
+    rows.push_back(vertex->getTag());
+    for (int i = 0; i < adjacency.Size(); ++i) {
+      rows.push_back(adjacency(i));
+    }
 
-      std::sort(rows.begin(), rows.end());
-      const std::vector<int>::iterator last = std::unique(rows.begin(), rows.end());
-      Ai.insert(Ai.end(), rows.begin(), last);
-      Ap.push_back(static_cast<int>(Ai.size()));
+    std::sort(rows.begin(), rows.end());
+    const std::vector<int>::iterator last = std::unique(rows.begin(), rows.end());
+    Ai.insert(Ai.end(), rows.begin(), last);
+    Ap.push_back(static_cast<int>(Ai.size()));
   }
 
   Ax.assign(Ai.size(), 0.0);
@@ -109,7 +102,7 @@ SparseGenCSC::setSize(Graph &theGraph)
 
   LinearSOESolver *solver = this->getSolver();
   if (solver == nullptr) {
-      return -1;
+    return -1;
   }
 
   return solver->setSize();
