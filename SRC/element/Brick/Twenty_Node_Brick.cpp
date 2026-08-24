@@ -60,7 +60,7 @@ Twenty_Node_Brick::Twenty_Node_Brick()
    connectedExternalNodes(20),
    applyLoad(0),
    load(0),
-   Ki(0) //, kc(0), rho(0)
+   Ki(0)
 {
   for (int i = 0; i < NEN; i++) {
     nodePointers[i] = nullptr;
@@ -144,14 +144,14 @@ Twenty_Node_Brick::setDomain(Domain* theDomain)
     nodePointers[i] = theDomain->getNode(connectedExternalNodes(i));
     if (nodePointers[i] == 0) {
       opserr << "FATAL ERROR Twenty_Node_Brick (" << this->getTag() << "): node not found in domain"
-             << endln;
+             << "\n";
       return;
     }
 
     int dof = nodePointers[i]->getNumberDOF();
     if (dof != 3) {
       opserr << "FATAL ERROR Twenty_Node_Brick (" << this->getTag()
-             << "): has wrong number of DOFs at its nodes" << endln;
+             << "): has wrong number of DOFs at its nodes" << "\n";
       return;
     }
   }
@@ -236,9 +236,7 @@ Twenty_Node_Brick::revertToStart()
 int
 Twenty_Node_Brick::update()
 {
-  int i, j, k, k1;
   static double u[3][20];
-  static Matrix B(6, 3);
 
   for (int i = 0; i < NEN; i++) {
     const Vector& disp = nodePointers[i]->getTrialDisp();
@@ -247,11 +245,10 @@ Twenty_Node_Brick::update()
     u[2][i]            = disp(2);
   }
 
-  static Vector eps(6);
 
   int ret = 0;
 
-  //compute basis vectors and local nodal coordinates
+  // compute basis vectors and local nodal coordinates
   computeBasis();
 
   double volume = 0.;
@@ -259,12 +256,14 @@ Twenty_Node_Brick::update()
     // compute Jacobian and global shape functions
     double xsj;
     Jacobian3d(i, xsj, 0);
-    //volume element to also be saved
+    // volume element to also be saved
     dvolu[i] = wu[i] * xsj;
     volume += dvolu[i];
   }
 
   // Loop over the integration points
+  static Vector eps(6);
+  static Matrix B(6, 3);
   for (int i = 0; i < nintu; i++) {
 
     // Interpolate strains
@@ -300,8 +299,8 @@ Twenty_Node_Brick::update()
       ul3(0) = ul(0);
       ul3(1) = ul(1);
       ul3(2) = ul(2);
-      //compute the strain
-      //strain += (BJ*ul) ;
+      // compute the strain
+      // strain += (BJ*ul) ;
       eps.addMatrixVector(1.0, B, ul3, 1.0);
 
       /* for( k = 0; k < 6; k++) {
@@ -319,7 +318,7 @@ Twenty_Node_Brick::update()
 }
 
 
-//return tangent stiffness matrix
+// return tangent stiffness matrix
 
 const Matrix&
 Twenty_Node_Brick::getTangentStiff()
@@ -349,11 +348,7 @@ Twenty_Node_Brick::getStiff(int flag)
     return *Ki;
 
 
-
   //-------------------------------------------------------
-
-  // int j3, j3m1, j3m2, ik, ib, jk, jb;
-
 
   // compute basis vectors and local nodal coordinates
 
@@ -560,10 +555,8 @@ Twenty_Node_Brick::addInertiaLoadToUnbalance(const Vector& accel)
     const Vector& Raccel = nodePointers[i]->getRV(accel);
 
     if (3 != Raccel.Size()) {
-
       opserr << "Twenty_Node_Brick::addInertiaLoadToUnbalance matrix and vector sizes are "
                 "incompatible\n";
-
       return -1;
     }
 
@@ -607,7 +600,6 @@ Twenty_Node_Brick::getResistingForce()
 
 
   // compute basis vectors and local nodal coordinates
-
   computeBasis();
 
   // gauss loop to compute and save shape functions
@@ -632,7 +624,6 @@ Twenty_Node_Brick::getResistingForce()
   for (int i = 0; i < nintu; i++) {
 
     // Get material stress response
-
     const Vector& sigma = materialPointers[i]->getStress();
 
 
@@ -779,7 +770,6 @@ Twenty_Node_Brick::formInertiaTerms(int tangFlag)
 
 
   // compute basis vectors and local nodal coordinates
-
   computeBasis();
 
   // gauss loop to compute and save shape functions
@@ -847,7 +837,6 @@ Twenty_Node_Brick::computeBasis()
 
 int
 Twenty_Node_Brick::sendSelf(int commitTag, Channel& theChannel)
-
 {
 
   int res = 0;
@@ -939,10 +928,8 @@ Twenty_Node_Brick::recvSelf(int commitTag,
   res += theChannel.recvID(dataTag, commitTag, idData);
 
   if (res < 0) {
-
     opserr << "WARNING Twenty_Node_Brick::recvSelf() - " << this->getTag()
            << " failed to receive ID\n";
-
     return res;
   }
 
@@ -965,12 +952,10 @@ Twenty_Node_Brick::recvSelf(int commitTag,
 
       materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
 
-      if (materialPointers[i] == 0) {
-
+      if (materialPointers[i] == nullptr) {
         opserr
             << "Twenty_Node_Brick::recvSelf() - Broker could not create NDMaterial of class type "
-            << matClassTag << endln;
-
+            << matClassTag << "\n";
         return -1;
       }
 
@@ -981,9 +966,7 @@ Twenty_Node_Brick::recvSelf(int commitTag,
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
 
       if (res < 0) {
-
         opserr << "Twenty_Node_Brick::recvSelf() - material " << i << "failed to recv itself\n";
-
         return res;
       }
     }
@@ -1011,13 +994,9 @@ Twenty_Node_Brick::recvSelf(int commitTag,
         materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
 
         if (materialPointers[i] == 0) {
-
           opserr
               << "Twenty_Node_Brick::recvSelf() - Broker could not create NDMaterial of class type "
-              <<
-
-              matClassTag << endln;
-
+              << matClassTag << "\n";
           exit(-1);
         }
 
@@ -1026,13 +1005,10 @@ Twenty_Node_Brick::recvSelf(int commitTag,
 
       // Receive the material
 
-
       res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
 
       if (res < 0) {
-
         opserr << "Twenty_Node_Brick::recvSelf() - material " << i << "failed to recv itself\n";
-
         return res;
       }
     }
@@ -1107,13 +1083,10 @@ Twenty_Node_Brick::setResponse(const char** argv, int argc, OPS_Stream& output)
 
 
 int
-
 Twenty_Node_Brick::getResponse(int responseID, Information& eleInfo)
-
 {
 
   static Vector stresses(162);
-
 
   if (responseID == 1)
     return eleInfo.setVector(this->getResistingForce());
@@ -1132,16 +1105,12 @@ Twenty_Node_Brick::getResponse(int responseID, Information& eleInfo)
 
 
   else if (responseID == 5) {
-
     // Loop over the integration points
 
     int cnt = 0;
-
     for (int i = 0; i < nintu; i++) {
 
-
       // Get material stress response
-
       const Vector& sigma = materialPointers[i]->getStress();
 
       stresses(cnt++) = sigma(0);
@@ -1156,8 +1125,6 @@ Twenty_Node_Brick::getResponse(int responseID, Information& eleInfo)
   }
 
   else
-
-
     return -1;
 }
 
@@ -1165,12 +1132,8 @@ Twenty_Node_Brick::getResponse(int responseID, Information& eleInfo)
 // calculate local shape functions
 
 void
-
 Twenty_Node_Brick::compuLocalShapeFunction()
 {
-
-
-  int i, k, j;
 
   static double shl[4][20][27], w[27];
 
@@ -1178,23 +1141,19 @@ Twenty_Node_Brick::compuLocalShapeFunction()
 
   brcshl(shl, w, nintu, NEN);
 
-  for (k = 0; k < nintu; k++) {
+  for (int k = 0; k < nintu; k++) {
 
     wu[k] = w[k];
 
-    for (j = 0; j < NEN; j++)
-
-      for (i = 0; i < 4; i++)
-
+    for (int j = 0; j < NEN; j++)
+      for (int i = 0; i < 4; i++)
         shlu[i][j][k] = shl[i][j][k];
   }
 }
 
 
 void
-
 Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
-
 {
 
   int i, j, k, nint, nen;
@@ -1215,16 +1174,13 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
 
   for (int j = 0; j < NEN; j++) {
 
-    for (i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) {
 
       if (mode == 0)
-
         shp[i][j] = shlu[i][j][gaussPoint];
 
       else {
-
         opserr << "Twenty_Node_Brick::Jacobian3d - illegal mode: " << mode << "\n";
-
       } //end if
     }
   }
@@ -1234,13 +1190,10 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
 
 
   for (int j = 0; j < 3; j++) {
-
     for (int k = 0; k < 3; k++) {
-
       xs[j][k] = 0;
 
-      for (i = 0; i < nen; i++) {
-
+      for (int i = 0; i < nen; i++) {
         xs[j][k] += xl[j][i] * shp[k][i];
       }
     }
@@ -1317,15 +1270,11 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
     for (int i = 0; i < 4; i++) {
 
       if (mode == 0)
-
         shgu[i][j][gaussPoint] = shp[i][j];
 
       else {
-
         opserr << "Twenty_Node_Brick::Jacobian3d - illegal mode: " << mode << "\n";
-
         exit(-1);
-
       } //end if
     }
   }
@@ -1347,7 +1296,7 @@ Twenty_Node_Brick::Print(OPS_Stream& s, int flag)
       const Vector& nodeCrd  = nodePointers[i]->getCrds();
       const Vector& nodeDisp = nodePointers[i]->getDisp();
       s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << nodeCrd(2) << " " << nodeDisp(0)
-        << " " << nodeDisp(1) << " " << nodeDisp(2) << endln;
+        << " " << nodeDisp(1) << " " << nodeDisp(2) << "\n";
     }
 
     // spit out the section location & invoke print on the scetion
@@ -1367,7 +1316,7 @@ Twenty_Node_Brick::Print(OPS_Stream& s, int flag)
     s << "#AVERAGE_STRESS ";
     for (i = 0; i < 7; i++)
       s << avgStress(i) << " ";
-    s << endln;
+    s << "\n";
 
     s << "#AVERAGE_STRAIN ";
     for (i = 0; i < nstress; i++)
@@ -1376,38 +1325,38 @@ Twenty_Node_Brick::Print(OPS_Stream& s, int flag)
   }
 
   if (flag == OPS_PRINT_CURRENTSTATE) {
-    s << endln;
+    s << "\n";
     s << "20NodeBrick Twenty_Node_Brick \n";
-    s << "Element Number: " << this->getTag() << endln;
-    s << "Node 1 : " << connectedExternalNodes(0) << endln;
-    s << "Node 2 : " << connectedExternalNodes(1) << endln;
-    s << "Node 3 : " << connectedExternalNodes(2) << endln;
-    s << "Node 4 : " << connectedExternalNodes(3) << endln;
-    s << "Node 5 : " << connectedExternalNodes(4) << endln;
-    s << "Node 6 : " << connectedExternalNodes(5) << endln;
-    s << "Node 7 : " << connectedExternalNodes(6) << endln;
-    s << "Node 8 : " << connectedExternalNodes(7) << endln;
-    s << "Node 9 : " << connectedExternalNodes(8) << endln;
-    s << "Node 10 : " << connectedExternalNodes(9) << endln;
-    s << "Node 11 : " << connectedExternalNodes(10) << endln;
-    s << "Node 12 : " << connectedExternalNodes(11) << endln;
-    s << "Node 13 : " << connectedExternalNodes(12) << endln;
-    s << "Node 14 : " << connectedExternalNodes(13) << endln;
-    s << "Node 15 : " << connectedExternalNodes(14) << endln;
-    s << "Node 16 : " << connectedExternalNodes(15) << endln;
-    s << "Node 17 : " << connectedExternalNodes(16) << endln;
-    s << "Node 18 : " << connectedExternalNodes(17) << endln;
-    s << "Node 19 : " << connectedExternalNodes(18) << endln;
-    s << "Node 20 : " << connectedExternalNodes(19) << endln;
+    s << "Element Number: " << this->getTag() << "\n";
+    s << "Node 1 : " << connectedExternalNodes(0) << "\n";
+    s << "Node 2 : " << connectedExternalNodes(1) << "\n";
+    s << "Node 3 : " << connectedExternalNodes(2) << "\n";
+    s << "Node 4 : " << connectedExternalNodes(3) << "\n";
+    s << "Node 5 : " << connectedExternalNodes(4) << "\n";
+    s << "Node 6 : " << connectedExternalNodes(5) << "\n";
+    s << "Node 7 : " << connectedExternalNodes(6) << "\n";
+    s << "Node 8 : " << connectedExternalNodes(7) << "\n";
+    s << "Node 9 : " << connectedExternalNodes(8) << "\n";
+    s << "Node 10 : " << connectedExternalNodes(9) << "\n";
+    s << "Node 11 : " << connectedExternalNodes(10) << "\n";
+    s << "Node 12 : " << connectedExternalNodes(11) << "\n";
+    s << "Node 13 : " << connectedExternalNodes(12) << "\n";
+    s << "Node 14 : " << connectedExternalNodes(13) << "\n";
+    s << "Node 15 : " << connectedExternalNodes(14) << "\n";
+    s << "Node 16 : " << connectedExternalNodes(15) << "\n";
+    s << "Node 17 : " << connectedExternalNodes(16) << "\n";
+    s << "Node 18 : " << connectedExternalNodes(17) << "\n";
+    s << "Node 19 : " << connectedExternalNodes(18) << "\n";
+    s << "Node 20 : " << connectedExternalNodes(19) << "\n";
 
     s << "Material Information : \n ";
     materialPointers[0]->Print(s, flag);
 
-    s << endln;
+    s << "\n";
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"20NodeBrick\", ";
     s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
@@ -1415,6 +1364,6 @@ Twenty_Node_Brick::Print(OPS_Stream& s, int flag)
       s << connectedExternalNodes(i) << ", ";
     s << connectedExternalNodes(19) << "], ";
     s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
-    s << "\"material\": \"" << materialPointers[0]->getTag() << "\"}";
+    s << "\"material\": " << materialPointers[0]->getTag() << "}";
   }
 }
