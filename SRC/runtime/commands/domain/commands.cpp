@@ -87,8 +87,8 @@ static struct {
 
   {"printGID",            &printModelGID},
 
-  {"setTime",             &TclCommand_setTime},
-  {"getTime",             &TclCommand_getTime},
+  {"setTime",             &XaraCmd_setTime},
+  {"getTime",             &XaraCmd_getTime},
   {"setCreep",            &TclCommand_setCreep},
 
   // DAMPING
@@ -104,29 +104,28 @@ static struct {
 
   {"nodeDOFs",            &nodeDOFs},
   {"nodeCoord",           &nodeCoord},
-  {"nodeMass",            &nodeMass},
-  {"nodeVel",             &nodeVel},
-  {"nodeDisp",            &nodeDisp},
-  {"nodeAccel",           &nodeAccel},
-  {"nodeResponse",        &nodeResponse},
-  {"nodePressure",        &nodePressure},
+  {"nodeMass",            &XaraCmd_nodeMass},
+  {"nodeVel",             &XaraCmd_nodeVel},
+  {"nodeDisp",            &XaraCmd_nodeDisp},
+  {"nodeAccel",           &XaraCmd_nodeAccel},
+  {"nodeResponse",        &XaraCmd_nodeResponse},
+  {"nodePressure",        &XaraCmd_nodePressure},
   {"nodeBounds",          &nodeBounds},
   {"findNodeWithID",      &findID},
-  {"nodeUnbalance",       &nodeUnbalance},
-  {"nodeEigenvector",     &nodeEigenvector},
-  {"nodeReaction",        &nodeReaction},
+  {"nodeUnbalance",       &XaraCmd_nodeUnbalance},
+  {"nodeEigenvector",     &XaraCmd_nodeEigenvector},
+  {"nodeReaction",        &XaraCmd_nodeReaction},
 
   {"reactions",           &XaraCmd_reactions},
 
-  {"setNodeVel",          &setNodeVel},
-  {"setNodeDisp",         &setNodeDisp},
-  {"setNodeAccel",        &setNodeAccel},
+  {"setNodeVel",          &XaraCmd_setNodeVel},
+  {"setNodeDisp",         &XaraCmd_setNodeDisp},
+  {"setNodeAccel",        &XaraCmd_setNodeAccel},
   {"setNodeCoord",        &XaraCmd_setNodeCoord},
-  {"setNodePressure",     &setNodePressure},
+  {"setNodePressure",     &XaraCmd_setNodePressure},
 
-  {"nodeRotation",        &nodeRotation},
+  {"nodeRotation",        &XaraCmd_nodeRotation},
   {"getNodeTags",         &getNodeTags},
-
 
 
   {"getParamTags",        &getParamTags},
