@@ -27,9 +27,7 @@
 // Lapack routines.
 //
 // What: "@(#) BandGenLinLapackSolver.h, revA"
-
-#ifndef BandGenLinLapackSolver_h
-#define BandGenLinLapackSolver_h
+#pragma once
 
 #include <BandGenLinSolver.h>
 
@@ -42,9 +40,8 @@ class BandGenLinLapackSolver : public BandGenLinSolver
     int solve();
     int setSize();
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &theBroker);
 
     virtual double getDeterminant() override;
     
@@ -55,6 +52,3 @@ class BandGenLinLapackSolver : public BandGenLinSolver
     bool doDet;
     void setDeterminant();
 };
-
-#endif
-
