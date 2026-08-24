@@ -73,13 +73,14 @@ Twenty_Node_Brick::Twenty_Node_Brick()
 
 
 Twenty_Node_Brick::Twenty_Node_Brick(int tag, 
-                                    const std::array<int, 20>& node_tags,
-                                     NDMaterial& theMaterial, double b1, double b2, double b3)
+                                     const std::array<int, 20>& node_tags,
+                                     NDMaterial& theMaterial, 
+                                     double b1, double b2, double b3)
  : Element(tag, ELE_TAG_Twenty_Node_Brick),
    connectedExternalNodes(20),
    applyLoad(0),
    load(0),
-   Ki(0) //, kc(bulk), rho(rhof)
+   Ki(0)
 {
   for (int i = 0; i < NEN; i++)
     nodePointers[i] = nullptr;
@@ -132,7 +133,6 @@ Twenty_Node_Brick::~Twenty_Node_Brick()
 void
 Twenty_Node_Brick::setDomain(Domain* theDomain)
 {
-  int i, dof;
   // Check Domain is not null - invoked when object removed from a domain
   if (theDomain == nullptr) {
     for (int i = 0; i < NEN; i++)
@@ -148,7 +148,7 @@ Twenty_Node_Brick::setDomain(Domain* theDomain)
       return;
     }
 
-    dof = nodePointers[i]->getNumberDOF();
+    int dof = nodePointers[i]->getNumberDOF();
     if (dof != 3) {
       opserr << "FATAL ERROR Twenty_Node_Brick (" << this->getTag()
              << "): has wrong number of DOFs at its nodes" << endln;
@@ -238,11 +238,9 @@ Twenty_Node_Brick::update()
 {
   int i, j, k, k1;
   static double u[3][20];
-  static double xsj;
   static Matrix B(6, 3);
-  double volume = 0.;
 
-  for (i = 0; i < NEN; i++) {
+  for (int i = 0; i < NEN; i++) {
     const Vector& disp = nodePointers[i]->getTrialDisp();
     u[0][i]            = disp(0);
     u[1][i]            = disp(1);
@@ -256,8 +254,10 @@ Twenty_Node_Brick::update()
   //compute basis vectors and local nodal coordinates
   computeBasis();
 
-  for (i = 0; i < nintu; i++) {
+  double volume = 0.;
+  for (int i = 0; i < nintu; i++) {
     // compute Jacobian and global shape functions
+    double xsj;
     Jacobian3d(i, xsj, 0);
     //volume element to also be saved
     dvolu[i] = wu[i] * xsj;
@@ -265,13 +265,13 @@ Twenty_Node_Brick::update()
   }
 
   // Loop over the integration points
-  for (i = 0; i < nintu; i++) {
+  for (int i = 0; i < nintu; i++) {
 
     // Interpolate strains
     //eps = B*u;
     //eps.addMatrixVector(0.0, B, u, 1.0);
     eps.Zero();
-    for (j = 0; j < NEN; j++) {
+    for (int j = 0; j < NEN; j++) {
 
       B(0, 0) = shgu[0][j][i];
       B(0, 1) = 0.;
@@ -349,30 +349,21 @@ Twenty_Node_Brick::getStiff(int flag)
     return *Ki;
 
 
-  int i, j;
-  double xsj; // determinant jacaobian matrix
-
-  double volume = 0.;
 
   //-------------------------------------------------------
 
-  int j3, j3m1, j3m2, ik, ib, jk, jb;
+  // int j3, j3m1, j3m2, ik, ib, jk, jb;
 
-  static Matrix B(6, NEN * 3);
-  static Matrix BTDB(NEN * 3, NEN * 3);
-  static Matrix D(6, 6);
-
-  B.Zero();
-  BTDB.Zero();
-  stiff.Zero();
 
   // compute basis vectors and local nodal coordinates
 
   computeBasis();
 
+  double volume = 0.;
   for (int i = 0; i < nintu; i++) {
 
     // compute Jacobian and global shape functions
+    double xsj; // determinant jacaobian matrix
     Jacobian3d(i, xsj, 0);
 
     // volume element to also be saved
@@ -382,6 +373,13 @@ Twenty_Node_Brick::getStiff(int flag)
 
   // Loop over the integration points
 
+  static Matrix B(6, NEN * 3);
+  static Matrix BTDB(NEN * 3, NEN * 3);
+  static Matrix D(6, 6);
+
+  B.Zero();
+  BTDB.Zero();
+  stiff.Zero();
   for (int i = 0; i < nintu; i++) {
 
     // Get the material tangent
@@ -391,14 +389,13 @@ Twenty_Node_Brick::getStiff(int flag)
     else
       D = materialPointers[i]->getTangent();
 
-    //const Matrix &D = materialPointers[i]->getTangent();
 
 
     for (int j = 0; j < NEN; j++) {
 
-      j3 = 3 * j + 2;
-      j3m1 = j3 - 1;
-      j3m2 = j3 - 2;
+      const int j3 = 3 * j + 2;
+      const int j3m1 = j3 - 1;
+      const int j3m2 = j3 - 2;
 
       B(0, j3m2) = shgu[0][j][i];
       B(0, j3m1) = 0.;
@@ -458,8 +455,7 @@ Twenty_Node_Brick::getMass()
 }
 
 
-//return mass matrix
-
+// return damping matrix
 const Matrix&
 Twenty_Node_Brick::getDamp()
 {
@@ -472,13 +468,7 @@ Twenty_Node_Brick::getDamp()
 void
 Twenty_Node_Brick::formDampingTerms(int tangFlag)
 {
-
-
-  int i, j, k, m, ik, jk;
-  double volume = 0.;
-
   // zero damp
-
   damp.Zero();
 
   if (betaK != 0.0)
@@ -494,8 +484,8 @@ Twenty_Node_Brick::formDampingTerms(int tangFlag)
   if (alphaM != 0.0) {
     this->getMass();
 
-    for (i = 0; i < 60; i++)
-      for (j = 0; j < 60; j++)
+    for (int i = 0; i < 60; i++)
+      for (int j = 0; j < 60; j++)
         damp(i, j) += mass(i, j) * alphaM;
   }
 
@@ -561,8 +551,6 @@ Twenty_Node_Brick::addInertiaLoadToUnbalance(const Vector& accel)
 {
 
   static Vector ra(60);
-
-  int i, j, ik;
 
   ra.Zero();
 
@@ -725,11 +713,10 @@ Twenty_Node_Brick::getResistingForceIncInertia()
 {
   static Vector res(60);
 
-  int i, j, ik;
 
   static double a[60];
 
-  for (i = 0; i < NEN; i++) {
+  for (int i = 0; i < NEN; i++) {
 
     const Vector& accel = nodePointers[i]->getTrialAccel();
 
@@ -820,7 +807,6 @@ Twenty_Node_Brick::formInertiaTerms(int tangFlag)
         double Nrho = dvolu[m] * mixtureRho(m) * shgu[3][i][m] * shgu[3][j][m];
 
         for (int k = 0; k < 3; k++) {
-
           mass(i * 3 + k, j * 3 + k) += Nrho;
         }
       }
@@ -884,10 +870,7 @@ Twenty_Node_Brick::sendSelf(int commitTag, Channel& theChannel)
 
   idData(74) = this->getTag();
 
-
-  int i;
-
-  for (i = 0; i < nintu; i++) {
+  for (int i = 0; i < nintu; i++) {
 
     idData(i) = materialPointers[i]->getClassTag();
 
@@ -906,7 +889,7 @@ Twenty_Node_Brick::sendSelf(int commitTag, Channel& theChannel)
     idData(i + nintu) = matDbTag;
   }
 
-  for (i = 0; i < 20; i++)
+  for (int i = 0; i < 20; i++)
     idData(54 + i) = connectedExternalNodes(i);
 
   res += theChannel.sendID(dataTag, commitTag, idData);
@@ -920,7 +903,7 @@ Twenty_Node_Brick::sendSelf(int commitTag, Channel& theChannel)
 
   // Finally, this element asks its material objects to send themselves
 
-  for (i = 0; i < nintu; i++) {
+  for (int i = 0; i < nintu; i++) {
 
     res += materialPointers[i]->sendSelf(commitTag, theChannel);
 
@@ -1011,7 +994,7 @@ Twenty_Node_Brick::recvSelf(int commitTag,
 
   else {
 
-    for (i = 0; i < nintu; i++) {
+    for (int i = 0; i < nintu; i++) {
 
       int matClassTag = idData(i);
 
@@ -1230,7 +1213,7 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
   }
 
 
-  for (j = 0; j < NEN; j++) {
+  for (int j = 0; j < NEN; j++) {
 
     for (i = 0; i < 4; i++) {
 
@@ -1250,9 +1233,9 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
   //Compute jacobian transformation
 
 
-  for (j = 0; j < 3; j++) {
+  for (int j = 0; j < 3; j++) {
 
-    for (k = 0; k < 3; k++) {
+    for (int k = 0; k < 3; k++) {
 
       xs[j][k] = 0;
 
@@ -1288,7 +1271,7 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
 
     opserr << "Twenty_Node_Brick::Jacobian3d - Non-positive Jacobian: " << xsj << "\n";
 
-    for (i = 0; i < nen; i++) {
+    for (int i = 0; i < nen; i++) {
 
       printf("%5d %15.6e %15.6e %15.6e %15.6e\n", i,
              shp[0][i], shp[1][i], shp[2][i], shp[3][i]);
@@ -1305,11 +1288,10 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
   //Compute jacobian inverse
 
 
-  for (j = 0; j < 3; j++) {
-    for (i = 0; i < 3; i++)
+  for (int j = 0; j < 3; j++) {
+    for (int i = 0; i < 3; i++)
 
       xs[i][j] = ad[i][j] * rxsj;
-
 
   }
 
@@ -1317,24 +1299,22 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
   // Compute derivatives with repect to global coords.
 
 
-  for (k = 0; k < nen; k++) {
+  for (int k = 0; k < nen; k++) {
 
     c1 = shp[0][k] * xs[0][0] + shp[1][k] * xs[1][0] + shp[2][k] * xs[2][0];
     c2 = shp[0][k] * xs[0][1] + shp[1][k] * xs[1][1] + shp[2][k] * xs[2][1];
     c3 = shp[0][k] * xs[0][2] + shp[1][k] * xs[1][2] + shp[2][k] * xs[2][2];
 
-
     shp[0][k] = c1;
     shp[1][k] = c2;
     shp[2][k] = c3;
 
-
   } // end for k
 
 
-  for (j = 0; j < nen; j++) {
+  for (int j = 0; j < nen; j++) {
 
-    for (i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) {
 
       if (mode == 0)
 
