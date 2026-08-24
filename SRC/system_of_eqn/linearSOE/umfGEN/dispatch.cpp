@@ -25,7 +25,8 @@
 LinearSOE*
 TclDispatch_newUmfpackLinearSOE(ClientData clientData,
                                 Tcl_Interp* interp,
-                                Tcl_Size argc, const char** const argv)
+                                ArgSize argc, 
+                                const char** const argv)
 {
   int factLVALUE = 10;
   int factorOnce = 0;
