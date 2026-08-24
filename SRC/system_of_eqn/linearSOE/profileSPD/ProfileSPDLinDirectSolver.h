@@ -49,19 +49,17 @@ class ProfileSPDLinDirectSolver : public ProfileSPDLinSolver
     ProfileSPDLinDirectSolver(double tol=1.0e-12);    
     virtual ~ProfileSPDLinDirectSolver();
 
-    virtual int solve(void);        
-    virtual int setSize(void);    
-    double getDeterminant(void);
+    virtual int solve();
+    virtual int solve(const Vector& B, Vector& X) override;
+    virtual int setSize();    
+    double getDeterminant();
 
     
     virtual int factor(int n);
-#if 0
-    virtual int setProfileSOE(ProfileSPDLinSOE &theSOE);
-#endif
 
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+
   protected:
     double minDiagTol;
     int size;
