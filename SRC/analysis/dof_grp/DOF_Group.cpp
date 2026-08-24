@@ -118,10 +118,10 @@ DOF_Group::DOF_Group(int tag, int ndof)
   if (numDOFs == 0) {
     theMatrices = new Matrix *[MAX_NUM_DOF];
     theVectors  = new Vector *[MAX_NUM_DOF];
-    
+
     for (int i=0; i<MAX_NUM_DOF; i++) {
-        theMatrices[i] = nullptr;
-        theVectors[i]  = nullptr;
+      theMatrices[i] = nullptr;
+      theVectors[i]  = nullptr;
     }
   }
 
