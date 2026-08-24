@@ -75,7 +75,7 @@ FrequencyAlgo::solveCurrentStep(int numModes)
 
     if (theSOE->solve(numModes, true) < 0) {
        opserr << "Warning FrequencyAlgo::solveCurrentStep() - ";
-       opserr << "the EigenSOE failed in solve().\n";
+       opserr << "the EigenSOE failed in solve.\n";
        return -4;
     }
 
