@@ -194,8 +194,9 @@ TclBasicBuilder_addBrick(ClientData clientData,
 #include <Twenty_Eight_Node_BrickUP.h>
 
 int
-TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
-                                   int argc,
+TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, 
+                                   Tcl_Interp *interp,
+                                   ArgSize argc,
                                    TCL_Char ** const argv)
 {
   ModelRegistry *builder = (ModelRegistry*)clientData;
@@ -277,6 +278,7 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
   // domain
   return TCL_OK;
 }
+
 
 int
 TclBasicBuilder_addBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
