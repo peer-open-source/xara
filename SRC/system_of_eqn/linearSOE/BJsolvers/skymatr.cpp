@@ -62,8 +62,6 @@
 //#                                     (from FEM4ed by O.Z. and R.T.)         #
 //#                                                                            #
 //##############################################################################
-#ifndef SKYMATRIX_CC
-#define SKYMATRIX_CC
 
 #include "skymatr.h"
 
@@ -923,7 +921,7 @@ void skymatrix::error(char * msg1, char * msg2) const
 ///*....................................................................*/
 ///*.      Fortran source code was taken from the book:                .*/
 ///*.                                                                  .*/
-///*.      Klaus-Jürgen Bathe ;                                        .*/
+///*.      Klaus-Jï¿½rgen Bathe ;                                        .*/
 ///*.                                                                  .*/
 ///*.          Finite Element Procedures In Engineering Analysis       .*/
 ///*.                                                                  .*/
@@ -968,61 +966,55 @@ skymatrix & skymatrix::v_ldl_factorize()
   double b = 0.0;
   ::printf(" \n\n* * * Equations to factorize : ");
   for ( n=1 ; n<=pc_skymatrix_rep->square_dim ; n++ )
+  {
+    printf(" %5d\b\b\b\b\b", pc_skymatrix_rep->square_dim - n);
+    kn=*(pc_skymatrix_rep->maxa-1+n);
+    kl=kn+1;
+    ku=*(pc_skymatrix_rep->maxa-1+n+1)-1;
+    kh=ku-kl;         // changes ######## from colsol.c
+    if ( kh>0 )       // *(pd_ldl_a. . . ) --> *(pc_skymatrix_rep->pd_nDdata-1. . . )
+      {               // *(pi_ldl_maxa. . . ) --> *(pc_skymatrix_rep->p_maxa-1. . .)
+        k=n-kh;       // *(pi_ldl_nn) --> pc_skymatrix_rep->square_dim
+        ic=0;
+        klt=ku;
+        for ( j=1 ; j<=kh ; j++ )
+          {
+            ic=ic+1;
+            klt=klt-1;
+            ki=*(pc_skymatrix_rep->maxa-1+k);
+            nd=*(pc_skymatrix_rep->maxa-1+k+1)-ki-1;
+            if ( nd>0 )
+              {
+                kk=( (ic<nd) ? ic : nd );
+                c=0.0;
+                for ( l=1 ; l<=kk ; l++ )
+                  c=c+(*(pc_skymatrix_rep->data-1+ki+l))*(*(pc_skymatrix_rep->data-1+klt+l));
+                *(pc_skymatrix_rep->data-1+klt)=*(pc_skymatrix_rep->data-1+klt)-c;
+              }
+            k=k+1;
+          }
+      }
+    if ( kh>=0 )
     {
-      printf(" %5d\b\b\b\b\b", pc_skymatrix_rep->square_dim - n);
-      kn=*(pc_skymatrix_rep->maxa-1+n);
-      kl=kn+1;
-      ku=*(pc_skymatrix_rep->maxa-1+n+1)-1;
-      kh=ku-kl;         // changes ######## from colsol.c
-      if ( kh>0 )       // *(pd_ldl_a. . . ) --> *(pc_skymatrix_rep->pd_nDdata-1. . . )
-        {               // *(pi_ldl_maxa. . . ) --> *(pc_skymatrix_rep->p_maxa-1. . .)
-          k=n-kh;       // *(pi_ldl_nn) --> pc_skymatrix_rep->square_dim
-          ic=0;
-          klt=ku;
-          for ( j=1 ; j<=kh ; j++ )
-            {
-              ic=ic+1;
-              klt=klt-1;
-              ki=*(pc_skymatrix_rep->maxa-1+k);
-              nd=*(pc_skymatrix_rep->maxa-1+k+1)-ki-1;
-              if ( nd>0 )
-                {
-                  kk=( (ic<nd) ? ic : nd );
-                  c=0.0;
-                  for ( l=1 ; l<=kk ; l++ )
-                    c=c+(*(pc_skymatrix_rep->data-1+ki+l))*(*(pc_skymatrix_rep->data-1+klt+l));
-                  *(pc_skymatrix_rep->data-1+klt)=*(pc_skymatrix_rep->data-1+klt)-c;
-                }
-              k=k+1;
-            }
-        }
-      if ( kh>=0 )
+      k=n;
+      b=0.0;
+      for ( kk=kl ; kk<=ku ; kk++ )
         {
-          k=n;
-          b=0.0;
-          for ( kk=kl ; kk<=ku ; kk++ )
-            {
-              k=k-1;
-              ki=*(pc_skymatrix_rep->maxa-1+k);
-              c=(*(pc_skymatrix_rep->data-1+kk))/(*(pc_skymatrix_rep->data-1+ki));
-              b=b+c*(*(pc_skymatrix_rep->data-1+kk));
-              *(pc_skymatrix_rep->data-1+kk)=c;
-            }
-          *(pc_skymatrix_rep->data-1+kn)=*(pc_skymatrix_rep->data-1+kn)-b;
+          k=k-1;
+          ki=*(pc_skymatrix_rep->maxa-1+k);
+          c=(*(pc_skymatrix_rep->data-1+kk))/(*(pc_skymatrix_rep->data-1+ki));
+          b=b+c*(*(pc_skymatrix_rep->data-1+kk));
+          *(pc_skymatrix_rep->data-1+kk)=c;
         }
-      if ( *(pc_skymatrix_rep->data-1+kn)<=0 )
-        {
-          printf("\n Colsol Stoped - Stiffness Matrix not positive definite \n");
-          printf(" non positive pivot for equation, %d\n ", n);
-          printf(" pivot, %.12e \n", *(pc_skymatrix_rep->data-1+kn) );
-          exit(1);
-        }
-//  printf("--------------------------  %d\n",n);
-//  for( int i=0 ; i<=11 ; i++ )
-//    {
-//      printf("pc_skymatrix_rep->pd_nDdata[%d] = %8.4f\n",i, pc_skymatrix_rep->pd_nDdata[i]);
-//    }
-//  getch();
+      *(pc_skymatrix_rep->data-1+kn)=*(pc_skymatrix_rep->data-1+kn)-b;
+    }
+    if ( *(pc_skymatrix_rep->data-1+kn)<=0 )
+    {
+      printf("\n Colsol Stoped - Stiffness Matrix not positive definite \n");
+      printf(" non positive pivot for equation, %d\n ", n);
+      printf(" pivot, %.12e \n", *(pc_skymatrix_rep->data-1+kn) );
+      exit(1);
+    }
 
 
   }
@@ -1135,20 +1127,20 @@ double * skymatrix::d_back_substitute ( double *pd_rhs )
   if ( pc_skymatrix_rep->square_dim==1 ) return(pd_rhs);
   n=pc_skymatrix_rep->square_dim ;
   for ( l=2 ; l<=pc_skymatrix_rep->square_dim ; l++ )
-    {                            // changes ######## from colsol.c
-      kl=*(pc_skymatrix_rep->maxa-1+n)+1;     // *(pd_bac_a. . . ) --> *(pc_skymatrix_rep->pd_nDdata-1. . . )
-      ku=*(pc_skymatrix_rep->maxa-1+n+1)-1;   // *(pi_bac_maxa. . . ) --> *(pc_skymatrix_rep->p_maxa-1. . .)
-      if( ku>=kl )               // *(pi_bac_nn) --> pc_skymatrix_rep->square_dim
-        {                        // *(pd_rhs. . .) --> *(pd_rhs-1 . . . )
-          k=n;
-          for ( kk=kl ; kk<=ku ; kk++ )
-            {
-              k=k-1;
-              *(pd_rhs-1+k)=*(pd_rhs-1+k)-(*(pc_skymatrix_rep->data-1+kk))*(*(pd_rhs-1+n));
-            }
-          n=n-1;
-        }
-    }
+  {                            // changes ######## from colsol.c
+    kl=*(pc_skymatrix_rep->maxa-1+n)+1;     // *(pd_bac_a. . . ) --> *(pc_skymatrix_rep->pd_nDdata-1. . . )
+    ku=*(pc_skymatrix_rep->maxa-1+n+1)-1;   // *(pi_bac_maxa. . . ) --> *(pc_skymatrix_rep->p_maxa-1. . .)
+    if( ku>=kl )               // *(pi_bac_nn) --> pc_skymatrix_rep->square_dim
+      {                        // *(pd_rhs. . .) --> *(pd_rhs-1 . . . )
+        k=n;
+        for ( kk=kl ; kk<=ku ; kk++ )
+          {
+            k=k-1;
+            *(pd_rhs-1+k)=*(pd_rhs-1+k)-(*(pc_skymatrix_rep->data-1+kk))*(*(pd_rhs-1+n));
+          }
+        n=n-1;
+      }
+  }
   printf("\n");
   return (pd_rhs);
 }
@@ -1239,15 +1231,3 @@ double * skymatrix::d_back_substitute ( double *pd_rhs )
 //outOLD    return void_pointer;
 //outOLD  }
 //outOLD
-//outOLD// overloading operator delete in skymatrix::skymatrix_rep class  ##################
-//outOLDvoid skymatrix_rep::operator delete(void *p)
-//outOLD  {                                       // see C++ reference manual by
-//outOLD                                          // ELLIS and STROUSTRUP page 283.
-//outOLD                                          // and ECKEL page 529.
-//outOLD//    ::printf("deleted pointer %p\n",p);
-//outOLD    ::operator delete(p);
-//outOLD  }
-//outOLD
-
-#endif
-
