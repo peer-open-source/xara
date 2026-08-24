@@ -42,7 +42,7 @@
 int
 getNodeTags(ClientData clientData,
             Tcl_Interp *interp, 
-            Tcl_Size argc,
+            ArgSize argc,
             TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -63,7 +63,7 @@ getNodeTags(ClientData clientData,
 
 
 int
-findID(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+findID(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *theDomain = (Domain*)clientData;
@@ -74,7 +74,6 @@ findID(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** con
   }
 
   int tag;
-
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
     opserr << "WARNING findNodesWithID eleTag? dof? - could not read nodeTag? \n";
     return TCL_ERROR;
@@ -160,14 +159,13 @@ XaraCmd_setNodeCoord(ClientData clientData,
   coords(dim - 1) = value;
   theNode->setCrds(coords);
   domain->domainChange();
-
   return TCL_OK;
 }
 
 
 template <NodeData Response>
 int
-nodeResponseTemplate(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+nodeResponseTemplate(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *domain = static_cast<Domain*>(clientData);
@@ -231,34 +229,38 @@ nodeResponseTemplate(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, T
   return TCL_OK;
 }
 
-int 
-nodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+int
+XaraCmd_nodeDisp(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   return nodeResponseTemplate<NodeData::Disp>(clientData, interp, argc, argv);
 }
+
 int
-nodeVel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_nodeVel(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   return nodeResponseTemplate<NodeData::Vel>(clientData, interp, argc, argv);
 }
-int 
-nodeAccel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+
+int
+XaraCmd_nodeAccel(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   return nodeResponseTemplate<NodeData::Accel>(clientData, interp, argc, argv);
 }
+
 int
-nodeUnbalance(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_nodeUnbalance(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   return nodeResponseTemplate<NodeData::UnbalancedLoad>(clientData, interp, argc, argv);
 }
-int 
-nodeReaction(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+
+int
+XaraCmd_nodeReaction(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   return nodeResponseTemplate<NodeData::Reaction>(clientData, interp, argc, argv);
 }
 
 int
-nodeMass(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_nodeMass(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
@@ -309,8 +311,8 @@ nodeMass(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** c
 }
 
 int
-nodePressure(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-             TCL_Char ** const argv)
+XaraCmd_nodePressure(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
+                     TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
@@ -337,7 +339,7 @@ nodePressure(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
 int
-nodeBounds(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+nodeBounds(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
@@ -372,7 +374,7 @@ nodeBounds(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char **
 
 
 int
-setNodeVel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_setNodeVel(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
@@ -435,7 +437,7 @@ setNodeVel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char **
 
 #if 0
 int
-setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+setNodeDisp(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
             TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -504,7 +506,7 @@ setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 #else 
 int
-setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_setNodeDisp(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
             TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -628,8 +630,9 @@ setNodeDisp(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 }
 #endif 
 
+
 int
-setNodeAccel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_setNodeAccel(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -693,7 +696,7 @@ setNodeAccel(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 }
 
 int 
-setNodePressure(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_setNodePressure(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
               TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -735,14 +738,14 @@ setNodePressure(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
 int
-nodeRotation(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_nodeRotation(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc < 2) {
-    opserr << "WARNING want - nodeRotation tag\n";
+    opserr << OpenSees::PromptValueError << "Missing required argument: tag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -772,7 +775,7 @@ nodeRotation(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 }
 
 int
-nodeResponse(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_nodeResponse(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
              TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -784,7 +787,6 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
   }
 
   int tag, dof, responseID;
-
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError
            << "Invalid tag " << argv[1] 
@@ -827,8 +829,7 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
     nodalResponse = theNode->getResponse((NodeData)responseID);
 
   } else
-    nodalResponse =
-        the_domain->getNodeResponse(tag, (NodeData)responseID);
+    nodalResponse = the_domain->getNodeResponse(tag, (NodeData)responseID);
 
 
   if (nodalResponse == nullptr || nodalResponse->Size() < dof || dof < 0)
@@ -841,7 +842,7 @@ nodeResponse(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 }
 
 int
-nodeEigenvector(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_nodeEigenvector(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -896,7 +897,7 @@ nodeEigenvector(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
     double value = theEigenvectors(dof, eigenvector);
 
-    // now we copy the value to the Tcl string that is returned
+    // copy the value to the Tcl string that is returned
     char buffer[40];
     sprintf(buffer, "%35.20f", value);
     Tcl_SetResult(interp, buffer, TCL_VOLATILE);
@@ -945,19 +946,19 @@ XaraCmd_reactions(ClientData clientData,
 
 
 int
-nodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+nodeCoord(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
 
   if (argc < 2) {
-    opserr << OpenSees::PromptValueError << "want - nodeCoord nodeTag? <dim?>\n";
+    opserr << OpenSees::PromptValueError << "Missing required argument: nodeTag" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
-  int tag;
+  Xara::Tag tag;
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "nodeCoord nodeTag? dim? - could not read nodeTag? \n";
+    opserr << OpenSees::PromptValueError << "Invalid node tag, expected integer" << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -1010,8 +1011,9 @@ nodeCoord(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** 
   return TCL_ERROR;
 }
 
+
 int
-retainedNodes(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+retainedNodes(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
               TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -1057,7 +1059,7 @@ retainedNodes(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 
 
 int
-nodeDOFs(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+nodeDOFs(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
