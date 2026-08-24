@@ -36,9 +36,7 @@
 // are used to solve a system of equations of type BandGenLinSOE.
 //
 // What: "@(#) BandGenLinSolver.h, revA"
-
-#ifndef BandGenLinSolver_h
-#define BandGenLinSolver_h
+#pragma once
 
 #include <LinearSOESolver.h>
 class BandGenLinSOE;
@@ -49,7 +47,7 @@ class BandGenLinSolver : public LinearSOESolver
     BandGenLinSolver(int classTag);    
     virtual ~BandGenLinSolver();
 
-    virtual int solve(void) = 0;
+    virtual int solve() = 0;
     virtual int setLinearSOE(BandGenLinSOE &theSOE);
     
   protected:
@@ -58,6 +56,4 @@ class BandGenLinSolver : public LinearSOESolver
   private:
 
 };
-
-#endif
 
