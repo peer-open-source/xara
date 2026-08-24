@@ -146,33 +146,6 @@ SuperLU::solve()
     return -1;
   }
 
-    /*
-    DataFileStream dataStream("K.txt");
-    dataStream.open();
-    dataStream << n << " " << theSOE->nnz-n << endln;
-
-    // output diagonal entries
-    for (int i=0; i<n; i++) 
-      for (int j=theSOE->colStartA[i]; j<theSOE->colStartA[i+1]; j++)
-        if (theSOE->rowA[j] == i)
-          dataStream << theSOE->A[j] << endln;
-
-    // rowA - diagonals
-    for (int i=0; i<=n; i++) 
-      dataStream << theSOE->colStartA[i]-i+1 << endln; 
-
-    for (int i=0; i<n; i++) 
-      for (int j=theSOE->colStartA[i]; j<theSOE->colStartA[i+1]; j++)
-        if (theSOE->rowA[j] != i)
-          dataStream << theSOE->rowA[j]+1 << endln;
-
-    for (int i=0; i<n; i++) 
-      for (int j=theSOE->colStartA[i]; j<theSOE->colStartA[i+1]; j++)
-        if (theSOE->rowA[j] != i)
-          dataStream << theSOE->A[j] << endln;
-    dataStream.close();
-    */
-
   // first copy B into X
   double *Xptr = &theSOE->X[0];
   double *Bptr = &theSOE->B[0];
@@ -282,34 +255,5 @@ SuperLU::setSize()
       
   return 0;
 }
-
-int
-SuperLU::sendSelf(int cTag, Channel &theChannel)
-{
-  // nothing to do
-  return 0;
-}
-
-int
-SuperLU::recvSelf(int ctag,
-                  Channel &theChannel, 
-                  FEM_ObjectBroker &theBroker)
-{
-  // nothing to do
-  return 0;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
