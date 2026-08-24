@@ -55,10 +55,15 @@ public:
   Matrix3D getRotationDelta() final;
   MatrixND<3,6> getRotationGradient(int node) final;
 
+  int
+  setOffsets(std::array<Vector3D, nn>* offsets) override {
+    this->offsets = offsets;
+    return 0;
+  }
+
 private:
   double L;
   int m_I,m_J;
-  // std::array<Node*,nn> nodes;
   Vector3D vz;   // vector in the x-z plane
   Vector3D dX;   // deformed length vector
   Vector3D c; // current position of the center
@@ -66,6 +71,7 @@ private:
   Vector3D Xc;   // center of the isometry
   Vector3D theta;
   double angle;
+  std::array<Vector3D, nn>* offsets = nullptr; // offsets
 };
 
 
@@ -90,6 +96,11 @@ IdentityIsometry<nn>::initialize(std::array<Node*,nn>& nodes)
 
   for (int i=0; i<3; i++)
     dX[i] = XJ[i] - XI[i];
+
+  if (offsets != nullptr) [[unlikely]] {
+    dX.addVector(1.0, (*offsets)[nn-1],  1.0);
+    dX.addVector(1.0, (*offsets)[   0], -1.0);
+  }
 
   L = dX.norm();
   Vector3D e1 = dX/L;
