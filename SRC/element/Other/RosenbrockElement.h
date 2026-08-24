@@ -10,6 +10,8 @@
 //     Computers & Structures, vol. 18, no. 3, pp. 395–407, Jan. 1984, 
 //     doi: 10.1016/0045-7949(84)90059-2.
 //
+#pragma once
+
 #include <Element.h>
 #include <vector>
 #include <array>
@@ -62,10 +64,8 @@ public:
     const Vector& u = node->getTrialDisp();
     double x = u(0);
     double y = u(1);
-    opserr << "x = " << u;
     R[0] = x*x*x + 3.0*x*x + 3.0*x;// - 2.241;
     R[1] = y*y*y - 3.0*y*y + 3.0*y;// - 3;
-    opserr << "r = " << R_wrap;
     return R_wrap;
   }
 
@@ -83,8 +83,11 @@ public:
   }
 
   void Print(OPS_Stream &s, int flag) final {
-    s << "RosenbrockElement, tag: " << this->getTag() << "\n";
-    s << "Node: " << nodeTags(0) << "\n";
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+    s << "\"type\": \"RosenbrockElement\", ";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"nodes\": [" << nodeTags(0) << "]";
+    s << "}";
   }
 
 
