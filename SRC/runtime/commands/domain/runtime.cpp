@@ -24,7 +24,7 @@
 #include <LoadPattern.h>
 
 int
-TclCommand_setLoadConst(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+XaraCmd_setLoadConst(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain* domain = (Domain*)clientData;
@@ -118,7 +118,7 @@ XaraCmd_getTime(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char **
 
 
 int
-TclCommand_setCreep(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+XaraCmd_setCreep(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain* the_domain = (Domain*)clientData;
