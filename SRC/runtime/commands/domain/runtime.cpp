@@ -82,7 +82,7 @@ TclCommand_setLoadConst(ClientData clientData, Tcl_Interp *interp, int argc, TCL
 
 
 int
-TclCommand_setTime(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+XaraCmd_setTime(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain* domain = (Domain*)clientData;
@@ -106,7 +106,7 @@ TclCommand_setTime(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char
 
 
 int
-TclCommand_getTime(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+XaraCmd_getTime(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain* domain = static_cast<Domain*>(clientData);
