@@ -52,6 +52,18 @@ public:
     void setX(int loc, double value) override;
     void setX(const Vector &x) override;
 
+    //
+    //
+
+    const std::vector<int>& getPointers()   const { return Ap; }
+    const std::vector<int>& getRowIndices() const { return Ai; }
+    const std::vector<double>& getValues()  const { return Ax; }
+
+    // Interface required for FORTRAN solvers like MUMPS
+    int*    rawPointers()   { return Ap.data(); }
+    int*    rawRowIndices() { return Ai.data(); }
+    double* rawValues()  { return Ax.data(); }
+
     int sendSelf(int commitTag, Channel &) override;
     int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
@@ -68,16 +80,21 @@ private:
       }
 
       struct Scatter {
-          int size = 0;
-          std::vector<int> data;
+        int size = 0;
+        std::vector<int> data;
 
-          bool matches(const ID &) const;
-          std::size_t storageSize() const;
+        bool matches(const ID &) const;
+        std::size_t storageSize() const;
       };
 
       static constexpr int MinimumScatterSize = 3;
       static constexpr std::size_t ScatterCacheEntryOverhead = 8u * sizeof(void *);
 
+      void reset() {
+        scatterCache.clear();
+        scatterCache.rehash(0);
+        scatterCacheBytes = 0;
+      }
       bool canCache(std::size_t) const;
       std::uint64_t hash(const ID &) const;
       void buildScatter(const ID &, Scatter &, int size, const std::vector<int>& Ap, const std::vector<int>& Ai);
@@ -92,8 +109,10 @@ private:
 
     Vector X;
     Vector B;
-    std::vector<int> Ap;
-    std::vector<int> Ai;
-    std::vector<double> Ax;
+    std::vector<double> Ax; // Ax[j] is the value of the j-th non-zero.
+    // CSC format
+    std::vector<int> Ap; // Ap[i] is the index of the first non-zero in column i
+    std::vector<int> Ai; // Ai[j] is the row index of the j-th non-zero
+    std::vector<int> colA;
 
 };
