@@ -75,67 +75,68 @@ ThreadedSuperLU::~ThreadedSuperLU()
   StatFree(&gStat);
 }
 
+
 int
-ThreadedSuperLU::solve(void)
+ThreadedSuperLU::solve()
 {
-    if (theSOE == 0) {
-	opserr << "WARNING ThreadedSuperLU::solve(void)- ";
-	opserr << " No LinearSOE object has been set\n";
-	return -1;
-    }
-    
-    int n = theSOE->size;
-    
-    // check for quick return
-    if (n == 0)
-	return 0;
+  if (theSOE == 0) {
+    opserr << "WARNING ThreadedSuperLU::solve(void)- ";
+    opserr << " No LinearSOE object has been set\n";
+    return -1;
+  }
+  
+  int n = theSOE->size;
+  
+  // check for quick return
+  if (n == 0)
+    return 0;
 
-    if (sizePerm == 0) {
-	opserr << "WARNING ThreadedSuperLU::solve(void)- ";
-	opserr << " size for row and col permutations 0 - has setSize() been called?\n";
-	return -1;
-    }
+  if (sizePerm == 0) {
+    opserr << "WARNING ThreadedSuperLU::solve(void)- ";
+    opserr << " size for row and col permutations 0 - has setSize() been called?\n";
+    return -1;
+  }
 
-    // first copy B into X
-    double *Xptr = &theSOE->X[0];
-    double *Bptr = &theSOE->B[0];
-    for (int i=0; i<n; i++)
-	*(Xptr++) = *(Bptr++);
+  // first copy B into X
+  double *Xptr = &theSOE->X[0];
+  double *Bptr = &theSOE->B[0];
+  for (int i=0; i<n; i++)
+    *(Xptr++) = *(Bptr++);
 
-    if (theSOE->factored == false) {
-	// factor the matrix
-	int info;
-
-	StatInit(n, numThreads, &gStat);
-
-	pdgstrf_init(numThreads, refact, panelSize, relax, thresh, usepr,
-		     0.0, perm_c, perm_r, work, lwork, &A, &AC, 
-		     &pdgstrf_options, &gStat);
-
-	pdgstrf(&pdgstrf_options, &AC, perm_r, &L, &U, &gStat, &info);
-
-	if (info != 0) {	
-	   opserr << "WARNING ThreadedSuperLU::solve(void)- ";
-	   opserr << " Error " << info << " returned in factorization dgstrf()\n";
-	   return info;
-	}
-
-	refact = YES;	
-	theSOE->factored = true;
-    }	
-
-    // do forward and backward substitution
-    trans = NOTRANS;
+  if (theSOE->factored == false) {
+    // factor the matrix
     int info;
-    dgstrs (trans, &L, &U, perm_r, perm_c, &B, &gStat, &info);    
+
+    StatInit(n, numThreads, &gStat);
+
+    pdgstrf_init(numThreads, refact, panelSize, relax, thresh, usepr,
+          0.0, perm_c, perm_r, work, lwork, &A, &AC, 
+          &pdgstrf_options, &gStat);
+
+    pdgstrf(&pdgstrf_options, &AC, perm_r, &L, &U, &gStat, &info);
 
     if (info != 0) {	
-       opserr << "WARNING ThreadedSuperLU::solve(void)- ";
-       opserr << " Error " << info << " returned in substitution dgstrs()\n";
-       return info;
+      opserr << "WARNING ThreadedSuperLU::solve(void)- ";
+      opserr << " Error " << info << " returned in factorization dgstrf()\n";
+      return info;
     }
 
-    return 0;
+    refact = YES;
+    theSOE->factored = true;
+  }	
+
+  // do forward and backward substitution
+  trans = NOTRANS;
+  int info;
+  dgstrs (trans, &L, &U, perm_r, perm_c, &B, &gStat, &info);    
+
+  if (info != 0) {	
+    opserr << "WARNING ThreadedSuperLU::solve(void)- ";
+    opserr << " Error " << info << " returned in substitution dgstrs()\n";
+    return info;
+  }
+
+  return 0;
 }
 
 
@@ -144,69 +145,69 @@ ThreadedSuperLU::solve(void)
 int
 ThreadedSuperLU::setSize()
 {
-    int n = theSOE->size;
-    if (n > 0) {
+  int n = theSOE->size;
+  if (n > 0) {
 
-      // create space for the permutation vectors 
-      // and the elimination tree
-      if (sizePerm < n) {
+    // create space for the permutation vectors 
+    // and the elimination tree
+    if (sizePerm < n) {
 
-	if (perm_r != 0)
-	  delete [] perm_r;
-	perm_r = new int[n];		
+      if (perm_r != 0)
+        delete [] perm_r;
+      perm_r = new int[n];		
 
-	if (perm_c != 0)
-	  delete [] perm_c;
-	perm_c = new int[n];		
+      if (perm_c != 0)
+        delete [] perm_c;
+      perm_c = new int[n];		
 
-	if (etree != 0)
-	  delete [] etree;
-	etree = new int[n];		
+      if (etree != 0)
+        delete [] etree;
+      etree = new int[n];		
 
-	if (perm_r == 0 || perm_c == 0 || etree == 0) {
-	  opserr << "WARNING ThreadedSuperLU::setSize()";
-	  opserr << " - ran out of memory\n";
-	  sizePerm = 0;
-	  return -1;
-	}		
-	sizePerm = n;
+      if (perm_r == 0 || perm_c == 0 || etree == 0) {
+        opserr << "WARNING ThreadedSuperLU::setSize()";
+        opserr << " - ran out of memory\n";
+        sizePerm = 0;
+        return -1;
       }
-
-      // initialisation
-      StatAlloc(n, numThreads, panelSize, relax, &gStat);
-
-      // create the SuperMatrixMT A	
-      dCreate_CompCol_Matrix(&A, n, n, theSOE->nnz, theSOE->A, 
-			     theSOE->rowA, theSOE->colStartA, 
-			     NC, _D, GE);
-
-      // obtain and apply column permutation to give SuperMatrixMT AC
-      get_perm_c(permSpec, &A, perm_c);
-      //      sp_preorder(refact, &A, perm_c, etree, &AC);
-
-      // create the rhs SuperMatrixMT B 
-      dCreate_Dense_Matrix(&B, n, 1, theSOE->X, n, DN, _D, GE);
-	
-      // set the refact variable to 'N' after first factorization with new size 
-      // can set to 'Y'.
-      refact = NO;
-
-    } else if (n == 0)
-	return 0;
-    else {
-	opserr << "WARNING ThreadedSuperLU::setSize()";
-	opserr << " - order of system <  0\n";
-	return -1;	
+      sizePerm = n;
     }
-	
+
+    // initialisation
+    StatAlloc(n, numThreads, panelSize, relax, &gStat);
+
+    // create the SuperMatrixMT A	
+    dCreate_CompCol_Matrix(&A, n, n, theSOE->nnz, theSOE->A, 
+                theSOE->rowA, theSOE->colStartA, 
+                NC, _D, GE);
+
+    // obtain and apply column permutation to give SuperMatrixMT AC
+    get_perm_c(permSpec, &A, perm_c);
+    //      sp_preorder(refact, &A, perm_c, etree, &AC);
+
+    // create the rhs SuperMatrixMT B 
+    dCreate_Dense_Matrix(&B, n, 1, theSOE->X, n, DN, _D, GE);
+
+    // set the refact variable to 'N' after first factorization with new size 
+    // can set to 'Y'.
+    refact = NO;
+
+  } else if (n == 0)
     return 0;
+  else {
+    opserr << "WARNING ThreadedSuperLU::setSize()";
+    opserr << " - order of system <  0\n";
+    return -1;	
+  }
+
+  return 0;
 }
 
 int
 ThreadedSuperLU::sendSelf(int cTag, Channel &theChannel)
 {
-    // nothing to do
-    return 0;
+  // nothing to do
+  return 0;
 }
 
 int
@@ -214,7 +215,7 @@ ThreadedSuperLU::recvSelf(int cTag,
 			  Channel &theChannel, 
 			  FEM_ObjectBroker &theBroker)
 {
-    // nothing to do
-    return 0;
+  // nothing to do
+  return 0;
 }
 
