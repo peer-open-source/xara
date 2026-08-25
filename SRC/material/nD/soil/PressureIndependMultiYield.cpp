@@ -1,3 +1,6 @@
+// 
+// [2] J.-H. Prévost, A. Asce, and R. Fellow, 
+//     "Anisotropic Undrained Stress-Strain Behavior of Clays,” 1978.
 //
 // Written: ZHY
 // Created: August 2000
@@ -34,79 +37,79 @@ double* PressureIndependMultiYield::residualPressx=0;
 
 void * OPS_ADD_RUNTIME_VPV(OPS_PressureIndependMultiYield)
 {
-    const int numParam = 6;
-    const int totParam = 10;
+  const int numParam = 6;
+  const int totParam = 10;
 
-    int argc = OPS_GetNumRemainingInputArgs() + 2;
+  int argc = OPS_GetNumRemainingInputArgs() + 2;
 
-    const char * arg[] = {
-          "nd", "rho", "refShearModul", "refBulkModul",
-          "cohesi", "peakShearStra",
-          "frictionAng (=0)", "refPress (=100)", "pressDependCoe (=0.0)",
-          "numberOfYieldSurf (=20)"
-    };
-    if (argc < (3+numParam)) {
-      opserr << "WARNING insufficient arguments\n";
-      opserr << "Want: nDMaterial PressureIndependMultiYield tag? " << arg[0];
-      opserr << "? "<< "\n";
-      opserr << arg[1] << "? "<< arg[2] << "? "<< arg[3] << "? "<< "\n";
-      opserr << arg[4] << "? "<< arg[5] << "? "<< arg[6] << "? "<< "\n";
-      opserr << arg[7] << "? "<< arg[8] << "? "<< arg[9] << "? "<<"\n";
-      return 0;
+  const char * arg[] = {
+        "nd", "rho", "refShearModul", "refBulkModul",
+        "cohesi", "peakShearStra",
+        "frictionAng (=0)", "refPress (=100)", "pressDependCoe (=0.0)",
+        "numberOfYieldSurf (=20)"
+  };
+  if (argc < (3+numParam)) {
+    opserr << "WARNING insufficient arguments\n";
+    opserr << "Want: nDMaterial PressureIndependMultiYield tag? " << arg[0];
+    opserr << "? "<< "\n";
+    opserr << arg[1] << "? "<< arg[2] << "? "<< arg[3] << "? "<< "\n";
+    opserr << arg[4] << "? "<< arg[5] << "? "<< arg[6] << "? "<< "\n";
+    opserr << arg[7] << "? "<< arg[8] << "? "<< arg[9] << "? "<<"\n";
+    return 0;
+  }
+  
+  int tag;
+  int numdata = 1;
+  if (OPS_GetIntInput(&numdata, &tag) < 0) {
+    opserr << "WARNING invalid PressureIndependMultiYield tag" << "\n";
+    return 0;
+  }
+
+  int nd;
+  if (OPS_GetIntInput(&numdata, &nd) < 0) {
+    opserr << "WARNING invalid PressureIndependMultiYield nd" << "\n";
+    return 0;
+  }
+
+  double param[8];
+  param[5] = 0.0;
+  param[6] = 100.;
+  param[7] = 0.0;
+  numdata = 8;
+  if (OPS_GetDoubleInput(&numdata, &param[0]) < 0) {
+    opserr << "WARNING invalid PressureIndependMultiYield double inputs" << "\n";
+    return 0;
+  }
+
+  int numberOfYieldSurf = 20;
+  numdata = 1;
+  if (OPS_GetIntInput(&numdata, &numberOfYieldSurf) < 0) {
+    opserr << "WARNING invalid PressureIndependMultiYield numberOfYieldSurf" << "\n";
+    return 0;
+  }
+
+  static double * gredu = 0;
+  // user defined yield surfaces
+  if (numberOfYieldSurf < 0 && numberOfYieldSurf > -40) {
+    numberOfYieldSurf = -int(numberOfYieldSurf);
+    numdata = int(2*numberOfYieldSurf);
+    gredu = new double[numdata];
+    if (OPS_GetDoubleInput(&numdata, gredu) < 0) {
+        opserr << "WARNING invalid PressureIndependMultiYield double inputs" << "\n";
+        return 0;
     }
-    
-    int tag;
-    int numdata = 1;
-    if (OPS_GetIntInput(&numdata, &tag) < 0) {
-      opserr << "WARNING invalid PressureIndependMultiYield tag" << "\n";
-      return 0;
-    }
+  }
 
-    int nd;
-    if (OPS_GetIntInput(&numdata, &nd) < 0) {
-      opserr << "WARNING invalid PressureIndependMultiYield nd" << "\n";
-      return 0;
-    }
+  PressureIndependMultiYield * temp =
+    new PressureIndependMultiYield (tag, nd, param[0], param[1], param[2],
+            param[3], param[4], param[5], param[6],
+            param[7], numberOfYieldSurf, gredu);
+  if (gredu != 0) {
+    delete [] gredu;
+    gredu = 0;
+  }
 
-    double param[8];
-    param[5] = 0.0;
-    param[6] = 100.;
-    param[7] = 0.0;
-    numdata = 8;
-    if (OPS_GetDoubleInput(&numdata, &param[0]) < 0) {
-      opserr << "WARNING invalid PressureIndependMultiYield double inputs" << "\n";
-      return 0;
-    }
-
-    int numberOfYieldSurf = 20;
-    numdata = 1;
-    if (OPS_GetIntInput(&numdata, &numberOfYieldSurf) < 0) {
-      opserr << "WARNING invalid PressureIndependMultiYield numberOfYieldSurf" << "\n";
-      return 0;
-    }
-
-    static double * gredu = 0;
-    // user defined yield surfaces
-    if (numberOfYieldSurf < 0 && numberOfYieldSurf > -40) {
-      numberOfYieldSurf = -int(numberOfYieldSurf);
-      numdata = int(2*numberOfYieldSurf);
-      gredu = new double[numdata];
-      if (OPS_GetDoubleInput(&numdata, gredu) < 0) {
-          opserr << "WARNING invalid PressureIndependMultiYield double inputs" << "\n";
-          return 0;
-      }
-    }
-
-    PressureIndependMultiYield * temp =
-      new PressureIndependMultiYield (tag, nd, param[0], param[1], param[2],
-              param[3], param[4], param[5], param[6],
-              param[7], numberOfYieldSurf, gredu);
-    if (gredu != 0) {
-      delete [] gredu;
-      gredu = 0;
-    }
-
-    return temp;
+  return temp;
 }
 
 PressureIndependMultiYield::PressureIndependMultiYield (int tag, int nd,
@@ -1264,8 +1267,9 @@ void PressureIndependMultiYield::setUpSurfaces (double * gredu)
 }
 
 
-double PressureIndependMultiYield::yieldFunc(const T2Vector & stress,
-											 const MultiYieldSurface * surfaces, int surfaceNum)
+double 
+PressureIndependMultiYield::yieldFunc(const T2Vector & stress,
+                                      const MultiYieldSurface * surfaces, int surfaceNum)
 {
 	static Vector temp(6);
 	//temp = stress.deviator() - surfaces[surfaceNum].center();
@@ -1277,8 +1281,9 @@ double PressureIndependMultiYield::yieldFunc(const T2Vector & stress,
 }
 
 
-void PressureIndependMultiYield::deviatorScaling(T2Vector & stress, const MultiYieldSurface * surfaces,
-																			int surfaceNum, int count)
+void
+PressureIndependMultiYield::deviatorScaling(T2Vector & stress, const MultiYieldSurface * surfaces,
+                                            int surfaceNum, int count)
 {
 	count++;
 	int numOfSurfaces = numOfSurfacesx[matN];
@@ -1308,7 +1313,8 @@ void PressureIndependMultiYield::deviatorScaling(T2Vector & stress, const MultiY
 }
 
 
-void PressureIndependMultiYield::initSurfaceUpdate()
+void
+PressureIndependMultiYield::initSurfaceUpdate()
 {
 	if (committedActiveSurf == 0) return;
 
@@ -1332,7 +1338,8 @@ void PressureIndependMultiYield::initSurfaceUpdate()
 }
 
 
-void PressureIndependMultiYield::paramScaling(void)
+void
+PressureIndependMultiYield::paramScaling()
 {
 	int numOfSurfaces = numOfSurfacesx[matN];
 	double frictionAngle = frictionAnglex[matN];
@@ -1360,7 +1367,8 @@ void PressureIndependMultiYield::paramScaling(void)
 }
 
 
-void PressureIndependMultiYield::setTrialStress(T2Vector & stress)
+void
+PressureIndependMultiYield::setTrialStress(T2Vector & stress)
 {
   static Vector devia(6);
   //devia = stress.deviator() + subStrainRate.deviator()*2.*refShearModulus;
@@ -1426,7 +1434,7 @@ PressureIndependMultiYield::getContactStress(T2Vector &contactStress)
 }
 
 
-int PressureIndependMultiYield::isLoadReversal(void)
+int PressureIndependMultiYield::isLoadReversal()
 {
   if(activeSurfaceNum == 0) return 0;
 
@@ -1504,13 +1512,13 @@ void PressureIndependMultiYield::stressCorrection(int crossedSurface)
 }
 
 
-void PressureIndependMultiYield::updateActiveSurface(void)
+void
+PressureIndependMultiYield::updateActiveSurface()
 {
   int numOfSurfaces = numOfSurfacesx[matN];
 
   if (activeSurfaceNum == numOfSurfaces) return;
 
-	double A, B, C, X;
 	static T2Vector direction;
 	static Vector t1(6);
 	static Vector t2(6);
@@ -1530,11 +1538,12 @@ void PressureIndependMultiYield::updateActiveSurface(void)
 	t2 = center;
 	t2 -= outcenter;
 
-	A = t1 && t1;
-	B = 2. * (t1 && t2);
-	C = (t2 && t2) - 2./3.* outsize * outsize;
-	X = secondOrderEqn(A,B,C,0);
-	if ( fabs(X-1.) < LOW_LIMIT ) X = 1.;
+	double A = t1 && t1;
+	double B = 2. * (t1 && t2);
+	double C = (t2 && t2) - 2./3.* outsize * outsize;
+	double X = secondOrderEqn(A,B,C,0);
+	if ( fabs(X-1.) < LOW_LIMIT )
+    X = 1.;
 	if (X < 1.){
 	  opserr << "FATAL:PressureIndependMultiYield::updateActiveSurface(): error in Direction of surface motion." 
 	       << endln;
@@ -1579,7 +1588,8 @@ void PressureIndependMultiYield::updateActiveSurface(void)
 }
 
 
-void PressureIndependMultiYield::updateInnerSurface(void)
+void
+PressureIndependMultiYield::updateInnerSurface()
 {
 	if (activeSurfaceNum <= 1) return;
 
@@ -1602,12 +1612,13 @@ void PressureIndependMultiYield::updateInnerSurface(void)
 }
 
 
-int PressureIndependMultiYield:: isCrossingNextSurface(void)
+int
+PressureIndependMultiYield::isCrossingNextSurface()
 {
   int numOfSurfaces = numOfSurfacesx[matN];
   if (activeSurfaceNum == numOfSurfaces) return 0;
 
-  if(yieldFunc(trialStress, theSurfaces, activeSurfaceNum+1) > 0) return 1;
+  if (yieldFunc(trialStress, theSurfaces, activeSurfaceNum+1) > 0) return 1;
 
   return 0;
 }
