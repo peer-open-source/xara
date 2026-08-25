@@ -16,13 +16,7 @@
 **   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
-** ****************************************************************** */
-                                                                        
-// $Revision: 1.5 $
-// $Date: 2010-04-23 22:50:19 $
-// $Source: /usr/local/cvs/OpenSees/SRC/domain/constraints/MP_Constraint.h,v $
-                                                                        
-                                                                        
+** ****************************************************************** */                                                                        
 #ifndef MP_Constraint_h
 #define MP_Constraint_h
 
@@ -69,7 +63,7 @@ class MP_Constraint : public DomainComponent
     virtual ~MP_Constraint();
 
     // domain component
-    void setDomain(Domain* theDomain);
+    void setDomain(Domain*);
 
     // method to get information about the constraint
     virtual int getNodeRetained() const;
