@@ -45,30 +45,30 @@ class Parameter : public TaggedObject, public MovableObject
   virtual void Print(OPS_Stream &s, int flag);
   
   virtual int update(int newValue); 
-  virtual int update(double newValue); 
+  virtual int update(double newValue);
   virtual int activate(bool active);
-  virtual double getValue(void) {return theInfo.theDouble;}
+  virtual double getValue() {return theInfo.theDouble;}
   virtual void setValue(double newValue) {theInfo.theDouble = newValue;}
 
-  virtual int addComponent(MovableObject *theObject, const char **argv, int argc);  
+  virtual int addComponent(MovableObject *, const char **argv, int argc);  
   virtual int addComponent(int, const char **argv, int argc);  
   virtual int addObject(int parameterID, MovableObject *object);
 
-  virtual int clean(void);
+  virtual int clean();
 
   void setGradIndex(int gradInd) {gradIndex = gradInd;}
-  int getGradIndex(void) {return gradIndex;}
+  int getGradIndex() {return gradIndex;}
 
-  virtual bool isImplicit(void) {return true;}
+  virtual bool isImplicit() {return true;}
   virtual double getSensitivity(int index);
-  virtual double getPerturbation(void) {return 0.001;}
-  virtual const char *getType(void) {return "FEModel";}
-  virtual int getPointerTag(void) {return -1;}
+  virtual double getPerturbation() {return 0.001;}
+  virtual const char *getType() {return "FEModel";}
+  virtual int getPointerTag() {return -1;}
 
   virtual void setDomain(Domain *theDomain);
 
-  virtual int sendSelf(int commitTag, Channel &theChannel);  
-  virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+  virtual int sendSelf(int commitTag, Channel &);  
+  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
  protected:
   int *parameterID;
