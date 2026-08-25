@@ -1546,6 +1546,24 @@ Node::Print(OPS_Stream &s, int flag)
     for (int i = 0; i < numCrd - 1; i++)
         s << xyz(i) << ", ";
     s << xyz(numCrd - 1) << "]";
+
+    if (numberDOF >= 6) {
+      s << ", \"rotation\": ";
+      switch (rotationType) {
+        case Rotations::Parameters::None:
+          s << "\"none\"";
+          break;
+        case Rotations::Parameters::Iter:
+          s << "\"Iter\"";
+          break;
+        case Rotations::Parameters::Incr:
+          s << "\"Incr\"";
+          break;
+        case Rotations::Parameters::Init:
+          s << "\"Init\"";
+          break;
+      }
+    }
     if (mass != 0) {
       s << ", \"mass\": [";
       for (int i = 0; i < numberDOF - 1; i++)
