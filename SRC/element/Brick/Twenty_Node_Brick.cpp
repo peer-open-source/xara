@@ -18,10 +18,11 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// by Jinchi Lu and Zhaohui Yang (May 2004)
+// Twenty-node serendipity brick with 3x3x3 (27-point) Gauss integration.
 //
-// 20NodeBrick element
-
+// Created:  Jinchi Lu and Zhaohui Yang (May 2004)
+// Modified: Claudio M. Perez, Stanford University
+//
 #include <math.h>
 #include <stdlib.h>
 
