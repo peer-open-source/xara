@@ -50,7 +50,7 @@
 // Claudio M. Perez
 //
 #include <cstddef>
-#include <ExactFrame3d.h>
+#include "ExactFrame3d.h"
 #include <Node.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -88,9 +88,13 @@ G_matrix(MatrixND<6+nwm,6+nwm> &G,
 
   G.assemble(         sm, 3, 3, -shape[1][i]*shape[0][j]);
   G.assemble( Hat(dx)*sn, 3, 3,  shape[0][i]*shape[0][j]);
+
+  // Vector3D n {s[0], s[1], s[2]};
+  // Matrix3D Knx = n.bun(dx) - n.dot(dx)*Eye3;
+  // G.assemble(Knx, 3, 3, shape[0][i]*shape[0][j]);
 }
 
-template<std::size_t nen, int nwm> static void
+template<std::size_t nen, int nwm> static inline void
 B_nat(MatrixND<6+2*nwm,6+nwm> &B, double shape[2][nen], const Vector3D& dx, int n)
 {
   //
@@ -186,7 +190,7 @@ ExactFrame3d<nen,nwm>::setNodes()
     lagrange<nen>(pres[i].point, xn, pres[i].shape);
   }
 
-  // Zero out the state of the Gauss pres
+  // Zero out the state of the Gauss points
   this->revertToStart();
 
   return 0;
@@ -209,7 +213,7 @@ ExactFrame3d<nen,nwm>::revertToStart()
     R0(i,2) =  E3[i];
   }
 
-  // Revert the of the Gauss pres to start
+  // Revert the of the Gauss points to start
   for (GaussPoint& point : pres) {
     point.curvature.zero();
     point.rotation = R0;
@@ -797,7 +801,6 @@ ExactFrame3d<nen,nwm>::getResponse(int responseID, Information &info)
         }
       }
     }
-
     return info.setVector(q_resp);
   }
 
