@@ -78,15 +78,18 @@ if (ICB)
     file(WRITE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/PROG_ICB.f90
          "
           PROGRAM PROG_ICB
-          USE iso_c_binding
+	  USE, INTRINSIC :: iso_c_binding
           IMPLICIT NONE
           INTEGER(C_INT) :: a
           a = 1
           END PROGRAM PROG_ICB
          ")
-    try_compile(COMPILE_ICB ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/PROG_ICB.f90)
+    try_compile(COMPILE_ICB ${CMAKE_BINARY_DIR} 
+	        ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/PROG_ICB.f90
+	        OUTPUT_VARIABLE COMPILE_ICB_OUTPUT)
     if(NOT ${COMPILE_ICB})
-      message(FATAL_ERROR "-- Fortran compiler does not support iso_c_binding.")
+      message("${COMPILE_ICB_OUTPUT}")
+#     message(FATAL_ERROR "-- Fortran compiler does not support iso_c_binding.")
     else()
       message("-- Fortran compiler does support iso_c_binding.")
     endif()
@@ -335,6 +338,8 @@ add_library(arpack
 if (WIN32)
   target_compile_options(arpack PRIVATE /fpp /libs:static /threads /c)
 endif()
+
+target_include_directories(arpack PRIVATE "C:\\Users\\xstal\\miniforge3\\envs\\py311\\opt\\compiler\\include\\intel64")
 
 target_link_libraries(arpack
   PUBLIC

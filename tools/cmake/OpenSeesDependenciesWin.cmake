@@ -6,14 +6,15 @@
 #==============================================================================
 
 
-#set(USE_STATIC_MKL TRUE)
+set(USE_STATIC_MKL TRUE)
 set(BLA_STATIC ON)
 set(BLA_VENDOR Intel10_64lp)
 # set(BLA_VENDOR Intel10_64ilp)
-set (MKL_LPATH ${MKL_ROOT}/lib/intel64)
+set (MKL_LPATH $ENV{CONDA_PREFIX}/lib/intel64)
+set (MKL_DIR $ENV{CONDA_PREFIX}/lib/intel64)
 find_package(MKL  CONFIG REQUIRED)
-find_package(BLAS)
-find_package(LAPACK)
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
 
 
 # set(BUNDLE_LIBS "${PROJECT_SOURCE_DIR}/Win64/lib/debug/")

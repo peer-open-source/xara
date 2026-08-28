@@ -11,7 +11,7 @@ import setuptools
 
 #--------------------------------------------------
 
-version    = "0.1.28"
+version    = "0.1.33"
 build_type = os.environ.get("OPENSEESRT_BUILD", "release")
 
 #--------------------------------------------------
@@ -43,7 +43,7 @@ use_conan = False
 
 if os.name == "nt":
     EnvArgs = [
-            # "-DCMAKE_TOOLCHAIN_FILE=ifx_toolchain.cmake"
+            "-DCMAKE_TOOLCHAIN_FILE=ifx_toolchain.cmake"
     ]
     use_conan = False
 
@@ -116,7 +116,7 @@ if __name__ == "__main__":
                cmake_configure_options = [
                    *EnvArgs,
                    *options[build_type],
-                #    "-G Ninja",
+                   "-G Ninja",
                    f"-DOPENSEESRT_VERSION={version}",
                    *OpenSeesPyRT_Config,
 
