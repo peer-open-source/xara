@@ -88,7 +88,7 @@ TrussSection::TrussSection(int tag, int dim, int Nd1, int Nd2,
   connectedExternalNodes(1) = Nd2;
 
   // set node pointers to NULL
-  for (i = 0; i < 2; i++)
+  for (int i = 0; i < 2; i++)
     theNodes[i] = nullptr;
 
   cosX[0] = 0.0;
@@ -198,7 +198,7 @@ TrussSection::setDomain(Domain* theDomain)
     else
       opserr << "TrussSection::setDomain() - Nd1: " << Nd2 << " does not exist in Domain\n";
 
-    opserr << " for truss with id " << this->getTag() << endln;
+    opserr << " for truss with id " << this->getTag() << "\n";
 
     // fill this in so don't segment fault later
     numDOF    = 2;

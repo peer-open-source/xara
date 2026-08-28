@@ -54,7 +54,7 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const ar
 
 
   opsdbg << G3_DEBUG_PROMPT << "Set integrator to \n";
-  theIntegrator->Print(opsdbg);
+  theIntegrator->Print(opsdbg,0);
   builder->set(*theIntegrator);
   return TCL_OK;
 }
@@ -75,7 +75,7 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const a
   BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
 
   opsdbg << G3_DEBUG_PROMPT << "Set integrator to \n";
-  theIntegrator->Print(opsdbg);
+  theIntegrator->Print(opsdbg,0);
   builder->set(*theIntegrator);
   return TCL_OK;
 }
@@ -94,7 +94,7 @@ dispatch(ClientData clientData, Tcl_Interp* interp, int argc, G3_Char** const ar
     BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData); \
     Type* theIntegrator = new Class();                                \
     opsdbg << G3_DEBUG_PROMPT << "Set integrator to \n";              \
-    theIntegrator->Print(opsdbg);                                     \
+    theIntegrator->Print(opsdbg,0);                                   \
     builder->set(*theIntegrator);                                     \
     return TCL_OK;                                                    \
   }
@@ -136,6 +136,7 @@ XaraCmd_integrator(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_
 
 }
 
+
 static int
 XaraCmd_newStaticIntegrator(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
@@ -168,8 +169,6 @@ XaraCmd_newStaticIntegrator(ClientData clientData, Tcl_Interp *interp, ArgSize a
   // Done parsing; set the integrator
   //
   if (theStaticIntegrator != nullptr) {
-    opsdbg << G3_DEBUG_PROMPT << "Set integrator to \n";
-    theStaticIntegrator->Print(opsdbg);
     builder->set(*theStaticIntegrator);
     return TCL_OK;
   } else
@@ -212,10 +211,11 @@ XaraCmd_newTransientIntegrator(ClientData clientData,
   }
 
   opsdbg << G3_DEBUG_PROMPT << "Set integrator to \n";
-  theTransientIntegrator->Print(opsdbg);
+  theTransientIntegrator->Print(opsdbg,0);
   builder->set(*theTransientIntegrator);
   return TCL_OK;
 }
+
 
 #include <HSConstraint.h>
 int

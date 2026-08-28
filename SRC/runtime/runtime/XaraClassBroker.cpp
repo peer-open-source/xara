@@ -1134,21 +1134,6 @@ XaraClassBroker::getNewNDMaterial(int classTag)
   case ND_TAG_ElasticIsotropicThreeDimensional:
     return new ElasticIsotropicThreeDimensional();
 
-  case ND_TAG_J2PlaneStrain:
-    return new J2PlaneStrain();
-
-  case ND_TAG_J2PlaneStress:
-    return new J2PlaneStress();
-
-  case ND_TAG_J2AxiSymm:
-    return new J2AxiSymm();
-
-  case ND_TAG_J2PlateFiber:
-    return new J2PlateFiber();
-
-  case ND_TAG_J2ThreeDimensional:
-    return new J2ThreeDimensional();
-
   case ND_TAG_PlaneStressMaterial:
     return new PlaneStressMaterial();
 
@@ -1178,11 +1163,6 @@ XaraClassBroker::getNewNDMaterial(int classTag)
   case ND_TAG_PressureIndependMultiYield:
     return new PressureIndependMultiYield();
 
-#if defined(OPSDEF_ELEMENT_FEAP)
-  case ND_TAG_FeapMaterial03:
-    return new FeapMaterial03();
-#endif // OPSDEF_ELEMENT_FEAP
-
   case ND_TAG_ContactMaterial2D:
     return new ContactMaterial2D();
 
@@ -1194,9 +1174,6 @@ XaraClassBroker::getNewNDMaterial(int classTag)
 
   case ND_TAG_DruckerPragerPlaneStrain:
     return new DruckerPragerPlaneStrain();
-
-  case ND_TAG_BoundingCamClay:
-    return new BoundingCamClay();
 
   case ND_TAG_BoundingCamClay3D:
     return new BoundingCamClay3D();

@@ -33,46 +33,36 @@
 #include <FEM_ObjectBroker.h>
 
 //static vectors and matrices
-Vector MultiaxialCyclicPlasticityAxiSymm :: strain_vec(4) ;
-Vector MultiaxialCyclicPlasticityAxiSymm :: stress_vec(4) ;
-Matrix MultiaxialCyclicPlasticityAxiSymm :: tangent_matrix(4,4) ;
+Vector MultiaxialCyclicPlasticityAxiSymm::strain_vec(4) ;
+Vector MultiaxialCyclicPlasticityAxiSymm::stress_vec(4) ;
+Matrix MultiaxialCyclicPlasticityAxiSymm::tangent_matrix(4,4) ;
 
 //null constructor
-MultiaxialCyclicPlasticityAxiSymm ::  MultiaxialCyclicPlasticityAxiSymm( ) : 
+MultiaxialCyclicPlasticityAxiSymm::MultiaxialCyclicPlasticityAxiSymm( ) : 
 MultiaxialCyclicPlasticity( ) 
-{  }
+{
+
+}
 
 
 //full constructor
-MultiaxialCyclicPlasticityAxiSymm :: 
-MultiaxialCyclicPlasticityAxiSymm(       int    tag, 
-				 double rho,
-                 double K,
-                 double G,
-				 double Su,
- 			     double Ho_kin,
-                 double Parameter_h,
-                 double Parameter_m,
-                 double Parameter_beta,
-                 double Kcoeff,
-                 double viscosity ) : 
+MultiaxialCyclicPlasticityAxiSymm::
+MultiaxialCyclicPlasticityAxiSymm(int    tag, 
+                                  double rho,
+                                  double K,
+                                  double G,
+                                  double Su,
+                                  double Ho_kin,
+                                  double Parameter_h,
+                                  double Parameter_m,
+                                  double Parameter_beta,
+                                  double Kcoeff,
+                                  double viscosity ) : 
 MultiaxialCyclicPlasticity( tag, ND_TAG_MultiaxialCyclicPlasticityAxiSymm, rho, K, G, 
       Su, Ho_kin, Parameter_h, Parameter_m, Parameter_beta, Kcoeff, viscosity)
 { 
 
 }
-
-
-
-// //elastic constructor
-// MultiaxialCyclicPlasticityAxiSymm :: 
-// MultiaxialCyclicPlasticityAxiSymm(   int    tag, double rho,    // add density by Gang Wang
-//                  double K, 
-//                  double G ) :
-// MultiaxialCyclicPlasticity( tag, ND_TAG_MultiaxialCyclicPlasticityAxiSymm, rho, K, G )
-// { 
-
-// }
 
 
 
@@ -83,7 +73,8 @@ MultiaxialCyclicPlasticityAxiSymm::~MultiaxialCyclicPlasticityAxiSymm()
 } 
 
 
-NDMaterial* MultiaxialCyclicPlasticityAxiSymm :: getCopy( ) 
+NDMaterial* 
+MultiaxialCyclicPlasticityAxiSymm::getCopy( ) 
 { 
   MultiaxialCyclicPlasticityAxiSymm  *clone;
   clone = new MultiaxialCyclicPlasticityAxiSymm() ;   //new instance of this class
@@ -92,21 +83,21 @@ NDMaterial* MultiaxialCyclicPlasticityAxiSymm :: getCopy( )
 }
 
 
-//send back type of material
-const char* MultiaxialCyclicPlasticityAxiSymm :: getType( ) const 
+const char* 
+MultiaxialCyclicPlasticityAxiSymm::getType( ) const 
 {
   return "AxiSymmetric" ;
 }
 
 
-int MultiaxialCyclicPlasticityAxiSymm :: getOrder( ) const 
+int MultiaxialCyclicPlasticityAxiSymm::getOrder( ) const 
 { 
   return 4 ; 
 } 
 
 
 //get the strain and integrate plasticity equations
-int MultiaxialCyclicPlasticityAxiSymm :: setTrialStrain( const Vector &strain_from_element) 
+int MultiaxialCyclicPlasticityAxiSymm::setTrialStrain( const Vector &strain_from_element) 
 {
   strain.Zero( ) ;
 
@@ -130,12 +121,12 @@ int MultiaxialCyclicPlasticityAxiSymm :: setTrialStrain( const Vector &strain_fr
 
 
 //unused trial strain functions
-int MultiaxialCyclicPlasticityAxiSymm :: setTrialStrain( const Vector &v, const Vector &r )
+int MultiaxialCyclicPlasticityAxiSymm::setTrialStrain( const Vector &v, const Vector &r )
 { 
    return this->setTrialStrain( v ) ;
 } 
 
-int MultiaxialCyclicPlasticityAxiSymm :: setTrialStrainIncr( const Vector &v ) 
+int MultiaxialCyclicPlasticityAxiSymm::setTrialStrainIncr( const Vector &v ) 
 {
     // implemented Dec. 5, 2003, Gang Wang
     static Vector newStrain(4);
@@ -147,7 +138,7 @@ int MultiaxialCyclicPlasticityAxiSymm :: setTrialStrainIncr( const Vector &v )
     return this->setTrialStrain(newStrain);
 }
 
-int MultiaxialCyclicPlasticityAxiSymm :: setTrialStrainIncr( const Vector &v, const Vector &r ) 
+int MultiaxialCyclicPlasticityAxiSymm::setTrialStrainIncr( const Vector &v, const Vector &r ) 
 {
     // implemented Dec. 5, 2003, Gang Wang
 	//return this->setTrialStrainIncr(v);
@@ -172,7 +163,7 @@ int MultiaxialCyclicPlasticityAxiSymm :: setTrialStrainIncr( const Vector &v, co
 
 
 
-const Vector& MultiaxialCyclicPlasticityAxiSymm :: getStrain( ) 
+const Vector& MultiaxialCyclicPlasticityAxiSymm::getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
   strain_vec(1) =       strain(1,1) ;
@@ -184,7 +175,7 @@ const Vector& MultiaxialCyclicPlasticityAxiSymm :: getStrain( )
 } 
 
 
-const Vector& MultiaxialCyclicPlasticityAxiSymm :: getStress( ) 
+const Vector& MultiaxialCyclicPlasticityAxiSymm::getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
   stress_vec(1) = stress(1,1) ;
@@ -194,7 +185,7 @@ const Vector& MultiaxialCyclicPlasticityAxiSymm :: getStress( )
   return stress_vec ;
 }
 
-const Matrix& MultiaxialCyclicPlasticityAxiSymm :: getTangent( ) 
+const Matrix& MultiaxialCyclicPlasticityAxiSymm::getTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -220,7 +211,7 @@ const Matrix& MultiaxialCyclicPlasticityAxiSymm :: getTangent( )
   return tangent_matrix ;
 } 
 
-const Matrix& MultiaxialCyclicPlasticityAxiSymm :: getInitialTangent( ) 
+const Matrix& MultiaxialCyclicPlasticityAxiSymm::getInitialTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -251,7 +242,7 @@ const Matrix& MultiaxialCyclicPlasticityAxiSymm :: getInitialTangent( )
 
 //swap history variables
 /* 
-int MultiaxialCyclicPlasticityAxiSymm :: commitState( )  
+int MultiaxialCyclicPlasticityAxiSymm::commitState( )  
 {
 
   e_p_n        = e_p_nplus1 ;       // dev plastic part
@@ -263,12 +254,12 @@ int MultiaxialCyclicPlasticityAxiSymm :: commitState( )
 }
 
 
-int MultiaxialCyclicPlasticityAxiSymm :: revertToLastCommit( )
+int MultiaxialCyclicPlasticityAxiSymm::revertToLastCommit( )
 { 
   return 0 ;
 } 
 
-int MultiaxialCyclicPlasticityAxiSymm :: revertToStart( ) 
+int MultiaxialCyclicPlasticityAxiSymm::revertToStart( ) 
 
 {  
   this->zero( ) ;

@@ -89,7 +89,7 @@ class J2ThreeDimensionalThermal : public J2PlasticityThermal {
   //destructor
   ~J2ThreeDimensionalThermal( ) ;
 
-  const char *getClassType(void) const {return "J2ThreeDimensionalThermal";};
+  const char *getClassType(void) const {return "J2ThreeDimensionalThermal";}
 
     NDMaterial* getCopy( ) ;
 

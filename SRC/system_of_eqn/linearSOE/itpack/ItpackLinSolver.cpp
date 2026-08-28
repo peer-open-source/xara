@@ -73,7 +73,7 @@ ItpackLinSolver::setLinearSOE(ItpackLinSOE &theItpackSOE)
 }
 
 int
-ItpackLinSolver::setSize(void)
+ItpackLinSolver::setSize()
 {
   // Get number of equations from SOE
   n = theSOE->size;
