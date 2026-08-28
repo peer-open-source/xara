@@ -254,11 +254,10 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
     missing += tracker.contains(Args::TFinish);
     missing += tracker.contains(Args::Period);
 
-    bool hasPositionalTag = false;
 
     if (tracker.contains(Args::Tag)) {
       if ((int)positions.size() == missing + 1) {
-        hasPositionalTag = true;
+        ;
       } else if ((int)positions.size() == missing) {
         tracker.consume(Args::Tag); // no tag supplied; default tag = 0
       } else {

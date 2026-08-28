@@ -32,8 +32,6 @@
 #
 # - LIBRARY <path/to/lib.a> INCLUDE <path/to/include/>
 #
-# - CONAN <conan-package/version>
-#   Point to a conan package.
 #
 #----------------------------------------------------------------
 

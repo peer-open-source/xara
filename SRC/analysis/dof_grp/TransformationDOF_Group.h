@@ -17,15 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.7 $
-// $Date: 2008-11-19 23:42:04 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/dof_grp/TransformationDOF_Group.h,v $
-                                                                        
-                                                                        
-#ifndef TransformationDOF_Group_h
-#define TransformationDOF_Group_h
-
+//
 // Written: fmk 
 // Created: 05/99
 // Revision: A
@@ -37,7 +29,7 @@
 // or an SP_Constrant.
 //
 // What: "@(#) TransformationDOF_Group.h, revA"
-
+#pragma once
 #include <DOF_Group.h>
 
 // M.Petracca 2024. Unified approach to constraints
@@ -61,13 +53,13 @@ class TransformationDOF_Group: public DOF_Group
     ~TransformationDOF_Group();    
     
     // methods dealing with the ID and transformation matrix
-    int doneID(void);    
-    const ID &getID(void) const; 
+    int doneID();    
+    const ID &getID() const; 
     virtual void setID(int dof, int value);    
-    Matrix *getT(void);
-    virtual int getNumDOF(void) const;    
-    virtual int getNumFreeDOF(void) const;
-    virtual int getNumConstrainedDOF(void) const;
+    Matrix *getT();
+    virtual int getNumDOF() const;    
+    virtual int getNumFreeDOF() const;
+    virtual int getNumConstrainedDOF() const;
     
     // methods to form the tangent
     const Matrix &getTangent(Integrator *theIntegrator);
@@ -81,9 +73,9 @@ class TransformationDOF_Group: public DOF_Group
     const Vector &getM_Force(const Vector &x, double fact = 1.0);
     
     // methods to obtain committed responses from the nodes
-    const Vector & getCommittedDisp(void);
-    const Vector & getCommittedVel(void);
-    const Vector & getCommittedAccel(void);
+    const Vector & getCommittedDisp();
+    const Vector & getCommittedVel();
+    const Vector & getCommittedAccel();
     
     // methods to update the trial response at the nodes
     void setNodeDisp(const Vector &u);
@@ -145,6 +137,4 @@ class TransformationDOF_Group: public DOF_Group
 #endif // TRANSF_INCREMENTAL_MP
 
 };
-
-#endif
 
