@@ -50,18 +50,18 @@ public:
     int formEleTangent(FE_Element *theEle);
     int formNodTangent(DOF_Group *theDof);
     
-    int domainChanged(void);
+    int domainChanged();
     int newStep(double deltaT);
-    int revertToLastStep(void);
-    int revertToStart(void);
+    int revertToLastStep();
+    int revertToStart();
     int update(const Vector &aiPlusOne);
 
-    const Vector &getVel(void);
+    const Vector &getVel();
     
     virtual int sendSelf(int commitTag, Channel &theChannel);
     virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
     
-    void Print(OPS_Stream &s, int flag = 0);
+    void Print(OPS_Stream &s, int flag);
     
 private:
     double m, c, k, ki;
