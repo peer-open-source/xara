@@ -7,15 +7,10 @@
 #ifndef AC3D8HexWithSensitivity_H
 #define AC3D8HexWithSensitivity_H
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
-
 #include <Element.h>
 #include <Node.h>
 
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 
@@ -91,22 +86,18 @@ class AC3D8HexWithSensitivity: public Element
     const Vector &getResistingForce();
     const Vector &getResistingForceIncInertia();
 
-    // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker
-		  &theBroker);
 
     Response *setResponse (const char **argv, int argc, OPS_Stream &output);
     int getResponse (int responseID, Information &matInformation);
       
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
     void Print(OPS_Stream &s, int flag =0);
     
     // const Vector &getExternalLoadIncInertia();
     
     double get_Gauss_p_c(short order, short point_numb);
     double get_Gauss_p_w(short order, short point_numb);
-    	// AddingSensitivity:BEGIN //////////////////////////////////////////
+
+    // AddingSensitivity:BEGIN //////////////////////////////////////////
     int            setParameter                (const char **argv, int argc, Parameter &param);
     int            updateParameter             (int parameterID, Information &info);
     int            activateParameter           (int parameterID);

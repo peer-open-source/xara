@@ -8,9 +8,6 @@
 #ifndef VS3D4QuadWithSensitivity_H
 #define VS3D4QuadWithSensitivity_H
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 
 #include <Element.h>
 #include <Node.h>
