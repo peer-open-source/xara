@@ -273,7 +273,8 @@ int KRAlphaExplicit_TP::revertToLastStep()
 }
 
 
-int KRAlphaExplicit_TP::formTangent(int statFlag)
+int 
+KRAlphaExplicit_TP::formTangent(int statFlag)
 {
     statusFlag = statFlag;
     
