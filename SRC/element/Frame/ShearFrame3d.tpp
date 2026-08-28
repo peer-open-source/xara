@@ -60,14 +60,157 @@
 #include <FrameSection.h>
 #include <FrameTransform.h>
 #include <Logging.h>
-#include <Lagrange1D.cpp>
+// #include <Lagrange1D.cpp>
 #include <quadrature/GaussLegendre1D.hpp>
 #include <BeamIntegration.h>
 #include <ElementResponse.h>
 #include <CompositeResponse.h>
+// #include "Exact/ExactFrame3d.h"
 //
 
 namespace OpenSees {
+
+namespace {
+
+template<std::size_t nen, int nwm> static inline void
+G_matrix(MatrixND<6+nwm,6+nwm> &G, 
+         const VectorND<6+2*nwm>& s, const Vector3D& dx, 
+         double shape[2][nen], 
+         int i, int j) noexcept
+{
+  //
+  // This is the sum of Equation (B4), and the unnumbered equation between (B3) and (B4).
+  //
+  auto sn = Hat(&s[0]);
+  auto sm = Hat(&s[3]);
+  G.assemble(         sn, 0, 3, -shape[1][i]*shape[0][j]);
+  G.assemble(         sn, 3, 0,  shape[1][j]*shape[0][i]);
+
+  G.assemble(         sm, 3, 3, -shape[1][i]*shape[0][j]);
+  G.assemble( Hat(dx)*sn, 3, 3,  shape[0][i]*shape[0][j]);
+
+  // Vector3D n {s[0], s[1], s[2]};
+  // Matrix3D Knx = n.bun(dx) - n.dot(dx)*Eye3;
+  // G.assemble(Knx, 3, 3, shape[0][i]*shape[0][j]);
+}
+
+template<std::size_t nen, int nwm> static inline void
+B_nat(MatrixND<6+2*nwm,6+nwm> &B, double shape[2][nen], const Vector3D& dx, int n)
+{
+  //
+  // NOTE This is the transpose of B in Equation (B3) from the paper by 
+  // Perez and Filippou (2024)
+  //
+  B.zero();
+  for (int i=0; i<6+nwm; i++)
+    B(i,i) = shape[1][n];
+
+  for (int i=0; i<nwm; i++)
+    B(6+nwm+i, 6+i) = shape[0][n];
+  
+  //
+  // B(1:3, 4:end) = shape*Hat(dx);
+  //
+  B(0,3) =  0;
+  B(0,4) = -shape[0][n]*dx[2];
+  B(0,5) =  shape[0][n]*dx[1];
+
+  B(1,3) =  shape[0][n]*dx[2];
+  B(1,4) =  0;
+  B(1,5) = -shape[0][n]*dx[0];
+
+  B(2,3) = -shape[0][n]*dx[1];
+  B(2,4) =  shape[0][n]*dx[0];
+  B(2,5) =  0;
+}
+
+template <int nn> void 
+constexpr 
+lagrange(const double xi, const double xn[nn], double shp[2][nn])
+{
+  // constexpr int nn = 2;
+  for (int i = 0; i < nn; i++) {
+    shp[0][i] = 1.0;
+    shp[1][i] = 0.0;
+
+    for (int j = 0; j < nn; j++)
+      if (j != i)
+        shp[0][i] *= ((xi - xn[j]) / (xn[i] - xn[j]));
+
+    for (int j = 0; j < nn; j++)
+      if (j != i)
+        shp[1][i] += 1.0 / (xi - xn[j]);
+
+    shp[1][i] *= shp[0][i];
+
+  }
+}
+// template <int ndm, int nn, int deriv, typename T> void 
+// lagrange(const double xi, T shp[nn]);
+
+// template <>  void 
+// lagrange<1, 2, 0>(const double xi, double shp[2])
+// {
+//   shp[0] = 0.5*(1. - xi);
+//   shp[1] = 0.5*(1. + xi);
+// }
+
+// template <> void 
+// lagrange<1, 2, 1>(const double xi, double shp[2])
+// {
+//   shp[0] = -0.5;
+//   shp[1] =  0.5;
+// }
+
+// template <> void 
+// lagrange<1, 3, 0>(const double xi, double shp[3])
+// {
+//   // one-dimensional quadratic shape functions
+//   //
+//   // o------o------o
+//   // 0      2      1
+//   shp[0] = 0.5*xi*(xi - 1.0);
+//   shp[1] = 0.5*xi*(xi + 1.0);
+//   shp[2] = 1.0 - xi*xi;
+// }
+
+
+// template <> void 
+// lagrange<1, 3, 1>(const double xi, double shp[3])
+// {
+//   // one-dimensional quadratic shape functions
+//   //
+//   // o------o------o
+//   // 0      2      1
+//   shp[0] =  0.5 * ( 2.0*xi - 1.0 ) ;
+//   shp[1] =  0.5 * ( 2.0*xi + 1.0 ) ;
+//   shp[2] = -2.0*xi ;
+// }
+
+// template <> void 
+// lagrange<1, 4, 0>(const double xi, double shp[4])
+// {
+//   // cubic function
+//   double xi2 = xi*xi;
+//   shp[0] = 0.0625*(1. - xi) *(9.*xi2 - 1.);
+//   shp[1] = 0.5625*(1. - xi2)*(1. - 3.*xi);
+//   shp[2] = 0.5625*(1. - xi2)*(1.+3.*xi);
+//   shp[3] = 0.0625*(1.+xi) *(9.*xi2 - 1.);
+
+// }
+
+// template <> void 
+// lagrange<1, 4, 1>(const double xi, double shp[4])
+// {
+//   // derivative of cubic function
+//   double xi2 = xi*xi;
+//   shp[0] = 0.0625*( 1. + 18.*xi - 27.*xi2);
+//   shp[1] = 0.5625*(-3. -  2.*xi +  9.*xi2);
+//   shp[2] = 0.5625*( 3. -  2.*xi -  9.*xi2);
+//   shp[3] = 0.0625*(-1. + 18.*xi + 27.*xi2);
+// }
+
+}
 
 template<std::size_t nen, int nwm>
 ShearFrame3d<nen, nwm>::ShearFrame3d(int tag,
@@ -133,7 +276,7 @@ ShearFrame3d<nen,nwm>::setNodes()
     lagrange<nen>(pres[i].point, xn, pres[i].shape);
   }
 
-  // Zero out the state of the Gauss pres
+  // Zero out the state of the Gauss points
   this->revertToStart();
 
   return 0;
@@ -149,10 +292,10 @@ ShearFrame3d<nen,nwm>::revertToStart()
 
   R0 = transform->getInitialRotation();
 
-  // Revert the of the Gauss pres to start
+  // Revert the of the Gauss points to start
   for (GaussPoint& point : pres) {
     point.curvature.zero();
-    point.rotation = R0;
+    point.rotation = Eye3; //R0;
     if (point.material->revertToStart() != 0)
       return -1;
   }
@@ -194,11 +337,13 @@ ShearFrame3d<nen,nwm>::update()
   //
   // Collect nodal parameters
   //
-  VectorND<ndf> ddu[nen];
+  if (transform->update() != 0) {
+    opserr << " -- Error updating coordinate transformation\n";
+    return -1;
+  }
+  Vector3D dtheta_i[nen]{};
   for (unsigned i=0; i < nen; i++) {
-    const Vector& ddui = theNodes[i]->getIncrDeltaDisp();
-    for (int j=0; j<ndf; j++)
-      ddu[i][j] = ddui[j];
+    dtheta_i[i] = transform->getNodeRotationUpdateLogarithm(i);
   }
 
   // Form displaced node locations xyz
@@ -206,10 +351,8 @@ ShearFrame3d<nen,nwm>::update()
   std::array<std::array<double,nwm>,nen> uwarp{};
 
   for (unsigned i=0; i < nen; i++) {
-    const Vector& xi = theNodes[i]->getCrds();
     const Vector& ui = theNodes[i]->getTrialDisp();
-    for (int j=0; j<ndm; j++)
-      xyz[i][j] = xi[j] + ui[j];
+    xyz[i] = transform->getNodeLocation(i);
     for (int j=0; j<nwm; j++)
       uwarp[i][j] = ui[6+j];
   }
@@ -231,9 +374,9 @@ ShearFrame3d<nen,nwm>::update()
       for (int l=0; l<3; l++)
         dx[l]     += pres[i].shape[1][j]*xyz[j][l];
       for (int l=0; l<3; l++)
-        theta[l]  += pres[i].shape[0][j]*ddu[j][l+3];
+        theta[l]  += pres[i].shape[0][j]*dtheta_i[j][l];
       for (int l=0; l<3; l++)
-        dtheta[l] += pres[i].shape[1][j]*ddu[j][l+3];
+        dtheta[l] += pres[i].shape[1][j]*dtheta_i[j][l];
     }
 
     std::array<double,nwm> warp{};
