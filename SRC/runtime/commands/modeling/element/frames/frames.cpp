@@ -65,7 +65,7 @@
 #include <ForceDeltaFrame3d.h>
 #include <EulerFrame3d.h>
 #include <EulerDeltaFrame3d.h>
-// #include <ShearFrame3d.h>
+#include <ShearFrame3d.h>
 
 #include <DispBeamColumn2d.h>
 #include <DispBeamColumn2dThermal.h>
@@ -337,7 +337,7 @@ CreateFrame(FrameClass beam_type,
                                               options.mass_flag, 
                                               use_mass);
         }
-#if 0
+#if 1
         else if (strcmp(name, "ShearFrame") == 0) {
           if (!options.shear_flag) {
             opserr << OpenSees::PromptValueError 
