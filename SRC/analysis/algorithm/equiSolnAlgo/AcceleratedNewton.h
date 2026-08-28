@@ -39,7 +39,6 @@
 #include <EquiSolnAlgo.h>
 #include <Vector.h>
 class LineSearch;
-
 class Accelerator;
 
 class AcceleratedNewton: public EquiSolnAlgo
@@ -52,9 +51,7 @@ class AcceleratedNewton: public EquiSolnAlgo
   
   int getNumFactorizations() const override {return numFactorizations;}
   int getNumIterations()  const override {return numIterations;}
-  
-  virtual int sendSelf(int commitTag, Channel &);
-  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+
   void Print(OPS_Stream &, int flag) const final;    
   
 
