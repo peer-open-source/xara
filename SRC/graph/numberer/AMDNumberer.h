@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1 $
-// $Date: 2009-12-10 00:40:01 $
-// $Source: /usr/local/cvs/OpenSees/SRC/graph/numberer/AMDNumberer.h,v $
-                                                                        
-                                                                        
+//
 // Written: fmk 
 // Created: 12/09
 // Revision: A
@@ -31,16 +26,8 @@
 // AMD is an object to perform the Approx. Min Degree Ordering
 //
 // What: "@(#) AMD.h, revA"
-
-#ifndef AMD_h
-#define AMD_h
-
+#pragma once
 #include <GraphNumberer.h>
-
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
-
 #include <ID.h>
 
 class AMD: public GraphNumberer
@@ -51,14 +38,7 @@ class AMD: public GraphNumberer
 
     const ID &number(Graph &theGraph, int lastVertex = -1);
     const ID &number(Graph &theGraph, const ID &lastVertices);
-
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
     
   private:
     ID theResult;
 };
-
-#endif
-

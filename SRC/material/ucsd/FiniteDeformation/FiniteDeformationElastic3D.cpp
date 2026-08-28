@@ -37,7 +37,7 @@ FiniteDeformationElastic3D::FiniteDeformationElastic3D(int tag,
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------
-FiniteDeformationElastic3D::FiniteDeformationElastic3D( )
+FiniteDeformationElastic3D::FiniteDeformationElastic3D()
 :BJMaterial(0, 0), rho(0.0)
 {
 
@@ -50,13 +50,14 @@ FiniteDeformationElastic3D::~FiniteDeformationElastic3D()
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------
-double FiniteDeformationElastic3D::getRho(void)
+double FiniteDeformationElastic3D::getRho()
 {
    return rho;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
-int FiniteDeformationElastic3D::setTrialF(const straintensor &f)
+int
+FiniteDeformationElastic3D::setTrialF(const straintensor &f)
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);
@@ -88,7 +89,7 @@ int FiniteDeformationElastic3D::setTrialCIncr(const straintensor &dc)
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
-const straintensor& FiniteDeformationElastic3D::getF(void)
+const straintensor& FiniteDeformationElastic3D::getF()
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);
@@ -98,7 +99,7 @@ const straintensor& FiniteDeformationElastic3D::getF(void)
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
-const straintensor& FiniteDeformationElastic3D::getC(void)
+const straintensor& FiniteDeformationElastic3D::getC()
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);
@@ -109,7 +110,7 @@ const straintensor& FiniteDeformationElastic3D::getC(void)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-const Tensor& FiniteDeformationElastic3D::getTangentTensor(void)
+const Tensor& FiniteDeformationElastic3D::getTangentTensor()
 {
    exit (-1);
    // Just to make it compile
@@ -119,7 +120,7 @@ const Tensor& FiniteDeformationElastic3D::getTangentTensor(void)
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 const Tensor
-&FiniteDeformationElastic3D::getInitialTangentTensor(void)
+&FiniteDeformationElastic3D::getInitialTangentTensor()
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);
@@ -128,7 +129,8 @@ const Tensor
    return *ret;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-const straintensor& FiniteDeformationElastic3D::getStrainTensor(void)
+const straintensor& 
+FiniteDeformationElastic3D::getStrainTensor()
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);
@@ -137,7 +139,7 @@ const straintensor& FiniteDeformationElastic3D::getStrainTensor(void)
    return *ret;
 }
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-const stresstensor& FiniteDeformationElastic3D::getStressTensor(void)
+const stresstensor& FiniteDeformationElastic3D::getStressTensor()
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);
@@ -145,7 +147,7 @@ const stresstensor& FiniteDeformationElastic3D::getStressTensor(void)
    return *ret;
 }
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-const stresstensor& FiniteDeformationElastic3D::getPK1StressTensor(void)
+const stresstensor& FiniteDeformationElastic3D::getPK1StressTensor()
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);
@@ -161,28 +163,28 @@ const stresstensor& FiniteDeformationElastic3D::getCauchyStressTensor(void)
    return *ret;
 }
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-int FiniteDeformationElastic3D::commitState (void)
+int FiniteDeformationElastic3D::commitState ()
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);
    return -1;
 }
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-int FiniteDeformationElastic3D::revertToLastCommit (void)
+int FiniteDeformationElastic3D::revertToLastCommit ()
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);
    return -1;
 }
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-int FiniteDeformationElastic3D::revertToStart (void)
+int FiniteDeformationElastic3D::revertToStart ()
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);
    return -1;
 }
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-BJMaterial * FiniteDeformationElastic3D::getCopyBJ (void)
+BJMaterial * FiniteDeformationElastic3D::getCopyBJ()
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);
@@ -196,7 +198,7 @@ BJMaterial * FiniteDeformationElastic3D::getCopyBJ (const char *type)
    return 0;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-const char* FiniteDeformationElastic3D::getType (void) const
+const char* FiniteDeformationElastic3D::getType () const
 {
    opserr << "FiniteDeformationElastic3D-- subclass responsibility\n";
    exit (-1);

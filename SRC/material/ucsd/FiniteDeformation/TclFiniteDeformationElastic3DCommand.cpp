@@ -24,7 +24,7 @@
 //#		       28May2004
 //#
 //===============================================================================
-#include <tcl.h>
+#include <Parsing.h>
 #include <OPS_Globals.h>
 
 #include <Domain.h>

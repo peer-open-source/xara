@@ -319,7 +319,8 @@ TclBasicBuilder_addBeamColumnJoint(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
     }
 
-  } else {
+  }
+  else {
     opserr << "WARNING NDM = " << NDM << " and NDF = " << NDF
            << " is incompatible with available joint elements"
            << OpenSees::SignalMessageEnd;
@@ -753,29 +754,6 @@ TclBasicBuilder_addJoint2D(ClientData clientData, Tcl_Interp *interp, Tcl_Size a
     return TCL_ERROR;
   }
 }
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-**                                                                    **
-**                                                                    **
-** (C) Copyright 1999, The Regents of the University of California    **
-** All Rights Reserved.                                               **
-**                                                                    **
-** Commercial use of this program without express permission of the   **
-** University of California, Berkeley, is strictly prohibited.  See   **
-** file 'COPYRIGHT'  in main directory for information on usage and   **
-** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
-**                                                                    **
-** Developed by:                                                      **
-**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
-**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
-** ****************************************************************** */
-
-// $Revision: 1.3 $
-// $Date: 2004-09-01 04:01:27 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/joint/TclJoint3dCommand.cpp,v $
 
 // Written: Arash Altoontash, Gregory Deierlein,	Created: 04/01
 // Revision:
