@@ -18,14 +18,15 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// Description: This file contains the class definition for 
-// AcceleratedNewton.  
-// AcceleratedNewton is a class which uses a Krylov
-// subspace accelerator on the modified Newton method.
-// The accelerator is described by Carlson and Miller in
-// "Design and Application of a 1D GWMFE Code"
-// from SIAM Journal of Scientific Computing (Vol. 19, No. 3,
-// pp. 728-765, May 1998)
+// Description: This file contains the class definition for AcceleratedNewton.  
+// AcceleratedNewton is a class which uses a Krylov 
+// subspace accelerator on the modified Newton method. 
+//
+// The accelerator is described by Carlson and Miller. 
+//
+// [1] Carlson and Miller "Design and Application of a 1D GWMFE Code"
+//     from SIAM Journal of Scientific Computing (Vol. 19, No. 3,
+//     pp. 728-765, May 1998)
 //
 // Written: MHS
 // Created: Oct 2001
@@ -40,7 +41,7 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <ID.h>
-
+#include <LineSearch.h>
 #include <fstream>
 
 
@@ -49,6 +50,7 @@ AcceleratedNewton::AcceleratedNewton(Accelerator *theAccel,
                                      int incr_tangent)
   : EquiSolnAlgo(EquiALGORITHM_TAGS_AcceleratedNewton),
     tangent(incr_tangent),
+    search(nullptr),
     theAccelerator(theAccel), vAccel(0), 
     numFactorizations(0), numIterations(0)
 {
@@ -74,10 +76,11 @@ AcceleratedNewton::solveCurrentStep()
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
   LinearSOE *theSOE = this->getLinearSOEptr();
   
-  if ((theIntegrator == 0) || (theSOE == 0)  || (theTest == 0)){
-    return -5;
+  if ((theIntegrator == 0) || (theSOE == 0)  || (theTest == 0)) {
+    return SolutionAlgorithm::BadAlgorithm;
   }        
 
+  // Set up memory in the accelerator
   if (theAccelerator != nullptr)
     theAccelerator->newStep(*theSOE);
 
@@ -87,8 +90,7 @@ AcceleratedNewton::solveCurrentStep()
     vAccel = new Vector(numEqns);
 
   if (vAccel->Size() != numEqns) {
-    delete vAccel;
-    vAccel = new Vector(numEqns);
+    vAccel->resize(numEqns);
   }
 
   //
@@ -100,10 +102,8 @@ AcceleratedNewton::solveCurrentStep()
   }
 
   // Evaluate system Jacobian J = R'(y)|y_0
-  if (theIntegrator->formTangent(tangent) < 0){
-    opserr << "WARNING AcceleratedNewton::solveCurrentStep() - ";
-    opserr << "the Integrator failed in formTangent()\n";
-    return -1;
+  if (theIntegrator->formTangent(tangent) < 0) {
+    return SolutionAlgorithm::BadFormTangent;
   }
   // Count factorization of the first tangent
   numFactorizations++;
@@ -112,7 +112,7 @@ AcceleratedNewton::solveCurrentStep()
   if (theTest->start(*theSOE) < 0) {
     return SolutionAlgorithm::BadTestStart;
   }
-  
+
   // Loop counter
   int k = 1;
 
@@ -132,17 +132,21 @@ AcceleratedNewton::solveCurrentStep()
     // Accelerate the displacement increment
     if (theAccelerator != nullptr) {
       if (theAccelerator->accelerate(*vAccel, *theSOE, *theIntegrator) < 0) {
-        opserr << "WARNING AcceleratedNewton::solveCurrentStep() - ";
-        opserr << "the Accelerator failed in accelerate()\n";
+        opserr << "the Accelerator failed\n";
         return -1;
       }
     }
 
+    // if (search != nullptr) {
+    //   const double s0 = - (*vAccel ^ theSOE->getB());
+    //   if (search->search(*vAccel, *theSOE, *theIntegrator) < 0) {
+    //     return -1;// SolutionAlgorithm::BadLineSearch;
+    //   }
+    // }
+
     // Update system with accelerated displacement increment v_{k+1}
     if (theIntegrator->update(*vAccel) < 0) {
-      opserr << "WARNING AcceleratedNewton::solveCurrentStep() - ";
-      opserr << "the Integrator failed in update()\n";
-      return -4;
+      return SolutionAlgorithm::BadStepUpdate;
     }        
 
     // Evaluate residual
@@ -160,8 +164,7 @@ AcceleratedNewton::solveCurrentStep()
         bool did_update = false;
         int ret = theAccelerator->updateTangent(*theIntegrator, did_update);
         if (ret < 0) {
-          opserr << "WARNING AcceleratedNewton::solveCurrentStep() - ";
-          opserr << "the Accelerator failed in updateTangent()\n";
+          opserr << "the Accelerator failed to update tangent\n";
           return -1;
         }
         if (did_update)
@@ -181,70 +184,6 @@ AcceleratedNewton::solveCurrentStep()
   return result;
 }
 
-
-int
-AcceleratedNewton::sendSelf(int cTag, Channel &theChannel)
-{
-  static ID data(2);
-  data(0) = tangent;
-  if (theAccelerator != 0)
-    data(1) = theAccelerator->getClassTag();
-  else
-    data(1) = -1;
-
-  int res = theChannel.sendID(0, cTag, data);
-  if (res < 0) {
-    opserr << "AcceleratedNewton::recvSelf() - failed to send data\n";
-    return -1;
-  }
-
-  if (theAccelerator != 0) {  
-    res = theAccelerator->sendSelf(cTag, theChannel);
-    if (res < 0) {
-      opserr << "AcceleratedNewton::recvSelf() - accelerator to send\n";
-      return -1;
-    }
-  }
-
-  return 0;
-}
-
-int
-AcceleratedNewton::recvSelf(int cTag, Channel &theChannel, 
-                            FEM_ObjectBroker &theBroker)
-{
-  static ID data(2);
-  int res = theChannel.recvID(0, cTag, data);
-
-  if (res < 0) {
-    opserr << "AcceleratedNewton::recvSelf() - failed to recv data\n";
-    return -1;
-  }
-
-  tangent = data(0) = tangent;
-
-  if (data(1) != -1) {
-
-    if (theAccelerator != 0)
-      delete theAccelerator;
-
-    theAccelerator = theBroker.getAccelerator(data(1));
-    if (theAccelerator == 0) {
-      opserr << "AcceleratedNewton::recvSelf() - no acccelerator of classTag " << data(1) << " exists\n";
-      return -1;
-    }
-    
-    if (res == 0) {
-      res = theAccelerator->recvSelf(cTag, theChannel, theBroker);
-      if (res < 0) {
-        opserr << "AcceleratedNewton::recvSelf() - accelerator failed to recvSelf\n";
-        return -1;
-      }
-    }
-  }
-
-  return 0;
-}
 
 void
 AcceleratedNewton::Print(OPS_Stream &s, int flag) const

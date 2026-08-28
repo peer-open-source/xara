@@ -36,7 +36,7 @@
 
 class KrylovAccelerator2 : public Accelerator
 {
- public:
+public:
   KrylovAccelerator2(int maxDim = 3, int tangent = CURRENT_TANGENT);
   virtual ~KrylovAccelerator2();
   
@@ -48,11 +48,10 @@ class KrylovAccelerator2 : public Accelerator
 
   void Print(OPS_Stream &, int flag) const final;
   
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, 
-               FEM_ObjectBroker &theBroker);
+  int sendSelf(int commitTag, Channel &);
+  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
- private:
+private:
   // Current dimension of Krylov subspace
   int dimension;
   

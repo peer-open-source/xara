@@ -32,8 +32,7 @@
 #include <FullGenLinSOE.h>
 
 FullGenLinSolver::FullGenLinSolver(int theClassTag)    
-:LinearSOESolver(theClassTag),
- theSOE(0)
+:LinearSOESolver(theClassTag)
 {
 
 }    
@@ -42,11 +41,3 @@ FullGenLinSolver::~FullGenLinSolver()
 {
 
 }    
-
-int 
-FullGenLinSolver::setLinearSOE(FullGenLinSOE &theFullGenSOE)
-{
-    theSOE = &theFullGenSOE;
-    return 0;
-}
-

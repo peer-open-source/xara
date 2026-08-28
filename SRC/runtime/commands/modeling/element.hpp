@@ -13,6 +13,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
+#include <CommandLibrary.h>
 #include <string>
 #include <unordered_map>
 #include <algorithm>
@@ -168,11 +169,11 @@ extern OPS_Routine OPS_ASDShellT3;
 extern OPS_Routine OPS_FourNodeTetrahedron;
 extern OPS_Routine OPS_TenNodeTetrahedron;
 // Brick
-Tcl_CmdProc TclBasicBuilder_addBrickUP;
+Tcl_CmdProc XaraElemCmd_H8UP;
 Tcl_CmdProc TclBasicBuilder_addBBarBrickUP;
 Tcl_CmdProc TclBasicBuilder_addTwentyEightNodeBrickUP;
-Tcl_CmdProc TclBasicBuilder_addTwentyNodeBrick;
-Tcl_CmdProc TclBasicBuilder_addBrick;
+Tcl_CmdProc XaraElemCmd_H20;
+Tcl_CmdProc XaraElemCmd_H8;
 Tcl_CmdProc TclCommand_SSP_Element;
 //
 Tcl_CmdProc TclCommand_addActuator;
@@ -206,13 +207,15 @@ Tcl_CmdProc TclBasicBuilder_addElastic2dGNL;
 Tcl_CmdProc TclBasicBuilder_addKikuchiBearing;
 Tcl_CmdProc TclBasicBuilder_addGenericCopy;
 Tcl_CmdProc TclBasicBuilder_addGenericClient;
+Tcl_CmdProc XaraElem_Rosenbrock;
 
 namespace OpenSees {
 
 namespace Library {
 
 const static
-std::unordered_map<std::string, Tcl_CmdProc *, CaseInsensitive, CaseInsensitive> 
+CommandLibrary 
+// std::unordered_map<std::string, Tcl_CmdProc *, CaseInsensitive, CaseInsensitive> 
 ElementLibrary = {
 // Link
   {"twoNodeLink",               TclCommand_addTwoNodeLink},
@@ -222,6 +225,7 @@ ElementLibrary = {
   {"Truss",                     TclCommand_addTruss},
   {"TrussSection",              TclCommand_addTruss},
   {"CorotTruss",                TclCommand_addTruss},
+  {"ExactTruss",                TclCommand_addTruss},
   {"CorotTrussSection",         TclCommand_addTruss},
 //
 // Plane
@@ -263,6 +267,8 @@ ElementLibrary = {
   {"elasticBeamColumn",            TclBasicBuilder_addElasticBeam},
   {"elasticBeam",                  TclBasicBuilder_addElasticBeam},
   {"PrismFrame",                   TclBasicBuilder_addElasticBeam},
+  {"ElasticFrame",                 TclBasicBuilder_addElasticBeam},
+
   // Nonlinear, nonstandard
   {"BeamWithHinges",               TclBasicBuilder_addBeamWithHinges},
   {"dispBeamColumnInt",            TclBasicBuilder_addDispBeamColumnInt},
@@ -274,6 +280,10 @@ ElementLibrary = {
   {"ForceFrame",                   TclBasicBuilder_addForceBeamColumn},
   {"MixedFrame",                   TclBasicBuilder_addForceBeamColumn},
   {"ExactFrame",                   TclBasicBuilder_addForceBeamColumn},
+  {"ExactFrame02",                 TclBasicBuilder_addForceBeamColumn},
+  {"CosseratFrame",                TclBasicBuilder_addForceBeamColumn},
+  {"CosseratFrame01",              TclBasicBuilder_addForceBeamColumn},
+  {"CosseratFrame02",              TclBasicBuilder_addForceBeamColumn},
   {"ShearFrame",                   TclBasicBuilder_addForceBeamColumn},
   {"ForceDeltaFrame",              TclBasicBuilder_addForceBeamColumn},
   {"ForceBeamColumn",              TclBasicBuilder_addForceBeamColumn},
@@ -335,16 +345,17 @@ ElementLibrary = {
 //
 // Brick
 //
-  {"stdBrick",                  TclBasicBuilder_addBrick},
-  {"H8E12",                     TclBasicBuilder_addBrick},
-  {"bbarBrick",                 TclBasicBuilder_addBrick},
-  {"bbarBrickWithSensitivity",  TclBasicBuilder_addBrick},
-  {"flBrick",                   TclBasicBuilder_addBrick},
+  {"stdBrick",                  XaraElemCmd_H8},
+  {"H8E12",                     XaraElemCmd_H8},
+  {"bbarBrick",                 XaraElemCmd_H8},
+  {"bbarBrickWithSensitivity",  XaraElemCmd_H8},
+  {"flBrick",                   XaraElemCmd_H8},
   {"SSPbrick",                  TclCommand_SSP_Element},
 
-  {"BrickUP",                   TclBasicBuilder_addBrickUP},
+  {"BrickUP",                   XaraElemCmd_H8UP},
   {"20_8_BrickUP",              TclBasicBuilder_addTwentyEightNodeBrickUP},
-  {"20NodeBrick",               TclBasicBuilder_addTwentyNodeBrick},
+  {"20NodeBrick",               XaraElemCmd_H20},
+  {"H20",                       XaraElemCmd_H20},
   {"bbarBrickUP",               TclBasicBuilder_addBBarBrickUP},
 
 //
@@ -380,7 +391,8 @@ ElementLibrary = {
   {"SPFBearing",                TclCommand_addSingleFPBearing},
 
 // Other
-  {"WheelRail",                 TclBasicBuilder_addWheelRail},
+  {"WheelRail",                  TclBasicBuilder_addWheelRail},
+  {"Rosenbrock",                 XaraElem_Rosenbrock},
 };
 
 } // namespace OpenSees 

@@ -86,9 +86,10 @@ LinearSOE::getDeterminant()
 int 
 LinearSOE::setSolver(LinearSOESolver &newSolver)
 {
-    theSolver = &newSolver;
-    return 0;
+  theSolver = &newSolver;
+  return 0;
 }
+
 
 LinearSOESolver *
 LinearSOE::getSolver()

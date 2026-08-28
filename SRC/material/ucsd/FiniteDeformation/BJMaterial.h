@@ -58,8 +58,8 @@ class BJMaterial : public NDMaterial
     virtual int setTrialStrain(const Vector &v, const Vector &r);
     virtual int setTrialStrainIncr(const Vector &v);
     virtual int setTrialStrainIncr(const Vector &v, const Vector &r);
-    virtual const Matrix &getTangent(void);
-    virtual const Matrix &getInitialTangent(void) {return this->getTangent();};
+    virtual const Matrix &getTangent();
+    virtual const Matrix &getInitialTangent() {return this->getTangent();};
 
     virtual const Vector &getStress();
     virtual const Vector &getStrain();

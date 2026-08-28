@@ -35,8 +35,6 @@
 // point constraint.
 //
 
-// #include <DomainComponent.h>
-#include <stdbool.h>
 #include <MP_Constraint.h>
 #include <Node.h>
 #include <Domain.h>
@@ -51,28 +49,27 @@ class MP_Joint2D : public MP_Constraint
     // constructors        
     MP_Joint2D();
 
-    MP_Joint2D( Domain *theDomain, int nodeRetain, int nodeConstr,
+    MP_Joint2D(Domain *theDomain, int nodeRetain, int nodeConstr,
 		int Maindof, int fixedend , int LrgDsp = 0 );	//LrgDsp=0 means large displacement is not enabled
 
-    // destructor    
+    // destructor
     ~MP_Joint2D();
 
     // method to get information about the constraint
-	int getNodeRetained(void) const;
-    int getNodeConstrained(void) const;    
-    const ID &getConstrainedDOFs(void) const;        
-    const ID &getRetainedDOFs(void) const;            
+    int getNodeRetained() const;
+    int getNodeConstrained() const;    
+    const ID &getConstrainedDOFs() const;        
+    const ID &getRetainedDOFs() const;            
     int applyConstraint(double pseudoTime);
-    bool isTimeVarying(void) const;
-    const Matrix &getConstraint(void);    
-	void setDomain(Domain *theDomain);
+    bool isTimeVarying() const;
+    const Matrix &getConstraint();    
+    void setDomain(Domain *theDomain);
 
     // methods for output
     int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
     
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
 
   private:

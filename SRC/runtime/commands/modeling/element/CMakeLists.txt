@@ -25,4 +25,5 @@ PRIVATE
     plane.cpp
     truss.cpp
     # plate.cpp
+    tests.cpp
 )

@@ -27,9 +27,7 @@
 // Date: 09/98
 // Modified: 05/05 ahs
 //
-#ifndef CTestEnergyIncr_h
-#define CTestEnergyIncr_h
-
+#pragma once
 #include <ConvergenceTest.h>
 class LinearSOE;
 
@@ -56,9 +54,6 @@ public:
     double getRatioNumToMax() override;
     const Vector &getNorms() override;
 
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
-
 private:
     double tol;         // the tol on the energy used to test for convergence
     double maxTol;
@@ -71,4 +66,3 @@ private:
     Vector norms;       // vector to hold the norms
 };
 
-#endif

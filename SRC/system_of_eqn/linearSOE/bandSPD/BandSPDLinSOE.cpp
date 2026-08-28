@@ -78,8 +78,9 @@ BandSPDLinSOE::~BandSPDLinSOE()
 int 
 BandSPDLinSOE::getNumEqn() const
 {
-    return size;
+  return size;
 }
+
 
 int 
 BandSPDLinSOE::setSize(Graph &theGraph)

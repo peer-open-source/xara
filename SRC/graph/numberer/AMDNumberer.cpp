@@ -98,20 +98,6 @@ AMD::number(Graph &theGraph, int startVertex)
 }
 
 
-
-int
-AMD::sendSelf(int commitTag, Channel &theChannel)
-{
-    return 0;
-}
-
-int
-AMD::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}
-
-
 const ID &
 AMD::number(Graph &theGraph, const ID &startVertices)
 {

@@ -97,7 +97,7 @@ Actor::addMethod(int tag, int (*fp)())
     ActorMethod *newMethod = new ActorMethod;
     if (newMethod == 0)
 	return -3;
-    
+
     newMethod->tag = tag;
     newMethod->theMethod = fp;
 
@@ -192,7 +192,7 @@ Actor::sendMessage(const Message &theMessage, ChannelAddress *theAddress )
 int
 Actor::sendMatrix(const Matrix &theMatrix, ChannelAddress *theAddress )
 {
-    if (theAddress == 0)    
+    if (theAddress == 0)
 	return theChannel->sendMatrix(0, commitTag, theMatrix,theRemoteShadowsAddress);
     else
 	return theChannel->sendMatrix(0, commitTag, theMatrix,theAddress);	

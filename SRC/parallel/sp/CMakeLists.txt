@@ -50,8 +50,7 @@ target_link_libraries(OpenSeesSP
    OPS_Numerics
    ${MUMPS_LIBRARIES}
    ${CMAKE_DL_LIBS} 
-   ${HDF5_LIBRARIES} 
-   ${CONAN_LIBS}
+   ${HDF5_LIBRARIES}
    ${MPI_CXX_LIBRARIES}
    ${SCALAPACK_LIBRARIES}
    ${MPI_Fortran_LIBRARIES}       

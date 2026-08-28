@@ -99,9 +99,25 @@ TclCommand_addTransformBuilder(ClientData clientData,
     else
       type = FrameTransformBuilder::TransformType::PDelta_O3;
   }
+  else if (strcmp(name, "PDelta01") == 0)
+    type = FrameTransformBuilder::TransformType::PDelta_O3;
 
   else if (strcmp(name, "Corotational02") == 0)
     type = FrameTransformBuilder::TransformType::Corotational02_X1;
+  else if (strcmp(name, "Corotational03") == 0)
+    type = FrameTransformBuilder::TransformType::Corotational03_X1;
+  else if (strcmp(name, "Corotational04") == 0)
+    type = FrameTransformBuilder::TransformType::Corotational04_X1;
+  else if (strcmp(name, "Corotational05") == 0)
+    type = FrameTransformBuilder::TransformType::Corotational05_X1;
+  else if (strcmp(name, "Corotational06") == 0)
+    type = FrameTransformBuilder::TransformType::Corotational06_X1;
+  // else {
+  //   opserr << OpenSees::PromptValueError
+  //          << "unknown transform type: " << name
+  //          << OpenSees::SignalMessageEnd;
+  //   return TCL_ERROR;
+  // }
 
 
   FrameTransformBuilder& transform = *new FrameTransformBuilder(ndm, tag, name);

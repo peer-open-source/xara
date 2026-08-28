@@ -17,11 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.11 $
-// $Date: 2010/02/04 01:12:57 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/truss/CorotTruss2.h,v $
-
 #ifndef CorotTruss2_h
 #define CorotTruss2_h
 
@@ -48,12 +43,12 @@ class CorotTruss2 : public Element
     CorotTruss2();    
     ~CorotTruss2();
 
-    const char *getClassType(void) const {return "CorotTruss2";}
+    const char *getClassType() const {return "CorotTruss2";}
 
     // public methods to obtain information about dof & connectivity    
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes() override;
+    Node **getNodePtrs() override;
 
     int getNumDOF(void);        
     void setDomain(Domain *theDomain);
@@ -62,7 +57,7 @@ class CorotTruss2 : public Element
     int commitState(void);
     int revertToLastCommit(void);        
     int revertToStart(void);        
-    int update(void);
+    int update();
     
     // public methods to obtain stiffness, mass, damping and residual information    
     const Matrix &getTangentStiff();

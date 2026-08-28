@@ -128,7 +128,8 @@ jobs:
         run: |
           call "%CONDA%\condabin\conda.bat" activate ifx
           mamba install -y -c conda-forge ^
-            cmake ninja tk ^
+            cmake ninja ^
+            tk=8.6 ^
             ifx_win-64 ^
             mkl-devel conda-forge/label/mkl_rc::blas
 

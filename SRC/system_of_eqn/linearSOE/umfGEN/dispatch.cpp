@@ -18,12 +18,15 @@
 #include <Parsing.h>
 #include <UmfpackGenLinSOE.h>
 #include <UmfpackGenLinSolver.h>
+#include <UmfpackSolver02.h>
+#include <SparseGenCSC.h>
 
 
 LinearSOE*
 TclDispatch_newUmfpackLinearSOE(ClientData clientData,
                                 Tcl_Interp* interp,
-                                Tcl_Size argc, const char** const argv)
+                                ArgSize argc, 
+                                const char** const argv)
 {
   int factLVALUE = 10;
   int factorOnce = 0;
@@ -54,6 +57,8 @@ TclDispatch_newUmfpackLinearSOE(ClientData clientData,
   }
 
 //  return new UmfpackGenLinSOE(*theSolver, factLVALUE, factorOnce, false);
+  if (strstr(argv[1], "02") != nullptr) {
+    return new SparseGenCSC(*new UmfpackSolver02(doDet));
+  }
   return new UmfpackGenLinSOE(*new UmfpackGenLinSolver(doDet));
 }
-

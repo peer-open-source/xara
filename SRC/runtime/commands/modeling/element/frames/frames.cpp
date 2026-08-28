@@ -23,6 +23,7 @@
 #include <array>
 #include <vector>
 #include <utility>
+#include <algorithm>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
@@ -60,13 +61,12 @@
 #include "PrismFrame2d.h"
 #include "PrismFrame2d.h"
 #include "PrismFrame3d.h"
-#include "PrismFrame3d.h"
 
 #include <CubicFrame3d.h>
 #include <ForceDeltaFrame3d.h>
 #include <EulerFrame3d.h>
 #include <EulerDeltaFrame3d.h>
-// #include <ShearFrame3d.h>
+#include <ShearFrame3d.h>
 
 #include <DispBeamColumn2d.h>
 #include <DispBeamColumn2dThermal.h>
@@ -298,7 +298,7 @@ CreateFrame(FrameClass beam_type,
     FrameTransformBuilder* tb = builder.getTypedObject<FrameTransformBuilder>(transfTag);
     // Create 3d frame elements
     if (strstr(name, "Frame") != nullptr) {
-      if (strstr(name, "Exact") == nullptr) {
+      if ((strstr(name, "Exact") == nullptr) && (strstr(name, "Cosserat") == nullptr)) {
 
         // FrameTransformBuilder* tb = builder.getTypedObject<FrameTransformBuilder>(transfTag);
 
@@ -338,7 +338,7 @@ CreateFrame(FrameClass beam_type,
                                               options.mass_flag, 
                                               use_mass);
         }
-#if 0
+#if 1
         else if (strcmp(name, "ShearFrame") == 0) {
           if (!options.shear_flag) {
             opserr << OpenSees::PromptValueError 
@@ -373,7 +373,7 @@ CreateFrame(FrameClass beam_type,
         }
 #endif
         else if ((strstr(name, "Force") != 0) ||
-                 (strcmp(name, "MixedFrame") == 0)) {
+                 (strcasecmp(name, "MixedFrame") == 0)) {
           if (strcmp(name, "ForceDeltaFrame") == 0 || options.geom_flag) {
             if (!options.shear_flag)
               Unroll<2,MAX_NIP>([&](auto nip) constexpr {
@@ -411,10 +411,13 @@ CreateFrame(FrameClass beam_type,
         }
       }
 
-      else if (strcmp(name, "ExactFrame") == 0) {
+      else if ((strcasecmp(name, "ExactFrame") == 0) || 
+               (strstr(name, "ExactFrame") != 0) ||
+               (strstr(name, "CosseratFrame") != 0)) {
         theElement = CreateExactFrame(
-          tag, 
+          tag,
           ndf,
+          name,
           nodev, 
           sections, 
           beamIntegr,
@@ -426,7 +429,7 @@ CreateFrame(FrameClass beam_type,
       }
     }
 
-    else if (strcmp(name, "elasticForceBeamColumn") == 0)
+    else if (strcasecmp(name, "elasticForceBeamColumn") == 0)
       theElement = new ElasticForceBeamColumn3d(tag, iNode, jNode, nIP, secptrs, 
                                                 beamIntegr, *theTransf, mass);
 
@@ -722,10 +725,11 @@ TclBasicBuilder_addForceBeamColumn(ClientData clientData, Tcl_Interp *interp,
   //
   struct FrameOptions options;
   options.mass_flag  =  0;
-  options.shear_flag = -1;
   options.geom_flag  =  0;
   options.use_mass   =  0;
   options.rotation_type = builder->getRotationType();
+  // shear flag
+  options.shear_flag = -1;
   switch (beam_type) {
     case FrameClass::DispBeamColumn2d:
     case FrameClass::DispBeamColumn3d:

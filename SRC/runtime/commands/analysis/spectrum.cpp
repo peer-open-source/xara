@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.0 $
-// $Date: 2020-11-27 18:07:11 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/analysis/ResponseSpectrumAnalysis.h,v $
-
+//
 // Written: Massimo Petracca (ASDEA Software) 
 // Created: Fri Nov 27 18:07:11: 2020
 // Revision: A

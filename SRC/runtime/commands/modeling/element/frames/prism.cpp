@@ -626,7 +626,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
                                  options.shear_flag);
     }
 
-    else if (strcmp(argv[1], "PrismFrame") == 0) {
+    else if ((strcmp(argv[1], "PrismFrame") == 0) || (strcmp(argv[1], "ElasticFrame") == 0)) {
 
       theBeam = new PrismFrame2d(tag, beam_data.A, beam_data.E, beam_data.Iz, 
                                  iNode, jNode, *theTrans2d,
@@ -687,7 +687,7 @@ Parse_ElasticBeam(ClientData clientData, Tcl_Interp *interp, int argc,
                                  options.shear_flag);
     }
     else {
-      if (strcmp(argv[1], "PrismFrame") == 0) {
+      if ((strcmp(argv[1], "PrismFrame") == 0) || (strcmp(argv[1], "ElasticFrame") == 0)) {
         std::array<int, 2> nodes {iNode, jNode};
         theBeam = new PrismFrame3d(tag, 
                                    nodes,

@@ -1,6 +1,4 @@
-
-
-
+//
 // Written: Quan Gu, Yichao Gao and Zhijian Qiu  
 // Created: 2015/01/25 
 // Sensitivity analysis of absorbing-transmitting element for boundaries of water
@@ -10,10 +8,6 @@
 
 #ifndef AV3D4QuadWithSensitivity_H
 #define AV3D4QuadWithSensitivity_H
-
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 
 #include <Element.h>
 #include <Node.h>

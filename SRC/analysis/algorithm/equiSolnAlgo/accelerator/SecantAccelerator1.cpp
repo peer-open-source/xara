@@ -20,7 +20,7 @@
 //
 // Written: MHS
 // Created: April 2002
-
+//
 // Description: This file contains the class implementation for 
 // SecantAccelerator1. 
 
@@ -64,7 +64,7 @@ SecantAccelerator1::newStep(LinearSOE &theSOE)
 
   if (vOld != 0 && vOld->Size() != newNumEqns) {
     delete vOld;
-    vOld = 0;
+    vOld = nullptr;
   }
 
   if (rOld != 0 && rOld->Size() != newNumEqns) {
@@ -82,13 +82,13 @@ SecantAccelerator1::newStep(LinearSOE &theSOE)
 
   // Reset iteration counter
   iteration = 0;
-
   return 0;
 }
 
+
 int
 SecantAccelerator1::accelerate(Vector &vStar, LinearSOE &theSOE, 
-			       IncrementalIntegrator &theIntegrator)
+                                IncrementalIntegrator &theIntegrator)
 {
   // Current right hand side
   const Vector &rNew  = theSOE.getB();
@@ -123,12 +123,12 @@ SecantAccelerator1::accelerate(Vector &vStar, LinearSOE &theSOE,
   return 0; 
 }
 
+
 int
 SecantAccelerator1::updateTangent(IncrementalIntegrator &theIntegrator, bool& factored)
 {
   factored = false;
   if (iteration > maxIterations) {
-    //opserr << "SecantAccelerator1::updateTangent() tangent formed" << "\n";
     iteration = 0;
     if (theTangent != NO_TANGENT) {
       factored = true;
@@ -152,15 +152,3 @@ SecantAccelerator1::Print(OPS_Stream &s, int flag) const
     s << "\tNo cut-outs" << "\n";
 }
 
-int
-SecantAccelerator1::sendSelf(int commitTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int
-SecantAccelerator1::recvSelf(int commitTag, Channel &theChannel, 
-			     FEM_ObjectBroker &theBroker)
-{
-  return -1;
-}

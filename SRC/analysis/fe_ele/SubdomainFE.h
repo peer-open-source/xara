@@ -15,9 +15,7 @@
 //
 // Description: This file contains the class definition for SubdomainFE.
 //
-// Written: fmk 
-// Created: 11/96
-// Revision: A
+// Written: cmp
 //
 #ifndef SubdomainFE_h
 #define SubdomainFE_h
@@ -38,23 +36,24 @@ class SubdomainFE: public FE_Element
   public:
     SubdomainFE(int tag, Element *theElement);
     ~SubdomainFE() override;
+    const char* getClassName() const override {return "SubdomainFE";}
 
     // public methods for setting/obtaining mapping information
     virtual int setID(AnalysisModel &);
     virtual const ID &getID() const;
 
     // methods to form and obtain the tangent and residual
-    virtual const Matrix &getTangent(Integrator *);
-    virtual const Vector &getResidual(Integrator *);
+    const Matrix &getTangent(Integrator *) override;
+    const Vector &getResidual(Integrator *) override;
 
     // methods called by integrator to build tangent
-    virtual void  zeroTangent()                  ;
-    virtual void  addKtToTang(double fact = 1.0) ;
-    virtual void  addKiToTang(double fact = 1.0) ;
-    virtual void  addCtoTang (double fact = 1.0) ;
-    virtual void  addMtoTang (double fact = 1.0) ;
-    virtual void  addKpToTang(double fact = 1.0, int numP = 0);
-    virtual int   storePreviousK(int numP);
+    void  zeroTangent()                  override;
+    void  addKtToTang(double fact = 1.0) override;
+    void  addKiToTang(double fact = 1.0) override;
+    void  addCtoTang (double fact = 1.0) override;
+    void  addMtoTang (double fact = 1.0) override;
+    void  addKpToTang(double fact = 1.0, int numP = 0) override;
+    int   storePreviousK(int numP);
 
     // methods used by integrator to build residual    
     virtual void  zeroResidual();    
@@ -62,14 +61,14 @@ class SubdomainFE: public FE_Element
     virtual void  addRIncInertiaToResidual(double fact);    
 
     // methods for ele-by-ele strategies
-    virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
-    virtual const Vector &getK_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getKi_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
-    virtual void  addM_Force(const Vector &accel, double fact = 1.0);    
-    virtual void  addD_Force(const Vector &vel, double fact = 1.0);    
-    virtual void  addK_Force(const Vector &disp, double fact = 1.0);
+    const Vector &getTangForce(const Vector &x, double fact = 1.0) override;
+    const Vector &getK_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getKi_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getC_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getM_Force(const Vector &x, double fact = 1.0) override;
+    void  addM_Force(const Vector &accel, double fact = 1.0) override;
+    void  addD_Force(const Vector &vel, double fact = 1.0) override;
+    void  addK_Force(const Vector &disp, double fact = 1.0) override;
 
     virtual int updateElement();
 

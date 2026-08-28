@@ -55,13 +55,14 @@ CTestRelativeEnergyIncr::~CTestRelativeEnergyIncr()
 ConvergenceTest*
 CTestRelativeEnergyIncr::getCopy(int iterations)
 {
-    return new CTestRelativeEnergyIncr(this->tol, iterations, this->printFlag, this->nType);
+  return new CTestRelativeEnergyIncr(this->tol, iterations, this->printFlag, this->nType);
 }
 
 
-void CTestRelativeEnergyIncr::setTolerance(double newTol)
+void 
+CTestRelativeEnergyIncr::setTolerance(double newTol)
 {
-    tol = newTol;
+  tol = newTol;
 }
 
 
@@ -109,10 +110,10 @@ CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
                << "Iter: "            << pad(currentIter)
                << ", dX*dR/dX1*dR1: " << pad(product)
                << "\n"
-               << ", Norm dU: "   << pad(x.pNorm(nType))
-               << ", Norm dR: "   << pad(b.pNorm(nType)) 
+               << ", dX: "   << pad(x.pNorm(nType))
+               << ", dR: "   << pad(b.pNorm(nType)) 
                << "\n"
-               << "\tdU: "        << x 
+               << "\tdX: "        << x 
                << "\tdR: "        << b;
     }
 
@@ -182,6 +183,10 @@ CTestRelativeEnergyIncr::start(LinearSOE& theSOE)
     norms.Zero();
     norm0 = 0.0;
 
+    if (printFlag & ConvergenceTest::PrintTest) {
+        pstream << LOG_ITERATE << "Iter: " << pad(0);
+        pstream << ", R : " << pad(theSOE.getB().pNorm(nType)) << "\n";
+    }
     return 0;
 }
 
@@ -208,48 +213,6 @@ double CTestRelativeEnergyIncr::getRatioNumToMax()
 const Vector&
 CTestRelativeEnergyIncr::getNorms()
 {
-    return norms;
+  return norms;
 }
 
-
-int CTestRelativeEnergyIncr::sendSelf(int cTag, Channel &theChannel)
-{
-    int res = 0;
-    static Vector x(4);
-    x(0) = tol;
-    x(1) = maxNumIter;
-    x(2) = printFlag;
-    x(3) = nType;
-    res = theChannel.sendVector(this->getDbTag(), cTag, x);
-    if (res < 0)
-        opserr << "CTestRelativeEnergyIncr::sendSelf() - failed to send data\n";
-
-    return res;
-}
-
-
-int
-CTestRelativeEnergyIncr::recvSelf(int cTag, Channel &theChannel,
-    FEM_ObjectBroker &theBroker)
-{
-    int res = 0;
-    static Vector x(4);
-    res = theChannel.recvVector(this->getDbTag(), cTag, x);
-
-    if (res < 0) {
-        opserr << "CTestRelativeEnergyIncr::sendSelf() - failed to send data\n";
-        tol = 1.0e-8;
-        maxNumIter = 25;
-        printFlag = 0;
-        nType = 2;
-    }
-    else {
-        tol = x(0);
-        maxNumIter = (int) x(1);
-        printFlag = (int) x(2);
-        nType = (int) x(3);
-        norms.resize(maxNumIter);
-    }
-
-    return res;
-}

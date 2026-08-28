@@ -387,25 +387,25 @@ createLinearRigidDiaphragm(Domain &theDomain, int ret_tag, ID &nC,
 }
 
 int
-TclCommand_RigidDiaphragm(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+XaraCmd_rigidDiaphragm(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   // TODO: Change RigidDiaphragm to take Domain as clientData
   Domain *theTclDomain = ((ModelRegistry*)clientData)->getDomain();
 
   if (argc < 3) {
-      opserr << OpenSees::PromptValueError << "rigidLink perpDirn? rNode? <cNodes?>\n";
-      return TCL_ERROR;
+    opserr << OpenSees::PromptValueError << "rigidDiaphragm perpDirn? rNode? <cNodes?>\n";
+    return TCL_ERROR;
   }
 
   int rNode, perpDirn;
   if (Tcl_GetInt(interp, argv[1], &perpDirn) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "rigidLink perpDirn rNode cNodes - could not read perpDirn? \n";
-      return TCL_ERROR;
+    opserr << OpenSees::PromptValueError << "rigidDiaphragm perpDirn rNode cNodes - could not read perpDirn? \n";
+    return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[2], &rNode) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "rigidLink perpDirn rNode cNodes - could not read rNode \n";
+      opserr << OpenSees::PromptValueError << "rigidDiaphragm perpDirn rNode cNodes - could not read rNode \n";
       return TCL_ERROR;
   }
 
@@ -413,12 +413,12 @@ TclCommand_RigidDiaphragm(ClientData clientData, Tcl_Interp *interp, int argc, T
   int numConstrainedNodes = argc - 3;
   ID constrainedNodes(numConstrainedNodes);
   for (int i=0; i<numConstrainedNodes; ++i) {
-      int cNode;
-      if (Tcl_GetInt(interp, argv[3+i], &cNode) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "rigidLink perpDirn rNode cNodes - could not read a cNode\n";
-          return TCL_ERROR;
-      }
-      constrainedNodes(i) = cNode;
+    int cNode;
+    if (Tcl_GetInt(interp, argv[3+i], &cNode) != TCL_OK) {
+      opserr << OpenSees::PromptValueError << "rigidDiaphragm perpDirn rNode cNodes - could not read a cNode\n";
+      return TCL_ERROR;
+    }
+    constrainedNodes(i) = cNode;
   }
 
   //RigidDiaphragm theLink(*theTclDomain, rNode, constrainedNodes, perpDirn-1);
@@ -428,7 +428,7 @@ TclCommand_RigidDiaphragm(ClientData clientData, Tcl_Interp *interp, int argc, T
 
 
 int
-TclCommand_RigidLink(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
+XaraCmd_rigidLink(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *theTclDomain = ((ModelRegistry*)clientData)->getDomain();
@@ -440,17 +440,17 @@ TclCommand_RigidLink(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
 
   int rNode, cNode;
   if (Tcl_GetInt(interp, argv[2], &rNode) != TCL_OK) {
-      opserr << OpenSees::PromptValueError 
-             << "invalid rNode"
-             << OpenSees::SignalMessageEnd; 
-      return TCL_ERROR;
+    opserr << OpenSees::PromptValueError 
+            << "invalid rNode"
+            << OpenSees::SignalMessageEnd; 
+    return TCL_ERROR;
   }
 
   if (Tcl_GetInt(interp, argv[3], &cNode) != TCL_OK) {
-      opserr << OpenSees::PromptValueError 
-             << "invalid CNode"
-             << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
+    opserr << OpenSees::PromptValueError 
+            << "invalid CNode"
+            << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
   }
 
   // construct a rigid rod or beam depending on 1st arg
@@ -461,9 +461,9 @@ TclCommand_RigidLink(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Ch
     return createLinearRigidBeam(*theTclDomain, rNode, cNode);
 
   } else {
-      opserr << OpenSees::PromptValueError 
-             << "unrecognised link type (-bar, -beam) \n"; 
-      return TCL_ERROR;
+    opserr << OpenSees::PromptValueError 
+            << "unrecognised link type (-bar, -beam) \n"; 
+    return TCL_ERROR;
   }
   return TCL_OK;
 }

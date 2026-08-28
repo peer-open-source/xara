@@ -123,11 +123,11 @@ Broyden::solveCurrentStep()
 
 
   if ((theIntegrator == nullptr) 
-      || (theSOE == nullptr)
-      || (theTest == nullptr)) {
-      opserr << "WARNING Broyden::solveCurrentStep() - setLinks() has";
-      opserr << " not been called - or no ConvergenceTest has been set\n";
-      return -5;
+    || (theSOE == nullptr)
+    || (theTest == nullptr)) {
+    opserr << "WARNING Broyden::solveCurrentStep() - setLinks() has";
+    opserr << " not been called - or no ConvergenceTest has been set\n";
+    return -5;
   }        
 
   if (theTest->start(*theSOE) < 0) {

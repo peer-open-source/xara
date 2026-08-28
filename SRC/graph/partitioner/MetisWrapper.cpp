@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.7 $
-// $Date: 2008-04-15 19:13:22 $
-// $Source: /usr/local/cvs/OpenSees/SRC/graph/partitioner/Metis.cpp,v $
-                                                                        
-                                                                        
+//
 // Written: fmk 
 // Created: Sun Sept 15 11:47:47: 1996
 // Revision: A
@@ -40,9 +35,7 @@
 #include "MetisWrapper.h"
 #include <Graph.h>
 #include <Vertex.h>
-
-/* stuff needed to get the program working on the clump & NOW machines*/
-#include <stdbool.h>
+#include <Logging.h>
 
 //int IsWeighted =0;
 

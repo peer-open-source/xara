@@ -35,6 +35,7 @@
 #include <MovableObject.h>
 
 class LinearSOE;
+class Vector;
 
 
 struct LinearSolveSpec {
@@ -57,6 +58,7 @@ struct LinearSolveSpec {
   } definite = Definite::Indefinite;
 };
 
+
 class LinearSOESolver : public MovableObject
 {
   public:
@@ -64,9 +66,9 @@ class LinearSOESolver : public MovableObject
     virtual ~LinearSOESolver();
 
     virtual int solve() = 0;
+    virtual int solve(const Vector& B, Vector& X) {return -1;}
     virtual int setSize() = 0;
-    virtual double getDeterminant() {return 1.0;};
-
+    virtual double getDeterminant() {return 1.0;}
 };
 
 #endif

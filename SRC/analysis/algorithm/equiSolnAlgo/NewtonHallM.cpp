@@ -111,109 +111,83 @@ NewtonHallM::~NewtonHallM()
 int 
 NewtonHallM::solveCurrentStep()
 {
-    // set up some pointers and check they are valid
-    // NOTE this could be taken away if we set Ptrs as protecetd in superclass
-    IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
-    //IncrementalIntegrator *theIntegratorSens=this->getIncrementalIntegratorPtr();//Abbas
-    LinearSOE  *theSOE = this->getLinearSOEptr();
+  // set up some pointers and check they are valid
+  // NOTE this could be taken away if we set Ptrs as protecetd in superclass
+  IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
+  //IncrementalIntegrator *theIntegratorSens=this->getIncrementalIntegratorPtr();//Abbas
+  LinearSOE  *theSOE = this->getLinearSOEptr();
 
-    if ((theIntegrator == 0) || (theSOE == 0)  || (theTest == 0)){
-        return -5;
-    }        
+  if ((theIntegrator == 0) || (theSOE == 0)  || (theTest == 0)){
+      return -5;
+  }        
 
-    if (theIntegrator->formUnbalance() < 0) {      
-      return -2;
-    }            
+  if (theIntegrator->formUnbalance() < 0) {      
+    return -2;
+  }            
 
-    if (theTest->start(*theSOE) < 0) {
-      return SolutionAlgorithm::BadTestStart;
+  if (theTest->start(*theSOE) < 0) {
+    return SolutionAlgorithm::BadTestStart;
+  }
+
+  int result = -1;
+  numIterations = 0;
+
+  do {
+
+    int tangent = HALL_TANGENT;
+    SOLUTION_ALGORITHM_tangentFlag = tangent;
+
+    double iFact, cFact;
+    if (method == 0) {
+      iFact = iFactor*exp(-alpha*numIterations);
+      cFact = 1.0 - iFact;
+    } else if (method ==1) {
+      double iFact0 = 1.0/(1. + exp(-alpha*c));
+      iFact = 1/(1 + exp(alpha*(numIterations-c)));
+      iFact = iFactor*iFact/iFact0;
+      cFact = 1.0 - iFact;
+    } else {
+      iFact = iFactor;
+      cFact = cFactor;
     }
-
-    int result = -1;
-    numIterations = 0;
-
-    do {
-
-      int tangent = HALL_TANGENT;
-      SOLUTION_ALGORITHM_tangentFlag = tangent;
-
-      double iFact, cFact;
-      if (method == 0) {
-        iFact = iFactor*exp(-alpha*numIterations);
-        cFact = 1.0 - iFact;
-      } else if (method ==1) {
-        double iFact0 = 1.0/(1. + exp(-alpha*c));
-        iFact = 1/(1 + exp(alpha*(numIterations-c)));
-        iFact = iFactor*iFact/iFact0;
-        cFact = 1.0 - iFact;
-      } else {
-        iFact = iFactor;
-        cFact = cFactor;
-      }
-      
-      if (theIntegrator->formTangent(tangent, iFact, cFact) < 0){
-        opserr << "WARNING NewtonHallM::solveCurrentStep() -";
-        opserr << "the Integrator failed in formTangent()\n";
-        return -1;
-      }                    
-      
-      if (theSOE->solve() < 0) {
-        opserr << "WARNING NewtonHallM::solveCurrentStep() -";
-        opserr << "the LinearSysOfEqn failed in solve()\n";        
-        return -3;
-      }            
-      
-      if (theIntegrator->update(theSOE->getX()) < 0) {
-        opserr << "WARNING NewtonHallM::solveCurrentStep() -";
-        opserr << "the Integrator failed in update()\n";        
-        return -4;
-      }                
-      if (theIntegrator->formUnbalance() < 0) {
-        opserr << "WARNING NewtonHallM::solveCurrentStep() -";
-        opserr << "the Integrator failed in formUnbalance()\n";        
-        return -2;
-      }        
-      
-      result = theTest->test(*theSOE);
-      numIterations++;
-      this->record(numIterations);
-      
-      
-    }  while (result == ConvergenceTest::Continue);
     
-    if (result == ConvergenceTest::Failure) {
-      opserr << "NewtnRaphson::solveCurrentStep() -";
-      opserr << "the ConvergenceTest object failed in test()\n";
+    if (theIntegrator->formTangent(tangent, iFact, cFact) < 0){
+      opserr << "WARNING NewtonHallM::solveCurrentStep() -";
+      opserr << "the Integrator failed in formTangent()\n";
+      return -1;
+    }                    
+    
+    if (theSOE->solve() < 0) {
+      opserr << "WARNING NewtonHallM::solveCurrentStep() -";
+      opserr << "the LinearSysOfEqn failed in solve()\n";        
       return -3;
-    }
+    }            
     
-    return result;
-}
-
-
-int
-NewtonHallM::sendSelf(int cTag, Channel &theChannel)
-{
-  static Vector data(4);
-  data(0) = iFactor;;
-  data(1) = method;
-  data(2) = alpha;
-  data(3) = c;
-  return theChannel.sendVector(this->getDbTag(), cTag, data);
-}
-
-int
-NewtonHallM::recvSelf(int cTag, 
-                      Channel &theChannel, 
-                      FEM_ObjectBroker &theBroker)
-{
-  static Vector data(4);
-  theChannel.recvVector(this->getDbTag(), cTag, data);
-  iFactor = data(0);
-  method = data(1);
-  alpha = data(2);
-  c = data(3);
-  return 0;
+    if (theIntegrator->update(theSOE->getX()) < 0) {
+      opserr << "WARNING NewtonHallM::solveCurrentStep() -";
+      opserr << "the Integrator failed in update()\n";        
+      return -4;
+    }                
+    if (theIntegrator->formUnbalance() < 0) {
+      opserr << "WARNING NewtonHallM::solveCurrentStep() -";
+      opserr << "the Integrator failed in formUnbalance()\n";        
+      return -2;
+    }        
+    
+    result = theTest->test(*theSOE);
+    numIterations++;
+    this->record(numIterations);
+    
+    
+  }  while (result == ConvergenceTest::Continue);
+  
+  if (result == ConvergenceTest::Failure) {
+    opserr << "NewtnRaphson::solveCurrentStep() -";
+    opserr << "the ConvergenceTest object failed in test()\n";
+    return -3;
+  }
+  
+  return result;
 }
 
 

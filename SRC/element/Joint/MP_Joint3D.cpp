@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.3 $
-// $Date: 2010-04-23 22:53:56 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/joint/MP_Joint3D.cpp,v $
-
+//
 // Written: Arash Altoontash, Gregory Deierlein
 // Created: 04/03
 // Revision: Arash
@@ -196,12 +192,7 @@ RotationNode(0), DisplacementNode(0)
   (*constraint) (0,7) = deltaZ*DspNormVect(1) - deltaY*DspNormVect(2);
   (*constraint) (1,7) = deltaX*DspNormVect(2) - deltaZ*DspNormVect(0) ;
   (*constraint) (1,7) = deltaY*DspNormVect(0) - deltaX*DspNormVect(1) ;
-  
-  
-  if (constraint == NULL ) {
-    opserr << "MP_Joint3D::MP_Joint3D - ran out of memory \ncan not generate the constraint matrix";
-    exit(-1);
-  }
+
 }
 
 
@@ -219,22 +210,22 @@ MP_Joint3D::~MP_Joint3D()
 
 
 int
-MP_Joint3D::getNodeRetained(void) const
+MP_Joint3D::getNodeRetained() const
 {
-    // return id of retained node
-    return nodeRetained;
+  // return id of retained node
+  return nodeRetained;
 }
 
 int
-MP_Joint3D::getNodeConstrained(void) const
+MP_Joint3D::getNodeConstrained() const
 {
-    // return id of constrained node    
-    return nodeConstrained;
+  // return id of constrained node
+  return nodeConstrained;
 }
 
 
 const ID &
-MP_Joint3D::getConstrainedDOFs(void) const
+MP_Joint3D::getConstrainedDOFs() const
 {
   if (constrDOF == NULL) {
     opserr << "MP_Joint3D::getConstrainedDOF - no ID was set, ";
@@ -248,7 +239,7 @@ MP_Joint3D::getConstrainedDOFs(void) const
 
 
 const ID &
-MP_Joint3D::getRetainedDOFs(void) const
+MP_Joint3D::getRetainedDOFs() const
 {
   if (retainDOF == NULL) {
     opserr << "MP_Joint3D::getRetainedDOFs - no ID was set\n ";
@@ -285,10 +276,10 @@ MP_Joint3D::applyConstraint(double timeStamp)
       double deltaZ = dispCon(2) + crdCon(2) - dispRet(2) - crdRet(2);
       
       for ( int i = 0 ; i<3 ; i++ )
-	{
-	  RotNormVect(i)= dispRot(i) + crdRot(i) - dispRet(i) - crdRet(i);
-	  DspNormVect(i)= dispDsp(i) + crdDsp(i) - dispRet(i) - crdRet(i);	
-	}
+      {
+        RotNormVect(i)= dispRot(i) + crdRot(i) - dispRet(i) - crdRet(i);
+        DspNormVect(i)= dispDsp(i) + crdDsp(i) - dispRet(i) - crdRet(i);	
+      }
       
       RotNormVect = RotNormVect / RotNormVect.Norm();
       DspNormVect = DspNormVect / DspNormVect.Norm();
@@ -300,13 +291,13 @@ MP_Joint3D::applyConstraint(double timeStamp)
       (*constraint) (1,1) = 1.0 ;
       (*constraint) (2,2) = 1.0 ;
       (*constraint) (1,3) = -deltaZ;
-      (*constraint) (2,3) = deltaY;
+      (*constraint) (2,3) =  deltaY;
       (*constraint) (3,3) = 1.0 ;
-      (*constraint) (0,4) = deltaZ;
+      (*constraint) (0,4) =  deltaZ;
       (*constraint) (2,4) = -deltaX;
       (*constraint) (4,4) = 1.0 ;
       (*constraint) (0,5) = -deltaY;
-      (*constraint) (1,5) = deltaX;
+      (*constraint) (1,5) =  deltaX;
       (*constraint) (5,5) = 1.0 ;
       (*constraint) (3,6) = RotNormVect(0);
       (*constraint) (4,6) = RotNormVect(1);
@@ -320,10 +311,10 @@ MP_Joint3D::applyConstraint(double timeStamp)
 
 
 bool
-MP_Joint3D::isTimeVarying(void) const
+MP_Joint3D::isTimeVarying() const
 {
   if ( LargeDisplacement != 0 ) return true;
-  
+
   return false;
 }
 
@@ -341,56 +332,58 @@ int MP_Joint3D::recvSelf(int commitTag, Channel &theChannel,
 }
 
 
-const Matrix &MP_Joint3D::getConstraint(void)
+const Matrix &
+MP_Joint3D::getConstraint()
 {
-    if (constraint == 0) {
-      opserr << "MP_Joint3D::getConstraint - no Matrix was set\n";
-      exit(-1);
-    }    
+  if (constraint == 0) {
+    opserr << "MP_Joint3D::getConstraint - no Matrix was set\n";
+    exit(-1);
+  }
+  
+  // Length correction
+  // to correct the trial displacement
+  if ( LargeDisplacement == 2 ) {
+    // get the coordinates of the two nodes - check dimensions are the same FOR THE MOMENT
+    const Vector &crdR = RetainedNode->getCrds();
+    const Vector &crdC = ConstrainedNode->getCrds();
     
-    // Length correction
-    // to correct the trial displacement
-    if ( LargeDisplacement == 2 )
-      {
-	// get the coordinates of the two nodes - check dimensions are the same FOR THE MOMENT
-	const Vector &crdR = RetainedNode->getCrds();
-	const Vector &crdC = ConstrainedNode->getCrds();
-	
-	// get committed displacements of nodes to get updated coordinates
-	const Vector &dispR = RetainedNode->getTrialDisp();
-	const Vector &dispC = ConstrainedNode->getTrialDisp();
-	
-	double deltaX = dispC(0) + crdC(0) - dispR(0) - crdR(0);
-	double deltaY = dispC(1) + crdC(1) - dispR(1) - crdR(1);
-	double deltaZ = dispC(2) + crdC(2) - dispR(2) - crdR(2);
-	
-	
-	Vector Direction(3);
-	Direction(0) = deltaX;
-	Direction(1) = deltaY;
-	Direction(2) = deltaZ;
-	double NewLength = Direction.Norm();
-	if ( NewLength < 1e-12 ) opserr << "MP_Joint3D::applyConstraint : length of rigid link is too small or zero"; 
-	Direction = Direction * (Length0/NewLength);		// correct the length
-	// find new displacements of the constrainted node
-	
-	Vector NewLocation(6);
-	NewLocation(0) = Direction(0) + dispR(0) + crdR(0) - crdC(0);
-	NewLocation(1) = Direction(1) + dispR(1) + crdR(1) - crdC(1);
-	NewLocation(2) = Direction(2) + dispR(2) + crdR(2) - crdC(2);
-	NewLocation(3) = dispC(3);
-	NewLocation(4) = dispC(4);
-	NewLocation(5) = dispC(5);
-	
-	int dummy = ConstrainedNode->setTrialDisp( NewLocation );
-      }
-    // end of length correction procedure
+    // get committed displacements of nodes to get updated coordinates
+    const Vector &dispR = RetainedNode->getTrialDisp();
+    const Vector &dispC = ConstrainedNode->getTrialDisp();
     
-    // return the constraint matrix Ccr
-    return (*constraint);
+    double deltaX = dispC(0) + crdC(0) - dispR(0) - crdR(0);
+    double deltaY = dispC(1) + crdC(1) - dispR(1) - crdR(1);
+    double deltaZ = dispC(2) + crdC(2) - dispR(2) - crdR(2);
+    
+    
+    Vector Direction(3);
+    Direction(0) = deltaX;
+    Direction(1) = deltaY;
+    Direction(2) = deltaZ;
+    double NewLength = Direction.Norm();
+    if ( NewLength < 1e-12 )
+      opserr << "MP_Joint3D::applyConstraint : length of rigid link is too small or zero"; 
+    Direction = Direction * (Length0/NewLength);		// correct the length
+    // find new displacements of the constrainted node
+
+    Vector NewLocation(6);
+    NewLocation(0) = Direction(0) + dispR(0) + crdR(0) - crdC(0);
+    NewLocation(1) = Direction(1) + dispR(1) + crdR(1) - crdC(1);
+    NewLocation(2) = Direction(2) + dispR(2) + crdR(2) - crdC(2);
+    NewLocation(3) = dispC(3);
+    NewLocation(4) = dispC(4);
+    NewLocation(5) = dispC(5);
+    
+    int dummy = ConstrainedNode->setTrialDisp(NewLocation);
+  }
+  // end of length correction procedure
+  
+  // return the constraint matrix Ccr
+  return (*constraint);
 }
 
-void MP_Joint3D::Print(OPS_Stream &s, int flag )
+void 
+MP_Joint3D::Print(OPS_Stream &s, int flag )
 {
   s << "MP_Joint3D: " << this->getTag() << "\n";
   s << "\tConstrained Node: " << nodeConstrained;

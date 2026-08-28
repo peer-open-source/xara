@@ -577,7 +577,6 @@ XaraClassBroker::getNewElement(int classTag)
 
     DISPATCH(Truss2);
     DISPATCH(TrussSection);
-    DISPATCH(CorotTrussSection);
     DISPATCH(InertiaTruss);
 
     DISPATCH(ElasticBeam2d);
@@ -1135,21 +1134,6 @@ XaraClassBroker::getNewNDMaterial(int classTag)
   case ND_TAG_ElasticIsotropicThreeDimensional:
     return new ElasticIsotropicThreeDimensional();
 
-  case ND_TAG_J2PlaneStrain:
-    return new J2PlaneStrain();
-
-  case ND_TAG_J2PlaneStress:
-    return new J2PlaneStress();
-
-  case ND_TAG_J2AxiSymm:
-    return new J2AxiSymm();
-
-  case ND_TAG_J2PlateFiber:
-    return new J2PlateFiber();
-
-  case ND_TAG_J2ThreeDimensional:
-    return new J2ThreeDimensional();
-
   case ND_TAG_PlaneStressMaterial:
     return new PlaneStressMaterial();
 
@@ -1179,11 +1163,6 @@ XaraClassBroker::getNewNDMaterial(int classTag)
   case ND_TAG_PressureIndependMultiYield:
     return new PressureIndependMultiYield();
 
-#if defined(OPSDEF_ELEMENT_FEAP)
-  case ND_TAG_FeapMaterial03:
-    return new FeapMaterial03();
-#endif // OPSDEF_ELEMENT_FEAP
-
   case ND_TAG_ContactMaterial2D:
     return new ContactMaterial2D();
 
@@ -1195,9 +1174,6 @@ XaraClassBroker::getNewNDMaterial(int classTag)
 
   case ND_TAG_DruckerPragerPlaneStrain:
     return new DruckerPragerPlaneStrain();
-
-  case ND_TAG_BoundingCamClay:
-    return new BoundingCamClay();
 
   case ND_TAG_BoundingCamClay3D:
     return new BoundingCamClay3D();
@@ -1304,37 +1280,7 @@ XaraClassBroker::getNewFrictionModel(int classTag)
 ConvergenceTest *
 XaraClassBroker::getNewConvergenceTest(int classTag)
 {
-  switch (classTag) {
-  case CONVERGENCE_TEST_CTestNormUnbalance:
-    return new CTestNormUnbalance();
-
-  case CONVERGENCE_TEST_CTestRelativeNormUnbalance:
-    return new CTestRelativeNormUnbalance();
-
-  case CONVERGENCE_TEST_CTestNormDispIncr:
-    return new CTestNormDispIncr();
-
-  case CONVERGENCE_TEST_CTestRelativeNormDispIncr:
-    return new CTestRelativeNormDispIncr();
-
-  case CONVERGENCE_TEST_CTestRelativeTotalNormDispIncr:
-    return new CTestRelativeTotalNormDispIncr();
-
-  case CONVERGENCE_TEST_CTestEnergyIncr:
-    return new CTestEnergyIncr();
-
-  case CONVERGENCE_TEST_CTestRelativeEnergyIncr:
-    return new CTestRelativeEnergyIncr();
-
-  case CONVERGENCE_TEST_CTestFixedNumIter:
-    return new CTestFixedNumIter();
-
-  default:
-    opserr << "XaraClassBroker::getNewConvergenceTest - ";
-    opserr << " - no ConvergenceTest type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 LoadPattern *
@@ -1600,28 +1546,7 @@ XaraClassBroker::getNewAnalysisModel(int classTag)
 EquiSolnAlgo *
 XaraClassBroker::getNewEquiSolnAlgo(int classTag)
 {
-  switch (classTag) {
-  case EquiALGORITHM_TAGS_Linear:
-    return new Linear();
-
-  case EquiALGORITHM_TAGS_NewtonRaphson:
-    return new NewtonRaphson();
-
-  case EquiALGORITHM_TAGS_NewtonLineSearch:
-    return new NewtonLineSearch();
-
-  case EquiALGORITHM_TAGS_ModifiedNewton:
-    return new ModifiedNewton(CURRENT_TANGENT);
-
-  case EquiALGORITHM_TAGS_Broyden:
-    return new Broyden();
-
-  default:
-    opserr << "XaraClassBroker::getNewEquiSolnAlgo - ";
-    opserr << " - no EquiSolnAlgo type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 Accelerator *
@@ -1639,25 +1564,7 @@ XaraClassBroker::getAccelerator(int classTag)
 LineSearch *
 XaraClassBroker::getLineSearch(int classTag)
 {
-  switch (classTag) {
-
-  case LINESEARCH_TAGS_BisectionLineSearch:
-    return new BisectionLineSearch();
-
-  case LINESEARCH_TAGS_InitialInterpolatedLineSearch:
-    return new InitialInterpolatedLineSearch();
-
-  case LINESEARCH_TAGS_RegulaFalsiLineSearch:
-    return new RegulaFalsiLineSearch();
-
-  case LINESEARCH_TAGS_SecantLineSearch:
-    return new SecantLineSearch();
-  default:
-    opserr << "XaraClassBroker::getNewEquiSolnAlgo - ";
-    opserr << " - no EquiSolnAlgo type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 DomainDecompAlgo *

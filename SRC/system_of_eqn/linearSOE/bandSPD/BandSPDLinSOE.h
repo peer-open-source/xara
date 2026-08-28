@@ -46,7 +46,7 @@ class BandSPDLinSOE : public LinearSOE
 {
   public:
     BandSPDLinSOE(BandSPDLinSolver &theSolver);    
-    BandSPDLinSOE(int classTag);    
+    BandSPDLinSOE(int classTag);
     BandSPDLinSOE(BandSPDLinSolver &theSolver, int classTag);
 
     virtual ~BandSPDLinSOE();

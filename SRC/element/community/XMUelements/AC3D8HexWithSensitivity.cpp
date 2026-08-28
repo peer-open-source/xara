@@ -449,31 +449,9 @@ const Vector &AC3D8HexWithSensitivity::getResistingForceIncInertia(void)
 // /////////////////////////////////////////////////////////////////////////////
 //
 
-int 
-AC3D8HexWithSensitivity::sendSelf (int commitTag, Channel &theChannel) 
-{ 
-  // Not implemtented yet
-  return 0;
-}
 
-int 
-AC3D8HexWithSensitivity::recvSelf (int commitTag, Channel &theChannel, 
-  FEM_ObjectBroker &theBroker) 
-{   
-  // Not implemtented yet
-  return 0;
-}
-
-int 
-AC3D8HexWithSensitivity::displaySelf (Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-  int error  = 0;
-  // Not implemtented yet
-  return error;
-
-}     
-
-void AC3D8HexWithSensitivity::Print(OPS_Stream &s, int flag)
+void 
+AC3D8HexWithSensitivity::Print(OPS_Stream &s, int flag)
 {
   const ID& node_tags = this->getExternalNodes();
 
@@ -507,7 +485,7 @@ void AC3D8HexWithSensitivity::Print(OPS_Stream &s, int flag)
 //
 
 Response * 
-AC3D8HexWithSensitivity::setResponse (const char **argv, int argc, OPS_Stream &output)
+AC3D8HexWithSensitivity::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
   Response *theResponse = 0;
 
@@ -551,7 +529,7 @@ AC3D8HexWithSensitivity::getResponse (int responseID, Information &eleInfo)
 //
 
 ID *
-AC3D8HexWithSensitivity::getActiveDofs(void)
+AC3D8HexWithSensitivity::getActiveDofs()
 {
   if (actDOFs.Size() == 0){
     for (int i = 0; i < NEN; i++){
@@ -566,7 +544,7 @@ int
 AC3D8HexWithSensitivity::setNDMaterial(NDMaterial *Globalmmodel)
 {
   // printf("AC3D8HexWithSensitivity::setNDMaterial - tag is %d!\n", this->getTag());
-  if(theMaterial != 0) {
+  if (theMaterial != 0) {
     printf("AC3D8HexWithSensitivity -- NDMaterial has been set!\n");
     return -1;
   }
@@ -595,7 +573,7 @@ AC3D8HexWithSensitivity::setNDMaterial(NDMaterial *Globalmmodel)
 }
 
 int 
-AC3D8HexWithSensitivity::getIntegrateFlag(void)
+AC3D8HexWithSensitivity::getIntegrateFlag()
 {
   return 1;
 }
@@ -605,7 +583,7 @@ AC3D8HexWithSensitivity::getIntegrateFlag(void)
 //
 
 Matrix 
-AC3D8HexWithSensitivity::getNodalCoords(void)
+AC3D8HexWithSensitivity::getNodalCoords()
 {
   Matrix N_Coord(NEN,dim);
   

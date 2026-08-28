@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.2 $
-// $Date: 2008-09-16 18:15:42 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/accelerator/RaphsonAccelerator.cpp,v $
-                                                                        
+//
 // Written: MHS
 // Created: April 2002
 
@@ -98,22 +94,4 @@ void
 RaphsonAccelerator::Print(OPS_Stream &s, int flag) const
 {
   s << "RaphsonAccelerator\n";
-}
-
-int
-RaphsonAccelerator::sendSelf(int commitTag, Channel &theChannel)
-{
-  static ID data(1);
-  data(0) = theTangent;
-  return theChannel.sendID(0, commitTag, data);
-}
-
-int
-RaphsonAccelerator::recvSelf(int commitTag, Channel &theChannel, 
-			    FEM_ObjectBroker &theBroker)
-{
-  static ID data(1);
-  int res = theChannel.recvID(0, commitTag, data);
-  theTangent = data(0);
-  return res;
 }

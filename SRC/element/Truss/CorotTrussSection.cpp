@@ -68,7 +68,7 @@ CorotTrussSection::CorotTrussSection(int tag, int dim,
    rho(r),
    doRayleighDamping(damp),
    cMass(cm),
-   R(3, 3),
+   R{},
    parameterID(0),
    theLoad(0),
    theMatrix(0),
@@ -81,29 +81,6 @@ CorotTrussSection::CorotTrussSection(int tag, int dim,
   connectedExternalNodes(0) = Nd1;
   connectedExternalNodes(1) = Nd2;
 
-  for (int i = 0; i < 2; i++)
-    theNodes[i] = nullptr;
-}
-
-//   invoked by a FEM_ObjectBroker - blank object that recvSelf needs
-//   to be invoked upon
-CorotTrussSection::CorotTrussSection()
- : Element(0, ELE_TAG_CorotTrussSection),
-   theSection(0),
-   connectedExternalNodes(2),
-   numDOF(0),
-   numDIM(0),
-   Lo(0.0),
-   Ln(0.0),
-   rho(0.0),
-   doRayleighDamping(0),
-   cMass(0),
-   R(3, 3),
-   parameterID(0),
-   theLoad(0),
-   theMatrix(0),
-   theVector(0)
-{
   for (int i = 0; i < 2; i++)
     theNodes[i] = nullptr;
 }
@@ -167,11 +144,8 @@ CorotTrussSection::setDomain(Domain* theDomain)
   // if can't find both - send a warning message
   if ((theNodes[0] == 0) || (theNodes[1] == 0)) {
     opserr << "CorotTrussSection::setDomain() - CorotTrussSection " << this->getTag()
-           << " node doe not exist in the model\n";
-
-    // fill this in so don't segment fault later
+           << " node does not exist in the model\n";
     numDOF = 6;
-
     return;
   }
 
@@ -183,11 +157,8 @@ CorotTrussSection::setDomain(Domain* theDomain)
   if (dofNd1 != dofNd2) {
     opserr << "WARNING CorotTrussSection::setDomain(): nodes have differing dof at ends for "
               "CorotTrussSection"
-           << this->getTag() << endln;
-
-    // fill this in so don't segment fault later
+           << this->getTag() << "\n";
     numDOF = 6;
-
     return;
   }
 
@@ -213,11 +184,10 @@ CorotTrussSection::setDomain(Domain* theDomain)
     theVector = &V12;
   } else {
     opserr << "CorotTrussSection::setDomain -- nodal DOF not compatible with element "
-           << this->getTag() << endln;
+           << this->getTag() << "\n";
 
     // fill this in so don't segment fault later
     numDOF = 6;
-
     return;
   }
 
@@ -235,8 +205,8 @@ CorotTrussSection::setDomain(Domain* theDomain)
 
   // now determine the length, cosines and fill in the transformation
   // NOTE t = -t(every one else uses for residual calc)
-  const Vector& end1Crd = theNodes[0]->getCrds();
-  const Vector& end2Crd = theNodes[1]->getCrds();
+  const Vector& Xi = theNodes[0]->getCrds();
+  const Vector& Xj = theNodes[1]->getCrds();
 
   // Determine global offsets
   double cosX[3];
@@ -245,7 +215,7 @@ CorotTrussSection::setDomain(Domain* theDomain)
   cosX[2] = 0.0;
 
   for (int i = 0; i < numDIM; i++) {
-    cosX[i] += end2Crd(i) - end1Crd(i);
+    cosX[i] += Xj(i) - Xi(i);
   }
 
   // Set undeformed and initial length
@@ -253,7 +223,7 @@ CorotTrussSection::setDomain(Domain* theDomain)
   Lo = std::sqrt(Lo);
   Ln = Lo;
 
-  // Initial offsets
+  // // Initial offsets
   d21[0] = Lo;
   d21[1] = 0.0;
   d21[2] = 0.0;
@@ -268,7 +238,7 @@ CorotTrussSection::setDomain(Domain* theDomain)
   R(0, 2) = cosX[2];
 
   // Element lies outside the YZ plane
-  if (fabs(cosX[0]) > 0.0) {
+  if (std::fabs(cosX[0]) > 0.0) {
     R(1, 0) = -cosX[1];
     R(1, 1) = cosX[0];
     R(1, 2) = 0.0;
@@ -290,7 +260,7 @@ CorotTrussSection::setDomain(Domain* theDomain)
 
   // Orthonormalize last two rows of R
   for (int i = 1; i < 3; i++) {
-    double norm = sqrt(R(i, 0) * R(i, 0) + R(i, 1) * R(i, 1) + R(i, 2) * R(i, 2));
+    double norm = std::sqrt(R(i, 0)*R(i, 0) + R(i, 1)*R(i, 1) + R(i, 2)*R(i, 2));
     R(i, 0) /= norm;
     R(i, 1) /= norm;
     R(i, 2) /= norm;
@@ -352,7 +322,6 @@ CorotTrussSection::update()
 const Matrix&
 CorotTrussSection::getTangentStiff()
 {
-  static Matrix kl(3, 3);
 
   // Material stiffness
   //
@@ -367,6 +336,7 @@ CorotTrussSection::getTangentStiff()
 
   EA /= (Ln * Ln * Lo);
 
+  Matrix3D kl{};
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 3; j++)
       kl(i, j) = EA * d21[i] * d21[j];
@@ -384,7 +354,7 @@ CorotTrussSection::getTangentStiff()
   }
 
   // Compute R'*kl*R
-  static Matrix kg(3, 3);
+  Matrix3D kg{};
   kg.addMatrixTripleProduct(0.0, R, kl, 1.0);
 
   Matrix& K = *theMatrix;
@@ -407,7 +377,6 @@ CorotTrussSection::getTangentStiff()
 const Matrix&
 CorotTrussSection::getInitialStiff()
 {
-  static Matrix kl(3, 3);
 
   // Material stiffness
   //
@@ -425,10 +394,11 @@ CorotTrussSection::getInitialStiff()
     }
   }
 
+  Matrix3D kl{};
   kl(0, 0) = EA / Lo;
 
   // Compute R'*kl*R
-  static Matrix kg(3, 3);
+  Matrix3D kg{};
   kg.addMatrixTripleProduct(0.0, R, kl, 1.0);
 
   Matrix& K = *theMatrix;
@@ -549,21 +519,20 @@ CorotTrussSection::getResistingForce()
 
   double SA = 0.0;
 
-  int i;
-  for (i = 0; i < order; i++) {
+  for (int i = 0; i < order; i++) {
     if (code(i) == SECTION_RESPONSE_P)
       SA += s(i);
   }
 
   SA /= Ln;
 
-  static Vector ql(3);
+  Vector3D ql{};
 
   ql(0) = d21[0] * SA;
   ql(1) = d21[1] * SA;
   ql(2) = d21[2] * SA;
 
-  static Vector qg(3);
+  Vector3D qg{};
   qg.addMatrixTransposeVector(0.0, R, ql, 1.0);
 
   Vector& P = *theVector;
@@ -571,9 +540,9 @@ CorotTrussSection::getResistingForce()
 
   // Copy forces into appropriate places
   int numDOF2 = numDOF / 2;
-  for (i = 0; i < numDIM; i++) {
+  for (int i = 0; i < numDIM; i++) {
     P(i)           = -qg(i);
-    P(i + numDOF2) = qg(i);
+    P(i + numDOF2) =  qg(i);
   }
 
   return *theVector;
@@ -674,130 +643,6 @@ CorotTrussSection::activateParameter(int passedParameterID)
 }
 
 
-int
-CorotTrussSection::sendSelf(int commitTag, Channel& theChannel)
-{
-  int res;
-
-  // note: we don't check for dataTag == 0 for Element
-  // objects as that is taken care of in a commit by the Domain
-  // object - don't want to have to do the check if sending data
-  int dataTag = this->getDbTag();
-
-  // truss packs it's data into a Vector and sends this to theChannel
-  // along with it's dbTag and the commitTag passed in the arguments
-
-  static Vector data(8);
-  data(0) = this->getTag();
-  data(1) = numDIM;
-  data(2) = numDOF;
-  data(5) = rho;
-  data(6) = doRayleighDamping;
-  data(7) = cMass;
-
-  data(3)      = theSection->getClassTag();
-  int matDbTag = theSection->getDbTag();
-
-  // NOTE: we do have to ensure that the Section has a database
-  // tag if we are sending to a database channel.
-  if (matDbTag == 0) {
-    matDbTag = theChannel.getDbTag();
-    if (matDbTag != 0)
-      theSection->setDbTag(matDbTag);
-  }
-  data(4) = matDbTag;
-
-  res = theChannel.sendVector(dataTag, commitTag, data);
-  if (res < 0) {
-    opserr << "WARNING CorotTrussSection::sendSelf() - " << this->getTag()
-           << " failed to send Vector\n";
-    return -1;
-  }
-
-  // truss then sends the tags of it's two end nodes
-  res = theChannel.sendID(dataTag, commitTag, connectedExternalNodes);
-  if (res < 0) {
-    opserr << "WARNING CorotTrussSection::sendSelf() - " << this->getTag()
-           << " failed to send ID\n";
-    return -2;
-  }
-
-  // finally truss asks it's Section object to send itself
-  res = theSection->sendSelf(commitTag, theChannel);
-  if (res < 0) {
-    opserr << "WARNING CorotTrussSection::sendSelf() - " << this->getTag()
-           << " failed to send its Section\n";
-    return -3;
-  }
-
-  return 0;
-}
-
-int
-CorotTrussSection::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
-{
-  int res;
-  int dataTag = this->getDbTag();
-
-  // truss creates a Vector, receives the Vector and then sets the
-  // internal data with the data in the Vector
-
-  static Vector data(8);
-  res = theChannel.recvVector(dataTag, commitTag, data);
-  if (res < 0) {
-    opserr << "WARNING CorotTrussSection::recvSelf() - failed to receive Vector\n";
-    return -1;
-  }
-
-  this->setTag((int)data(0));
-  numDIM            = (int)data(1);
-  numDOF            = (int)data(2);
-  rho               = data(5);
-  doRayleighDamping = (int)data(6);
-  cMass             = (int)data(7);
-
-  // truss now receives the tags of it's two external nodes
-  res = theChannel.recvID(dataTag, commitTag, connectedExternalNodes);
-  if (res < 0) {
-    opserr << "WARNING CorotTrussSection::recvSelf() - " << this->getTag()
-           << " failed to receive ID\n";
-    return -2;
-  }
-
-  // finally truss creates a new section object of the correct type,
-  // sets its database tag and asks this new object to recveive itself.
-
-  int sectClass = (int)data(3);
-  int sectDb    = (int)data(4);
-
-  // Get new section if null
-  if (theSection == 0)
-    theSection = theBroker.getNewFrameSection(sectClass);
-
-  // Check that section is of right type
-  else if (theSection->getClassTag() != sectClass) {
-    delete theSection;
-    theSection = theBroker.getNewFrameSection(sectClass);
-  }
-
-  // Check if either allocation failed
-  if (theSection == 0) {
-    opserr << "WARNING CorotTrussSection::recvSelf() - " << this->getTag()
-           << " failed to get a blank Section of type " << sectClass << endln;
-    return -3;
-  }
-
-  theSection->setDbTag(sectDb); // note: we set the dbTag before we receive the Section
-  res = theSection->recvSelf(commitTag, theChannel, theBroker);
-  if (res < 0) {
-    opserr << "WARNING CorotTrussSection::recvSelf() - " << this->getTag()
-           << " failed to receive its Section\n";
-    return -3;
-  }
-
-  return 0;
-}
-
 
 void
 CorotTrussSection::Print(OPS_Stream& s, int flag)
@@ -833,27 +678,40 @@ CorotTrussSection::computeCurrentStrain()
   // NOTE method will not be called if Lo == 0
 
   // Nodal displacements
-  const Vector& end1Disp = theNodes[0]->getTrialDisp();
-  const Vector& end2Disp = theNodes[1]->getTrialDisp();
+  const Vector& ui = theNodes[0]->getTrialDisp();
+  const Vector& uj = theNodes[1]->getTrialDisp();
 
   // Initial offsets
   d21[0] = Lo;
   d21[1] = 0.0;
   d21[2] = 0.0;
+  
 
+  Vector3D du{};
   // Update offsets in basic system due to nodal displacements
   for (int i = 0; i < numDIM; i++) {
-    d21[0] += R(0, i) * (end2Disp(i) - end1Disp(i));
-    d21[1] += R(1, i) * (end2Disp(i) - end1Disp(i));
-    d21[2] += R(2, i) * (end2Disp(i) - end1Disp(i));
+    du[0] += R(0, i) * (uj(i) - ui(i));
+    du[1] += R(1, i) * (uj(i) - ui(i));
+    du[2] += R(2, i) * (uj(i) - ui(i));
+
+    d21[0] += R(0, i) * (uj(i) - ui(i));
+    d21[1] += R(1, i) * (uj(i) - ui(i));
+    d21[2] += R(2, i) * (uj(i) - ui(i));
   }
 
   // Compute new length
-  Ln = d21[0] * d21[0] + d21[1] * d21[1] + d21[2] * d21[2];
-  Ln = sqrt(Ln);
+  Ln = d21[0]*d21[0] + d21[1]*d21[1] + d21[2]*d21[2];
+  Ln = std::sqrt(Ln);
 
-  // this method should never be called with Lo == 0
   return (Ln - Lo) / Lo;
+
+  // double egr = du[0]/Lo;
+  // egr += 0.5*(du[1]*du[1] + du[2]*du[2])/(Lo*Lo);
+
+  // double C   = Ln/Lo;
+  // double egr = 0.5*(C*C- 1.0);
+
+  // return 2.0*Lo*egr/(Ln + Lo);
 }
 
 Response*
@@ -868,7 +726,7 @@ CorotTrussSection::setResponse(const char** argv, int argc, OPS_Stream& output)
   output.attr("node2", connectedExternalNodes[1]);
 
   //
-  // we compare argv[0] for known response types for the CorotTruss
+  // compare argv[0] for known response types for the CorotTruss
   //
 
   if ((strcmp(argv[0], "force") == 0) || (strcmp(argv[0], "forces") == 0) ||

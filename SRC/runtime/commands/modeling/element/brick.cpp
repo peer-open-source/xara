@@ -1,6 +1,15 @@
 //===----------------------------------------------------------------------===//
 //
-//        OpenSees - Open System for Earthquake Engineering Simulation    
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
 //
@@ -14,6 +23,7 @@
 #include <ModelRegistry.h>
 
 #include <Brick.h>
+#include <Brick02.h>
 // #define XARA_HAVE_H8E12
 #ifdef XARA_HAVE_H8E12
 # include <H8E12.h>
@@ -26,7 +36,7 @@
 #endif
 
 int
-TclBasicBuilder_addBrick(ClientData clientData, 
+XaraElemCmd_H8(ClientData clientData, 
                          Tcl_Interp *interp,
                          ArgSize argc,
                          TCL_Char **const argv)
@@ -113,7 +123,6 @@ TclBasicBuilder_addBrick(ClientData clientData,
   if ((argc - eleArgStart) > 12) {
     if (Tcl_GetDouble(interp, argv[12 + eleArgStart], &b2) != TCL_OK) {
       opserr << "WARNING invalid b2\n";
-      opserr << "Brick element: " << BrickId << "\n";
       return TCL_ERROR;
     }
   }
@@ -121,7 +130,6 @@ TclBasicBuilder_addBrick(ClientData clientData,
   if ((argc - eleArgStart) > 13) {
     if (Tcl_GetDouble(interp, argv[13 + eleArgStart], &b3) != TCL_OK) {
       opserr << "WARNING invalid b3\n";
-      opserr << "Brick element: " << BrickId << "\n";
       return TCL_ERROR;
     }
   }
@@ -129,9 +137,13 @@ TclBasicBuilder_addBrick(ClientData clientData,
   // now create the Brick and add it to the Domain
   Element *theBrick = nullptr;
   if (strcmp(argv[1], "stdBrick") == 0) {
-    theBrick = new Brick(BrickId, node_tags, *theMaterial, b1, b2, b3);
-
-  } else if (strcmp(argv[1], "bbarBrickWithSensitivity") == 0) {
+    if (getenv("XARA_BRICK02") != nullptr) {
+      theBrick = new Brick02(BrickId, node_tags, *theMaterial, b1, b2, b3);
+    } else {
+      theBrick = new Brick(BrickId, node_tags, *theMaterial, b1, b2, b3);
+    }
+  }
+  else if (strcmp(argv[1], "bbarBrickWithSensitivity") == 0) {
     theBrick = new BbarBrickWithSensitivity(BrickId, 
                                             node_tags[0], node_tags[1], node_tags[2], node_tags[3],
                                             node_tags[4], node_tags[5], node_tags[6], node_tags[7],
@@ -156,10 +168,6 @@ TclBasicBuilder_addBrick(ClientData clientData,
     return TCL_ERROR;
   }
 
-  if (theBrick == 0) {
-    opserr << "WARNING ran out of memory creating element\n";
-    return TCL_ERROR;
-  }
 
   if (theTclDomain->addElement(theBrick) == false) {
     opserr << "WARNING could not add element to the domain\n";
@@ -167,13 +175,12 @@ TclBasicBuilder_addBrick(ClientData clientData,
     return TCL_ERROR;
   }
 
-  // if get here we have successfully created the node and added it to the domain
   return TCL_OK;
 }
 
 //
 // Description: This file contains the implementation of
-//    TclBasicBuilder_addBrickUP() ,
+//    XaraElemCmd_H8UP() ,
 //    TclBasicBuilder_addTwentyEightNodeBrickUP(),
 //    TclBasicBuilder_addBBarBrickUP()
 //
@@ -189,9 +196,10 @@ TclBasicBuilder_addBrick(ClientData clientData,
 #include <Twenty_Eight_Node_BrickUP.h>
 
 int
-TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
-                                   int argc,
-                                   TCL_Char ** const argv)
+XaraElemCmd_H20(ClientData clientData, 
+                Tcl_Interp *interp,
+                ArgSize argc,
+                TCL_Char ** const argv)
 {
   ModelRegistry *builder = (ModelRegistry*)clientData;
   Domain* theTclDomain = builder->getDomain();
@@ -200,6 +208,7 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
     opserr << "WARNING builder has been destroyed\n";
     return TCL_ERROR;
   }
+
   if (builder->getNDM() != 3) {
     opserr << "WARNING -- model dimensions and/or nodal DOF not compatible "
               "with 20NodeBrick element\n";
@@ -215,13 +224,14 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
   // get the id and end nodes
-  int brickId, matID;
+  int brickId;
   std::array<int, 20> Nod{};
   double b1 = 0.0;
   double b2 = 0.0;
   double b3 = 0.0;
   if (Tcl_GetInt(interp, argv[argStart], &brickId) != TCL_OK) {
-    opserr << "WARNING invalid 20NodeBrick eleTag" << "\n";
+    opserr << OpenSees::PromptValueError
+           << "invalid element tag " << argv[argStart] << "\n";
     return TCL_ERROR;
   }
   for (int i = 0; i < 20; i++)
@@ -229,10 +239,13 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
       opserr << "WARNING invalid Node number\n";
       return TCL_ERROR;
     }
+
+  int matID;
   if (Tcl_GetInt(interp, argv[21 + argStart], &matID) != TCL_OK) {
     opserr << "WARNING invalid matID\n";
     return TCL_ERROR;
   }
+
   if ((argc - argStart) >= 23) {
     if (Tcl_GetDouble(interp, argv[22 + argStart], &b1) != TCL_OK) {
       opserr << "WARNING invalid b1\n";
@@ -273,8 +286,9 @@ TclBasicBuilder_addTwentyNodeBrick(ClientData clientData, Tcl_Interp *interp,
   return TCL_OK;
 }
 
+
 int
-TclBasicBuilder_addBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
+XaraElemCmd_H8UP(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                            TCL_Char ** const argv)
 {
   ModelRegistry *builder = (ModelRegistry*)clientData;
@@ -508,15 +522,15 @@ TclBasicBuilder_addTwentyEightNodeBrickUP(ClientData clientData, Tcl_Interp *int
   return TCL_OK;
 }
 
+
+
 /*  *****************************************************************************
-
     BBAR  BRICK  U_P
-
     *****************************************************************************
  */
 
 int
-TclBasicBuilder_addBBarBrickUP(ClientData clientData, Tcl_Interp *interp, int argc,
+TclBasicBuilder_addBBarBrickUP(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                                TCL_Char ** const argv)
 {
   ModelRegistry *builder = (ModelRegistry*)clientData;

@@ -93,7 +93,7 @@ public:
      // Return a copy of itself if "code"="MultiYieldSurfaceClay", otherwise return null.
      NDMaterial *getCopy(const char *code);
 
-     const char *getType() const ;
+     const char *getType() const;
 
      // Return ndm.
      int getOrder() const ;
@@ -147,8 +147,7 @@ private:
     // Called by constructor
     void setUpSurfaces(double *);  
 
-    double yieldFunc(const T2Vector & stress, const MultiYieldSurface * surfaces, 
-             int surface_num);
+    double yieldFunc(const T2Vector & stress, const MultiYieldSurface * surfaces, int surface_num);
 
     void deviatorScaling(T2Vector & stress, const MultiYieldSurface * surfaces, 
                  int surfaceNum, int count=0);

@@ -43,7 +43,7 @@ BandGenLinLapackSolver::BandGenLinLapackSolver(bool doDet_)
 BandGenLinLapackSolver::~BandGenLinLapackSolver()
 {
   if (iPiv != 0)
-     delete [] iPiv;
+    delete [] iPiv;
 }
 
 static inline double *
@@ -94,64 +94,59 @@ BandGenLinLapackSolver::getDeterminant()
 int
 BandGenLinLapackSolver::solve()
 {
-    assert(theSOE != nullptr);
+  assert(theSOE != nullptr);
 
-    int n = theSOE->size;
-    // check iPiv is large enough
-    assert(!(iPivSize < n));
-    // if (iPivSize < n) {
-    //     opserr << "WARNING BandGenLinLapackSolver::solve(void)- ";
-    //     opserr << " iPiv not large enough - has setSize() been called?\n";
-    //     return -1;
-    // }	
+  int n = theSOE->size;
+  // check iPiv is large enough
+  assert(!(iPivSize < n));
 
-    int kl = theSOE->numSubD;
-    int ku = theSOE->numSuperD;
-    int ldA = 2*kl + ku +1;
-    int nrhs = 1;
-    int ldB = n;
-    int info;
-    double *Aptr = theSOE->A;
-    double *Xptr = &theSOE->X[0];
-    double *Bptr = &theSOE->B[0];
-    int    *iPIV = iPiv;
+  int kl = theSOE->numSubD;
+  int ku = theSOE->numSuperD;
+  int ldA = 2*kl + ku +1;
+  int nrhs = 1;
+  int ldB = n;
+  int info;
+  double *Aptr = theSOE->A;
+  double *Xptr = &theSOE->X[0];
+  const double *Bptr = &theSOE->B[0];
+  int    *iPIV = iPiv;
 
-    // first copy B into X
-    for (int i=0; i<n; i++) {
-      *(Xptr++) = *(Bptr++);
+  // first copy B into X
+  for (int i=0; i<n; i++) {
+    *(Xptr++) = *(Bptr++);
+  }
+  Xptr = theSOE->X;
+
+  // now solve AX = B
+
+  char type[] = "N";
+  if (theSOE->factored == false)
+    // factor and solve
+    DGBSV(&n,&kl,&ku,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
+
+  else  {
+    // solve only using factored matrix
+    // unsigned int sizeC = 1;
+    //DGBTRS("N",&sizeC,&n,&kl,&ku,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
+    DGBTRS(type,&n,&kl,&ku,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
+  }
+
+  // check if successful
+  if (info != 0) {
+    if (info > 0) {
+      // opserr << "WARNING BandGenLinLapackSolver::solve() -";
+      // opserr << "factorization failed, matrix singular U(i,i) = 0, i= " << info-1 << endln;
+      return -info+1;
+    } else {
+      // opserr << "WARNING BandGenLinLapackSolver::solve() - OpenSees code error\n";
+      return info;
     }
-    Xptr = theSOE->X;
+  }
 
-    // now solve AX = B
-
-    char type[] = "N";
-    if (theSOE->factored == false)
-      // factor and solve
-      DGBSV(&n,&kl,&ku,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
-
-    else  {
-      // solve only using factored matrix
-      // unsigned int sizeC = 1;
-      //DGBTRS("N",&sizeC,&n,&kl,&ku,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
-      DGBTRS(type,&n,&kl,&ku,&nrhs,Aptr,&ldA,iPIV,Xptr,&ldB,&info);
-    }
-
-    // check if successful
-    if (info != 0) {
-      if (info > 0) {
-        // opserr << "WARNING BandGenLinLapackSolver::solve() -";
-        // opserr << "factorization failed, matrix singular U(i,i) = 0, i= " << info-1 << endln;
-        return -info+1;
-      } else {
-        // opserr << "WARNING BandGenLinLapackSolver::solve() - OpenSees code error\n";
-        return info;
-      }
-    }
-
-    theSOE->factored = true;
-    if (doDet)
-      this->setDeterminant();
-    return 0;
+  theSOE->factored = true;
+  if (doDet)
+    this->setDeterminant();
+  return 0;
 }
 
 
@@ -159,21 +154,21 @@ BandGenLinLapackSolver::solve()
 int
 BandGenLinLapackSolver::setSize()
 {
-    // if iPiv not big enough, free it and get one large enough
-    if (iPivSize < theSOE->size) {
-      if (iPiv != nullptr)
-          delete [] iPiv;
+  // if iPiv not big enough, free it and get one large enough
+  if (iPivSize < theSOE->size) {
+    if (iPiv != nullptr)
+        delete [] iPiv;
 
-      iPiv = new int[theSOE->size];
-      iPivSize = theSOE->size;
-    }
-    return 0;
+    iPiv = new int[theSOE->size];
+    iPivSize = theSOE->size;
+  }
+  return 0;
 }
 
 int
 BandGenLinLapackSolver::sendSelf(int commitTag, Channel &theChannel)
 {
-    return 0;
+  return 0;
 }
 
 int
@@ -181,6 +176,6 @@ BandGenLinLapackSolver::recvSelf(int commitTag,
 				 Channel &theChannel,
 				 FEM_ObjectBroker &theBroker)
 {
-    // nothing to do
-    return 0;
+  // nothing to do
+  return 0;
 }

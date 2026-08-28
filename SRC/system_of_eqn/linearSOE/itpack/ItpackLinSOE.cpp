@@ -153,24 +153,24 @@ ItpackLinSOE::setSize(Graph &theGraph)
       
       // now we have to place the entries in the ID into order in colA
       for (int i=0; i<idSize; i++) {
-	
-	int row = theAdjacency(i);
-	bool foundPlace = false;
-	// find a place in colA for current col
-	for (int j=startLoc; j<lastLoc; j++)
-	  if (colA[j] > row) { 
-	    // move the entries already there one further on
-	    // and place col in current location
-	    for (int k=lastLoc; k>j; k--)
-	      colA[k] = colA[k-1];
-	    colA[j] = row;
-	    foundPlace = true;
-	    j = lastLoc;
-	  }
-	if (foundPlace == false) // put in at the end
-	  colA[lastLoc] = row;
-	
-	lastLoc++;
+
+        int row = theAdjacency(i);
+        bool foundPlace = false;
+        // find a place in colA for current col
+        for (int j=startLoc; j<lastLoc; j++)
+          if (colA[j] > row) { 
+            // move the entries already there one further on
+            // and place col in current location
+            for (int k=lastLoc; k>j; k--)
+              colA[k] = colA[k-1];
+            colA[j] = row;
+            foundPlace = true;
+            j = lastLoc;
+          }
+        if (foundPlace == false) // put in at the end
+          colA[lastLoc] = row;
+        
+        lastLoc++;
       }
       rowStartA[a+1] = lastLoc;	    
       startLoc = lastLoc;
@@ -226,19 +226,19 @@ ItpackLinSOE::addA(const Matrix &m, const ID &id, double fact)
     for (int i=0; i<idSize; i++) {
       int row = id(i);
       if (row < size && row >= 0) {
-	int startRowLoc = rowStartA[row];
-	int endRowLoc = rowStartA[row+1];
-	for (int j=0; j<idSize; j++) {
-	  int col = id(j);
-	  if (col <size && col >= 0) {
-	    // find place in A using colA
-	    for (int k=startRowLoc; k<endRowLoc; k++)
-	      if (colA[k] == col) {
-		A[k] += m(i,j);
-		k = endRowLoc;
-	      }
-	  }
-	}  // for j		
+        int startRowLoc = rowStartA[row];
+        int endRowLoc = rowStartA[row+1];
+        for (int j=0; j<idSize; j++) {
+          int col = id(j);
+          if (col <size && col >= 0) {
+            // find place in A using colA
+            for (int k=startRowLoc; k<endRowLoc; k++)
+              if (colA[k] == col) {
+          A[k] += m(i,j);
+          k = endRowLoc;
+              }
+          }
+        }  // for j		
       } 
     }  // for i
   }
@@ -246,19 +246,19 @@ ItpackLinSOE::addA(const Matrix &m, const ID &id, double fact)
     for (int i=0; i<idSize; i++) {
       int row = id(i);
       if (row < size && row >= 0) {
-	int startRowLoc = rowStartA[row];
-	int endRowLoc = rowStartA[row+1];
-	for (int j=0; j<idSize; j++) {
-	  int col = id(j);
-	  if (col <size && col >= 0) {
-	    // find place in A using colA
-	    for (int k=startRowLoc; k<endRowLoc; k++)
-	      if (colA[k] == col) {
-		A[k] += fact * m(i,j);
-		k = endRowLoc;
-	      }
-	  }
-	}  // for j		
+        int startRowLoc = rowStartA[row];
+        int endRowLoc = rowStartA[row+1];
+        for (int j=0; j<idSize; j++) {
+          int col = id(j);
+          if (col <size && col >= 0) {
+            // find place in A using colA
+            for (int k=startRowLoc; k<endRowLoc; k++)
+              if (colA[k] == col) {
+          A[k] += fact * m(i,j);
+          k = endRowLoc;
+              }
+          }
+        }  // for j
       } 
     }  // for i
   }
@@ -282,21 +282,21 @@ ItpackLinSOE::addB(const Vector &v, const ID &id, double fact)
     for (int i=0; i<idSize; i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	B[pos] += v(i);
+        B[pos] += v(i);
     }
   }
   else if (fact == -1.0) { // do not need to multiply if fact == -1.0
     for (int i=0; i<idSize; i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	B[pos] -= v(i);
+        B[pos] -= v(i);
     }
   }
   else {
     for (int i=0; i<idSize; i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	B[pos] += v(i) * fact;
+        B[pos] += v(i) * fact;
     }
   }	
   
@@ -328,7 +328,7 @@ ItpackLinSOE::setB(const Vector &v, double fact)
 }
 
 void 
-ItpackLinSOE::zeroA(void)
+ItpackLinSOE::zeroA()
 {
   double *Aptr = A;
   for (int i=0; i<Asize; i++)
@@ -337,7 +337,7 @@ ItpackLinSOE::zeroA(void)
 }
 
 void 
-ItpackLinSOE::zeroB(void)
+ItpackLinSOE::zeroB()
 {
   double *Bptr = B;
   for (int i=0; i<size; i++)
@@ -361,21 +361,21 @@ ItpackLinSOE::setX(const Vector &x)
 }
 
 const Vector &
-ItpackLinSOE::getX(void)
+ItpackLinSOE::getX()
 {
   assert(vectX != nullptr);
   return *vectX;
 }
 
 const Vector &
-ItpackLinSOE::getB(void)
+ItpackLinSOE::getB()
 {
   assert(vectB != nullptr);
   return *vectB;
 }
 
 double 
-ItpackLinSOE::normRHS(void)
+ItpackLinSOE::normRHS()
 {
   double norm =0.0;
   for (int i=0; i<size; i++) {
@@ -400,17 +400,4 @@ ItpackLinSOE::setItpackLinSolver(ItpackLinSolver &newSolver)
   }
   
   return this->LinearSOE::setSolver(newSolver);
-}
-
-int 
-ItpackLinSOE::sendSelf(int cTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int 
-ItpackLinSOE::recvSelf(int cTag, Channel &theChannel, 
-		       FEM_ObjectBroker &theBroker)
-{
-  return -1;
 }

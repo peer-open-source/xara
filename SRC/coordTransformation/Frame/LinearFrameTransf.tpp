@@ -12,7 +12,6 @@
 //     https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
-
 //
 // Description: This file contains the implementation for the
 // LinearFrameTransf class. LinearFrameTransf is a linear
@@ -397,6 +396,13 @@ LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, int op)
   VectorND<nn*ndf>& pa = p; // NOTE
   constexpr Vector3D iv{1, 0, 0};
 
+  // 3) Element Parameters
+  // no-op
+
+
+  //
+  // 2.1) Isometry
+  //
   if (op & Transform::Adjoint) {
     // 1.1) Sum of moments: m = sum_i mi + sum_i (xi x ni)
     Vector3D m{};
@@ -417,7 +423,7 @@ LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, int op)
     }
   }
 
-  // 2) Rotate and do joint offsets
+  // 2.2) and 1) Rotate and do joint offsets
   if (op & Transform::Rotation)
     this->FrameTransform<nn,ndf>::pushRotationOffset(pa, R);
     // p = this->FrameTransform<nn,ndf>::pushConstant(pa);
@@ -426,7 +432,6 @@ LinearFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&p, int op)
 
 
 #if 0
-
 #else
 template <int nn, int ndf>
 int
@@ -458,7 +463,6 @@ LinearFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>&kb,
       A.template insert<a*ndf+3, a*ndf+3>(RT);
       Repeat<nn> ([&](auto b_) {
         constexpr static int b = b_.value;
-      // for (int b = 0; b<nn; b++) {
 
         // TODO(nn>2): Interpolate coordinate
         if constexpr (b == 0)
@@ -478,6 +482,9 @@ LinearFrameTransf<nn,ndf>::push(MatrixND<nn*ndf,nn*ndf>&kb,
     kb.addMatrixTransposeProduct(0.0, A, KA, 1.0);
   }
 
+  //
+  // 1) Offsets
+  //
   if (op & Transform::Offset && offsets != nullptr) [[unlikely]]
     this->pushOffsets(kb, *offsets);
 
@@ -686,7 +693,7 @@ LinearFrameTransf<nn,ndf>::Print(OPS_Stream &s, int flag)
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_MATE_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"LinearFrameTransf\"";
+    s << "\"type\": \"" << this->getClassType() << "\"";
     s << ", \"vecxz\": [" 
       << vz[0] << ", " 
       << vz[1] << ", "

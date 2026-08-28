@@ -17,27 +17,17 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.3 $
-// $Date: 2009-05-20 17:30:26 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/fullGEN/FullGenLinSOE.h,v $
-                                                                        
-                                                                        
-#ifndef FullGenLinSOE_h
-#define FullGenLinSOE_h
-
-// File: ~/system_of_eqn/linearSOE/fullGEN/FullGenLinSOE.h
-//
-// Written: fmk 
-// Created: 02/97
-// Revision: A
 //
 // Description: This file contains the class definition for FullGenLinSOE
 // FullGenLinSOE is a subclass of LinearSOE. It stores all the components
 // of the linear system of equation in 1d arrays.
 //
-// What: "@(#) FullGenLinSOE.h, revA"
-
+//
+// Written: fmk 
+// Created: 02/97
+// Revision: A
+//
+#pragma once
 #include <LinearSOE.h>
 #include <Vector.h>
 
@@ -47,12 +37,11 @@ class FullGenLinSOE : public LinearSOE
 {
   public:
     FullGenLinSOE(FullGenLinSolver &);        
-    FullGenLinSOE(int N, FullGenLinSolver &);        
-    FullGenLinSOE();
+    FullGenLinSOE(int N, FullGenLinSolver &);
 
     ~FullGenLinSOE();
 
-    int getNumEqn(void) const;
+    int getNumEqn() const;
     int setSize(Graph &theGraph);
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addB(const Vector &, const ID &, double fact = 1.0);    
@@ -85,7 +74,3 @@ class FullGenLinSOE : public LinearSOE
     Matrix *matA;
     bool factored;
 };
-
-
-#endif
-
