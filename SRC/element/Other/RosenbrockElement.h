@@ -15,8 +15,8 @@
 //
 // An element implementing the following nonlinear problem from [1]:
 //
-// g(x)=\frac{\partial \Phi}{\partial x}=x^3+3 x^2+3 x-2.241=0 \text { or }(x+1)^3=3 \\
-// g(y)=\frac{\partial \Phi}{\partial y}=y^3-3 y^2+3 y-3=0 \text { or }(y-1)^3=2
+//   g(x) = x^3+3 x^2+3 x  -2.241=0   or (x+1)^3=3
+//   g(y) = y^3-3 y^2+3 y  -3=0       or (y-1)^3=2
 // 
 // References:
 //
