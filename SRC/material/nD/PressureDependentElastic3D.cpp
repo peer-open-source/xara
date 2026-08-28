@@ -33,7 +33,8 @@
 #include <string.h>
 #include <elementAPI.h>
 
-void * OPS_ADD_RUNTIME_VPV(OPS_PressureDependentElastic3D)
+void * 
+OPS_ADD_RUNTIME_VPV(OPS_PressureDependentElastic3D)
 {
     int argc = OPS_GetNumRemainingInputArgs() + 2;
     if (argc < 6) {
@@ -119,7 +120,6 @@ int
 PressureDependentElastic3D::setTrialStrain(const Vector &v)
 {
   epsilon = v;
-  
   return 0;
 }
 
@@ -127,7 +127,6 @@ int
 PressureDependentElastic3D::setTrialStrain(const Vector &v, const Vector &r)
 {
   epsilon = v;
-  
   return 0;
 }
 
@@ -135,7 +134,6 @@ int
 PressureDependentElastic3D::setTrialStrainIncr(const Vector &v)
 {
   epsilon += v;
-  
   return 0;
 }
 
@@ -143,17 +141,17 @@ int
 PressureDependentElastic3D::setTrialStrainIncr(const Vector &v, const Vector &r)
 {
   epsilon += v;
-  
   return 0;
 }
 
+
 const Matrix&
-PressureDependentElastic3D::getTangent (void)
+PressureDependentElastic3D::getTangent()
 {
   double p = p_n;
   if (p <= p_cutoff)
     p = p_cutoff;
-  double Eo = E * pow(p/p_ref, exp0);
+  double Eo = E * std::pow(p/p_ref, exp0);
 
   double mu2 = Eo/(1.0+v);
   double lam = v*mu2/(1.0-2.0*v);
@@ -173,7 +171,7 @@ PressureDependentElastic3D::getTangent (void)
 }
 
 const Matrix&
-PressureDependentElastic3D::getInitialTangent (void)
+PressureDependentElastic3D::getInitialTangent()
 {
   double Eo = E;
 
@@ -195,7 +193,7 @@ PressureDependentElastic3D::getInitialTangent (void)
 }
 
 const Vector&
-PressureDependentElastic3D::getStress (void)
+PressureDependentElastic3D::getStress()
 {
   double p = p_n;
   if (p <= p_cutoff)
@@ -226,13 +224,13 @@ PressureDependentElastic3D::getStress (void)
 }
 
 const Vector&
-PressureDependentElastic3D::getStrain (void)
+PressureDependentElastic3D::getStrain()
 {
   return epsilon;
 }
 
 
-int PressureDependentElastic3D::commitState (void)
+int PressureDependentElastic3D::commitState()
 {
   Cepsilon = epsilon;
 
@@ -241,14 +239,15 @@ int PressureDependentElastic3D::commitState (void)
   return 0;
 }
 
-int PressureDependentElastic3D::revertToLastCommit (void)
+int 
+PressureDependentElastic3D::revertToLastCommit()
 {
   epsilon = Cepsilon;
-
   return 0;
 }
 
-int PressureDependentElastic3D::revertToStart (void)
+int 
+PressureDependentElastic3D::revertToStart()
 {
   // added: C.McGann, U.Washington for InitialStateAnalysis
   if (ops_InitialStateAnalysis) {
@@ -263,15 +262,15 @@ int PressureDependentElastic3D::revertToStart (void)
 }
 
 NDMaterial*
-PressureDependentElastic3D::getCopy (void)
+PressureDependentElastic3D::getCopy()
 {
-    PressureDependentElastic3D *theCopy =
-		new PressureDependentElastic3D (this->getTag(), E, v, rho, exp0, p_ref, p_cutoff);
+  PressureDependentElastic3D *theCopy =
+  new PressureDependentElastic3D (this->getTag(), E, v, rho, exp0, p_ref, p_cutoff);
 
-    theCopy->p_n  = p_n;
-    theCopy->p_n1 = p_n1;
+  theCopy->p_n  = p_n;
+  theCopy->p_n1 = p_n1;
 
-    return theCopy;
+  return theCopy;
 }
 
 NDMaterial*
@@ -280,73 +279,23 @@ PressureDependentElastic3D::getCopy(const char *type)
   if (strcmp(type,"ThreeDimensional") == 0)
     return this->getCopy();
   else {
-    opserr << "PressureDependentElastic3D::getCopy " << type << " not supported" << endln;
-    return 0;
+    return NDMaterial::getCopy(type);
   }
 }
 
 const char*
-PressureDependentElastic3D::getType(void) const
+PressureDependentElastic3D::getType() const
 {
-    return "ThreeDimensional";
+  return "ThreeDimensional";
 }
 
 int
-PressureDependentElastic3D::getOrder(void) const
+PressureDependentElastic3D::getOrder() const
 {
-    return 6;
+  return 6;
 }
 
 
-int PressureDependentElastic3D::sendSelf(int commitTag, Channel &theChannel)
-{
-    int res = 0;
-
-    static Vector data(7);
-
-    data(0) = this->getTag();
-    data(1) = E;
-    data(2) = v;
-    data(3) = exp0;
-    data(4) = p_ref;
-    data(5) = p_cutoff;
-    data(6) = p_n;
-
-    res += theChannel.sendVector(this->getDbTag(), commitTag, data);
-    if (res < 0)
-      {
-        opserr << "PressureDependentElastic3D::sendSelf -- could not send Vector\n";
-        return res;
-      }
-
-    return res;
-  }
-
-int PressureDependentElastic3D::recvSelf(int commitTag,
-                                         Channel &theChannel,
-                                         FEM_ObjectBroker &theBroker)
-  {
-    int res = 0;
-
-    static Vector data(7);
-
-    res += theChannel.recvVector(this->getDbTag(), commitTag, data);
-    if (res < 0)
-      {
-        opserr << "PressureDependentElastic3D::recvSelf -- could not recv Vector\n";
-        return res;
-      }
-
-    this->setTag((int)data(0));
-    E = data(1);
-    v = data(2);
-    exp0 = data(3);
-    p_ref = data(4);
-    p_cutoff = data(5);
-    p_n = data(6);
-
-    return res;
-  }
 
 void PressureDependentElastic3D::Print(OPS_Stream &s, int flag)
 {
