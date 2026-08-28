@@ -23,9 +23,7 @@
 
 // Description: This file contains the class definition for 
 // SecantAccelerator1. 
-
-#ifndef SecantAccelerator1_h
-#define SecantAccelerator1_h
+#pragma once
 
 #include <Accelerator.h>
 #include <IncrementalIntegrator.h>
@@ -68,4 +66,3 @@ class SecantAccelerator1: public Accelerator
   bool cutOut;
 };
 
-#endif

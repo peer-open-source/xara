@@ -17,19 +17,13 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.1 $
-// $Date: 2007-10-26 03:56:45 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/accelerator/SecantAccelerator3.h,v $
-
+//
 // Written: MHS
 // Created: April 2002
 
 // Description: This file contains the class definition for 
 // SecantAccelerator3. 
-
-#ifndef SecantAccelerator3_h
-#define SecantAccelerator3_h
+#pragma once
 
 #include <Accelerator.h>
 #include <IncrementalIntegrator.h>
@@ -40,17 +34,15 @@ class SecantAccelerator3: public Accelerator
   SecantAccelerator3(int maxIter, int tangent);
   SecantAccelerator3(int maxIter, int tangent, double r1, double r2);
   virtual ~SecantAccelerator3();
-  
+
   int newStep(LinearSOE &theSOE);
-  int accelerate(Vector &v, LinearSOE &theSOE, 
-		 IncrementalIntegrator &theIntegrator);
+  int accelerate(Vector &v, LinearSOE &theSOE, IncrementalIntegrator &theIntegrator);
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
-  
+
   void Print(OPS_Stream &, int flag) const final;
-  
+
   int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);
+  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
  private:
   // Iteration count
@@ -62,15 +54,14 @@ class SecantAccelerator3: public Accelerator
   // "Cut-out" factors
   double R1;
   double R2;
-  
+
   // Correction and RHS vectors from last iteration
   Vector *vOld;
   Vector *rOld;
   Vector *r_1;
-    
+
   int maxIterations;
   int theTangent;
   bool cutOut;
 };
 
-#endif

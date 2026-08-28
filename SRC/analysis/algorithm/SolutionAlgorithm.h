@@ -25,9 +25,7 @@
 // Written: fmk 
 // Created: 11/96
 //
-#ifndef SolutionAlgorithm_h
-#define SolutionAlgorithm_h
-
+#pragma once
 #include <MovableObject.h>
 
 class Channel;
@@ -53,15 +51,12 @@ class SolutionAlgorithm: public MovableObject
     virtual ~SolutionAlgorithm();
 
     // methods for monitoring the analysis during an algorithm
-    virtual int  addRecorder(Recorder &theRecorder);    	
+    virtual int  addRecorder(Recorder &);    	
     virtual int  record(int track);    
 
-    
+
   private:
     Recorder **theRecorders;
     int numRecorders;    
 };
-
-#endif
-
 

@@ -27,19 +27,16 @@
 // Written: MHS
 // Created: April 2002
 //
-#ifndef Accelerator_h
-#define Accelerator_h
-
-#include <MovableObject.h>
-#include <OPS_Stream.h>
+#pragma once
 #include <Logging.h> // TODO
 #include <IncrementalIntegrator.h>
 
+class OPS_Stream;
 class SolutionAlgorithm;
 class LinearSOE;
 class Vector;
 
-class Accelerator : public MovableObject
+class Accelerator
 {
  public:
   Accelerator(int classTag);
@@ -47,15 +44,15 @@ class Accelerator : public MovableObject
   
   // virtual functions
   virtual int newStep(LinearSOE &theSOE) = 0;
-  virtual int accelerate(Vector &v, LinearSOE &theSOE, 
-                         IncrementalIntegrator &theIntegrator) = 0;
+  virtual int accelerate(Vector &v, LinearSOE &, 
+                         IncrementalIntegrator &) = 0;
   virtual int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
-  virtual bool updateTangent(void) {return false;}
 
-  virtual int getTangent() {return NO_TANGENT;}
+  virtual bool updateTangent() {return false;}
 
-  virtual void Print(OPS_Stream &s, int flag=0) const = 0;
+  virtual IncrementalIntegrator::TangentFlagType getTangent() {return NO_TANGENT;}
+
+  virtual void Print(OPS_Stream &s, int flag) const = 0;
   
 };
 
-#endif

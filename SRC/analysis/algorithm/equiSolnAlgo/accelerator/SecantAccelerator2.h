@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.1 $
-// $Date: 2007-10-26 03:56:45 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/accelerator/SecantAccelerator2.h,v $
-
+//
 // Written: MHS
 // Created: April 2002
 
@@ -40,19 +36,17 @@ class SecantAccelerator2: public Accelerator
   SecantAccelerator2(int maxIter, int tangent);
   SecantAccelerator2(int maxIter, int tangent, double r1, double r2);
   virtual ~SecantAccelerator2();
-  
+
   int newStep(LinearSOE &theSOE);
-  int accelerate(Vector &v, LinearSOE &theSOE, 
-		 IncrementalIntegrator &theIntegrator);
-  int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
-  
-  int getTangent(void) {return theTangent;}
+  int accelerate(Vector &v, LinearSOE &, IncrementalIntegrator &);
+  int updateTangent(IncrementalIntegrator &, bool& factored);
+
+  int getTangent() {return theTangent;}
 
   void Print(OPS_Stream &, int flag) const final;
   
   int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);
+  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
   
  private:
   // Iteration count

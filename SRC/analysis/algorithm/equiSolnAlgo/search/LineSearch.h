@@ -18,9 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-#ifndef LineSearch_h
-#define LineSearch_h
-//
 // Written: fmk 
 // Created: 11/01
 //
@@ -29,9 +26,8 @@
 // i.e. no objects of it's type can be created.  Its subclasses seek
 // to find a better solution to R(U)=0 than the solution Ui-1 + delta Ui
 // would give, typically Ui = Ui-1 + factor * delta Ui.
-// 
-// What: "@(#)LineSearch.h, revA"
-
+//
+#pragma once
 #include <MovableObject.h>
 #include <Logging.h>
 
@@ -52,7 +48,5 @@ class LineSearch: public MovableObject
     virtual void Print(OPS_Stream &, int flag =0) =0;
 
 };
-
-#endif
 
 
