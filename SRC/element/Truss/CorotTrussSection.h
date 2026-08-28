@@ -26,23 +26,26 @@
 //
 // Description: This file contains the class definition for CorotTrussSection,
 // a small strain, large displacement corotational space truss element,
-// as described by Crisfield in "Nonlinear Finite Element Analysis of
-// Solids and Structures", Vol. 1, 1991, J.T. Wiley.
-
+// as described by Crisfield in [1]
+//
+//
+// [1] Crisfield, M.A. "Nonlinear Finite Element Analysis of Solids and Structures", Vol. 1, 1991, J.T. Wiley.
+//
 #include <Element.h>
 #include <Matrix.h>
 #include <Vector.h>
+#include <Matrix3D.h>
 #include <FrameSection.h>
+#include <Node.h>
 
 class Node;
 class Channel;
 
 class CorotTrussSection : public Element {
 public:
-  CorotTrussSection(int tag, int dim, int Nd1, int Nd2, FrameSection& theMaterial,
+  CorotTrussSection(int tag, int dim, int Nd1, int Nd2, FrameSection&,
                     double rho = 0.0, int doRayleighDamping = 0, int cMass = 0);
 
-  CorotTrussSection();
   ~CorotTrussSection();
 
   const char*
@@ -52,11 +55,11 @@ public:
   }
 
   // public methods to obtain information about dof & connectivity
-  int getNumExternalNodes(void) const;
-  const ID& getExternalNodes(void);
-  Node** getNodePtrs(void);
+  int getNumExternalNodes() const override;
+  const ID& getExternalNodes();
+  Node** getNodePtrs();
 
-  int getNumDOF(void);
+  int getNumDOF() override;
   void setDomain(Domain* theDomain);
 
   // public methods to set the state of the element
@@ -84,8 +87,6 @@ public:
   int activateParameter(int param) final;
 
   // public methods for element output
-  int sendSelf(int commitTag, Channel& theChannel);
-  int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
   void Print(OPS_Stream& s, int flag) final;
 
   Response* setResponse(const char** argv, int argc, OPS_Stream& s);
@@ -101,21 +102,21 @@ private:
   };
 
   // private attributes - a copy for each object of the class
-  FrameSection* theSection; // pointer to a material
+  FrameSection* theSection; // material (section) response
   ID connectedExternalNodes;           // contains the tags of the end nodes
   int numDOF;                          // number of dof for CorotTrussSection
   int numDIM;                          // number of dimensions
 
   double Lo;             // initial length of truss
   double Ln;             // current length of truss
-  double d21[3];         // current displacement offsets in basic system
+  Vector3D d21;          // current displacement offsets in basic system
   double rho;            // mass density per unit length
   int doRayleighDamping; // flag to include Rayleigh damping
   int cMass;             // consistent mass flag
 
   Node* theNodes[2];
 
-  Matrix R; // Rotation matrix
+  Matrix3D R; // Rotation matrix
   int parameterID;
 
   Vector* theLoad;   // pointer to the load vector P
