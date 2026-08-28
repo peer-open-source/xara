@@ -36,6 +36,7 @@
 #include <FE_EleIter.h>
 #include <DOF_Group.h>
 
+
 StaticIntegrator::StaticIntegrator(int clasTag)
  : IncrementalIntegrator(clasTag)
 {
@@ -56,7 +57,7 @@ StaticIntegrator::formUnbalance()
 
   if (theLinSOE == nullptr)
     return -1;
-  
+
   theLinSOE->zeroB();
 
   if (this->getAnalysisModel()->applyResidual(*this, *theLinSOE) < 0)
