@@ -152,17 +152,3 @@ SecantAccelerator1::Print(OPS_Stream &s, int flag) const
     s << "\tNo cut-outs" << "\n";
 }
 
-
-int
-SecantAccelerator1::sendSelf(int commitTag, Channel &theChannel)
-{
-  return -1;
-}
-
-
-int
-SecantAccelerator1::recvSelf(int commitTag, Channel &theChannel, 
-			     FEM_ObjectBroker &theBroker)
-{
-  return -1;
-}

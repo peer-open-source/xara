@@ -43,7 +43,7 @@ class Accelerator
   virtual ~Accelerator();
   
   // virtual functions
-  virtual int newStep(LinearSOE &theSOE) = 0;
+  virtual int newStep(LinearSOE &) = 0;
   virtual int accelerate(Vector &v, LinearSOE &, 
                          IncrementalIntegrator &) = 0;
   virtual int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);

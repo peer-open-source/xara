@@ -20,9 +20,10 @@
 //
 // Written: MHS
 // Created: April 2002
-
+//
 // Description: This file contains the class definition for 
 // SecantAccelerator1. 
+//
 #pragma once
 
 #include <Accelerator.h>
@@ -41,11 +42,7 @@ class SecantAccelerator1: public Accelerator
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
   
   void Print(OPS_Stream &, int flag) const final;
-  
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);
-  
+
  private:
   // Iteration count
   int iteration;

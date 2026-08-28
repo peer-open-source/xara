@@ -577,7 +577,6 @@ XaraClassBroker::getNewElement(int classTag)
 
     DISPATCH(Truss2);
     DISPATCH(TrussSection);
-    DISPATCH(CorotTrussSection);
     DISPATCH(InertiaTruss);
 
     DISPATCH(ElasticBeam2d);
@@ -1304,37 +1303,7 @@ XaraClassBroker::getNewFrictionModel(int classTag)
 ConvergenceTest *
 XaraClassBroker::getNewConvergenceTest(int classTag)
 {
-  switch (classTag) {
-  case CONVERGENCE_TEST_CTestNormUnbalance:
-    return new CTestNormUnbalance();
-
-  case CONVERGENCE_TEST_CTestRelativeNormUnbalance:
-    return new CTestRelativeNormUnbalance();
-
-  case CONVERGENCE_TEST_CTestNormDispIncr:
-    return new CTestNormDispIncr();
-
-  case CONVERGENCE_TEST_CTestRelativeNormDispIncr:
-    return new CTestRelativeNormDispIncr();
-
-  case CONVERGENCE_TEST_CTestRelativeTotalNormDispIncr:
-    return new CTestRelativeTotalNormDispIncr();
-
-  case CONVERGENCE_TEST_CTestEnergyIncr:
-    return new CTestEnergyIncr();
-
-  case CONVERGENCE_TEST_CTestRelativeEnergyIncr:
-    return new CTestRelativeEnergyIncr();
-
-  case CONVERGENCE_TEST_CTestFixedNumIter:
-    return new CTestFixedNumIter();
-
-  default:
-    opserr << "XaraClassBroker::getNewConvergenceTest - ";
-    opserr << " - no ConvergenceTest type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 LoadPattern *
@@ -1600,28 +1569,7 @@ XaraClassBroker::getNewAnalysisModel(int classTag)
 EquiSolnAlgo *
 XaraClassBroker::getNewEquiSolnAlgo(int classTag)
 {
-  switch (classTag) {
-  case EquiALGORITHM_TAGS_Linear:
-    return new Linear();
-
-  case EquiALGORITHM_TAGS_NewtonRaphson:
-    return new NewtonRaphson();
-
-  case EquiALGORITHM_TAGS_NewtonLineSearch:
-    return new NewtonLineSearch();
-
-  case EquiALGORITHM_TAGS_ModifiedNewton:
-    return new ModifiedNewton(CURRENT_TANGENT);
-
-  case EquiALGORITHM_TAGS_Broyden:
-    return new Broyden();
-
-  default:
-    opserr << "XaraClassBroker::getNewEquiSolnAlgo - ";
-    opserr << " - no EquiSolnAlgo type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 Accelerator *
@@ -1639,25 +1587,7 @@ XaraClassBroker::getAccelerator(int classTag)
 LineSearch *
 XaraClassBroker::getLineSearch(int classTag)
 {
-  switch (classTag) {
-
-  case LINESEARCH_TAGS_BisectionLineSearch:
-    return new BisectionLineSearch();
-
-  case LINESEARCH_TAGS_InitialInterpolatedLineSearch:
-    return new InitialInterpolatedLineSearch();
-
-  case LINESEARCH_TAGS_RegulaFalsiLineSearch:
-    return new RegulaFalsiLineSearch();
-
-  case LINESEARCH_TAGS_SecantLineSearch:
-    return new SecantLineSearch();
-  default:
-    opserr << "XaraClassBroker::getNewEquiSolnAlgo - ";
-    opserr << " - no EquiSolnAlgo type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 DomainDecompAlgo *

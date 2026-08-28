@@ -12,12 +12,17 @@
 // See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
 //
 //===----------------------------------------------------------------------===//
+//
+// Written: Claudio M. Perez, Stanford University
+// Created: 2026-08-24
+//
 #include <Parsing.h>
 #include <Logging.h>
 #include <ModelRegistry.h>
 #include <Other/RosenbrockElement.h>
 
 using namespace OpenSees;
+
 int
 XaraElem_Rosenbrock(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {

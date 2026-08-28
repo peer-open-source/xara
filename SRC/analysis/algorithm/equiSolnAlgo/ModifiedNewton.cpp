@@ -101,28 +101,6 @@ ModifiedNewton::solveCurrentStep()
   return result;
 }
 
-int
-ModifiedNewton::sendSelf(int cTag, Channel &theChannel)
-{
-  static Vector data(3);
-  data(0) = tangent;
-  data(1) = iFactor;
-  data(2) = cFactor;
-  return theChannel.sendVector(this->getDbTag(), cTag, data);
-}
-
-int
-ModifiedNewton::recvSelf(int cTag, 
-                        Channel &theChannel, 
-                        FEM_ObjectBroker &theBroker)
-{
-  static Vector data(3);
-  theChannel.recvVector(this->getDbTag(), cTag, data);
-  tangent = data(0);
-  iFactor = data(1);
-  cFactor = data(2);
-  return 0;
-}
 
 void
 ModifiedNewton::Print(OPS_Stream &s, int flag) const

@@ -41,9 +41,9 @@
 
 int
 XaraCmd_getNodeTags(ClientData clientData,
-            Tcl_Interp *interp, 
-            ArgSize argc,
-            TCL_Char ** const argv)
+                    Tcl_Interp *interp, 
+                    ArgSize argc,
+                    TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   Domain *the_domain = static_cast<Domain*>(clientData);
@@ -119,7 +119,6 @@ XaraCmd_setNodeCoord(ClientData clientData,
   }
 
   Xara::Tag tag;
-
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError
            << "could not read nodeTag"
@@ -129,7 +128,6 @@ XaraCmd_setNodeCoord(ClientData clientData,
 
   int dim;
   double value;
-
   if (Tcl_GetInt(interp, argv[2], &dim) != TCL_OK) {
     opserr << OpenSees::PromptValueError
            << "could not read dim"
@@ -180,7 +178,7 @@ nodeResponseTemplate(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TC
   int tag;
   if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError
-           << "Failed to read nodeTag"
+           << "Failed to read node tag " << argv[1]
            << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
@@ -211,7 +209,7 @@ nodeResponseTemplate(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TC
   if (dof >= 0) {
     if (dof >= size) {
       opserr << OpenSees::PromptValueError
-             << "dofTag too large"
+             << "dof tag out of range for response vector of size " << size
              << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
@@ -228,6 +226,7 @@ nodeResponseTemplate(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TC
 
   return TCL_OK;
 }
+
 
 int
 XaraCmd_nodeDisp(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)

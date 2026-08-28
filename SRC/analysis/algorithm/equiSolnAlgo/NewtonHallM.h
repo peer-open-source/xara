@@ -17,39 +17,33 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-#ifndef NewtonHallM_h
-#define NewtonHallM_h
-
+//
+// Description: This file contains the class definition for 
+// NewtonHallM. NewtonHallM is a class which performs a modified Newton-Raphson-Hall
+// solution algorithm in solving the equations
+//
 // Written: fmk 
 // Created: 03/18
 // Revision: A 
 //
-
-// Description: This file contains the class definition for 
-// NewtonHallM. NewtonHallM is a class which performs a modified Newton-Raphson-Hall
-// solution algorithm in solving the equations
-// 
-
+#pragma once
 #include <EquiSolnAlgo.h>
 #include <Vector.h>
 
 class NewtonHallM: public EquiSolnAlgo
 {
-  public:
+public:
   NewtonHallM();
   NewtonHallM(double initFactor, int method, double alpha, double c);    
   ~NewtonHallM();
   
-  int solveCurrentStep(void);    
-    
-  virtual int sendSelf(int commitTag, Channel &);
-  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+  int solveCurrentStep() override;
+
   void Print(OPS_Stream &, int flag) const final;    
   
   int getNumIterations() const override;
 
- private:
+private:
   int numIterations;
 
   int method;
@@ -59,7 +53,4 @@ class NewtonHallM: public EquiSolnAlgo
   double iFactor;
   double cFactor;
 };
-
-#endif
-
 

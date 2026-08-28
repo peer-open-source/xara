@@ -40,7 +40,7 @@
 
 #include <LineSearch.h>
 class Vector;
-//class OPS_Stream; //Jeremic@ucdavis.edu taken out since there is an include<iOPS_Stream.h> in LineSearch.h 
+class OPS_Stream;
 
 class SecantLineSearch: public LineSearch
 {
@@ -61,7 +61,7 @@ class SecantLineSearch: public LineSearch
 
     int sendSelf(int commitTag, Channel &theChannel);
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    void Print(OPS_Stream &s, int flag =0) ;    
+    void Print(OPS_Stream &s, int flag);
     
   private:
     Vector *x;
