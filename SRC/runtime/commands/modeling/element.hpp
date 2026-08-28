@@ -169,11 +169,11 @@ extern OPS_Routine OPS_ASDShellT3;
 extern OPS_Routine OPS_FourNodeTetrahedron;
 extern OPS_Routine OPS_TenNodeTetrahedron;
 // Brick
-Tcl_CmdProc TclBasicBuilder_addBrickUP;
+Tcl_CmdProc XaraElemCmd_H8UP;
 Tcl_CmdProc TclBasicBuilder_addBBarBrickUP;
 Tcl_CmdProc TclBasicBuilder_addTwentyEightNodeBrickUP;
-Tcl_CmdProc TclBasicBuilder_addTwentyNodeBrick;
-Tcl_CmdProc TclBasicBuilder_addBrick;
+Tcl_CmdProc XaraElemCmd_H20;
+Tcl_CmdProc XaraElemCmd_H8;
 Tcl_CmdProc TclCommand_SSP_Element;
 //
 Tcl_CmdProc TclCommand_addActuator;
@@ -225,6 +225,7 @@ ElementLibrary = {
   {"Truss",                     TclCommand_addTruss},
   {"TrussSection",              TclCommand_addTruss},
   {"CorotTruss",                TclCommand_addTruss},
+  {"ExactTruss",                TclCommand_addTruss},
   {"CorotTrussSection",         TclCommand_addTruss},
 //
 // Plane
@@ -344,17 +345,17 @@ ElementLibrary = {
 //
 // Brick
 //
-  {"stdBrick",                  TclBasicBuilder_addBrick},
-  {"H8E12",                     TclBasicBuilder_addBrick},
-  {"bbarBrick",                 TclBasicBuilder_addBrick},
-  {"bbarBrickWithSensitivity",  TclBasicBuilder_addBrick},
-  {"flBrick",                   TclBasicBuilder_addBrick},
+  {"stdBrick",                  XaraElemCmd_H8},
+  {"H8E12",                     XaraElemCmd_H8},
+  {"bbarBrick",                 XaraElemCmd_H8},
+  {"bbarBrickWithSensitivity",  XaraElemCmd_H8},
+  {"flBrick",                   XaraElemCmd_H8},
   {"SSPbrick",                  TclCommand_SSP_Element},
 
-  {"BrickUP",                   TclBasicBuilder_addBrickUP},
+  {"BrickUP",                   XaraElemCmd_H8UP},
   {"20_8_BrickUP",              TclBasicBuilder_addTwentyEightNodeBrickUP},
-  {"20NodeBrick",               TclBasicBuilder_addTwentyNodeBrick},
-  {"H20",                       TclBasicBuilder_addTwentyNodeBrick},
+  {"20NodeBrick",               XaraElemCmd_H20},
+  {"H20",                       XaraElemCmd_H20},
   {"bbarBrickUP",               TclBasicBuilder_addBBarBrickUP},
 
 //
