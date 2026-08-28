@@ -23,6 +23,7 @@
 #include <array>
 #include <vector>
 #include <utility>
+#include <algorithm>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
