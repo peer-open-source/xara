@@ -1,6 +1,7 @@
 //
 //
-// Description: This file contains the class implementation of DispBeamColumn2dInt.Based on DispBeamColumn2d.cpp.
+// Description: This file contains the class implementation of DispBeamColumn2dInt.
+// Based on DispBeamColumn2d.cpp.
 //
 // 1. Massone, L. M., 2006; "RC Wall Shear - Flexure Interaction:
 //   Analytical and Experimental Responses", Ph.D. Dissertation, University
@@ -16,10 +17,6 @@
 
 #ifndef DispBeamColumn2dInt_h
 #define DispBeamColumn2dInt_h
-
-#ifndef _bool_h
-#  include <stdbool.h>
-#endif
 
 #include <Element.h>
 #include <Matrix.h>
