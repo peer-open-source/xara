@@ -1,3 +1,17 @@
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
 //
 // An element implementing the following nonlinear problem from [1]:
 //
@@ -6,9 +20,12 @@
 // 
 // References:
 //
-// [1] M. A. Crisfield, “Accelerating and damping the modified Newton-Raphson method,” 
+// [1] M. A. Crisfield, "Accelerating and damping the modified Newton-Raphson method," 
 //     Computers & Structures, vol. 18, no. 3, pp. 395–407, Jan. 1984, 
 //     doi: 10.1016/0045-7949(84)90059-2.
+//
+// Written: Claudio M. Perez, Stanford University
+// Created: 2026-08-24
 //
 #pragma once
 
