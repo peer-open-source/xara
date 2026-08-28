@@ -18,9 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-#ifndef FullGenLinSolver_h
-#define FullGenLinSolver_h
-//
 // Written: fmk 
 // Created: 11/96
 // Revision: A
@@ -29,6 +26,7 @@
 // FullGenLinSolver is a concrete subclass of LinearSOE. It stores full
 // unsymmetric linear system of equations using 1d arrays in Fortran style
 //
+#pragma once
 #include <LinearSOESolver.h>
 class FullGenLinSOE;
 
@@ -44,6 +42,4 @@ class FullGenLinSolver : public LinearSOESolver
   private:
 
 };
-
-#endif
 
