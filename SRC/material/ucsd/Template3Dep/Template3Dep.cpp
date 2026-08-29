@@ -1,66 +1,31 @@
 /*
-
 ################################################################################
-
 # COPYRIGHT (C):     :-))                                                      #
-
 # PROJECT:           Object Oriented Finite Element Program                    #
-
 # PURPOSE:           General platform for elaso-plastic constitutive model     #
-
 #                    implementation                                            #
-
 # CLASS:             Template3Dep (the base class for all material point)     #
-
 #                                                                              #
-
 # VERSION:                                                                     #
-
 # LANGUAGE:          C++.ver >= 2.0 ( Borland C++ ver=3.00, SUN C++ ver=2.1 )  #
-
 # TARGET OS:         DOS || UNIX || . . .                                      #
-
 # DESIGNER(S):       Boris Jeremic, Zhaohui Yang                               #
-
 # PROGRAMMER(S):     Boris Jeremic, Zhaohui Yang                               #
-
 #                                                                              #
-
 #                                                                              #
-
 # DATE:              08-03-2000                                                #
-
 # UPDATE HISTORY:    09-12-2000						       #
-
 #		     May 2004, Zhao Cheng splitting the elastic part	         #
-
 #                    Oct. 2004 Zhao Cheng, small addition for u-p-U modeling   #
-
 #                    Mar. 2005 Guanzhou updated constitutive driver to be      #
-
 #	                       compatible with global Newton-Raphson iterations#                                                         #
-
 #                              BackwardEuler has been corrected                #
-
 #                                                                              #
-
 # SHORT EXPLANATION: This file contains the class implementation for           #
-
 #                    Template3Dep.                                             #
-
 #                                                                              #
-
 ################################################################################
-
 */
-
-
-
-#ifndef Template3Dep_CPP
-
-#define Template3Dep_CPP
-
-
 
 #define ITMAX 30
 
@@ -7451,26 +7416,3 @@ OPS_Stream& operator<< (OPS_Stream& os, const Template3Dep & MP)
 //}
 
 //
-
-#endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
