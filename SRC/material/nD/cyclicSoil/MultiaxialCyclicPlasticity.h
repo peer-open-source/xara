@@ -109,12 +109,8 @@ class MultiaxialCyclicPlasticity : public NDMaterial {
 			     double viscosity = 0
 			     ) ;
 
-
-  //elastic constructor
-  // MultiaxialCyclicPlasticity( int tag, int classTag, double rho, double K, double G ) ;
-
   //destructor
-  virtual ~MultiaxialCyclicPlasticity( ) ;
+  virtual ~MultiaxialCyclicPlasticity();
 
   virtual NDMaterial* getCopy (const char *type);
 
@@ -141,10 +137,9 @@ class MultiaxialCyclicPlasticity : public NDMaterial {
 
   double getRho();
   int updateParameter(int responseID, Information &eleInformation);
-  Vector& getMCPparameter(void);   // used for debug only
+  Vector& getMCPparameter();   // used for debug only
 
-  protected :
-
+protected :
 
   // Material parameter used for K0 condition
   double K0;           //lateral earth pressure coefficient

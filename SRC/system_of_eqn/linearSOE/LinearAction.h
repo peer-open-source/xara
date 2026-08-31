@@ -13,3 +13,16 @@
 //
 //===----------------------------------------------------------------------===//
 //
+#pragma once
+#include <Vector.h>
+#include <LinearSOE.h>
+
+
+class LinearAction
+{
+  public:
+    virtual ~LinearAction() = default;
+
+    virtual int apply(const Vector& x, Vector& b) = 0;
+    virtual int solve(const Vector& b, Vector& x) = 0;
+};

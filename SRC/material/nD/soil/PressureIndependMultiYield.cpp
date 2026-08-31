@@ -95,8 +95,8 @@ void * OPS_ADD_RUNTIME_VPV(OPS_PressureIndependMultiYield)
     numdata = int(2*numberOfYieldSurf);
     gredu = new double[numdata];
     if (OPS_GetDoubleInput(&numdata, gredu) < 0) {
-        opserr << "WARNING invalid PressureIndependMultiYield double inputs" << "\n";
-        return 0;
+      opserr << "WARNING invalid PressureIndependMultiYield double inputs" << "\n";
+      return 0;
     }
   }
 
@@ -122,8 +122,8 @@ PressureIndependMultiYield::PressureIndependMultiYield (int tag, int nd,
    trialStress(), currentStrain(), strainRate()
 {
   if (nd !=2 && nd !=3) {
-    opserr << "FATAL:PressureIndependMultiYield:: dimension error" << endln;
-    opserr << "Dimension has to be 2 or 3, you give nd= " << nd << endln;
+    opserr << "FATAL:PressureIndependMultiYield:: dimension error" << "\n";
+    opserr << "Dimension has to be 2 or 3, you give nd= " << nd << "\n";
     exit(-1);
   }
   if (refShearModul <= 0) {
@@ -136,7 +136,7 @@ PressureIndependMultiYield::PressureIndependMultiYield (int tag, int nd,
   }
   if (frictionAng < 0.) {
     opserr << "WARNING:PressureIndependMultiYield::PressureIndependMultiYield: frictionAngle < 0" << endln;
-    opserr << "Will reset frictionAngle to zero." << endln;
+    opserr << "Will reset frictionAngle to zero." << "\n";
     frictionAng = 0.;
   }
   if (frictionAng == 0. && cohesi <= 0. ) {
@@ -145,7 +145,7 @@ PressureIndependMultiYield::PressureIndependMultiYield (int tag, int nd,
   }
   if (cohesi <= 0) {
     opserr << "WARNING:PressureIndependMultiYield::PressureIndependMultiYield: cohesion <= 0" << endln;
-    opserr << "Will reset cohesion to zero." << endln;
+    opserr << "Will reset cohesion to zero." << "\n";
     cohesi = 0.;
   }
   if (peakShearStra <= 0) {
@@ -158,12 +158,12 @@ PressureIndependMultiYield::PressureIndependMultiYield (int tag, int nd,
   }
   if (pressDependCoe < 0) {
     opserr << "WARNING:PressureIndependMultiYield::PressureIndependMultiYield: pressDependCoe < 0" << endln;
-    opserr << "Will reset pressDependCoe to zero." << endln;
+    opserr << "Will reset pressDependCoe to zero." << "\n";
     pressDependCoe = 0.;
   }
   if (pressDependCoe > 0 && frictionAng == 0) {
     opserr << "WARNING:PressureIndependMultiYield::PressureIndependMultiYield: pressDependCoe > 0 while frictionAngle = 0" << endln;
-    opserr << "Will reset pressDependCoe to zero." << endln;
+    opserr << "Will reset pressDependCoe to zero." << "\n";
     pressDependCoe = 0.;
   }
   if (numberOfYieldSurf <= 0) {
@@ -283,7 +283,7 @@ PressureIndependMultiYield::PressureIndependMultiYield(const PressureIndependMul
 }
 
 
-PressureIndependMultiYield::~PressureIndependMultiYield ()
+PressureIndependMultiYield::~PressureIndependMultiYield()
 {
   if (theSurfaces != 0) delete [] theSurfaces;
   if (committedSurfaces != 0) delete [] committedSurfaces;
@@ -607,7 +607,8 @@ PressureIndependMultiYield::getCopy()
 NDMaterial * 
 PressureIndependMultiYield::getCopy(const char *code)
 {
-  if (strcmp(code,"PressureIndependMultiYield") == 0 || strcmp(code,"PlaneStrain") == 0
+  if (strcmp(code,"PressureIndependMultiYield") == 0 || 
+      strcmp(code,"PlaneStrain") == 0
       || strcmp(code,"ThreeDimensional") == 0) {
     PressureIndependMultiYield * copy = new PressureIndependMultiYield(*this);
     return copy;
@@ -930,7 +931,8 @@ PressureIndependMultiYield::setResponse (const char **argv, int argc, OPS_Stream
 }
 
 
-int PressureIndependMultiYield::getResponse (int responseID, Information &matInfo)
+int
+PressureIndependMultiYield::getResponse (int responseID, Information &matInfo)
 {
   switch (responseID) {
   case -1:
@@ -1434,7 +1436,8 @@ PressureIndependMultiYield::getContactStress(T2Vector &contactStress)
 }
 
 
-int PressureIndependMultiYield::isLoadReversal()
+int
+PressureIndependMultiYield::isLoadReversal()
 {
   if(activeSurfaceNum == 0) return 0;
 

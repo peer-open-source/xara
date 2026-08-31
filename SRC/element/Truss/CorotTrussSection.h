@@ -39,7 +39,6 @@
 #include <Node.h>
 
 class Node;
-class Channel;
 
 class CorotTrussSection : public Element {
 public:

@@ -38,16 +38,16 @@ OPS_ADD_RUNTIME_VPV(OPS_PressureDependentElastic3D)
 {
     int argc = OPS_GetNumRemainingInputArgs() + 2;
     if (argc < 6) {
-	opserr << "WARNING insufficient arguments\n";
-	opserr << "Want: nDMaterial PressureDependentElastic3D tag? E? v? rho?\n";
-	return 0;
+      opserr << "WARNING insufficient arguments\n";
+      opserr << "Want: nDMaterial PressureDependentElastic3D tag? E? v? rho?\n";
+      return 0;
     }
 
     int tag = 0;
     int numdata = 1;
     if (OPS_GetIntInput(&numdata, &tag) < 0) {
-	opserr << "WARNING invalid PressureDependentElastic3D tag\n";
-	return 0;
+      opserr << "WARNING invalid PressureDependentElastic3D tag\n";
+      return 0;
     }
     
     // double E = 0.0;
@@ -60,35 +60,28 @@ OPS_ADD_RUNTIME_VPV(OPS_PressureDependentElastic3D)
     numdata = OPS_GetNumRemainingInputArgs();
     if (numdata > 6) numdata = 6;
     if (OPS_GetDoubleInput(&numdata, data) < 0) {
-	opserr << "WARNING invalid PressureDependentElastic3D double inputs\n";
-	return 0;
+      opserr << "WARNING invalid PressureDependentElastic3D double inputs\n";
+      return 0;
     }
 
-//////////////////////////////////////////////////////////////////////////////////
     if( argc == 6 )
     {
-	return new PressureDependentElastic3D (tag, data[0], data[1], data[2]);
-	//opserr << "nDMaterial PressureDependentElastic3D: expp =" << expp << endln;
+      return new PressureDependentElastic3D (tag, data[0], data[1], data[2]);
     }
-//////////////////////////////////////////////////////////////////////////////////
     else if( argc == 7 )
     {
-	return new PressureDependentElastic3D (tag, data[0], data[1], data[2], data[3]);
-	//opserr << "nDMaterial PressureDependentElastic3D: expp =" << expp << endln;
+      return new PressureDependentElastic3D (tag, data[0], data[1], data[2], data[3]);
     }
-//////////////////////////////////////////////////////////////////////////////////
     else if (argc == 8 )
     {
-	return new PressureDependentElastic3D (tag, data[0], data[1], data[2], data[3],
-					       data[4]);
+      return new PressureDependentElastic3D (tag, data[0], data[1], data[2], data[3],
+                    data[4]);
     }
-//////////////////////////////////////////////////////////////////////////////////
     else if (argc >= 9 )
     {
-	return new PressureDependentElastic3D (tag, data[0], data[1], data[2], data[3],
-					       data[4], data[5]);
+      return new PressureDependentElastic3D (tag, data[0], data[1], data[2], data[3],
+                    data[4], data[5]);
     }
-
     return 0;
 }
 
