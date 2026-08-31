@@ -130,6 +130,66 @@ extern "C" void    dCreate_Dense_Matrix(SuperMatrix *, int, int, double *, int,
 */
 
 int
+SuperLU::setSize()
+{
+  int n = theSOE->size;
+  if (n == 0)
+    return 0;
+
+  else if (n > 0) {
+    // create space for the permutation vectors 
+    // and the elimination tree
+    if (sizePerm < n) {
+
+      if (perm_r != nullptr)
+        delete [] perm_r;
+      perm_r = new (nothrow) int[n];                
+
+      if (perm_c != nullptr)
+        delete [] perm_c;
+      perm_c = new (nothrow) int[n];                
+
+      if (etree != nullptr)
+        delete [] etree;
+      etree = new (nothrow) int[n];                
+
+      sizePerm = n;
+    }
+
+    // initialisation
+    StatInit(&stat);
+
+    // create the SuperMatrix A        
+    dCreate_CompCol_Matrix(&A, n, n, theSOE->nnz, theSOE->A, 
+                            theSOE->rowA, theSOE->colStartA, 
+                            SLU_NC, SLU_D, SLU_GE);
+
+    // obtain and apply column permutation to give SuperMatrix AC
+    get_perm_c(permSpec, &A, perm_c);
+    sp_preorder(&options, &A, perm_c, etree, &AC);
+
+    // // create the rhs SuperMatrix B 
+    // dCreate_Dense_Matrix(&B, n, 1, &theSOE->X[0], n, SLU_DN, SLU_D, SLU_GE);
+      
+    // set the refact variable to 'N' after first factorization with new size 
+    // can set to 'Y'.
+    options.Fact = DOFACT;
+
+    if (symmetric == 'Y')
+      options.SymmetricMode=YES;
+  }
+  else {
+    // opserr << "WARNING SuperLU::setSize()";
+    // opserr << " - order of system <  0\n";
+    return -1;        
+  }
+      
+  return 0;
+}
+
+
+
+int
 SuperLU::solve()
 {
   return this->solve(theSOE->getB(), theSOE->X);
@@ -158,7 +218,11 @@ SuperLU::solve(const Vector& vecB, Vector& vecX)
   const double *Bptr = &vecB(0);
   for (int i=0; i<n; i++)
     *(Xptr++) = *(Bptr++);
+
   Xptr = &vecX(0);
+
+  // create the rhs SuperMatrix B 
+  dCreate_Dense_Matrix(&B, n, 1, &vecX(0), n, SLU_DN, SLU_D, SLU_GE);
 
   GlobalLU_t Glu; /* Not needed on return. */
 
@@ -192,7 +256,7 @@ SuperLU::solve(const Vector& vecB, Vector& vecX)
   // do forward and backward substitution
   trans_t trans = NOTRANS;
   int info;
-  dgstrs (trans, &L, &U, perm_c, perm_r, &B, &stat, &info);    
+  dgstrs(trans, &L, &U, perm_c, perm_r, &B, &stat, &info);    
 
   if (info != 0) {
     // opserr << "WARNING SuperLU::solve(void)- ";
@@ -204,64 +268,5 @@ SuperLU::solve(const Vector& vecB, Vector& vecX)
 }
 
 
-
-
-int
-SuperLU::setSize()
-{
-  int n = theSOE->size;
-  if (n > 0) {
-    // create space for the permutation vectors 
-    // and the elimination tree
-    if (sizePerm < n) {
-
-      if (perm_r != nullptr)
-        delete [] perm_r;
-      perm_r = new (nothrow) int[n];                
-
-      if (perm_c != nullptr)
-        delete [] perm_c;
-      perm_c = new (nothrow) int[n];                
-
-      if (etree != nullptr)
-        delete [] etree;
-      etree = new (nothrow) int[n];                
-
-      sizePerm = n;
-    }
-
-    // initialisation
-    StatInit(&stat);
-
-    // create the SuperMatrix A        
-    dCreate_CompCol_Matrix(&A, n, n, theSOE->nnz, theSOE->A, 
-                            theSOE->rowA, theSOE->colStartA, 
-                            SLU_NC, SLU_D, SLU_GE);
-
-    // obtain and apply column permutation to give SuperMatrix AC
-    get_perm_c(permSpec, &A, perm_c);
-
-    sp_preorder(&options, &A, perm_c, etree, &AC);
-
-    // create the rhs SuperMatrix B 
-    dCreate_Dense_Matrix(&B, n, 1, &theSOE->X[0], n, SLU_DN, SLU_D, SLU_GE);
-      
-    // set the refact variable to 'N' after first factorization with new size 
-    // can set to 'Y'.
-    options.Fact = DOFACT;
-
-    if (symmetric == 'Y')
-      options.SymmetricMode=YES;
-
-  } else if (n == 0)
-    return 0;
-  else {
-    // opserr << "WARNING SuperLU::setSize()";
-    // opserr << " - order of system <  0\n";
-    return -1;        
-  }
-      
-  return 0;
-}
 
 
