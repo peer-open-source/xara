@@ -1510,25 +1510,7 @@ XaraClassBroker::getPtrNewRecorder(int classTag)
 ConstraintHandler *
 XaraClassBroker::getNewConstraintHandler(int classTag)
 {
-  switch (classTag) {
-  case HANDLER_TAG_PlainHandler:
-    return new PlainHandler();
-
-  case HANDLER_TAG_PenaltyConstraintHandler:
-    return new PenaltyConstraintHandler(1.0e12, 1.0e12);
-
-  case HANDLER_TAG_LagrangeConstraintHandler:
-    return new LagrangeConstraintHandler(1.0, 1.0);
-
-  case HANDLER_TAG_TransformationConstraintHandler:
-    return new TransformationConstraintHandler();
-
-  default:
-    opserr << "XaraClassBroker::getNewConstraintHandler - ";
-    opserr << " - no ConstraintHandler type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 DOF_Numberer *
@@ -1552,13 +1534,7 @@ XaraClassBroker::getNewEquiSolnAlgo(int classTag)
 Accelerator *
 XaraClassBroker::getAccelerator(int classTag)
 {
-  switch (classTag) {
-  default:
-    opserr << "XaraClassBroker::getAccelerator - ";
-    opserr << " - no EquiSolnAlgo type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 LineSearch *
@@ -1570,16 +1546,7 @@ XaraClassBroker::getLineSearch(int classTag)
 DomainDecompAlgo *
 XaraClassBroker::getNewDomainDecompAlgo(int classTag)
 {
-  switch (classTag) {
-  case DomDecompALGORITHM_TAGS_DomainDecompAlgo:
-    return new DomainDecompAlgo();
-
-  default:
-    opserr << "XaraClassBroker::getNewDomainDecompAlgo - ";
-    opserr << " - no DomainDecompAlgo type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 StaticIntegrator *
@@ -1588,124 +1555,20 @@ XaraClassBroker::getNewStaticIntegrator(int classTag)
   switch (classTag) {
   case INTEGRATOR_TAGS_LoadControl:
     return new LoadControl(1.0, 1, 1.0, .10);
-#ifdef _PARALLEL_PROCESSING
-  case INTEGRATOR_TAGS_DistributedDisplacementControl:
-    return new DistributedDisplacementControl();
-#endif
-
 
   default:
     opserr << "XaraClassBroker::getNewStaticIntegrator - ";
     opserr << " - no StaticIntegrator type exists for class tag ";
     opserr << classTag << "\n";
-    return 0;
+    return nullptr;
   }
 }
+
 
 TransientIntegrator *
 XaraClassBroker::getNewTransientIntegrator(int classTag)
 {
-  switch (classTag) {
-
-  case INTEGRATOR_TAGS_CentralDifference:
-    return new CentralDifference();
-
-  case INTEGRATOR_TAGS_CentralDifferenceAlternative:
-    return new CentralDifferenceAlternative();
-
-  case INTEGRATOR_TAGS_CentralDifferenceNoDamping:
-    return new CentralDifferenceNoDamping();
-
-  case INTEGRATOR_TAGS_Collocation:
-    return new Collocation();
-
-  case INTEGRATOR_TAGS_CollocationHSFixedNumIter:
-    return new CollocationHSFixedNumIter();
-
-  case INTEGRATOR_TAGS_CollocationHSIncrLimit:
-    return new CollocationHSIncrLimit();
-
-  case INTEGRATOR_TAGS_CollocationHSIncrReduct:
-    return new CollocationHSIncrReduct();
-
-  case INTEGRATOR_TAGS_HHT:
-    return new HHT();
-
-  case INTEGRATOR_TAGS_HHT_TP:
-    return new HHT_TP();
-
-  case INTEGRATOR_TAGS_HHTExplicit:
-    return new HHTExplicit();
-
-  case INTEGRATOR_TAGS_HHTExplicit_TP:
-    return new HHTExplicit_TP();
-
-  case INTEGRATOR_TAGS_HHTGeneralized:
-    return new HHTGeneralized();
-
-  case INTEGRATOR_TAGS_HHTGeneralized_TP:
-    return new HHTGeneralized_TP();
-
-  case INTEGRATOR_TAGS_HHTGeneralizedExplicit:
-    return new HHTGeneralizedExplicit();
-
-  case INTEGRATOR_TAGS_HHTGeneralizedExplicit_TP:
-    return new HHTGeneralizedExplicit_TP();
-
-  case INTEGRATOR_TAGS_HHTHSFixedNumIter:
-    return new HHTHSFixedNumIter();
-
-  case INTEGRATOR_TAGS_HHTHSFixedNumIter_TP:
-    return new HHTHSFixedNumIter_TP();
-
-  case INTEGRATOR_TAGS_HHTHSIncrLimit:
-    return new HHTHSIncrLimit();
-
-  case INTEGRATOR_TAGS_HHTHSIncrLimit_TP:
-    return new HHTHSIncrLimit_TP();
-
-  case INTEGRATOR_TAGS_HHTHSIncrReduct:
-    return new HHTHSIncrReduct();
-
-  case INTEGRATOR_TAGS_HHTHSIncrReduct_TP:
-    return new HHTHSIncrReduct_TP();
-
-  case INTEGRATOR_TAGS_KRAlphaExplicit:
-    return new KRAlphaExplicit();
-
-  case INTEGRATOR_TAGS_KRAlphaExplicit_TP:
-    return new KRAlphaExplicit_TP();
-
-  case INTEGRATOR_TAGS_Newmark:
-    return new Newmark();
-
-  case INTEGRATOR_TAGS_NewmarkExplicit:
-    return new NewmarkExplicit();
-
-  case INTEGRATOR_TAGS_NewmarkHSFixedNumIter:
-    return new NewmarkHSFixedNumIter();
-
-  case INTEGRATOR_TAGS_NewmarkHSIncrLimit:
-    return new NewmarkHSIncrLimit();
-
-  case INTEGRATOR_TAGS_NewmarkHSIncrReduct:
-    return new NewmarkHSIncrReduct();
-
-  case INTEGRATOR_TAGS_TRBDF2:
-    return new TRBDF2();
-
-  case INTEGRATOR_TAGS_TRBDF3:
-    return new TRBDF3();
-
-  case INTEGRATOR_TAGS_WilsonTheta:
-    return new WilsonTheta();
-
-  default:
-    opserr << "XaraClassBroker::getNewTransientIntegrator - ";
-    opserr << " - no TransientIntegrator type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 IncrementalIntegrator *
