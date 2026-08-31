@@ -13,7 +13,6 @@
 #include <Node.h>
 
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>
 
@@ -80,19 +79,15 @@ class AV3D4QuadWithSensitivity: public Element
     const Matrix &getDamp(void);
     const Matrix &getDampSensitivity(int gradNumber);
 
-    void zeroLoad(void);
+    void zeroLoad();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
     int addInertiaLoadToUnbalance(const Vector &accel);
 
     const Vector &getResistingForce(void);
     const Vector &getResistingForceIncInertia(void);
 
-    // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker
-		  &theBroker);
 
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
     Response *setResponse (const char **argv, int argc, OPS_Stream &theHandler);
     int getResponse (int responseID, Information &eleInformation);
 

@@ -326,23 +326,9 @@ AV3D4QuadWithSensitivity::getResistingForceIncInertia(void)
 // /////////////////////////////////////////////////////////////////////////////
 //
 
-int 
-AV3D4QuadWithSensitivity::sendSelf (int commitTag, Channel &theChannel) 
-{ 
-  // Not implemtented yet
-  return 0;
-}
 
-int 
-AV3D4QuadWithSensitivity::recvSelf (int commitTag, Channel &theChannel, 
-  FEM_ObjectBroker &theBroker) 
-{   
-  // Not implemtented yet
-  return 0;
-}
-
-
-void AV3D4QuadWithSensitivity::Print(OPS_Stream &s, int flag)
+void 
+AV3D4QuadWithSensitivity::Print(OPS_Stream &s, int flag)
 {
   const ID& node_tags = this->getExternalNodes();
 
