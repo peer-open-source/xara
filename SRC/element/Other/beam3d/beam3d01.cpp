@@ -39,7 +39,6 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <Renderer.h>
 
 Matrix beam3d01::m(12,12);  // these beam members have no mass or damping matrice
 Matrix beam3d01::d(12,12);
@@ -425,79 +424,6 @@ beam3d01::getResistingForce()
     rForce -= load;
     
     return rForce;
-}
-
-
-int
-beam3d01::displaySelf(Renderer &theViewer, int displayMode, float fact)
-{
-
-    Domain *theDomain = this->getDomain();
-    int Nd1 = connectedExternalNodes(0);
-    int Nd2 = connectedExternalNodes(1);
-    Node *end1Ptr = theDomain->getNode(Nd1);
-    Node *end2Ptr = theDomain->getNode(Nd2);	
-    
-    const Vector &end1Crd = end1Ptr->getCrds();
-    const Vector &end2Crd = end2Ptr->getCrds();	
-    const Vector &end1Disp = end1Ptr->getDisp();
-    const Vector &end2Disp = end2Ptr->getDisp();    
-
-    Vector v1(3);
-    Vector v2(3);
-    for (int i=0; i<3; i++) {
-	v1(i) = end1Crd(i)+end1Disp(i)*fact;
-	v2(i) = end2Crd(i)+end2Disp(i)*fact;    
-    }
-    return theViewer.drawLine(v1,v2,1.0,1.0);
-}
-
-
-int
-beam3d01::sendSelf(int commitTag, Channel &theChannel)
-{
-    int dataTag = this->getDbTag();
-    Vector data(10);
-    data(0) = A; data(1) = E; data(2) = G; 
-    data(3) = Jx; data(4) = Iy; data(5) = Iz;     
-    data(6) = this->getTag();
-    data(7) = connectedExternalNodes(0);
-    data(8) = connectedExternalNodes(1);
-    data(9) = theta;    
-    int result = 0;
-    result = theChannel.sendVector(dataTag, commitTag, data);
-    if (result < 0) {
-	opserr << "beam3d01::sendSelf - failed to send data\n";
-	return -1;
-    }
-    
-    return 0;
-}
-
-int
-beam3d01::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(10);
-    int dataTag = this->getDbTag();
-    int result = 0;
-
-    result = theChannel.recvVector(dataTag, commitTag, data);
-    if (result < 0) {
-	opserr << "beam3d01::recvSelf - failed to recv data\n";
-	return -1;
-    }
-
-    A = data(0); E = data(1); G=data(2); 
-    Jx = data(3); Iy = data(4); Iz=data(5);     
-    theta = data(9);
-    int tag = data(6);
-    this->setTag(tag);
-    int nd1 = data(7);
-    int nd2 = data(8);
-    connectedExternalNodes(0) = nd1;
-    connectedExternalNodes(1) = nd2;    
-
-    return 0;
 }
 
 
