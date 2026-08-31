@@ -34,23 +34,17 @@
 // Lapack routines.
 //
 // What: "@(#) BandSPDLinLapackSolver.h, revA"
-
-
+#pragma once
 #include <BandSPDLinSolver.h>
 
 class BandSPDLinLapackSolver : public BandSPDLinSolver
 {
-  public:
-    BandSPDLinLapackSolver();    
-    ~BandSPDLinLapackSolver();
+public:
+  BandSPDLinLapackSolver();    
+  ~BandSPDLinLapackSolver();
 
-    int solve();
-    int setSize();
-    
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+  int solve() override;
+  int solve(const Vector& B, Vector& X) override;
+  int setSize() override;
 };
-
-#endif
-
 

@@ -48,8 +48,9 @@ class ProfileSPDLinDirectBlockSolver : public ProfileSPDLinSolver
     ProfileSPDLinDirectBlockSolver(double tol=1.0e-12, int blockSize = 4);    
     virtual ~ProfileSPDLinDirectBlockSolver();
 
-    virtual int solve(void);        
-    virtual int setSize(void);    
+    virtual int solve();
+    int solve(const Vector& B, Vector& X);
+    virtual int setSize();
 #if 0
     virtual int setProfileSOE(ProfileSPDLinSOE &theSOE);
 #endif

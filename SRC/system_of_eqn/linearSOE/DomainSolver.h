@@ -31,8 +31,7 @@
 // to solve a system of equations and to do static condensation operations on the
 // linear system of equations.
 //
-#ifndef DomainSolver_h
-#define DomainSolver_h
+#pragma once
 
 #include <LinearSOESolver.h>
 class Matrix;
@@ -56,6 +55,4 @@ class DomainSolver: public LinearSOESolver
     
   private:
 };
-
-#endif
 

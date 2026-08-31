@@ -306,9 +306,9 @@ UmfpackGenLinSOE::zeroB()
 void
 UmfpackGenLinSOE::setX(int loc, double value)
 {
-    if (loc<X.Size() && loc>=0) {
-        X(loc) = value;
-    }
+  if (loc<X.Size() && loc>=0) {
+    X(loc) = value;
+  }
 }
 
 
@@ -316,7 +316,7 @@ void
 UmfpackGenLinSOE::setX(const Vector &x)
 {
   if (x.Size() == X.Size()) {
-      X = x;
+    X = x;
   }
 }
 
@@ -356,14 +356,3 @@ UmfpackGenLinSOE::setUmfpackGenLinSolver(UmfpackGenLinSolver &newSolver)
 }
 
 
-int
-UmfpackGenLinSOE::sendSelf(int cTag, Channel &)
-{
-  return 0;
-}
-
-int
-UmfpackGenLinSOE::recvSelf(int cTag, Channel &, FEM_ObjectBroker &)
-{
-  return 0;
-}

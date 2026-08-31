@@ -43,7 +43,6 @@ class DistributedBandSPDLinSOE : public BandSPDLinSOE
 {
   public:
     DistributedBandSPDLinSOE(BandSPDLinSolver &theSolver);
-    DistributedBandSPDLinSOE();
     
     ~DistributedBandSPDLinSOE();
 
@@ -51,13 +50,11 @@ class DistributedBandSPDLinSOE : public BandSPDLinSOE
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addB(const Vector &, const ID &, double fact = 1.0);    
     int setB(const Vector &, double fact = 1.0);            
-    void zeroB(void);
+    void zeroB();
     int setSize(Graph &theGraph);
-    int solve(void);
+    int solve();
     const Vector &getB();
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
     friend class BandSPDLinLapackSolver;
 
     int setProcessID(int processTag);

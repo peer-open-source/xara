@@ -17,11 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.2 $
-// $Date: 2009-05-11 20:58:23 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/profileSPD/DistributedProfileSPDLinSOE.h,v $
-                                                                        
 #ifndef DistributedProfileSPDLinSOE_h
 #define DistributedProfileSPDLinSOE_h
 
@@ -32,7 +27,6 @@
 // unsymmetric matrix.
 //
 // What: "@(#) DistributedProfileSPDLinSOE.h, revA"
-
 
 #include <ProfileSPDLinSOE.h>
 #include <Vector.h>
@@ -57,7 +51,8 @@ class DistributedProfileSPDLinSOE : public ProfileSPDLinSOE
     const Vector &getB();
 
     int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+
     friend class ProfileSPDLinSolver;    
     friend class ProfileSPDLinDirectSolver;
     friend class ProfileSPDLinDirectBlockSolver;

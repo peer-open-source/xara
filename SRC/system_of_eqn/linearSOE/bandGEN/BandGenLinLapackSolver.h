@@ -37,12 +37,9 @@ class BandGenLinLapackSolver : public BandGenLinSolver
     BandGenLinLapackSolver(bool doDet=true);
     ~BandGenLinLapackSolver();
 
-    int solve();
+    int solve() override;
     int solve(const Vector& B, Vector& X) override;
     int setSize();
-
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &theBroker);
 
     virtual double getDeterminant() override;
     

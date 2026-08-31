@@ -38,7 +38,6 @@ class FullGenLinSolver : public LinearSOESolver
 
     virtual int setLinearSOE(FullGenLinSOE &)=0;
 
-
   private:
 
 };

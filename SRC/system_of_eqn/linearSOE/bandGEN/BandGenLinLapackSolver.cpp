@@ -169,18 +169,3 @@ BandGenLinLapackSolver::setSize()
   }
   return 0;
 }
-
-int
-BandGenLinLapackSolver::sendSelf(int commitTag, Channel &theChannel)
-{
-  return 0;
-}
-
-int
-BandGenLinLapackSolver::recvSelf(int commitTag,
-				 Channel &theChannel,
-				 FEM_ObjectBroker &theBroker)
-{
-  // nothing to do
-  return 0;
-}

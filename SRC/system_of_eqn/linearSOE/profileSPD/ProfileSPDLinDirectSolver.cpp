@@ -47,52 +47,52 @@ ProfileSPDLinDirectSolver::ProfileSPDLinDirectSolver(double tol)
     
 ProfileSPDLinDirectSolver::~ProfileSPDLinDirectSolver()
 {
-    if (RowTop != 0) delete [] RowTop;
-    if (topRowPtr != 0) free((void *)topRowPtr);
-    if (invD != 0) delete [] invD;
+  if (RowTop != 0) delete [] RowTop;
+  if (topRowPtr != 0) free((void *)topRowPtr);
+  if (invD != 0) delete [] invD;
 }
 
 int
 ProfileSPDLinDirectSolver::setSize()
 {
-    assert(theSOE != nullptr);
+  assert(theSOE != nullptr);
 
-    // check for quick return 
-    if (theSOE->size == 0)
-	return 0;
-    
-    size = theSOE->size;
-    
-    if (RowTop != 0) 
-      delete [] RowTop;
-    if (topRowPtr != 0) 
-      free((void *)topRowPtr);
-    if (invD != 0) 
-      delete [] invD;
-
-    RowTop = new int[size];
-
-    // we cannot use topRowPtr = new (double *)[size] with the cxx compiler
-    topRowPtr = (double **)malloc(size *sizeof(double *));
-
-    invD = new double[size];
-
-    // set some pointers
-    double *A = theSOE->A;
-    int *iDiagLoc = theSOE->iDiagLoc;
-
-    // set RowTop and topRowPtr info
-
-    RowTop[0] = 0;
-    topRowPtr[0] = A;
-    for (int j=1; j<size; j++) {
-	int icolsz = iDiagLoc[j] - iDiagLoc[j-1];
-	RowTop[j] = j - icolsz +  1;
-	topRowPtr[j] = &A[iDiagLoc[j-1]]; // FORTRAN array indexing in iDiagLoc
-    }
-
-    size = theSOE->size;
+  // check for quick return 
+  if (theSOE->size == 0)
     return 0;
+  
+  size = theSOE->size;
+  
+  if (RowTop != 0) 
+    delete [] RowTop;
+  if (topRowPtr != 0) 
+    free((void *)topRowPtr);
+  if (invD != 0) 
+    delete [] invD;
+
+  RowTop = new int[size];
+
+  // we cannot use topRowPtr = new (double *)[size] with the cxx compiler
+  topRowPtr = (double **)malloc(size *sizeof(double *));
+
+  invD = new double[size];
+
+  // set pointers
+  double *A = theSOE->A;
+  int *iDiagLoc = theSOE->iDiagLoc;
+
+  // set RowTop and topRowPtr info
+
+  RowTop[0] = 0;
+  topRowPtr[0] = A;
+  for (int j=1; j<size; j++) {
+    int icolsz = iDiagLoc[j] - iDiagLoc[j-1];
+    RowTop[j] = j - icolsz +  1;
+    topRowPtr[j] = &A[iDiagLoc[j-1]]; // FORTRAN array indexing in iDiagLoc
+  }
+
+  size = theSOE->size;
+  return 0;
 }
 
 int
@@ -114,7 +114,7 @@ ProfileSPDLinDirectSolver::solve(const Vector& vecB, Vector& vecX)
   if (theSOE->size == 0)
     return 0;
 
-  // set some pointers
+  // set pointers
   // const double *B = &theSOE->B[0];
   // double *X = &theSOE->X[0];
   const double * B = &(vecB(0));
@@ -452,21 +452,4 @@ ProfileSPDLinDirectSolver::factor(int n)
     return 0;
 }
 */
-
-int
-ProfileSPDLinDirectSolver::sendSelf(int cTag,
-				    Channel &theChannel)
-{
-  return 0;
-}
-
-
-int 
-ProfileSPDLinDirectSolver::recvSelf(int cTag,
-				    Channel &theChannel, 
-				    FEM_ObjectBroker &theBroker)
-{
-  return 0;
-}
-
 

@@ -51,15 +51,15 @@ ProfileSPDLinDirectSkypackSolver::ProfileSPDLinDirectSkypackSolver(int Mcols, in
  size(0), invD(0)
 {
     if (mCols != 0 && mRows != 0) {
-	rw = new double[mRows*mCols];
-	tw = new double[mRows*mRows];
-	if (mCols > mRows)
-	    index = new int[mCols];
-	else
-	    index = new int[mRows];
+        rw = new double[mRows*mCols];
+        tw = new double[mRows*mRows];
+        if (mCols > mRows)
+            index = new int[mCols];
+        else
+            index = new int[mRows];
     } else { // make sure mCols and mRows == 0
-	mCols = 0;
-	mRows = 0;
+        mCols = 0;
+        mRows = 0;
     }
 }
 
@@ -73,7 +73,7 @@ ProfileSPDLinDirectSkypackSolver::~ProfileSPDLinDirectSkypackSolver()
 }
 
 int
-ProfileSPDLinDirectSkypackSolver::setSize(void)
+ProfileSPDLinDirectSkypackSolver::setSize()
 {
     assert(theSOE != nullptr);
     int result = 0;
@@ -107,7 +107,7 @@ extern "C" int skyss_(int *LDX, int *N, int *NRHS,
 		      char *FNAME, int *FUNIT, int *INFO);
 
 int 
-ProfileSPDLinDirectSkypackSolver::solve(void)
+ProfileSPDLinDirectSkypackSolver::solve()
 {
     assert(theSOE != nullptr);
     // if (theSOE == 0) {
@@ -203,23 +203,3 @@ ProfileSPDLinDirectSkypackSolver::setProfileSOE(ProfileSPDLinSOE &theNewSOE)
     theSOE = &theNewSOE;
     return 0;
 }
-	
-int
-ProfileSPDLinDirectSkypackSolver::sendSelf(int cTag,
-					   Channel &theChannel)
-{
-//     if (size != 0)
-// 	opserr << "ProfileSPDLinDirectSkypackSolver::sendSelf - does not send itself YET\n"; 
-    return 0;
-}
-
-
-int 
-ProfileSPDLinDirectSkypackSolver::recvSelf(int cTag,
-					   Channel &theChannel, 
-					   FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}
-
-

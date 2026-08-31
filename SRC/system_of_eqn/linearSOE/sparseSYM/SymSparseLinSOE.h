@@ -14,16 +14,13 @@
 //
 // Almost all the information (Matrix A and Vector B) is stored as 
 // global variables in the file "symbolic.h".
-
-
-#ifndef SymSparseLinSOE_h
-#define SymSparseLinSOE_h
-
+//
+#pragma once
 #include <LinearSOE.h>
 #include <Vector.h>
 
 extern "C" {
-   #include <FeStructs.h>
+  #include <FeStructs.h>
 }
 
 class SymSparseLinSolver;
@@ -39,7 +36,7 @@ class SymSparseLinSOE : public LinearSOE
 
     ~SymSparseLinSOE();
 
-    int getNumEqn(void) const;
+    int getNumEqn() const;
     int setSize(Graph &theGraph);
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addB(const Vector &, const ID &, double fact = 1.0);    
@@ -49,14 +46,10 @@ class SymSparseLinSOE : public LinearSOE
     void zeroB();
     
     const Vector &getX();
-    const Vector &getB();    
-    double normRHS(void);
+    const Vector &getB();
 
     void setX(int loc, double value);        
     void setX(const Vector &x);  
-
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
     friend class SymSparseLinSolver;
 
@@ -80,6 +73,3 @@ class SymSparseLinSOE : public LinearSOE
     OFFDBLK  *first;
 
 };
-
-#endif
-

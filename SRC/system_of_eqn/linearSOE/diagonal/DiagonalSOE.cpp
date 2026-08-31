@@ -75,7 +75,7 @@ DiagonalSOE::~DiagonalSOE()
 
 
 int 
-DiagonalSOE::getNumEqn(void) const
+DiagonalSOE::getNumEqn() const
 {
   return size;
 }
@@ -136,19 +136,19 @@ DiagonalSOE::addA(const Matrix &m, const ID &id, double fact)
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	A[pos] += m(i,i);
+        A[pos] += m(i,i);
     }
   } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	A[pos] -= m(i,i);
+        A[pos] -= m(i,i);
     }
   } else {
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	A[pos] += m(i,i) * fact;
+        A[pos] += m(i,i) * fact;
     }
   }
 
@@ -169,19 +169,19 @@ DiagonalSOE::addB(const Vector &v, const ID &id, double fact)
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	B[pos] += v(i);
+        B[pos] += v(i);
     }
   } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	B[pos] -= v(i);
+        B[pos] -= v(i);
     }
   } else {
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-	B[pos] += v(i) * fact;
+        B[pos] += v(i) * fact;
     }
   }	
   return 0;
@@ -213,7 +213,7 @@ DiagonalSOE::setB(const Vector &v, double fact)
 }
 
 void 
-DiagonalSOE::zeroA(void)
+DiagonalSOE::zeroA()
 {
   double *Aptr = A;
   for (int i=0; i<size; i++)
@@ -223,7 +223,7 @@ DiagonalSOE::zeroA(void)
 }
 
 void 
-DiagonalSOE::zeroB(void)
+DiagonalSOE::zeroB()
 {
   double *Bptr = B;
   for (int i=0; i<size; i++)
@@ -268,18 +268,6 @@ DiagonalSOE::getB()
   return *vectB;
 }
 
-double 
-DiagonalSOE::normRHS()
-{
-  double norm =0.0;
-  for (int i=0; i<size; i++) {
-    double Yi = B[i];
-    norm += Yi*Yi;
-  }
-  return sqrt(norm);
-  
-}    
-
 
 int
 DiagonalSOE::setDiagonalSolver(DiagonalSolver &newSolver)
@@ -298,16 +286,3 @@ DiagonalSOE::setDiagonalSolver(DiagonalSolver &newSolver)
   return this->setSolver(newSolver);
 }
 
-
-int 
-DiagonalSOE::sendSelf(int cTag, Channel &theChannel)
-{
-  return 0;
-}
-
-
-int 
-DiagonalSOE::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  return 0;
-}

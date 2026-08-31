@@ -36,18 +36,12 @@
 #include <assert.h>
 
 DistributedBandSPDLinSOE::DistributedBandSPDLinSOE(BandSPDLinSolver &theSolvr)
-  :BandSPDLinSOE(theSolvr, LinSOE_TAGS_DistributedBandSPDLinSOE), 
+  :BandSPDLinSOE(LinSOE_TAGS_DistributedBandSPDLinSOE), 
    processID(0), numChannels(0), theChannels(0), localCol(0), workArea(0), sizeWork(0),  myVectB(0), myB(0)
 {
   theSolvr.setLinearSOE(*this);
 }
 
-DistributedBandSPDLinSOE::DistributedBandSPDLinSOE()
-  :BandSPDLinSOE(LinSOE_TAGS_DistributedBandSPDLinSOE), 
-   processID(0), numChannels(0), theChannels(0), localCol(0), workArea(0), sizeWork(0),  myVectB(0), myB(0)
-{
-
-}
 
 
 DistributedBandSPDLinSOE::~DistributedBandSPDLinSOE()
@@ -123,7 +117,7 @@ DistributedBandSPDLinSOE::setSize(Graph &theGraph)
       ID *subMap = new ID(numSubVertex);
       localCol[j] = subMap;
       if (numSubVertex > maxNumSubVertex)
-	maxNumSubVertex = numSubVertex;
+        maxNumSubVertex = numSubVertex;
     }
 
     size = theGraph.getNumVertex();
@@ -136,14 +130,14 @@ DistributedBandSPDLinSOE::setSize(Graph &theGraph)
     VertexIter &theVertices = theGraph.getVertices();
     
     while ((vertexPtr = theVertices()) != 0) {
-	int vertexNum = vertexPtr->getTag();
-	const ID &theAdjacency = vertexPtr->getAdjacency();
-	for (int i=0; i<theAdjacency.Size(); i++) {
-	    int otherNum = theAdjacency(i);
-	    int diff = vertexNum-otherNum;
-	    if (half_band < diff)
-		half_band = diff;
-	}
+      int vertexNum = vertexPtr->getTag();
+      const ID &theAdjacency = vertexPtr->getAdjacency();
+      for (int i=0; i<theAdjacency.Size(); i++) {
+          int otherNum = theAdjacency(i);
+          int diff = vertexNum-otherNum;
+          if (half_band < diff)
+        half_band = diff;
+      }
     }
     half_band += 1; // include the diagonal
     
@@ -187,7 +181,7 @@ DistributedBandSPDLinSOE::setSize(Graph &theGraph)
   if (newSize != Asize) { // we have to get another space for A
     if (processID == 0) {
       if (workArea != 0)
-	delete [] workArea;
+        delete [] workArea;
 
       workArea = new double [newSize];
       sizeWork = newSize;
@@ -324,7 +318,7 @@ DistributedBandSPDLinSOE::addA(const Matrix &m, const ID &id, double fact)
 }
 
 int 
-DistributedBandSPDLinSOE::solve(void)
+DistributedBandSPDLinSOE::solve()
 {
 
   static ID result(1);
@@ -370,17 +364,17 @@ DistributedBandSPDLinSOE::solve(void)
 
       // get A & add using local map
       if (factored == false) {
-	const ID &localMap = *(localCol[j]);
-	int localSize = localMap.Size() * half_band;
-	Vector vectA(workArea, localSize);    
-	theChannel->recvVector(0, 0, vectA);
+        const ID &localMap = *(localCol[j]);
+        int localSize = localMap.Size() * half_band;
+        Vector vectA(workArea, localSize);    
+        theChannel->recvVector(0, 0, vectA);
 
-	int loc = 0;
-	for (int i=0; i<localMap.Size(); i++) {
-	  int pos = localMap(i)*half_band;
-	  for (int k=0; k<half_band; k++) 
-	    A[pos++] += workArea[loc++];
-	}    
+        int loc = 0;
+        for (int i=0; i<localMap.Size(); i++) {
+          int pos = localMap(i)*half_band;
+          for (int k=0; k<half_band; k++) 
+            A[pos++] += workArea[loc++];
+        }
       }
     }
 
@@ -402,36 +396,36 @@ DistributedBandSPDLinSOE::solve(void)
 int 
 DistributedBandSPDLinSOE::addB(const Vector &v, const ID &id, double fact)
 {
-    
-    assert(id.Size() == v.Size() );
 
-    // check for a quick return 
-    if (fact == 0.0)
-      return 0;
+  assert(id.Size() == v.Size() );
 
-    // check that m and id are of similar size
-    int idSize = id.Size();        
-
-    if (fact == 1.0) { // do not need to multiply if fact == 1.0
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		myB[pos] += v(i);
-	}
-    } else if (fact == -1.0) {
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		myB[pos] -= v(i);
-	}
-    } else {
-	for (int i=0; i<idSize; i++) {
-	    int pos = id(i);
-	    if (pos <size && pos >= 0)
-		myB[pos] += v(i) * fact;
-	}
-    }	
+  // check for a quick return 
+  if (fact == 0.0)
     return 0;
+
+  // check that m and id are of similar size
+  int idSize = id.Size();        
+
+  if (fact == 1.0) { // do not need to multiply if fact == 1.0
+    for (int i=0; i<idSize; i++) {
+        int pos = id(i);
+        if (pos <size && pos >= 0)
+      myB[pos] += v(i);
+    }
+  } else if (fact == -1.0) {
+    for (int i=0; i<idSize; i++) {
+        int pos = id(i);
+        if (pos <size && pos >= 0)
+      myB[pos] -= v(i);
+    }
+  } else {
+    for (int i=0; i<idSize; i++) {
+        int pos = id(i);
+        if (pos <size && pos >= 0)
+      myB[pos] += v(i) * fact;
+    }
+  }	
+  return 0;
 }
 
 int
@@ -461,15 +455,16 @@ DistributedBandSPDLinSOE::setB(const Vector &v, double fact)
 
 
 void 
-DistributedBandSPDLinSOE::zeroB(void)
+DistributedBandSPDLinSOE::zeroB()
 {
   double *Bptr = myB;
   for (int i=0; i<size; i++)
     *Bptr++ = 0;
 }
 
+
 const Vector &
-DistributedBandSPDLinSOE::getB(void)
+DistributedBandSPDLinSOE::getB()
 {
 
   if (processID != 0) {
@@ -507,93 +502,6 @@ DistributedBandSPDLinSOE::getB(void)
   return *vectB;
 }	
 
-  
-int 
-DistributedBandSPDLinSOE::sendSelf(int commitTag, Channel &theChannel)
-{
-  int sendID =0;
-
-  // if P0 check if already sent. If already sent use old processID; if not allocate a new process 
-  // id for remote part of object, enlarge channel * to hold a channel * for this remote object.
-
-  // if not P0, send current processID
-
-  if (processID == 0) {
-
-    // check if already using this object
-    bool found = false;
-    for (int i=0; i<numChannels; i++)
-      if (theChannels[i] == &theChannel) {
-	sendID = i+1;
-	found = true;
-      }
-
-    // if new object, enlarge Channel pointers to hold new channel * & allocate new ID
-    if (found == false) {
-      int nextNumChannels = numChannels + 1;
-      Channel **nextChannels = new Channel *[nextNumChannels];
-      for (int i=0; i<numChannels; i++)
-	nextChannels[i] = theChannels[i];
-      nextChannels[numChannels] = &theChannel;
-      
-      numChannels = nextNumChannels;
-      
-      if (theChannels != 0)
-	delete [] theChannels;
-      
-      theChannels = nextChannels;
-      
-      if (localCol != 0)
-	delete [] localCol;
-      localCol = new ID *[numChannels];
-
-      for (int i=0; i<numChannels; i++)
-	localCol[i] = 0;    
-
-      // allocate new processID for remote object
-      sendID = numChannels;
-    }
-
-  } else 
-    sendID = processID;
-
-
-  // send remotes processID
-  ID idData(1);
-  idData(0) = sendID;
-  
-  int res = theChannel.sendID(0, commitTag, idData);
-  if (res < 0) {
-    // opserr <<"WARNING DistributedBandSPDLinSOE::sendSelf() - failed to send data\n";
-    return -1;
-  }
-
-  return 0;
-}
-
-
-int 
-DistributedBandSPDLinSOE::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  ID idData(1);
-  int res = theChannel.recvID(0, commitTag, idData);
-  if (res < 0) {
-    // opserr <<"WARNING DistributedBandSPDLinSOE::recvSelf() - failed to send data\n";
-    return -1;
-  }	      
-  processID = idData(0);
-
-  numChannels = 1;
-  theChannels = new Channel *[1];
-  theChannels[0] = &theChannel;
-
-
-  localCol = new ID *[numChannels];
-  for (int i=0; i<numChannels; i++)
-    localCol[i] = 0;
-
-  return 0;
-}
 
 
 int

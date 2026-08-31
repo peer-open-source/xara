@@ -43,7 +43,7 @@ MumpsParallelSOE::MumpsParallelSOE(MumpsParallelSolver &theSolvr, int matType)
    processID(0), numChannels(0), theChannels(0), localCol(0), workArea(0), 
    sizeWork(0), myB(0), myVectB(0)
 {
-    theSolvr.setLinearSOE(*this);
+  theSolvr.setLinearSOE(*this);
 }
 
 
@@ -73,6 +73,7 @@ MumpsParallelSOE::~MumpsParallelSOE()
   if (myVectB != 0)
     delete myVectB;
 }
+
 
 int 
 MumpsParallelSOE::setSize(Graph &theGraph)
@@ -186,15 +187,7 @@ MumpsParallelSOE::setSize(Graph &theGraph)
     workArea = new double[size];
     colStartA = new int[size+1]; 
     
-    if (B == 0 || X == 0 || colStartA == 0 || workArea == 0 || myB == 0) {
-      opserr << "WARNING MumpsSOE::MumpsSOE :";
-      opserr << " ran out of memory for vectors (size) (";
-      opserr << size << ") \n";
-      size = 0; Bsize = 0;
-      result =  -1;
-    }
-    else
-      Bsize = size;
+    Bsize = size;
 
   }
   
@@ -313,9 +306,8 @@ MumpsParallelSOE::solve()
   int resSolver = 0;
 
   //
-  // if subprocess send B, solve and recv back X and B
+  // if subprocess send B, solve, and recv back X and B
   //
-
   if (processID != 0) {
 
     // send B
@@ -335,7 +327,6 @@ MumpsParallelSOE::solve()
   //
   // if main process, recv B & A from all, solve and send back X, B & result
   //
-  
   else {
     
     // add P0 contribution to B

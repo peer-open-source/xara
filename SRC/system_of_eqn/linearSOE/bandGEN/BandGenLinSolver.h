@@ -17,13 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1.1.1 $
-// $Date: 2000-09-15 08:23:28 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/bandGEN/BandGenLinSolver.h,v $
-                                                                        
-                                                                        
-// File: ~/system_of_eqn/linearSOE/bandGEN/BandGenLinSolver.h
+//
 //
 // Written: fmk 
 // Created: Tue Sep 26 16:27:47: 1996
@@ -48,7 +42,7 @@ class BandGenLinSolver : public LinearSOESolver
     virtual ~BandGenLinSolver();
 
     virtual int solve() = 0;
-    virtual int setLinearSOE(BandGenLinSOE &theSOE);
+    virtual int setLinearSOE(BandGenLinSOE &);
     
   protected:
     BandGenLinSOE *theSOE;
