@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.2 $
-// $Date: 2003-02-14 23:02:01 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/bandSPD/BandSPDLinThreadSolver.cpp,v $
-                                                                        
-                                                                        
+//
 // File: ~/system_of_eqn/linearSOE/bandSPD/BandSPDLinThreadSolver.h
 //
 // Written: fmk 
