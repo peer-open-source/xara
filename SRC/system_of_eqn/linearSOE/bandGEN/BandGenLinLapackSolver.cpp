@@ -90,9 +90,14 @@ BandGenLinLapackSolver::getDeterminant()
   return det;
 }
 
-
 int
 BandGenLinLapackSolver::solve()
+{
+  return this->solve(theSOE->getB(), theSOE->vectX);
+}
+
+int
+BandGenLinLapackSolver::solve(const Vector& vecB, Vector& vecX)
 {
   assert(theSOE != nullptr);
 
@@ -107,15 +112,15 @@ BandGenLinLapackSolver::solve()
   int ldB = n;
   int info;
   double *Aptr = theSOE->A;
-  double *Xptr = &theSOE->X[0];
-  const double *Bptr = &theSOE->B[0];
+  double *Xptr = &vecX(0);
+  const double *Bptr = &vecB(0);
   int    *iPIV = iPiv;
 
   // first copy B into X
   for (int i=0; i<n; i++) {
     *(Xptr++) = *(Bptr++);
   }
-  Xptr = theSOE->X;
+  Xptr = &vecX(0);
 
   // now solve AX = B
 

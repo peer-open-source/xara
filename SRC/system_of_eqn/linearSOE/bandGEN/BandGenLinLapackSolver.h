@@ -38,6 +38,7 @@ class BandGenLinLapackSolver : public BandGenLinSolver
     ~BandGenLinLapackSolver();
 
     int solve();
+    int solve(const Vector& B, Vector& X) override;
     int setSize();
 
     int sendSelf(int commitTag, Channel &);
