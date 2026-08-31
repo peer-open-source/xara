@@ -17,15 +17,11 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+//
 // $Revision: 1.2 $
 // $Date: 2009-05-11 20:55:31 $
 // $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/bandSPD/BandSPDLinLapackSolver.h,v $
-                                                                        
-                                                                        
-#ifndef BandSPDLinLapackSolver_h
-#define BandSPDLinLapackSolver_h
-
+//
 // Written: fmk 
 // Created: 11/96
 //
@@ -34,6 +30,7 @@
 // Lapack routines.
 //
 // What: "@(#) BandSPDLinLapackSolver.h, revA"
+//
 #pragma once
 #include <BandSPDLinSolver.h>
 
