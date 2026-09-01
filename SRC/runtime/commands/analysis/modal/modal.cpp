@@ -6,15 +6,18 @@
 #include "DomainModalProperties.h"
 #include "ResponseSpectrumAnalysis.h"
 
+Tcl_CmdProc XaraCmd_responseSpectrumAnalysis;
+
 namespace OpenSees {
 
-Tcl_CmdProc responseSpectrumAnalysis;
 
 namespace DomainCommands {
 
 int
 modalProperties(ClientData clientData, 
-                Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+                Tcl_Interp *interp,
+                ArgSize argc,
+                TCL_Char ** const argv)
 {
   // modalProperties <-print> <-file $fileName> <-unorm>
 
@@ -24,8 +27,8 @@ modalProperties(ClientData clientData,
   // some kudos
   static bool first_done = false;
   if (!first_done) {
-      opslog << "Using DomainModalProperties - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
-      first_done = true;
+    opslog << "Using DomainModalProperties - Developed by: Massimo Petracca, Guido Camata, ASDEA Software Technology\n";
+    first_done = true;
   }
 
   // init default values
@@ -77,7 +80,7 @@ modalProperties(ClientData clientData,
 
 
   Tcl_CreateCommand(interp, "responseSpectrumAnalysis",
-                    responseSpectrumAnalysis, modal_props, nullptr);
+                    XaraCmd_responseSpectrumAnalysis, modal_props, nullptr);
 
   return TCL_OK;
 }
@@ -85,8 +88,11 @@ modalProperties(ClientData clientData,
 } // namespace DomainCommands
 
 
+} // namespace OpenSees
+
+
 int
-responseSpectrumAnalysis(ClientData clientData, 
+XaraCmd_responseSpectrumAnalysis(ClientData clientData, 
                   Tcl_Interp* interp,
                   Tcl_Size argc, 
                   const char** const argv)
@@ -350,5 +356,3 @@ responseSpectrumAnalysis(ClientData clientData,
   return result == 0? TCL_OK : TCL_ERROR;
 }
 
-
-} // namespace OpenSees
