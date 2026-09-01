@@ -50,13 +50,13 @@ extern Tcl_CmdProc XaraCmd_numIter;
 extern Tcl_CmdProc XaraCmd_accelCPU;
 extern Tcl_CmdProc XaraCmd_totalCPU;
 extern Tcl_CmdProc XaraCmd_totalCPU;
-extern Tcl_CmdProc TclCommand_numFact;
+extern Tcl_CmdProc XaraCmd_numFact;
 
 // from commands/analysis/ctest.cpp
 extern Tcl_CmdProc XaraCmd_test;
 extern Tcl_CmdProc XaraCmd_testNorms;
 extern Tcl_CmdProc XaraCmd_testIter;
-extern Tcl_CmdProc TclCommand_algorithmRecorder;
+extern Tcl_CmdProc XaraCmd_algorithmRecorder;
 
 // from commands/analysis/sensitivity.cpp
 extern Tcl_CmdProc TclCommand_sensitivityAlgorithm;
@@ -97,12 +97,12 @@ struct char_cmd {
   // From algorithm.cpp
     {"algorithm",           &XaraCmd_algorithm},
     {"numIter",             &XaraCmd_numIter},
-    {"numFact",             &TclCommand_numFact},
+    {"numFact",             &XaraCmd_numFact},
     {"accelCPU",            &XaraCmd_accelCPU},
     {"totalCPU",            &XaraCmd_totalCPU},
-    {"solveCPU",            &XaraCmd_totalCPU},
+    {"solveCPU",            &XaraCmd_solveCPU},
   // recorder.cpp
-    {"algorithmRecorder",   &TclCommand_algorithmRecorder},
+    {"algorithmRecorder",   &XaraCmd_algorithmRecorder},
 
   // sensitivity
     {"sensitivityAlgorithm", TclCommand_sensitivityAlgorithm},

@@ -44,6 +44,7 @@
 #include <InitialInterpolatedLineSearch.h>
 #include <RegulaFalsiLineSearch.h>
 #include <SecantLineSearch.h>
+#include <ArmijoLineSearch.h>
 
 // Accelerators
 #include <RaphsonAccelerator.h>
@@ -139,7 +140,7 @@ XaraCmd_algorithm(ClientData clientData,
 
 
 EquiSolnAlgo *
-G3Parse_newEquiSolnAlgo(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+G3Parse_newEquiSolnAlgo(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                         TCL_Char ** const argv)
 {
 
@@ -175,7 +176,7 @@ G3Parse_newEquiSolnAlgo(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc
 
 
 static int
-XaraCmd_algorithm_Linear(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_algorithm_Linear(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                            TCL_Char ** const argv)
 {
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
@@ -279,7 +280,7 @@ XaraCmd_algorithm_Newton(ClientData clientData,
 
 
 int
-TclCommand_newNewtonHallM(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc, TCL_Char**const argv)
+TclCommand_newNewtonHallM(ClientData clientData, Tcl_Interp* interp, ArgSize argc, TCL_Char**const argv)
 {
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
   assert(builder != nullptr);
@@ -341,7 +342,7 @@ TclCommand_newNewtonHallM(ClientData clientData, Tcl_Interp* interp, Tcl_Size ar
 
 
 static EquiSolnAlgo *
-G3_newBFGS(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+G3_newBFGS(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
 
@@ -378,6 +379,7 @@ G3_newBFGS(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char **
   return theNewAlgo;
 }
 
+
 static int
 XaraCmd_algorithm_NewtonLineSearch(ClientData clientData, 
                                    Tcl_Interp *interp, 
@@ -395,29 +397,69 @@ XaraCmd_algorithm_NewtonLineSearch(ClientData clientData,
     MaxEta,
     MinEta,
     PFlag,
-    TypeSearch
+    TypeSearch,
+    PredictionTangent,
+    CorrectionTangent
   };
 
   enum class LineSearchType: int {
-    InitialInterpolated,
-    Bisection,
-    Secant,
-    RegulaFalsi
+    InitialInterpolated=0,
+    Bisection=1,
+    Secant=2,
+    RegulaFalsi=3,
+    Armijo=4
   };
 
   ArgumentTracker<Positions> tracker;
   std::set<int> positions;
 
-  // set some default variable
+  // set default variable
   double tol = 0.8;
   int maxIter = 10;
   double maxEta = 10.0;
   double minEta = 0.1;
   int pFlag = 1;
-  int typeSearch = 0;
+  LineSearchType typeSearch = LineSearchType::InitialInterpolated;
+
+  IncrementalIntegrator::TangentFlagType 
+    correction_tangent = CURRENT_TANGENT,
+    prediction_tangent = CURRENT_TANGENT;
 
   for (int i=2; i<argc; i++) {
-    if (strcmp(argv[i], "-tol") == 0) {
+
+    // Tangent Type
+    if (strcmp(argv[i],"-prediction-tangent")==0 || 
+        strcmp(argv[i],"-correction-tangent")==0) {
+      IncrementalIntegrator::TangentFlagType flag = CURRENT_TANGENT;
+      if (++i >= argc) {
+        opserr << OpenSees::PromptValueError 
+               << "Flag -prediction-tangent requires follow up argument\n";
+        return TCL_ERROR;
+      }
+      if (strcmp(argv[i],"current")==0)
+        flag = CURRENT_TANGENT;
+      else if (strcmp(argv[i],"initial")==0)
+        flag = INITIAL_TANGENT;
+      else if (strcmp(argv[i-1],"-correction-tangent")==0 && strcmp(argv[i], "predictor")==0)
+        flag = PREDICTOR_TANGENT;
+      else {
+        opserr << OpenSees::PromptValueError 
+               << "Invalid value for " << argv[i-1] << ": " << argv[i] << "\n";
+        return TCL_ERROR;
+      }
+
+      if (strcmp(argv[i-1],"-prediction-tangent")==0) {
+        prediction_tangent = flag;
+        tracker.consume(Positions::PredictionTangent);
+      } else {
+        correction_tangent = flag;
+        tracker.consume(Positions::CorrectionTangent);
+      }
+    }
+    //
+    //
+    //
+    else if (strcmp(argv[i], "-tol") == 0) {
       if (++i >= argc) {
         opserr << OpenSees::PromptValueError 
                << "Flag -tol requires follow up argument\n";
@@ -490,15 +532,18 @@ XaraCmd_algorithm_NewtonLineSearch(ClientData clientData,
                << "Flag -type requires follow up argument\n";
         return TCL_ERROR;
       }
+
       if (strcmp(argv[i], "Bisection") == 0) {
-        typeSearch = 1;
+        typeSearch = LineSearchType::Bisection;
       } else if (strcmp(argv[i], "Secant") == 0) {
-        typeSearch = 2;
+        typeSearch = LineSearchType::Secant;
       } else if (strcmp(argv[i], "RegulaFalsi") == 0 ||
                  strcmp(argv[i], "LinearInterpolated") == 0) {
-        typeSearch = 3;
+        typeSearch = LineSearchType::RegulaFalsi;
       } else if (strcmp(argv[i], "InitialInterpolated") == 0) {
-        typeSearch = 0;
+        typeSearch = LineSearchType::InitialInterpolated;
+      } else if (strcmp(argv[i], "Armijo") == 0) {
+        typeSearch = LineSearchType::Armijo;
       } else {
         opserr << OpenSees::PromptValueError 
                << "Unknown line search type: " << argv[i] << "\n";
@@ -564,17 +609,23 @@ XaraCmd_algorithm_NewtonLineSearch(ClientData clientData,
   }
 
   LineSearch *theLineSearch = nullptr;
-  if (typeSearch == 0)
+  if (typeSearch == LineSearchType::InitialInterpolated)
     theLineSearch = new InitialInterpolatedLineSearch(tol, maxIter, minEta, maxEta, pFlag);
-  else if (typeSearch == 1)
+  else if (typeSearch == LineSearchType::Bisection)
     theLineSearch = new BisectionLineSearch(tol, maxIter, minEta, maxEta, pFlag);
-  else if (typeSearch == 2)
+  else if (typeSearch == LineSearchType::Secant)
     theLineSearch = new SecantLineSearch(tol, maxIter, minEta, maxEta, pFlag);
-  else if (typeSearch == 3)
+  else if (typeSearch == LineSearchType::RegulaFalsi)
     theLineSearch = new RegulaFalsiLineSearch(tol, maxIter, minEta, maxEta, pFlag);
-
-
+  else if (typeSearch == LineSearchType::Armijo)
+    theLineSearch = new ArmijoLineSearch(tol, maxIter, minEta, maxEta, pFlag);
+#if 0
+  builder->set(new NewtonLineSearch(theLineSearch,
+                                    prediction_tangent,
+                                    correction_tangent));
+#else
   builder->set(new NewtonLineSearch(theLineSearch));
+#endif
   return TCL_OK;
 }
 
@@ -732,7 +783,7 @@ XaraCmd_algorithm_AcceleratedNewton(ClientData clientData,
 
 
 static EquiSolnAlgo *
-G3_newBroyden(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+G3_newBroyden(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
               TCL_Char ** const argv)
 {
 
@@ -796,24 +847,9 @@ printAlgorithm(ClientData clientData,
   return TCL_OK;
 }
 
-int
-TclCommand_accelCPU(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
-{
-  assert(clientData != nullptr);
-  BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
-  const EquiSolnAlgo* algo = builder->getAlgorithm();
-
-  if (algo == nullptr)
-    return TCL_ERROR;
-
-  Tcl_SetObjResult(interp, Tcl_NewDoubleObj(algo->getAccelTimeCPU()));
-
-  return TCL_OK;
-}
-
 
 int
-TclCommand_numFact(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_numFact(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder *)clientData;
@@ -828,7 +864,7 @@ TclCommand_numFact(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL
 }
 
 int
-TclCommand_algorithmRecorder(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_algorithmRecorder(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                         TCL_Char ** const argv)
 {
 #if 1
@@ -863,38 +899,10 @@ TclCommand_algorithmRecorder(ClientData clientData, Tcl_Interp *interp, Tcl_Size
 #endif
 }
 
-int
-TclCommand_totalCPU(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
-{
-  assert(clientData != nullptr);
-  const EquiSolnAlgo *algo = ((BasicAnalysisBuilder *)clientData)->getAlgorithm();
-
-  if (algo == nullptr)
-    return TCL_ERROR;
-
-  Tcl_SetObjResult(interp, Tcl_NewDoubleObj(algo->getTotalTimeCPU()));
-
-  return TCL_OK;
-}
-
-int
-TclCommand_solveCPU(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
-{
-  assert(clientData != nullptr);
-  const EquiSolnAlgo *algo = ((BasicAnalysisBuilder *)clientData)->getAlgorithm();
-
-
-  if (algo == nullptr)
-    return TCL_ERROR;
-
-  Tcl_SetObjResult(interp, Tcl_NewDoubleObj(algo->getSolveTimeCPU()));
-
-  return TCL_OK;
-}
 
 
 int
-XaraCmd_numIter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Char ** const argv)
+XaraCmd_numIter(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   const EquiSolnAlgo *algo = ((BasicAnalysisBuilder *)clientData)->getAlgorithm();
@@ -907,3 +915,24 @@ XaraCmd_numIter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, TCL_Ch
   return TCL_OK;
 }
 
+
+int
+XaraCmd_accelCPU(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
+{
+  Tcl_SetObjResult(interp, Tcl_NewDoubleObj(0.0));
+  return TCL_OK;
+}
+
+int
+XaraCmd_totalCPU(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
+{
+  Tcl_SetObjResult(interp, Tcl_NewDoubleObj(0.0));
+  return TCL_OK;
+}
+
+int
+XaraCmd_solveCPU(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
+{
+  Tcl_SetObjResult(interp, Tcl_NewDoubleObj(0.0));
+  return TCL_OK;
+}
