@@ -350,6 +350,7 @@ int
 BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
 {
   int result = 0;
+  static constexpr int print_flag = 0;
 
   for (int i=0; i<numSteps; i++) {
     // This is done for parallelization
@@ -368,13 +369,11 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
     int stamp = theDomain->hasDomainChanged();
 
     if (stamp != domainStamp) [[unlikely]] {
-      opsdbg << G3_DEBUG_PROMPT 
-             << "Domain changed during static analysis at step " << i+1 << "\n";
+      opsdbg << G3_DEBUG_PROMPT  << "Domain changed during static analysis at step " << i+1 << "\n";
       domainStamp = stamp;
       result = this->domainChanged();
       if (result < 0) {
-        opserr << "domainChanged failed";
-        opserr << " at step " << i << " of " << numSteps << "\n";
+        opserr << "domainChanged failed at step " << i << " of " << numSteps << "\n";
         return -1;
       }
     }
@@ -389,6 +388,7 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
              << " time = " << theDomain->getCurrentTime()
              << "\n";
 
+      // increments time and calls theModel->applyLoadDomain(time)
       result = theStaticIntegrator->newStep();
       if (result < 0) {
         opserr << "The Integrator failed at step: " << i
@@ -400,12 +400,15 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
       }
     }
 
-    if (flag & Iterate) {
-      opsdbg << G3_DEBUG_PROMPT << "Static Analysis: Iterate Step " 
-             << i+1 
-             << " time = " << theDomain->getCurrentTime()
-             << "\n";
 
+    if (print_flag == 1) {
+      opserr << G3_DEBUG_PROMPT << "Step " 
+             << i+1 
+             << ", time = " << theDomain->getCurrentTime()
+             << "\n";
+    }
+
+    if (flag & Iterate) {
       result = theAlgorithm->solveCurrentStep();
       if (result < 0) {
         // Print error message if we have one
@@ -421,7 +424,7 @@ BasicAnalysisBuilder::analyzeStatic(int numSteps, int flag)
     if (theStaticIntegrator->shouldComputeAtEachStep()) {
       result = theStaticIntegrator->computeSensitivities();
       if (result < 0) {
-        opserr << "StaticAnalysis::analyze() - the SensitivityAlgorithm failed";
+        opserr << "SensitivityAlgorithm failed";
         opserr << " at step: " << i << " with domain at load factor ";
         opserr << theDomain->getCurrentTime()
                << OpenSees::SignalMessageEnd;
@@ -1106,14 +1109,23 @@ BasicAnalysisBuilder::getConvergenceTest()
 }
 
 int
-BasicAnalysisBuilder::formUnbalance()
+BasicAnalysisBuilder::formUnbalance(Vector& b)
 {
+#if 0
+  if (theStaticIntegrator != nullptr)
+    return theStaticIntegrator->formUnbalance(b);
+
+  else if (theTransientIntegrator != nullptr)
+    return theTransientIntegrator->formUnbalance(b);
+#else
   if (theStaticIntegrator != nullptr)
     return theStaticIntegrator->formUnbalance();
 
   else if (theTransientIntegrator != nullptr)
     return theTransientIntegrator->formUnbalance();
-
+  
+  b = theSOE->getB();
+#endif
   return -1;
 }
 
