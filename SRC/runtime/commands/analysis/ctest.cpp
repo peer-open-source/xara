@@ -1,9 +1,16 @@
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
+//                              https://xara.so
 //
 //===----------------------------------------------------------------------===//
-//                              https://xara.so
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
 //===----------------------------------------------------------------------===//
 //
 // Description: This file implements the selection of a convergence test.
@@ -16,6 +23,7 @@
 #include <string.h>
 
 // Convergence tests
+// #include <GeneralTest.h>
 #include <CTestNormUnbalance.h>
 #include <CTestNormDispIncr.h>
 #include <CTestEnergyIncr.h>
@@ -29,11 +37,11 @@
 
 
 static ConvergenceTest*
-TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc, G3_Char ** const argv);
+TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, ArgSize argc, G3_Char ** const argv);
 
 
 int
-specifyCTest(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, G3_Char ** const argv)
+XaraCmd_test(ClientData clientData, Tcl_Interp *interp, ArgSize argc, G3_Char ** const argv)
 {
   assert(clientData != nullptr);
   ConvergenceTest* theNewTest = TclDispatch_newConvergenceTest(clientData, interp, argc, argv);
@@ -41,20 +49,19 @@ specifyCTest(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, G3_Char *
   if (theNewTest == nullptr) {
     // Parse routine is expected to have reported an error
     return TCL_ERROR;
-
   }
-  else {
-    BasicAnalysisBuilder* builder = (BasicAnalysisBuilder*)clientData;
 
-    assert(builder != nullptr);
+  BasicAnalysisBuilder* builder = (BasicAnalysisBuilder*)clientData;
 
-    builder->set(theNewTest);
-  }
+  assert(builder != nullptr);
+
+  builder->set(theNewTest);
   return TCL_OK;
 }
 
+
 static ConvergenceTest*
-TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc, G3_Char ** const argv)
+TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, ArgSize argc, G3_Char ** const argv)
 {
   // get the tolerence first
   double tol     = 1e-12;
@@ -68,6 +75,7 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, Tcl_Si
   int numIter  = 10;
   int printIt  =  0;
   int normType =  2;
+  // Maximum number of times error can increase before test fails
   int maxIncr  = -1;
 
   // make sure at least one other argument to contain test type
@@ -227,7 +235,8 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, Tcl_Si
 
 
   if (numIter == 0) {
-    opserr << OpenSees::PromptValueError << "no numIter specified in test command\n";
+    opserr << OpenSees::PromptValueError 
+           << "no numIter specified in test command\n";
     return nullptr;
   }
 
@@ -240,7 +249,35 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, Tcl_Si
       opserr << OpenSees::PromptValueError << "no tolerance specified in test command\n";
       return nullptr;
     }
+#if 0
+    numIter++;
+    ConvergenceTest *theTest = nullptr;
+    if ((strcmp(argv[1], "Residual") == 0) || (strcmp(argv[1], "NormUnbalance") == 0))
+      theTest = new CTestNormUnbalance(tol, numIter, ConvergenceTest::Silent, normType,
+                                     maxIncr, maxTol);
 
+    else if ((strcmp(argv[1], "Correction") == 0) || 
+             (strcmp(argv[1], "NormDispIncr") == 0))
+      theTest = new CTestNormDispIncr(tol, numIter, ConvergenceTest::Silent, normType, maxTol);
+
+    else if ((strcmp(argv[1], "EnergyIncr") == 0) || 
+             (strcmp(argv[1], "Energy") == 0))
+      theTest = new CTestEnergyIncr(tol, numIter, ConvergenceTest::Silent, normType, maxTol);
+    
+    else if (strcmp(argv[1], "RelativeNormUnbalance") == 0)
+      theTest = new CTestRelativeNormUnbalance(tol, numIter, ConvergenceTest::Silent, normType);
+
+    else if (strcmp(argv[1], "RelativeNormDispIncr") == 0)
+      theTest = new CTestRelativeNormDispIncr(tol, numIter, ConvergenceTest::Silent, normType);
+
+    else if (strcmp(argv[1], "RelativeEnergyIncr") == 0)
+      theTest = new CTestRelativeEnergyIncr(tol, numIter, ConvergenceTest::Silent, normType);
+
+    //
+    if (theTest != nullptr) {
+      return new GeneralTest(theTest, flag);
+    }
+#else
     if ((strcmp(argv[1], "Residual") == 0) || (strcmp(argv[1], "NormUnbalance") == 0))
       return  new CTestNormUnbalance(tol, numIter, flag, normType,
                                      maxIncr, maxTol);
@@ -251,7 +288,16 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, Tcl_Si
     else if ((strcmp(argv[1], "EnergyIncr") == 0) || 
              (strcmp(argv[1], "Energy") == 0))
       return new CTestEnergyIncr(tol, numIter, flag, normType, maxTol);
+    
+    else if (strcmp(argv[1], "RelativeNormUnbalance") == 0)
+      return new CTestRelativeNormUnbalance(tol, numIter, flag, normType);
 
+    else if (strcmp(argv[1], "RelativeNormDispIncr") == 0)
+      return new CTestRelativeNormDispIncr(tol, numIter, flag, normType);
+
+    else if (strcmp(argv[1], "RelativeEnergyIncr") == 0)
+      return new CTestRelativeEnergyIncr(tol, numIter, flag, normType);
+#endif
 
     else if ((strcmp(argv[1], "Residual&Correction") == 0) || 
              (strcmp(argv[1], "Correction&Residual") == 0) || 
@@ -261,15 +307,6 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, Tcl_Si
     else if (strcmp(argv[1], "NormDispOrUnbalance") == 0)
       return new NormDispOrUnbalance(tol, tol2, numIter, flag,
                                            normType, maxIncr);
-
-    else if (strcmp(argv[1], "RelativeNormUnbalance") == 0)
-      return new CTestRelativeNormUnbalance(tol, numIter, flag, normType);
-
-    else if (strcmp(argv[1], "RelativeNormDispIncr") == 0)
-      return new CTestRelativeNormDispIncr(tol, numIter, flag, normType);
-
-    else if (strcmp(argv[1], "RelativeEnergyIncr") == 0)
-      return new CTestRelativeEnergyIncr(tol, numIter, flag, normType);
 
     else if (strcmp(argv[1], "RelativeTotalNormDispIncr") == 0)
       return new CTestRelativeTotalNormDispIncr(tol, numIter, flag, normType);
@@ -283,10 +320,11 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, Tcl_Si
   return nullptr;
 }
 
+
 int
-getCTestNorms(ClientData clientData, Tcl_Interp *interp,
-              Tcl_Size argc,
-              G3_Char ** const argv)
+XaraCmd_testNorms(ClientData clientData, Tcl_Interp *interp,
+                  ArgSize argc,
+                  G3_Char ** const argv)
 {
   assert(clientData != nullptr);
   ConvergenceTest *theTest =
@@ -298,7 +336,38 @@ getCTestNorms(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  const Vector &data = theTest->getNorms();
+  int type = 0;
+  const Vector* t_data = nullptr;
+#if 0
+  if (argc > 1) {
+    if (strcmp(argv[1], "Residual") == 0)
+      type = GeneralTest::Residual;
+    else if (strcmp(argv[1], "Increment") == 0)
+      type = GeneralTest::Increment;
+    else if (strcmp(argv[1], "Energy") == 0)
+      type = GeneralTest::Energy;
+    else if (strcmp(argv[1], "RelativeResidual") == 0)
+      type = GeneralTest::RelativeResidual;
+    else if (strcmp(argv[1], "RelativeIncrement") == 0)
+      type = GeneralTest::RelativeIncrement;
+    else if (strcmp(argv[1], "RelativeEnergy") == 0)
+      type = GeneralTest::RelativeEnergy;
+    else {
+      opserr << OpenSees::PromptValueError
+             << "unknown norm type: "
+             << argv[1]
+             << OpenSees::PromptValueError;
+      return TCL_ERROR;
+    }
+    // if (Tcl_GetInt(interp, argv[2], &type) != TCL_OK)
+    //   return TCL_ERROR;
+  }
+
+  if (type != 0) {
+    t_data = theTest->getNorms(type);
+  }
+#endif
+  const Vector &data = t_data ? *t_data : theTest->getNorms();
 
   // int size = data.Size();
   int size = theTest->getNumTests();
@@ -313,7 +382,7 @@ getCTestNorms(ClientData clientData, Tcl_Interp *interp,
 
 
 int
-getCTestIter(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc, G3_Char ** const argv)
+XaraCmd_testIter(ClientData clientData, Tcl_Interp *interp, ArgSize argc, G3_Char ** const argv)
 {
   assert(clientData != nullptr);
   ConvergenceTest *theTest =

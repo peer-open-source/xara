@@ -47,9 +47,9 @@ class FullGenLinSOE : public LinearSOE
     int addB(const Vector &, const ID &, double fact = 1.0);    
     int setB(const Vector &, double fact = 1.0);
     
-    void zeroA();
-    void zeroB();
-    
+    void zeroA() override;
+    void zeroB() override;
+
     int formAp(const Vector &p, Vector &Ap);
 
     const Vector &getX();

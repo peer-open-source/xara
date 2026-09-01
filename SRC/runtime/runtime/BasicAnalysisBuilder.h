@@ -111,7 +111,7 @@ public:
     int  eigen(int numMode, bool generalized, bool findSmallest);
     int  getNumEigen() {return numEigen;}
 
-    int formUnbalance();
+    int formUnbalance(Vector& b);
 
     // Performing analysis
     int analyze(int num_steps, double size_steps, int flag=Increment|Iterate|Commit);

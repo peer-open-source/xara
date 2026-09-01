@@ -251,7 +251,7 @@ specifySparseGen(G3_Runtime* rt, int argc, G3_Char ** const argv)
     }
 
     else if ((strcmp(argv[count], "npRow")  == 0) ||
-                (strcmp(argv[count], "-npRow") == 0)) {
+             (strcmp(argv[count], "-npRow") == 0)) {
       count++;
       if (count >= argc) {
         opserr << OpenSees::PromptValueError
