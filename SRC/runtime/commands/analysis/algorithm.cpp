@@ -442,8 +442,10 @@ XaraCmd_algorithm_NewtonLineSearch(ClientData clientData,
         flag = CURRENT_TANGENT;
       else if (strcmp(argv[i],"initial")==0)
         flag = INITIAL_TANGENT;
+#ifdef ARMIJO_SEARCH
       else if (strcmp(argv[i-1],"-correction-tangent")==0 && strcmp(argv[i], "predictor")==0)
         flag = PREDICTOR_TANGENT;
+#endif
       else {
         opserr << OpenSees::PromptValueError 
                << "Invalid value for " << argv[i-1] << ": " << argv[i] << "\n";
