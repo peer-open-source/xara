@@ -49,7 +49,7 @@ extern Tcl_CmdProc XaraCmd_algorithm;
 extern Tcl_CmdProc XaraCmd_numIter;
 extern Tcl_CmdProc XaraCmd_accelCPU;
 extern Tcl_CmdProc XaraCmd_totalCPU;
-extern Tcl_CmdProc XaraCmd_totalCPU;
+extern Tcl_CmdProc XaraCmd_solveCPU;
 extern Tcl_CmdProc XaraCmd_numFact;
 
 // from commands/analysis/ctest.cpp
@@ -68,7 +68,7 @@ struct char_cmd {
   const char* name;
   Tcl_CmdProc*  func;
 } const tcl_analysis_cmds[] =  {
-    {"printEigenMatrices", &XaraCmd_printEigenMatrices},
+    // {"printEigenMatrices", &XaraCmd_printEigenMatrices},
 
     {"system",              &XaraCmd_system},
     {"systemSize",          &XaraCmd_systemSize},
