@@ -41,6 +41,7 @@ jobs:
         echo "XARA_SRC_WARN_COUNT=$XARA_SRC_WARN_COUNT" >> $GITHUB_ENV
         echo "warnings=$XARA_SRC_WARN_COUNT" >> $GITHUB_OUTPUT 
         echo "::warning::We found $XARA_SRC_WARN_COUNT warnings"
+        cmake --build . --target XaraRT -j3 2>&1
 
 
     - name: Post warning count
