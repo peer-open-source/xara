@@ -44,8 +44,10 @@
 #include <InitialInterpolatedLineSearch.h>
 #include <RegulaFalsiLineSearch.h>
 #include <SecantLineSearch.h>
+// #define ARMIJO_SEARCH
+#ifdef ARMIJO_SEARCH
 #include <ArmijoLineSearch.h>
-
+#endif
 // Accelerators
 #include <RaphsonAccelerator.h>
 #include <PeriodicAccelerator.h>
@@ -542,8 +544,10 @@ XaraCmd_algorithm_NewtonLineSearch(ClientData clientData,
         typeSearch = LineSearchType::RegulaFalsi;
       } else if (strcmp(argv[i], "InitialInterpolated") == 0) {
         typeSearch = LineSearchType::InitialInterpolated;
+#ifdef ARMIJO_SEARCH
       } else if (strcmp(argv[i], "Armijo") == 0) {
         typeSearch = LineSearchType::Armijo;
+#endif
       } else {
         opserr << OpenSees::PromptValueError 
                << "Unknown line search type: " << argv[i] << "\n";
@@ -617,9 +621,12 @@ XaraCmd_algorithm_NewtonLineSearch(ClientData clientData,
     theLineSearch = new SecantLineSearch(tol, maxIter, minEta, maxEta, pFlag);
   else if (typeSearch == LineSearchType::RegulaFalsi)
     theLineSearch = new RegulaFalsiLineSearch(tol, maxIter, minEta, maxEta, pFlag);
+#ifdef ARMIJO_SEARCH
   else if (typeSearch == LineSearchType::Armijo)
     theLineSearch = new ArmijoLineSearch(tol, maxIter, minEta, maxEta, pFlag);
-#if 0
+#endif
+
+#ifdef ARMIJO_SEARCH
   builder->set(new NewtonLineSearch(theLineSearch,
                                     prediction_tangent,
                                     correction_tangent));
@@ -862,6 +869,7 @@ XaraCmd_numFact(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Cha
 
   return TCL_OK;
 }
+
 
 int
 XaraCmd_algorithmRecorder(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
