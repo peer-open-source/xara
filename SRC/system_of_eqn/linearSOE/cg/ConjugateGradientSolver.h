@@ -42,8 +42,8 @@ class ConjugateGradientSolver : public LinearSOESolver
     ConjugateGradientSolver(int classTag, LinearSOE *theLinearSOE, double tol);    
     virtual ~ConjugateGradientSolver();
 
-    virtual int setSize(void);    
-    virtual int solve(void);
+    virtual int setSize();    
+    virtual int solve();
     virtual int formAp(const Vector &p, Vector &Ap) = 0;    
 //    virtual int setLinearSOE(LinearSOE &theSOE) =0;
 

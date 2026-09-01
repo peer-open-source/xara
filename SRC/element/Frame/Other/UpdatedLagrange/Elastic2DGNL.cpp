@@ -22,7 +22,6 @@
 #include <Domain.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <math.h>
 #include <stdlib.h>
 #include <elementAPI.h>

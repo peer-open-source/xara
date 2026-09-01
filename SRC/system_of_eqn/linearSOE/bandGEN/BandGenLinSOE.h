@@ -18,9 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-#ifndef BandGenLinSOE_h
-#define BandGenLinSOE_h
-
 // Written: fmk 
 //
 // Description: This file contains the class definition for BandGenLinSOE
@@ -29,8 +26,8 @@
 // unsymmetric matrix.
 //
 // What: "@(#) BandGenLinSOE.h, revA"
-
-
+//
+#pragma once
 #include <LinearSOE.h>
 #include <Vector.h>
 
@@ -39,12 +36,11 @@ class BandGenLinSolver;
 class BandGenLinSOE : public LinearSOE
 {
   public:
-    BandGenLinSOE();
     BandGenLinSOE(int classTag);
     BandGenLinSOE(BandGenLinSolver &theSolver);
 
-    BandGenLinSOE(int N, int numSuperDiagonals, int numSubDiagonal,
-		  BandGenLinSolver &theSolver);        
+    // BandGenLinSOE(int N, int numSuperDiagonals, int numSubDiagonal,
+		//   BandGenLinSolver &theSolver);
     
     virtual ~BandGenLinSOE();
 
@@ -52,22 +48,17 @@ class BandGenLinSOE : public LinearSOE
     virtual int setSize(Graph &theGraph);
     
     virtual int addA(const Matrix &, const ID &, double fact = 1.0);
-    virtual int addColA(const Vector &col, int colIndex, double fact = 1.0);
     virtual int addB(const Vector &, const ID &, double fact = 1.0);    
     virtual int setB(const Vector &, double fact = 1.0);        
 
-    virtual void zeroA();
-    virtual void zeroB();
+    void zeroA() override;
+    void zeroB() override;
 
     const Vector &getX() override;
     virtual const Vector &getB();
-    virtual double normRHS();
 
     virtual void setX(int loc, double value);    
     virtual void setX(const Vector &x);
-
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     friend class BandGenLinLapackSolver;
 
@@ -77,10 +68,7 @@ class BandGenLinSOE : public LinearSOE
     Vector vectX,vectB;
     int Asize, Bsize;
     bool factored;
-    
+    BandGenLinSolver *theSolver;
+
   private:
 };
-
-
-#endif
-

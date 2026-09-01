@@ -54,15 +54,22 @@ DiagonalDirectSolver::~DiagonalDirectSolver()
 }
 
 int
-DiagonalDirectSolver::setSize(void)
+DiagonalDirectSolver::setSize()
 {
   assert(theSOE != nullptr);
   return 0;
 }
 
 
-int 
-DiagonalDirectSolver::solve(void)
+int
+DiagonalDirectSolver::solve()
+{
+  return this->solve(theSOE->getB(), *theSOE->vectX);
+}
+
+
+int
+DiagonalDirectSolver::solve(const Vector &vecB, Vector &vecX)
 {
   assert(theSOE != nullptr);
     
@@ -70,14 +77,14 @@ DiagonalDirectSolver::solve(void)
   if (theSOE->size == 0)
     return 0;
   
-  // set some pointers
+  // set pointers
   double *Aptr = theSOE->A;
-  double *Bptr = &theSOE->B[0];
-  double *Xptr = &theSOE->X[0];
+  const double *Bptr = &(vecB(0));
+  double *Xptr = &vecX(0);
   int size = theSOE->size;
 
   if (theSOE->isAfactored == false)  {
-    
+
     // FACTOR & SOLVE
     for (int i=0; i<size; i++) {
       
@@ -85,10 +92,10 @@ DiagonalDirectSolver::solve(void)
 
       // check that the diag > the tolerance specified
       if (aii == 0.0)
-	return -2;
+        return -2;
 
       if (fabs(aii) <= minDiagTol)
-	return -2;
+        return -2;
 
       // store the inverse 1/Aii in A; and solve for Xi
       double invD = 1.0/aii; 
@@ -110,7 +117,7 @@ DiagonalDirectSolver::solve(void)
 }
 
 double
-DiagonalDirectSolver::getDeterminant(void) 
+DiagonalDirectSolver::getDeterminant() 
 {
   double determinant = 0.0;
   return determinant;

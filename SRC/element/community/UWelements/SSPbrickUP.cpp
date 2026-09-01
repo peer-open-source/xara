@@ -64,8 +64,6 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPbrickUP)
 		opslog << "SSPbrickUP element - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
   	}
 
-  	// Pointer to an element that will be returned
-  	Element *theElement = 0;
 
   	int numRemainingInputArgs = OPS_GetNumRemainingInputArgs();
 
@@ -109,15 +107,9 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_SSPbrickUP)
   	}
 
   	// parsing was successful, allocate the element
-  	theElement = new SSPbrickUP(iData[0], iData[1], iData[2], iData[3], iData[4], iData[5], iData[6], iData[7], iData[8], *theMaterial, 
-	                            dData[0], dData[1], dData[2], dData[3], dData[4], dData[5], dData[6], dData[7], dData[8], dData[9]);
+  	return new SSPbrickUP(iData[0], iData[1], iData[2], iData[3], iData[4], iData[5], iData[6], iData[7], iData[8], *theMaterial, 
+	                      dData[0], dData[1], dData[2], dData[3], dData[4], dData[5], dData[6], dData[7], dData[8], dData[9]);
 
-  	if (theElement == 0) {
-    	opserr << "WARNING could not create element of type SSPbrickUP\n";
-		return 0;
-  	}
-
-  	return theElement;
 }
 
 // full constructor

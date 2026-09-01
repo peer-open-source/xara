@@ -55,6 +55,7 @@ class SuperLU : public SparseGenColLinSolver
     ~SuperLU();
 
     int solve() override;
+    int solve(const Vector& B, Vector& X) override;
     int setSize() override;
     
   private:

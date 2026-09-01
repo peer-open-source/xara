@@ -17,22 +17,16 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.2 $
-// $Date: 2009-05-11 20:57:11 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/bandGEN/DistributedBandGenLinSOE.h,v $
-                                                                        
 #ifndef DistributedBandGenLinSOE_h
 #define DistributedBandGenLinSOE_h
 
-// Written: fmk 
 // Description: This file contains the class definition for DistributedBandGenLinSOE
 // DistributedBandGenLinSOE is a subclass of LinearSOE. It uses the LAPACK storage
 // scheme to store the components of the A matrix, which is a banded 
 // unsymmetric matrix.
 //
 // What: "@(#) DistributedBandGenLinSOE.h, revA"
-
+// Written: fmk 
 
 #include <BandGenLinSOE.h>
 #include <Vector.h>
@@ -43,17 +37,15 @@ class DistributedBandGenLinSOE : public BandGenLinSOE
 {
   public:
     DistributedBandGenLinSOE(BandGenLinSolver &theSolver);
-    DistributedBandGenLinSOE();
 
     ~DistributedBandGenLinSOE();
 
-    // these methods need to be rewritten
     int setSize(Graph &theGraph);
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addB(const Vector &, const ID &, double fact = 1.0);
     int setB(const Vector &, double fact = 1.0);            
-    void zeroB(void);
-    const Vector &getB(void);
+    void zeroB();
+    const Vector &getB();
     int solve();
 
     int sendSelf(int commitTag, Channel &theChannel);

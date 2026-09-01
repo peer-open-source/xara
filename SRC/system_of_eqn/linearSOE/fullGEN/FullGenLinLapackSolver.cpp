@@ -164,21 +164,3 @@ FullGenLinLapackSolver::setSize()
 }
 
 
-int
-FullGenLinLapackSolver::sendSelf(int commitTag,
-                     Channel &theChannel)
-{
-  // nothing to do
-  return 0;
-}
-
-int
-FullGenLinLapackSolver::recvSelf(int commitTag,
-                     Channel &theChannel, 
-                     FEM_ObjectBroker &theBroker)
-{
-  // nothing to do
-  return 0;
-}
-
-

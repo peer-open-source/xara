@@ -48,9 +48,6 @@ class ProfileSPDLinDirectSkypackSolver : public ProfileSPDLinSolver
 
     virtual int setProfileSOE(ProfileSPDLinSOE &theSOE);
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
   private:
     int mCols, mRows;
     double *rw; // work array of dimension mRows*mCols

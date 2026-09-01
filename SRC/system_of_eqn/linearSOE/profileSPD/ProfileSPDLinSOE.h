@@ -47,7 +47,6 @@ class ProfileSPDLinSOE : public LinearSOE
     virtual int getNumEqn() const;
     virtual int setSize(Graph &theGraph);
     virtual int addA(const Matrix &, const ID &, double fact = 1.0);
-    virtual int addColA(const Vector &col, int colIndex, double fact = 1.0);
 
     virtual int addB(const Vector &, const ID &, double fact = 1.0);    
     virtual int setB(const Vector &, double fact = 1.0);
@@ -60,11 +59,8 @@ class ProfileSPDLinSOE : public LinearSOE
     
     virtual const Vector &getX();
     virtual const Vector &getB();
-    virtual double normRHS();
 
-    virtual int setProfileSPDSolver(ProfileSPDLinSolver &newSolver);    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    virtual int setProfileSPDSolver(ProfileSPDLinSolver &newSolver);
 
     friend class ProfileSPDLinSolver;    
     friend class ProfileSPDLinDirectSolver;

@@ -58,6 +58,12 @@ ProfileSPDLinSubstrSolver::solve()
 }
 
 int
+ProfileSPDLinSubstrSolver::solve(const Vector& B, Vector& X)
+{
+  return this->ProfileSPDLinDirectSolver::solve(B, X);
+}
+
+int
 ProfileSPDLinSubstrSolver::setSize()
 {
   return this->ProfileSPDLinDirectSolver::setSize();
@@ -286,16 +292,16 @@ ProfileSPDLinSubstrSolver::condenseRHS(int numInt, Vector *v)
 
     // do forward substitution 
     for (int i=1; i<numInt; i++) {
-	
-	int rowitop = RowTop[i];	    
-	double *ajiPtr = topRowPtr[i];
-	double *bjPtr  = &B[rowitop];  
-	double tmp = 0;	    
-	
-	for (int j=rowitop; j<i; j++) 
-	    tmp -= *ajiPtr++ * *bjPtr++; 
-	
-	B[i] += tmp;
+		
+		int rowitop = RowTop[i];	    
+		double *ajiPtr = topRowPtr[i];
+		double *bjPtr  = &B[rowitop];  
+		double tmp = 0;	    
+		
+		for (int j=rowitop; j<i; j++) 
+			tmp -= *ajiPtr++ * *bjPtr++; 
+
+		B[i] += tmp;
     }
 
     // divide by diag term 
@@ -336,7 +342,7 @@ ProfileSPDLinSubstrSolver::computeCondensedMatVect(
 
 
 const Matrix &
-ProfileSPDLinSubstrSolver::getCondensedA(void)
+ProfileSPDLinSubstrSolver::getCondensedA()
 {
     int numInt = theSOE->numInt;
     int matSize = size - numInt;
@@ -378,7 +384,7 @@ ProfileSPDLinSubstrSolver::getCondensedA(void)
 
 
 const Vector &
-ProfileSPDLinSubstrSolver::getCondensedRHS(void)
+ProfileSPDLinSubstrSolver::getCondensedRHS()
 {
     int numInt = theSOE->numInt;
     int matSize = size - numInt;
@@ -497,7 +503,7 @@ ProfileSPDLinSubstrSolver::solveXint()
 }
 
 int
-ProfileSPDLinSubstrSolver::getClassTag(void) const
+ProfileSPDLinSubstrSolver::getClassTag() const
 {
     return SOLVER_TAGS_ProfileSPDLinSubstrSolver;
 }

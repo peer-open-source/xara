@@ -49,26 +49,23 @@ class DistributedDiagonalSOE : public LinearSOE
     DistributedDiagonalSOE();
     ~DistributedDiagonalSOE();
 
-    int getNumEqn(void) const;
+    int getNumEqn() const;
     int setSize(Graph &theGraph);
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addB(const Vector &, const ID &, double fact = 1.0);    
     int setB(const Vector &, double fact = 1.0);        
     
-    void zeroA(void);
-    void zeroB(void);
+    void zeroA();
+    void zeroB();
 
     void setX(int loc, double value);
     void setX(const Vector &x);
     
-    const Vector &getX(void);
-    const Vector &getB(void);
-    double normRHS(void);
+    const Vector &getX();
+    const Vector &getB();
 
     int setDiagonalSolver(DistributedDiagonalSolver &newSolver);    
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+
     int setChannels(int nChannels, Channel **theC);
 
     int setAnalysisModel(AnalysisModel &);

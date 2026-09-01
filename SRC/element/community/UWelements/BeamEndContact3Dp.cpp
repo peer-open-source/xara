@@ -33,7 +33,6 @@
 #include <Channel.h>
 #include <Message.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <OPS_Globals.h>
 #include <ErrorHandler.h>
 #include <Parameter.h>
@@ -267,7 +266,7 @@ BeamEndContact3Dp::revertToStart()
 }
 
 int
-BeamEndContact3Dp::update(void)
+BeamEndContact3Dp::update()
 // this function updates variables for an incremental step n to n+1
 {
 	Vector disp_a(6);
@@ -456,77 +455,6 @@ BeamEndContact3Dp::getResistingForceIncInertia()
 	return getResistingForce();
 }
 
-int
-BeamEndContact3Dp::sendSelf(int commitTag, Channel &theChannel)
-{
-	int res;
-
-	// NOTE: we don't check for dataTag == 0 for Element
-    // objects as that is taken care of in a commit by the Domain
-    // object - don't want to have to do the check if sending data
-	int dataTag = this->getDbTag();
-
-	// BeamEndContact3Dp packs it's data into a Vector and sends this to theChannel
-    // along with it's dbTag and the commitTag passed in the arguments
-	static Vector data(5);
-	data(0) = this->getTag();
-	data(1) = mRadius;
-	data(2) = mPenalty;
-	data(3) = mBeamNode;
-	data(4) = mIniContact;
-
-	res = theChannel.sendVector(dataTag, commitTag, data);
-	if (res < 0) {
-		opserr << "WARNING BeamEndContact3Dp::sendSelf() - " << this->getTag() << " failed to send Vector\n";
-		return -1;
-	}
-
-	// BeamEndContact3Dp then sends the tags of its nodes
-	res = theChannel.sendID(dataTag, commitTag, mExternalNodes);
-	if (res < 0) {
-		opserr << "WARNING BeamEndContact3Dp::sendSelf() - " << this->getTag() << " failed to send Vector\n";
-		return -2;
-	}
-
-	return 0;
-}
-
-int
-BeamEndContact3Dp::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-	int res;
-	int dataTag = this->getDbTag();
-
-	// BeamEndContact3Dp creates a vector, receives the vector, and then sets the internal
-	// data with the data in the vector
-	static Vector data(5);
-	res = theChannel.recvVector(dataTag, commitTag, data);
-	if (res < 0) {
-		opserr << "WARNING BeamEndContact3Dp::recvSelf() - failed to receive Vector\n";
-		return -1;
-	}
-
-	this->setTag((int)data(0));
-	mRadius     = data(1);
-	mPenalty    = data(2);
-	mBeamNode   = data(3);
-	mIniContact = (int)data(4);
-
-	// BeamEndContact3Dp now receives the tags of its four external nodes
-	res = theChannel.recvID(dataTag, commitTag, mExternalNodes);
-	if (res < 0) {
-		opserr << "WARNING BeamEndContact3Dp::recvSelf() - " << this->getTag() << " failed to receive ID\n";
-		return -2;
-	}
-
-	return 0;
-}
-
-int
-BeamEndContact3Dp::displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-	return 0;
-}
 
 void
 BeamEndContact3Dp::Print(OPS_Stream &s, int flag)

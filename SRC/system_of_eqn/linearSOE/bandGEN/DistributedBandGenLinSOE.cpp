@@ -39,14 +39,7 @@ DistributedBandGenLinSOE::DistributedBandGenLinSOE(BandGenLinSolver &theSolvr)
    processID(0), numChannels(0), theChannels(0), localCol(0), workArea(0), sizeWork(0), myB(0), myVectB(0)
 {
 	this->setSolver(theSolvr);
-    theSolvr.setLinearSOE(*this);
-}
-
-DistributedBandGenLinSOE::DistributedBandGenLinSOE()
-  :BandGenLinSOE(LinSOE_TAGS_DistributedBandGenLinSOE), 
-   processID(0), numChannels(0), theChannels(0), localCol(0), workArea(0), sizeWork(0), myB(0), myVectB(0)
-{
-
+  theSolvr.setLinearSOE(*this);
 }
 
 
@@ -58,7 +51,7 @@ DistributedBandGenLinSOE::~DistributedBandGenLinSOE()
   if (localCol != 0)
     for (int i=0; i<numChannels; i++)
       if (localCol[i] != 0)
-	delete localCol[i];
+  delete localCol[i];
   delete [] localCol;
 
   if (workArea != 0)
@@ -122,7 +115,7 @@ DistributedBandGenLinSOE::setSize(Graph &theGraph)
       ID *subMap = new ID(numSubVertex);
       localCol[j] = subMap;
       if (numSubVertex > maxNumSubVertex)
-	maxNumSubVertex = numSubVertex;
+        maxNumSubVertex = numSubVertex;
     }
 
     size = theGraph.getNumVertex();
@@ -141,14 +134,14 @@ DistributedBandGenLinSOE::setSize(Graph &theGraph)
       int vertexNum = vertexPtr->getTag();
       const ID &theAdjacency = vertexPtr->getAdjacency();
       for (int i=0; i<theAdjacency.Size(); i++) {
-	int otherNum = theAdjacency(i);
-	int diff = vertexNum - otherNum;
-	if (diff > 0) {
-	  if (diff > numSuperD)
-	    numSuperD = diff;
-	} else 
-	  if (diff < numSubD)
-	    numSubD = diff;
+        int otherNum = theAdjacency(i);
+        int diff = vertexNum - otherNum;
+        if (diff > 0) {
+          if (diff > numSuperD)
+            numSuperD = diff;
+        } else 
+          if (diff < numSubD)
+            numSubD = diff;
       }
     }
     numSubD *= -1;
@@ -196,7 +189,7 @@ DistributedBandGenLinSOE::setSize(Graph &theGraph)
 
     if (processID == 0) {
       if (workArea != 0)
-	delete [] workArea;
+        delete [] workArea;
 
       workArea = new double [newSize];
       sizeWork = newSize;
@@ -242,7 +235,6 @@ DistributedBandGenLinSOE::setSize(Graph &theGraph)
   
   // get new Vector objects if size has changes
   if (oldSize != size) {
-
     if (myVectB != 0)
       delete myVectB;
 
@@ -284,65 +276,64 @@ DistributedBandGenLinSOE::addA(const Matrix &m, const ID &id, double fact)
     for (int i=0; i<idSize; i++) {
       int col = id(i);
       if (col < size && col >= 0) {
-	// double *coliiPtr = A + col*ldA + numSubD + numSuperD;
-	
-	double *coliiPtr;
-	if (processID == 0)
-	  coliiPtr = A + col*ldA + numSubD + numSuperD;
-	else
-	  coliiPtr = A + ((*theMap)(col))*ldA + numSubD + numSuperD;
-	
-	for (int j=0; j<idSize; j++) {
-	  int row = id(j);
-	  if (row <size && row >= 0) {		    
-	    int diff = col - row;
-	    if (diff > 0) {
-	      if (diff <= numSuperD) {
-		double *APtr = coliiPtr - diff;
-		*APtr += m(j,i);
-	      }			
-	      
-	    } else {
-	      diff *= -1;
-	      if (diff <= numSubD) {
-		double *APtr = coliiPtr + diff;
-		*APtr += m(j,i);
-	      }
-	    }
-	  }
-	}  // for j
+        // double *coliiPtr = A + col*ldA + numSubD + numSuperD;
+        
+        double *coliiPtr;
+        if (processID == 0)
+          coliiPtr = A + col*ldA + numSubD + numSuperD;
+        else
+          coliiPtr = A + ((*theMap)(col))*ldA + numSubD + numSuperD;
+        
+        for (int j=0; j<idSize; j++) {
+          int row = id(j);
+          if (row <size && row >= 0) {		    
+            int diff = col - row;
+            if (diff > 0) {
+              if (diff <= numSuperD) {
+                double *APtr = coliiPtr - diff;
+                *APtr += m(j,i);
+              }			
+            } else {
+              diff *= -1;
+              if (diff <= numSubD) {
+                double *APtr = coliiPtr + diff;
+                *APtr += m(j,i);
+              }
+            }
+          }
+        }  // for j
       } 
     }  // for i
   } else {
     for (int i=0; i<idSize; i++) {
       int col = id(i);
       if (col < size && col >= 0) {
-	// double *coliiPtr = A + col*ldA + numSubD + numSuperD;
-	
-	double *coliiPtr;
-	if (processID == 0)
-	  coliiPtr = A + col*ldA + numSubD + numSuperD;
-	else
-	  coliiPtr = A + (*theMap)(col)*ldA + numSubD + numSuperD;
+        // double *coliiPtr = A + col*ldA + numSubD + numSuperD;
+        
+        double *coliiPtr;
+        if (processID == 0)
+          coliiPtr = A + col*ldA + numSubD + numSuperD;
+        else
+          coliiPtr = A + (*theMap)(col)*ldA + numSubD + numSuperD;
 
-	for (int j=0; j<idSize; j++) {
-	  int row = id(j);
-	  if (row <size && row >= 0) {		    
-	    int diff = col - row;
-	    if (diff > 0) {
-	      if (diff <= numSuperD) {
-		double *APtr = coliiPtr - diff;
-		*APtr += m(j,i) *fact;
-	      }
-	    } else {
-	      diff *= -1;
-	      if (diff <= numSubD) {
-		double *APtr = coliiPtr + diff;
-		*APtr += m(j,i) *fact;
-	      }
-	    }
-	  }
-	}  // for j
+        for (int j=0; j<idSize; j++) {
+          int row = id(j);
+          if (row <size && row >= 0) {		    
+            int diff = col - row;
+            if (diff > 0) {
+              if (diff <= numSuperD) {
+                double *APtr = coliiPtr - diff;
+                *APtr += m(j,i) *fact;
+              }
+            } else {
+              diff *= -1;
+              if (diff <= numSubD) {
+                double *APtr = coliiPtr + diff;
+                *APtr += m(j,i) *fact;
+              }
+            }
+          }
+        }  // for j
       } 
     }  // for i
   }    
@@ -351,7 +342,7 @@ DistributedBandGenLinSOE::addA(const Matrix &m, const ID &id, double fact)
 }
 
 int 
-DistributedBandGenLinSOE::solve(void)
+DistributedBandGenLinSOE::solve()
 {
   static ID result(1);
 
@@ -475,7 +466,6 @@ DistributedBandGenLinSOE::setB(const Vector &v, double fact)
     if (fact == 0.0)
       return 0;
 
-
     if (fact == 1.0) { // do not need to multiply if fact == 1.0
       for (int i=0; i<size; i++) {
         myB[i] = v(i);
@@ -495,7 +485,7 @@ DistributedBandGenLinSOE::setB(const Vector &v, double fact)
 }
 
 void 
-DistributedBandGenLinSOE::zeroB(void)
+DistributedBandGenLinSOE::zeroB()
 {
   double *Bptr = myB;
   for (int i=0; i<size; i++)
@@ -504,7 +494,7 @@ DistributedBandGenLinSOE::zeroB(void)
 
 
 const Vector &
-DistributedBandGenLinSOE::getB(void)
+DistributedBandGenLinSOE::getB()
 {
   if (processID != 0) {
     Channel *theChannel = theChannels[0];

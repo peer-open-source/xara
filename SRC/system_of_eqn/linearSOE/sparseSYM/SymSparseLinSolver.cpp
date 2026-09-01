@@ -71,10 +71,11 @@ SymSparseLinSolver::solve()
 
     // first copy B into X
 
+    double *Xptr = &theSOE->X[0];
     for (int i=0; i<neq; i++) {
         theSOE->X[i] = theSOE->B[i];
     }
-    double *Xptr = &theSOE->X[0];
+    Xptr = &theSOE->X[0];
 
     if (theSOE->factored == false) {
 
@@ -99,11 +100,11 @@ SymSparseLinSolver::solve()
     double *tempX = new double[neq];
 
     for (int m=0; m<neq; m++) {
-        tempX[m] = Xptr[invp[m]];
+      tempX[m] = Xptr[invp[m]];
     }
 	
     for (int k=0; k<neq; k++) {
-        Xptr[k] = tempX[k];
+      Xptr[k] = tempX[k];
     }
 	
     delete [] tempX;
@@ -125,24 +126,3 @@ SymSparseLinSolver::setLinearSOE(SymSparseLinSOE &theLinearSOE)
     theSOE = &theLinearSOE;
     return 0;
 }
-
-
-int
-SymSparseLinSolver::sendSelf(int cTAg, Channel &theChannel)
-{
-    // doing nothing
-    return 0;
-}
-
-
-int
-SymSparseLinSolver::recvSelf(int cTag,
-			     Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    // nothing to do
-    return 0;
-}
-
-
-
-

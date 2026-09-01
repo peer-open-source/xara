@@ -45,8 +45,7 @@ class FullGenLinSOE : public LinearSOE
     int setSize(Graph &theGraph);
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addB(const Vector &, const ID &, double fact = 1.0);    
-    int setB(const Vector &, double fact = 1.0);        
-    int addColA(const Vector &col, int colIndex, double fact = 1.0);
+    int setB(const Vector &, double fact = 1.0);
     
     void zeroA();
     void zeroB();
@@ -57,15 +56,10 @@ class FullGenLinSOE : public LinearSOE
     const Vector &getB();    
     const Matrix *getA();
 
-    double normRHS();
-
     void setX(int loc, double value);        
     void setX(const Vector &x);        
 
-    friend class FullGenLinLapackSolver;    
-
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    friend class FullGenLinLapackSolver;
 
   private:
     int size;    

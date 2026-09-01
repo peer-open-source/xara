@@ -119,7 +119,8 @@ SymSparseLinSOE::getNumEqn() const
  * It is the same as the pair (ADJNCY, XADJ).
  * Then perform the symbolic factorization by calling symFactorization().
  */
-int SymSparseLinSOE::setSize(Graph &theGraph)
+int 
+SymSparseLinSOE::setSize(Graph &theGraph)
 {
 
   int result = 0;
@@ -540,33 +541,5 @@ SymSparseLinSOE::getB()
 {
   assert(vectB != nullptr);
   return *vectB;
-}
-
-double 
-SymSparseLinSOE::normRHS()
-{
-  double norm =0.0;
-  for (int i=0; i<size; i++) {
-  double Yi = B[i];
-  norm += Yi*Yi;
-  }
-  return sqrt(norm);
-}
-
-
-int 
-SymSparseLinSOE::sendSelf(int cTag, Channel &theChannel)
-{
-  // not implemented.
-  return 0;
-}
-
-
-int 
-SymSparseLinSOE::recvSelf(int cTag, 
-              Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  // not implemented.
-  return 0;
 }
 

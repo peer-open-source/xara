@@ -132,6 +132,13 @@ extern "C" void    dCreate_Dense_Matrix(SuperMatrix *, int, int, double *, int,
 int
 SuperLU::solve()
 {
+  return this->solve(theSOE->getB(), theSOE->X);
+}
+
+
+int
+SuperLU::solve(const Vector& vecB, Vector& vecX)
+{
   assert(theSOE != nullptr);
 
   int n = theSOE->size;
@@ -147,10 +154,11 @@ SuperLU::solve()
   }
 
   // first copy B into X
-  double *Xptr = &theSOE->X[0];
-  double *Bptr = &theSOE->B[0];
+  double *Xptr = &vecX(0);
+  const double *Bptr = &vecB(0);
   for (int i=0; i<n; i++)
     *(Xptr++) = *(Bptr++);
+  Xptr = &vecX(0);
 
   GlobalLU_t Glu; /* Not needed on return. */
 
@@ -164,7 +172,7 @@ SuperLU::solve()
     }
 
     dgstrf(&options, &AC, relax, panelSize,
-          etree, NULL, 0, perm_c, perm_r, &L, &U, &Glu, &stat, &info);
+           etree, NULL, 0, perm_c, perm_r, &L, &U, &Glu, &stat, &info);
 
 
     if (info != 0) {        
@@ -186,7 +194,7 @@ SuperLU::solve()
   int info;
   dgstrs (trans, &L, &U, perm_c, perm_r, &B, &stat, &info);    
 
-  if (info != 0) {        
+  if (info != 0) {
     // opserr << "WARNING SuperLU::solve(void)- ";
     // opserr << " Error " << info << " returned in substitution dgstrs()\n";
     return -info;

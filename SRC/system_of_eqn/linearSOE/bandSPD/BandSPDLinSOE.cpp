@@ -184,45 +184,6 @@ BandSPDLinSOE::addA(const Matrix &m, const ID &id, double fact)
 }
 
 
-int 
-BandSPDLinSOE::addColA(const Vector &colData, int col, double fact)
-{
-  assert(colData.Size() == size);
-  assert(col <= size && col >= 0);
-
-  // check for a quick return 
-  if (fact == 0.0)
-    return 0;
-  
-  
-  if (fact == 1.0) { // do not need to multiply 
-    
-    double *coliiPtr = A +(col+1)*half_band -1;
-    int minColRow = col - half_band + 1;
-    for (int row=0; row<size; row++) {
-      if (row <size && row >= 0 && 
-          row <= col && row >= minColRow) { // only add upper
-        double *APtr = coliiPtr + (row-col);
-        *APtr += colData(row);
-      }
-    }  
-
-  } else {
-
-    double *coliiPtr = A +(col+1)*half_band -1;
-    int minColRow = col - half_band + 1;
-    for (int row=0; row<size; row++) {
-      if (row <size && row >= 0 && 
-          row <= col && row >= minColRow) { // only add upper
-        double *APtr = coliiPtr + (row-col);
-        *APtr += colData(row) * fact;
-      }
-    }  
-  }
-
-  return 0;
-}
-
 
 int 
 BandSPDLinSOE::addB(const Vector &v, const ID &id, double fact)
@@ -331,29 +292,3 @@ BandSPDLinSOE::getB()
 }
 
 
-double 
-BandSPDLinSOE::normRHS()
-{
-    double norm =0.0;
-    for (int i=0; i<size; i++) {
-        double Bi = B[i];
-        norm += Bi*Bi;
-    }
-    return sqrt(norm);
-}    
-
-
-int 
-BandSPDLinSOE::sendSelf(int tag, Channel &theChannel)
-{
-  opserr << "BandSPDLinSOE::sendSelf() - not implemented\n";
-  return -1;
-}
-
-
-int 
-BandSPDLinSOE::recvSelf(int tag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  opserr << "BandSPDLinSOE::recvSelf( - not implemented\n";
-  return -1;
-}

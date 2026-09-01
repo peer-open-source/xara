@@ -820,7 +820,7 @@ PetscSOE::setB(const Vector &v, double fact)
 
 
 void
-PetscSOE::zeroA(void)
+PetscSOE::zeroA()
 {
   isFactored = 0;
   if ( processID >= 0 )
@@ -830,7 +830,7 @@ PetscSOE::zeroA(void)
 }
 
 void
-PetscSOE::zeroB(void)
+PetscSOE::zeroB()
 {
   // if ( processID_world > 0 )
   // {
@@ -873,22 +873,6 @@ PetscSOE::getB(void)
 }
 
 
-double
-PetscSOE::normRHS(void)
-{
-  this->getB();
-  double norm = 0.0;
-  double *Bptr = B;
-
-  for (int i = 0; i < size; i++)
-  {
-    double Yi = *Bptr++;
-    norm += Yi * Yi;
-  }
-
-  return sqrt(norm);
-}
-
 
 void
 PetscSOE::setX(int loc, double value)
@@ -929,90 +913,6 @@ PetscSOE::setSolver(PetscSolver &newSolver)
 }
 
 
-int
-PetscSOE::sendSelf(int cTag, Channel &theChannel)
-{
-
-  // check if already using this object
-  bool found = false;
-
-  for (int i = 0; i < numChannels; i++)
-    if (theChannels[i] == &theChannel)
-    {
-      // sendID = i + 1;
-      found = true;
-    }
-
-  // if new object, enlarge Channel pointers to hold new channel * & allocate new ID
-  if (found == false)
-  {
-    int nextNumChannels = numChannels + 1;
-    Channel **nextChannels = new Channel *[nextNumChannels];
-
-    if (nextNumChannels == 0)
-    {
-      cerr << "DistributedBandGenLinSOE::sendSelf() - failed to allocate channel array of size: " <<
-           nextNumChannels << endln;
-      return -1;
-    }
-
-    for (int i = 0; i < numChannels; i++)
-    {
-      nextChannels[i] = theChannels[i];
-    }
-
-    nextChannels[numChannels] = &theChannel;
-    numChannels = nextNumChannels;
-
-    if (theChannels != 0)
-    {
-      delete [] theChannels;
-    }
-
-    theChannels = nextChannels;
-
-    if (localCol != 0)
-    {
-      delete [] localCol;
-    }
-
-    localCol = new ID *[numChannels];
-
-    if (localCol == 0)
-    {
-      cerr << "DistributedBandGenLinSOE::sendSelf() - failed to allocate id array of size: " <<
-           nextNumChannels << endln;
-      return -1;
-    }
-
-    for (int i = 0; i < numChannels; i++)
-    {
-      localCol[i] = 0;
-    }
-
-  }
-
-  return 0;
-}
-
-
-int
-PetscSOE::recvSelf(int cTag, Channel &theChannel,
-                   FEM_ObjectBroker &theBroker)
-{
-  numChannels = 1;
-  theChannels = new Channel *[1];
-  theChannels[0] = &theChannel;
-
-  localCol = new ID *[numChannels];
-
-  for (int i = 0; i < numChannels; i++)
-  {
-    localCol[i] = 0;
-  }
-
-  return 0;
-}
 
 int
 PetscSOE::setChannels(int nChannels, Channel **theC)

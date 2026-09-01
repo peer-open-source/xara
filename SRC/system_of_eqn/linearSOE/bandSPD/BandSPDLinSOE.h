@@ -52,10 +52,9 @@ class BandSPDLinSOE : public LinearSOE
     virtual ~BandSPDLinSOE();
 
     virtual int getNumEqn() const;
-    virtual int setSize(Graph &);
+    virtual int setSize(Graph &) override;
 
-    virtual int addA(const Matrix &, const ID &, double fact = 1.0);
-    virtual int addColA(const Vector &col, int colIndex, double fact = 1.0);
+    virtual int addA(const Matrix &, const ID &, double fact = 1.0) override;
 
     virtual int addB(const Vector &, const ID &, double fact = 1.0);    
     virtual int setB(const Vector &, double fact = 1.0);        
@@ -64,14 +63,10 @@ class BandSPDLinSOE : public LinearSOE
     virtual void zeroB();
 
     const Vector &getX() override;
-    virtual const Vector &getB();    
-    virtual double normRHS();
+    virtual const Vector &getB() override;
 
     virtual void setX(int loc, double value);    
     virtual void setX(const Vector &x);
-
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
     friend class BandSPDLinSolver;
     friend class BandSPDLinLapackSolver;    

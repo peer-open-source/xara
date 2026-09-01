@@ -175,36 +175,6 @@ FullGenLinSOE::addA(const Matrix &m, const ID &id, double fact)
 
 
 int 
-FullGenLinSOE::addColA(const Vector &colData, int col, double fact)
-{
-  
-  assert(colData.Size() == size);
-  assert(col <= size && col >= 0);
-
-  if (fact == 0.0)
-    return 0; 
-
-  if (fact == 1.0) { // do not need to multiply
-    double *coliPtr = A + col*size;
-    for (int row=0; row<size; row++) {
-      *coliPtr += colData(row);
-      coliPtr++;
-    }
-
-  } else {
-    double *coliPtr = A + col*size;
-    for (int row=0; row<size; row++) {
-      *coliPtr += colData(row) * fact;
-      coliPtr++;
-    }
-
-  }
-
-  return 0;
-}
-
-
-int 
 FullGenLinSOE::addB(const Vector &v, const ID &id, double fact)
 {
   // check for a quick return 
@@ -333,30 +303,4 @@ FullGenLinSOE::getA()
   assert(matA != nullptr);
   return matA;
 }
-
-double 
-FullGenLinSOE::normRHS()
-{
-  double norm =0.0;
-  for (int i=0; i<size; i++) {
-    double Yi = B[i];
-    norm += Yi*Yi;
-  }
-  return sqrt(norm);
-}    
-
-
-
-int 
-FullGenLinSOE::sendSelf(int commitTag, Channel &theChannel)
-{
-  return 0;
-}
-
-int 
-FullGenLinSOE::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  return 0;
-}
-
 

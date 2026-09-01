@@ -17,17 +17,16 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+//
 // Description: This file contains the implementation of MumpsSolver
-
+//
 // $Revision: 1.6 $
 // $Date: 2008-04-01 00:35:04 $
 // $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/mumps/MumpsSolver.cpp,v $
-
+//
 // Written: fmk 
 // Created: 02/06
-
-
+//
 #include <MumpsSolver.h>
 #include <MumpsSOE.h>
 #include <Channel.h>
@@ -47,14 +46,15 @@
 #endif
 
 #define _OPENMPI
-#include <mpi.h>
+// #include <mpi.h>
 // #ifndef OPENSEES_INCLUDED_MPI
 // #include <libseq/mpi.h>
 // #endif
 
 MumpsSolver::MumpsSolver(int ICNTL7, int ICNTL14)
   :LinearSOESolver(SOLVER_TAGS_MumpsSolver),
-   theMumpsSOE(0)
+   theMumpsSOE(0),
+   factored(false)
 {
 
   memset(&id, 0, sizeof(id));
@@ -84,7 +84,7 @@ MumpsSolver::~MumpsSolver()
 }
 
 int 
-MumpsSolver::initializeMumps()
+MumpsSolver::initializeMumps(Vector& vecX)
 {
   if (needsSetSize == false)
     return 0;
@@ -96,24 +96,24 @@ MumpsSolver::initializeMumps()
     dmumps_c(&id);
     init = true;
   }
-  
-  int nnz = theMumpsSOE->nnz;
-  int *rowA = theMumpsSOE->rowA;
-  int *colA = theMumpsSOE->colA;
+
+  const int nnz = theMumpsSOE->nnz;
+  int *const rowA = theMumpsSOE->rowA;
+  int *const colA = theMumpsSOE->colA;
   
   // increment row and col A values by 1 for mumps fortran indexing
   for (int i = 0; i < nnz; i++) {
     rowA[i]++;
     colA[i]++;
   }
-  
+
   // analyze the matrix
-  id.n   = theMumpsSOE->size;
-  id.nz  = theMumpsSOE->nnz;
-  id.irn = theMumpsSOE->rowA;
-  id.jcn = theMumpsSOE->colA;
+  id.n   = theMumpsSOE->getNumEqn();
+  id.nz  = nnz;
+  id.irn = rowA;
+  id.jcn = colA;
   id.a   = theMumpsSOE->A;
-  id.rhs = theMumpsSOE->X;
+  id.rhs = &vecX(0);
   
   // No outputs 
   id.ICNTL(1) = -1; 
@@ -143,16 +143,18 @@ MumpsSolver::initializeMumps()
   return info;
 }
 
-int 
-MumpsSolver::solveAfterInitialization()
-{
-  int nnz = theMumpsSOE->nnz;
-  int n = theMumpsSOE->size;
-  int *rowA = theMumpsSOE->rowA;
-  int *colA = theMumpsSOE->colA;
 
-  double *X = theMumpsSOE->X;
-  double *B = theMumpsSOE->B;
+int 
+MumpsSolver::solveAfterInitialization(const Vector &vecB, Vector &vecX)
+{
+  const int nnz = theMumpsSOE->nnz;
+  const int n = theMumpsSOE->getNumEqn();
+  int * const rowA = theMumpsSOE->rowA;
+  int * const colA = theMumpsSOE->colA;
+  double* const valA = theMumpsSOE->A;
+
+  double *X = &vecX(0);
+  const double *B = &vecB(0);
 
   // increment row and col A values by 1 for mumps fortran indexing
   for (int i=0; i<nnz; i++) {
@@ -166,14 +168,13 @@ MumpsSolver::solveAfterInitialization()
   int info = 0;
 
   if (theMumpsSOE->factored == false) {
-
     // factor the matrix
-    id.n   = theMumpsSOE->size; 
-    id.nz  = theMumpsSOE->nnz; 
-    id.irn = theMumpsSOE->rowA;
-    id.jcn = theMumpsSOE->colA;
-    id.a   = theMumpsSOE->A; 
-    id.rhs = theMumpsSOE->X;
+    id.n   = n; 
+    id.nz  = nnz;
+    id.irn = rowA;
+    id.jcn = colA;
+    id.a   = valA; 
+    id.rhs = &vecX(0);
 
     // No outputs 
     id.ICNTL(1)=-1; 
@@ -185,15 +186,15 @@ MumpsSolver::solveAfterInitialization()
     dmumps_c(&id);
 
     theMumpsSOE->factored = true;
-
-  } else {
+  }
+  else {
     // factor the matrix
-    id.n   = theMumpsSOE->size; 
-    id.nz  = theMumpsSOE->nnz; 
-    id.irn = theMumpsSOE->rowA;
-    id.jcn = theMumpsSOE->colA;
-    id.a   = theMumpsSOE->A; 
-    id.rhs = theMumpsSOE->X;
+    id.n   = n; 
+    id.nz  = nnz; 
+    id.irn = rowA;
+    id.jcn = colA;
+    id.a   = valA; 
+    id.rhs = &vecX(0);
 
     // No outputs
     id.ICNTL(1)=-1; id.ICNTL(2)=-1; id.ICNTL(3)=-1; id.ICNTL(4)=0;
@@ -209,22 +210,22 @@ MumpsSolver::solveAfterInitialization()
   if (info != 0) {	
     opserr << "WARNING MumpsSolver::solve - ";
     opserr << " Error " << info << ": "; // returned in substitution dmumps()\n";
-	switch(info) {
-	  case -5:
-		opserr << " out of memory allocation error\n";
+    switch(info) {
+      case -5:
+        opserr << " out of memory allocation error\n";
       case -6:  
-		opserr << " cause: Matrix is Singular in Structure: check your model\n";
-	  case -7:
-		opserr << " out of memory allocation error\n";
-	  case -8:
-		opserr << "Work array too small; use -ICNTL14 option, the default is -ICNTL 20 make 20 larger\n";
-	  case -9:
-		opserr << "Work array too small; use -ICNTL14 option, the default is -ICNTL 20 make 20 larger\n";
-	  case -10:  
-		opserr << " cause: Matrix is Singular Numerically\n";
-	  default:
-		  opserr << "\n";
-	}
+        opserr << " cause: Matrix is Singular in Structure: check your model\n";
+      case -7:
+        opserr << " out of memory allocation error\n";
+      case -8:
+        opserr << "Work array too small; use -ICNTL14 option, the default is -ICNTL 20 make 20 larger\n";
+      case -9:
+        opserr << "Work array too small; use -ICNTL14 option, the default is -ICNTL 20 make 20 larger\n";
+      case -10:  
+        opserr << " cause: Matrix is Singular Numerically\n";
+      default:
+        opserr << "\n";
+    }
     return info;
   }
 
@@ -240,12 +241,12 @@ MumpsSolver::solveAfterInitialization()
 int
 MumpsSolver::solve()
 {
-	int initializationResult = initializeMumps();
+  int initializationResult = initializeMumps(*theMumpsSOE->vectX);
 
-	if (initializationResult == 0)
-		return solveAfterInitialization();
-	else
-		return initializationResult;
+  if (initializationResult == 0)
+    return solveAfterInitialization(theMumpsSOE->getB(), *theMumpsSOE->vectX);
+  else
+    return initializationResult;
 }
 
 int 
@@ -258,25 +259,11 @@ MumpsSOE::setMumpsSolver(MumpsSolver &newSolver)
 int
 MumpsSolver::setSize()
 {
+  factored = false;
 	needsSetSize = true;
 	return 0;
 }
 
-int
-MumpsSolver::sendSelf(int cTag, Channel &theChannel)
-{
-  // nothing to do
-  return 0;
-}
-
-int
-MumpsSolver::recvSelf(int ctag,
-		      Channel &theChannel, 
-		      FEM_ObjectBroker &theBroker)
-{
-  // nothing to do
-  return 0;
-}
 
 int 
 MumpsSolver::setLinearSOE(MumpsSOE &theSOE)

@@ -43,9 +43,6 @@ class FullGenLinLapackSolver : public FullGenLinSolver
     
     virtual int setLinearSOE(FullGenLinSOE &theSOE);
 
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-
     virtual double getDeterminant() override;
 
   private:

@@ -13,7 +13,6 @@
 #include <Node.h>
 
 #include <ID.h>
-#include <Renderer.h>
 #include <Domain.h>
 #include <string.h>  
 
@@ -83,11 +82,6 @@ class VS3D4QuadWithSensitivity: public Element
 
     const Vector &getResistingForce();
     const Vector &getResistingForceIncInertia();
-
-    // public methods for element output
-    int sendSelf (int commitTag, Channel &);
-    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &);
-    int displaySelf(Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode);
 
     void Print(OPS_Stream &s, int flag);
     Response *setResponse (const char **argv, int argc, OPS_Stream &theHandler);

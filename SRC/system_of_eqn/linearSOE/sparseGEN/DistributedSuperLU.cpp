@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1 $
-// $Date: 2005-12-06 22:21:03 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/sparseGEN/DistributedSuperLU.cpp,v $
-                                                                        
-                                                                        
+//
 // Written: fmk 
 //
 // Description: This file contains the implementation of DistributedSuperLU

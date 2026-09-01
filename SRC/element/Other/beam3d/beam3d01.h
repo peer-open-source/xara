@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.6 $
-// $Date: 2003-02-25 23:32:46 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/beam3d/beam3d01.h,v $
-                                                                        
-                                                                        
+//
 // Written: fmk 11/95
 // Revised:
 //
@@ -64,10 +59,7 @@ class beam3d01 : public Element
 
     const Vector &getResistingForce(void);
     const Vector &getResistingForceIncInertia(void);            
-    
-    int displaySelf(Renderer &theViewer, int displayMode, float fact);        
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+
     
     void Print(OPS_Stream &s, int flag =0);    
     

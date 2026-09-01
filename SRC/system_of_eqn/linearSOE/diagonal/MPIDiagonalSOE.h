@@ -11,11 +11,7 @@
  * Copyright: ALL RIGHTS RESERVED BY AUTHOR
  *
  */
-
-
-#ifndef MPIDiagonalSOE_h
-#define MPIDiagonalSOE_h
-
+#pragma once
 #include <mpi.h>
 
 #include <map>
@@ -33,34 +29,31 @@ class MPIDiagonalSOE : public LinearSOE
     MPIDiagonalSOE(MPIDiagonalSolver &theSolver);
     ~MPIDiagonalSOE();
 
-    int getNumEqn(void) const;
+    int getNumEqn() const;
     int setSize(Graph &theGraph);
     //void testSize(Graph &theGraph);
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addB(const Vector &, const ID &, double fact = 1.0);    
     int setB(const Vector &, double fact = 1.0);        
-    
-    void zeroA(void);
-    void zeroB(void);
+
+    void zeroA() override;
+    void zeroB() override;
 
     const Vector& getpartofA(Vector& At, const ID& ids);
 
     void setX(int loc, double value);
     void setX(const Vector &x);
     
-    const Vector &getX(void);
-    const Vector &getB(void);
-    double normRHS(void);
+    const Vector &getX();
+    const Vector &getB();
 
     int setDiagonalSolver(MPIDiagonalSolver &newSolver);    
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+
     int setChannels(int nChannels, Channel **theC);
 
     int setAnalysisModel(AnalysisModel &theModel);
 
-    
+
     void intersections(ID& arrayA, ID& arrayB, int sizeA, int sizeB, int* numShared, int* sharedDOFs);
     void quickSort(ID& array, int array_size);
     void q_sort(ID& array, int left, int right);
@@ -100,9 +93,4 @@ class MPIDiagonalSOE : public LinearSOE
     int numShared,maxShared;
     AnalysisModel *theModel;
 };
-
-
-#endif
-
-
 

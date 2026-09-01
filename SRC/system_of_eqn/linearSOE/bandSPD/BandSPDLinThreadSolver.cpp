@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.2 $
-// $Date: 2003-02-14 23:02:01 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/bandSPD/BandSPDLinThreadSolver.cpp,v $
-                                                                        
-                                                                        
+//
 // File: ~/system_of_eqn/linearSOE/bandSPD/BandSPDLinThreadSolver.h
 //
 // Written: fmk 
@@ -52,7 +47,8 @@ struct thread_control_block {
   cond_t startBlock_cond;
   cond_t endBlock_cond;
 
-  double *A,*X,*B;
+  double *A,*X;
+  const double *B;
   int n, kd;
   int blockSize, currentBlock;
   int workToDo;
@@ -63,13 +59,6 @@ struct thread_control_block {
   int threadsDoneBlock;
 } TCB_BandSPDLinThreadSolver;
 
-
-BandSPDLinThreadSolver::BandSPDLinThreadSolver()
-:BandSPDLinSolver(SOLVER_TAGS_BandSPDLinThreadSolver), NP(1), 
- running(false), blockSize(1)
-{
-  
-}
 
 BandSPDLinThreadSolver::BandSPDLinThreadSolver(int numProcessors, int blckSize)
 :BandSPDLinSolver(SOLVER_TAGS_BandSPDLinThreadSolver), NP(numProcessors),
@@ -102,95 +91,95 @@ void *BandSPDLinThreadSolver_Worker(void *arg);
 int
 BandSPDLinThreadSolver::solve()
 {
-    if (theSOE == 0) {
-      opserr << "BandSPDLinThreadSolver::solve(void)- ";
-      opserr << " No LinearSOE object has been set\n";
-      return -1;
-    }
+  if (theSOE == 0) {
+    opserr << "BandSPDLinThreadSolver::solve(void)- ";
+    opserr << " No LinearSOE object has been set\n";
+    return -1;
+  }
 
-    int n = theSOE->size;
-    if (n == 0)
-      return 0;
-    int kd = theSOE->half_band -1;
-    int ldA = kd +1;
-    int nrhs = 1;
-    int ldB = n;
-    int info;
-    double *Aptr = theSOE->A;
-    double *Xptr = &theSOE->X[0];
-    double *Bptr = &theSOE->B[0];
-
-    // first copy B into X
-    for (int i=0; i<n; i++)
-      *(Xptr++) = *(Bptr++);
-    Xptr = &theSOE->X[0];
-
-    // now solve AX = Y
-    if (theSOE->factored == false) {
-
-      // start threads running
-      if (running == false) {
-	mutex_init(&TCB_BandSPDLinThreadSolver.start_mutex, USYNC_THREAD, 0);
-	mutex_init(&TCB_BandSPDLinThreadSolver.end_mutex, USYNC_THREAD, 0);
-	mutex_init(&TCB_BandSPDLinThreadSolver.startBlock_mutex, USYNC_THREAD, 0);
-	mutex_init(&TCB_BandSPDLinThreadSolver.endBlock_mutex, USYNC_THREAD, 0);
-	cond_init(&TCB_BandSPDLinThreadSolver.start_cond, USYNC_THREAD, 0);
-	cond_init(&TCB_BandSPDLinThreadSolver.end_cond, USYNC_THREAD, 0);
-	cond_init(&TCB_BandSPDLinThreadSolver.startBlock_cond, USYNC_THREAD, 0);
-	cond_init(&TCB_BandSPDLinThreadSolver.endBlock_cond, USYNC_THREAD, 0);
-	TCB_BandSPDLinThreadSolver.workToDo = 0;
-        
-	// Create the threads - Bound daemon threads
-	for (int j = 0; j < NP; j++) 
-	  thr_create(NULL,0, BandSPDLinThreadSolver_Worker, NULL, 
-		     THR_BOUND|THR_DAEMON, NULL);
-
-        running = true;
-      }
-      
-  
-      mutex_lock(&TCB_BandSPDLinThreadSolver.start_mutex); 
-        // assign the global variables the threads will need
-        TCB_BandSPDLinThreadSolver.A = Aptr;
-	TCB_BandSPDLinThreadSolver.X = Xptr;
-	TCB_BandSPDLinThreadSolver.B = Bptr;
-	TCB_BandSPDLinThreadSolver.n = n;
-	TCB_BandSPDLinThreadSolver.kd = kd;
-	TCB_BandSPDLinThreadSolver.info = 0;
-        TCB_BandSPDLinThreadSolver.workToDo = NP;
-        TCB_BandSPDLinThreadSolver.blockSize = blockSize;
-        TCB_BandSPDLinThreadSolver.currentBlock = -1;
-	TCB_BandSPDLinThreadSolver.threadID = 0;
-	TCB_BandSPDLinThreadSolver.numThreads = NP;
-        TCB_BandSPDLinThreadSolver.threadsDone = 0;
-        TCB_BandSPDLinThreadSolver.threadsDoneBlock = NP;
-
-        // wake up the threads
-        cond_broadcast(&TCB_BandSPDLinThreadSolver.start_cond);
-      mutex_unlock(&TCB_BandSPDLinThreadSolver.start_mutex); 
-
-      // yield the LWP
-      thr_yield();
- 
-      // wait for all the threads to finish
-      mutex_lock(&TCB_BandSPDLinThreadSolver.end_mutex);
-
-         while (TCB_BandSPDLinThreadSolver.threadsDone < NP) 
-           cond_wait(&TCB_BandSPDLinThreadSolver.end_cond, &TCB_BandSPDLinThreadSolver.end_mutex);
-
-      mutex_unlock(&TCB_BandSPDLinThreadSolver.end_mutex);
-    }
-
-    // solve using factored matrix
-    dpbtrs_("U",&n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
-    
-
-    // check if successful
-    if (info != 0)
-	return info;
-
-    theSOE->factored = true;
+  int n = theSOE->size;
+  if (n == 0)
     return 0;
+  int kd = theSOE->half_band -1;
+  int ldA = kd +1;
+  int nrhs = 1;
+  int ldB = n;
+  int info;
+  double *Aptr = theSOE->A;
+  double *Xptr = &theSOE->X[0];
+  const double *Bptr = &theSOE->B[0];
+
+  // first copy B into X
+  for (int i=0; i<n; i++)
+    *(Xptr++) = *(Bptr++);
+  Xptr = &theSOE->X[0];
+
+  // now solve AX = Y
+  if (theSOE->factored == false) {
+
+    // start threads running
+    if (running == false) {
+      mutex_init(&TCB_BandSPDLinThreadSolver.start_mutex, USYNC_THREAD, 0);
+      mutex_init(&TCB_BandSPDLinThreadSolver.end_mutex, USYNC_THREAD, 0);
+      mutex_init(&TCB_BandSPDLinThreadSolver.startBlock_mutex, USYNC_THREAD, 0);
+      mutex_init(&TCB_BandSPDLinThreadSolver.endBlock_mutex, USYNC_THREAD, 0);
+      cond_init(&TCB_BandSPDLinThreadSolver.start_cond, USYNC_THREAD, 0);
+      cond_init(&TCB_BandSPDLinThreadSolver.end_cond, USYNC_THREAD, 0);
+      cond_init(&TCB_BandSPDLinThreadSolver.startBlock_cond, USYNC_THREAD, 0);
+      cond_init(&TCB_BandSPDLinThreadSolver.endBlock_cond, USYNC_THREAD, 0);
+      TCB_BandSPDLinThreadSolver.workToDo = 0;
+            
+      // Create the threads - Bound daemon threads
+      for (int j = 0; j < NP; j++) 
+        thr_create(NULL,0, BandSPDLinThreadSolver_Worker, NULL, 
+            THR_BOUND|THR_DAEMON, NULL);
+
+      running = true;
+    }
+
+
+    mutex_lock(&TCB_BandSPDLinThreadSolver.start_mutex); 
+    // assign the global variables the threads will need
+    TCB_BandSPDLinThreadSolver.A = Aptr;
+    TCB_BandSPDLinThreadSolver.X = Xptr;
+    TCB_BandSPDLinThreadSolver.B = Bptr;
+    TCB_BandSPDLinThreadSolver.n = n;
+    TCB_BandSPDLinThreadSolver.kd = kd;
+    TCB_BandSPDLinThreadSolver.info = 0;
+    TCB_BandSPDLinThreadSolver.workToDo = NP;
+    TCB_BandSPDLinThreadSolver.blockSize = blockSize;
+    TCB_BandSPDLinThreadSolver.currentBlock = -1;
+    TCB_BandSPDLinThreadSolver.threadID = 0;
+    TCB_BandSPDLinThreadSolver.numThreads = NP;
+    TCB_BandSPDLinThreadSolver.threadsDone = 0;
+    TCB_BandSPDLinThreadSolver.threadsDoneBlock = NP;
+
+    // wake up the threads
+    cond_broadcast(&TCB_BandSPDLinThreadSolver.start_cond);
+    mutex_unlock(&TCB_BandSPDLinThreadSolver.start_mutex); 
+
+    // yield the LWP
+    thr_yield();
+
+    // wait for all the threads to finish
+    mutex_lock(&TCB_BandSPDLinThreadSolver.end_mutex);
+
+    while (TCB_BandSPDLinThreadSolver.threadsDone < NP)
+      cond_wait(&TCB_BandSPDLinThreadSolver.end_cond, &TCB_BandSPDLinThreadSolver.end_mutex);
+
+    mutex_unlock(&TCB_BandSPDLinThreadSolver.end_mutex);
+  }
+
+  // solve using factored matrix
+  dpbtrs_("U",&n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
+  
+
+  // check if successful
+  if (info != 0)
+    return info;
+
+  theSOE->factored = true;
+  return 0;
 }
     
 

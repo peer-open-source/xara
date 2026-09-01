@@ -270,7 +270,7 @@ SparseGenColLinSOE::addA(const Matrix& m, const ID& id, double fact)
   if (fact == 0.0)
     return 0;
 
-  int idSize = id.Size();
+  const int idSize = id.Size();
 
   if (fact == 1.0) { // do not need to multiply
     for (int i = 0; i < idSize; i++) {
@@ -291,7 +291,8 @@ SparseGenColLinSOE::addA(const Matrix& m, const ID& id, double fact)
         } // for j
       }
     } // for i
-  } else {
+  }
+  else {
     for (int i = 0; i < idSize; i++) {
       int col = id(i);
       if (col < size && col >= 0) {
@@ -418,28 +419,4 @@ const Vector&
 SparseGenColLinSOE::getB()
 {
   return B;
-}
-
-double
-SparseGenColLinSOE::normRHS()
-{
-  double norm = 0.0;
-  for (int i = 0; i < size; i++) {
-    double Yi = B[i];
-    norm += Yi * Yi;
-  }
-  return sqrt(norm);
-}
-
-
-int
-SparseGenColLinSOE::sendSelf(int cTag, Channel& theChannel)
-{
-  return 0;
-}
-
-int
-SparseGenColLinSOE::recvSelf(int cTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
-{
-  return 0;
 }

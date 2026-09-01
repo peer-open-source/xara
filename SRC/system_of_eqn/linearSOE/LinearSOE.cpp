@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.5 $
-// $Date: 2009-05-14 22:45:39 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/LinearSOE.cpp,v $
-                                                                        
-                                                                        
+//
 // Written: fmk 
 // Created: 11/96
 //
@@ -40,6 +35,8 @@
 LinearSOE::LinearSOE(LinearSOESolver &theLinearSOESolver, int classtag)
   : MovableObject(classtag)
   , theSolver(&theLinearSOESolver)
+  , m_fwd_update(nullptr)
+  , m_inv_update(nullptr)
 {
 
 }
@@ -47,6 +44,8 @@ LinearSOE::LinearSOE(LinearSOESolver &theLinearSOESolver, int classtag)
 LinearSOE::LinearSOE(int classtag)
 :MovableObject(classtag)
 , theSolver(0)
+, m_fwd_update(nullptr)
+, m_inv_update(nullptr)
 {
 
 }
@@ -54,7 +53,7 @@ LinearSOE::LinearSOE(int classtag)
 
 LinearSOE::~LinearSOE()
 {
-  if (theSolver != 0)
+  if (theSolver != nullptr)
     delete theSolver;
 }
 
@@ -67,11 +66,70 @@ LinearSOE::solve()
     return -1;
 }
 
+#if 0
+int
+LinearSOE::reset()
+{
+  m_inv_update = 0;
+  m_fwd_update = 0;
+  return 0;
+}
+#endif
+
+
+int
+LinearSOE::setInverseUpdate(LinearAction * update)
+{
+  int ok = 0;
+  if (m_inv_update != nullptr && update != nullptr)
+    ok = -1;
+
+  m_inv_update = update;
+  return ok;
+}
+
+
+int
+LinearSOE::setForwardUpdate(LinearAction * update)
+{
+  int ok = 0;
+  if (m_fwd_update != nullptr && update != nullptr)
+    ok = -1;
+
+  m_fwd_update = update;
+  return ok;
+}
+
+
+int
+LinearSOE::solve(const Vector& b, Vector& x)
+{
+  LinearSOESolver* solver = this->getSolver();
+  assert(solver != nullptr);
+
+  x.Zero();
+  int ok = solver->solve(b, x);
+  if (ok < 0)
+    return ok;
+
+  if (m_fwd_update)
+   if ((ok = m_fwd_update->solve(b,x)) < 0)
+     return ok;
+
+  if (m_inv_update)
+    if ((ok = m_inv_update->apply(b,x)) < 0)
+      return ok;
+
+  return 0;
+}
+
+
 int
 LinearSOE::formAp(const Vector &p, Vector &Ap)
 {
-  return 0;
+  return -1;
 }
+
 
 double
 LinearSOE::getDeterminant()
@@ -105,8 +163,9 @@ LinearSOE::addA(const Matrix &)
 }
 
 
-
-int LinearSOE::saveSparseA(OPS_Stream& output, int baseIndex) {
+int
+LinearSOE::saveSparseA(OPS_Stream& output, int baseIndex)
+{
   const Matrix* A = this->getA();
   
   if (A == nullptr) {
@@ -136,7 +195,9 @@ int LinearSOE::saveSparseA(OPS_Stream& output, int baseIndex) {
   return 0;
 }
 
-int LinearSOE::getSparseA(ID& rowIndices, ID& colIndices, Vector& values, int baseIndex) {
+int
+LinearSOE::getSparseA(ID& rowIndices, ID& colIndices, Vector& values, int baseIndex) 
+{
   const Matrix* A = this->getA();
   
   if (A == nullptr) {
@@ -166,13 +227,14 @@ int LinearSOE::getSparseA(ID& rowIndices, ID& colIndices, Vector& values, int ba
   return 0;
 }
 
-int LinearSOE::getSparseA(std::vector<int>& rowIndices, std::vector<int>& colIndices, std::vector<double>& values, int baseIndex) {
+int
+LinearSOE::getSparseA(std::vector<int>& rowIndices, std::vector<int>& colIndices, std::vector<double>& values, int baseIndex) {
   const Matrix* A = this->getA();
   
   if (A == nullptr) {
     return -1;
   }
-  
+
   int rows = A->noRows();
   int cols = A->noCols();
   int nnz = rows * cols;

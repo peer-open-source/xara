@@ -43,12 +43,11 @@
 class BandSPDLinThreadSolver : public BandSPDLinSolver
 {
   public:
-    BandSPDLinThreadSolver();    
     BandSPDLinThreadSolver(int numProcessors, int blockSize);        
     ~BandSPDLinThreadSolver();
 
-    int solve(void);
-    int setSize(void);
+    int solve() override;
+    int setSize();
     
     int sendSelf(Channel &theChannel, FEM_ObjectBroker &theBroker);
     int recvSelf(Channel &theChannel, FEM_ObjectBroker &theBroker);    

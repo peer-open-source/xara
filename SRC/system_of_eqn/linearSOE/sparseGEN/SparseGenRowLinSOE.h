@@ -55,14 +55,11 @@ public:
 
     const Vector& getX();
     const Vector& getB();
-    double normRHS();
 
     int addA(const Matrix&, const ID&, double fact = 1.0);
     int addB(const Vector&, const ID&, double fact = 1.0);
     int setB(const Vector&, double fact = 1.0);
 
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
 #if 0
     void setX(int loc, double value);        

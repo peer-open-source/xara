@@ -60,9 +60,6 @@ public:
     void setX(const Vector &x);        
     int setUmfpackGenLinSolver(UmfpackGenLinSolver &newSolver);    
 
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker); 
-
     // int saveSparseA(OPS_Stream& output, int baseIndex = 0) override;
 
     friend class UmfpackGenLinSolver;

@@ -66,17 +66,13 @@ class ShadowPetscSOE : public LinearSOE
     void zeroA(void);
     void zeroB(void);
 
-    const Vector &getX(void);
-    const Vector &getB(void);
-    double normRHS(void);
+    const Vector &getX();
+    const Vector &getB();
 
     void setX(int loc, double value);    
 
     int setSolver(PetscSolver &newSolver);    
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);    
     
   private:
     MPI_Comm theComm; // a comm for communicating to the ActorPetscSOE's
