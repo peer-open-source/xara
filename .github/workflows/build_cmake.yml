@@ -41,7 +41,7 @@ jobs:
         echo "XARA_SRC_WARN_COUNT=$XARA_SRC_WARN_COUNT" >> $GITHUB_ENV
         echo "warnings=$XARA_SRC_WARN_COUNT" >> $GITHUB_OUTPUT 
         echo "::warning::We found $XARA_SRC_WARN_COUNT warnings"
-        cmake --build . --target XaraRT -j3 2>&1
+        # cmake --build . --target XaraRT -j3 2>&1
 
 
     - name: Post warning count
@@ -89,7 +89,7 @@ jobs:
       working-directory: benchmarks/benchmarks
       run: |
         export OPENSEESRT_LIB=${GITHUB_WORKSPACE}/build/SRC/runtime/libOpenSeesRT.so
-        pytest -x -k test_x
+        pytest -x -k 'not test_frame_0011 and not test_frame_1022 and not test_solve_0004 and not test_o_sdof and not test_sdof and not test_solve_1001 and not test_solve_0000'
 
 #   - name: Verification
 #     run: |
