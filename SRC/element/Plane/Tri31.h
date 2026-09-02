@@ -26,7 +26,6 @@
 #ifndef Tri31_h
 #define Tri31_h
 
-
 #include <array>
 #include <Element.h>
 #include <Matrix.h>
@@ -43,13 +42,12 @@ class Tri31 : public Element
 {
   public:
     Tri31(int tag, 
-          std::array<int,3> &nodes,
+          const std::array<int,3> &nodes,
           NDMaterial &m,
           double thickness, 
           double pressure,
           double rho,
           double b1, double b2);
-    Tri31();
     ~Tri31();
 
     const char *getClassType() const {
@@ -79,11 +77,7 @@ class Tri31 : public Element
     int addInertiaLoadToUnbalance(const Vector &accel);
 
     const Vector &getResistingForce();
-    const Vector &getResistingForceIncInertia();            
-
-    // public methods for element output
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    const Vector &getResistingForceIncInertia();
 
     void Print(OPS_Stream &, int flag) final;
 
