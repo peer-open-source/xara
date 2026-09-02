@@ -24,13 +24,7 @@
 // Created: Feb 2000
 // Revised: Dec 2000 for efficiency
 //
-#ifndef FourNodeQuad3d_h
-#define FourNodeQuad3d_h
-
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
-
+#pragma once
 #include <Element.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -45,25 +39,25 @@ class FourNodeQuad3d : public Element
   public:
     FourNodeQuad3d(int tag, int nd1, int nd2, int nd3, int nd4,
 		   NDMaterial &m, const char *type,
-		   double t, double pressure = 0.0, 
+		   double t, 
+       double pressure = 0.0, 
 		   double rho = 0.0,
 		   double b1 = 0.0, double b2 = 0.0);
     FourNodeQuad3d();
     ~FourNodeQuad3d();
 
     const char *getClassType() const {return "FourNodeQuad3d";}
-    static constexpr const char* class_name = "FourNodeQuad3d";
 
     int getNumExternalNodes() const;
     const ID &getExternalNodes();
     Node **getNodePtrs();
 
     int getNumDOF();
-    void setDomain(Domain *theDomain);
+    void setDomain(Domain *) override;
 
     // public methods to set the state of the element    
-    int commitState();
-    int revertToLastCommit();
+    int commitState() override;
+    int revertToLastCommit() override;
     int revertToStart();
     int update();
 
@@ -80,13 +74,9 @@ class FourNodeQuad3d : public Element
     const Vector &getResistingForceIncInertia();            
 
     // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker 
-		  &theBroker);
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
-    Response *setResponse(const char **argv, int argc, 
-			  OPS_Stream &s);
+    Response *setResponse(const char **argv, int argc, OPS_Stream &s);
 
     int getResponse(int responseID, Information &eleInformation);
 
@@ -136,6 +126,4 @@ class FourNodeQuad3d : public Element
 
     int dirn[2];
 };
-
-#endif
 
