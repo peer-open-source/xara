@@ -37,8 +37,6 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 
 
 ParkLMS3::ParkLMS3()
@@ -300,19 +298,6 @@ const Vector &
 ParkLMS3::getVel()
 {
   return *Udot;
-}
-
-int ParkLMS3::sendSelf(int cTag, Channel &theChannel)
-{
-    // nothing to send
-    return 0;
-}
-
-
-int ParkLMS3::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    // nothing to receive
-    return 0;
 }
 
 
