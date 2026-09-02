@@ -25,7 +25,6 @@
 #include <AnalysisModel.h>
 #include <DOF_Group.h>
 #include <FE_Element.h>
-#include <Integrator.h>
 
 #ifndef _WIN32
 #define DSYGVX dsygvx_
@@ -370,37 +369,26 @@ SymmGeneralizedEigenSolver::getEigenvector(int mode, Vector &theVector)
 double
 SymmGeneralizedEigenSolver::getEigenvalue(int mode)
 {
-    if (mode <= 0 || mode > numEigen) {
-        opserr << "SymmGeneralizedEigenSolver::getEigenvalue() - mode " 
-            << mode << " is out of range (1 - " << numEigen << ")\n";
-        return 0.0;
-    }
+  if (mode <= 0 || mode > numEigen) {
+      opserr << "SymmGeneralizedEigenSolver::getEigenvalue() - mode " 
+          << mode << " is out of range (1 - " << numEigen << ")\n";
+      return 0.0;
+  }
 
-    if (eigenvalue != 0) {
-        return eigenvalue[mode-1];
-    }
-    else {
-        opserr << "SymmGeneralizedEigenSolver::getEigenvalue() - "
-            << "eigenvalues not yet computed\n";
-        return 0.0;
-    }      
+  if (eigenvalue != 0) {
+      return eigenvalue[mode-1];
+  }
+  else {
+      opserr << "SymmGeneralizedEigenSolver::getEigenvalue() - "
+          << "eigenvalues not yet computed\n";
+      return 0.0;
+  }      
 }
 
 
-int SymmGeneralizedEigenSolver::sendSelf(int commitTag, Channel &theChannel)
-{
-    return 0;
-}
 
-
-int SymmGeneralizedEigenSolver::recvSelf(int commitTag, Channel &theChannel, 
-    FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}
-
-
-void SymmGeneralizedEigenSolver::sort(int length, double *x, int *id)
+void 
+SymmGeneralizedEigenSolver::sort(int length, double *x, int *id)
 {
     // this is an implementation of shell sort that
     // additionally keeps track of the sorting order
