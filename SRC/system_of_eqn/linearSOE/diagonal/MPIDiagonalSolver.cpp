@@ -47,7 +47,7 @@ MPIDiagonalSolver::setLinearSOE(MPIDiagonalSOE &theSetSOE)
 }
 
 int 
-MPIDiagonalSolver::setSize(void)
+MPIDiagonalSolver::setSize()
 {
   //int size = theSOE->size;
   //int processID = theSOE->processID;
@@ -56,7 +56,7 @@ MPIDiagonalSolver::setSize(void)
 
 
 int 
-MPIDiagonalSolver::solve(void)
+MPIDiagonalSolver::solve()
 {
 
   int processID = theSOE->processID;
@@ -93,22 +93,22 @@ MPIDiagonalSolver::solve(void)
 
   if (notSet) {
     for (int i=0; i<maxNeighbors; i++) {
-       for (int j=0; j<maxShared; j++) {
-	maxDOFsSharedArray[j] = 0;
-	maxSharedB[j] = 0;
-	maxSharedA[j] = 0;
-       }
-       for (int j=0; j<numShared; j++) {
-	 maxDOFsSharedArray[j] = myDOFsSharedArray[j];
-	 maxSharedB[j] = sharedB[j];
-	 maxSharedA[j] = sharedA[j];
-       }
-       MPI_Bcast(maxDOFsSharedArray, myNeighborsSizes[i],MPI_INT,i,MPI_COMM_WORLD);
-       MPI_Bcast(maxSharedB, myNeighborsSizes[i],MPI_DOUBLE,i,MPI_COMM_WORLD);
-       MPI_Bcast(maxSharedA, myNeighborsSizes[i],MPI_DOUBLE,i,MPI_COMM_WORLD);
-       MPI_Barrier(MPI_COMM_WORLD);
-      
-       if ((i != processID ) && (myNeighbors[i]==1)) {
+      for (int j=0; j<maxShared; j++) {
+        maxDOFsSharedArray[j] = 0;
+        maxSharedB[j] = 0;
+        maxSharedA[j] = 0;
+      }
+      for (int j=0; j<numShared; j++) {
+        maxDOFsSharedArray[j] = myDOFsSharedArray[j];
+        maxSharedB[j] = sharedB[j];
+        maxSharedA[j] = sharedA[j];
+      }
+      MPI_Bcast(maxDOFsSharedArray, myNeighborsSizes[i],MPI_INT,i,MPI_COMM_WORLD);
+      MPI_Bcast(maxSharedB, myNeighborsSizes[i],MPI_DOUBLE,i,MPI_COMM_WORLD);
+      MPI_Bcast(maxSharedA, myNeighborsSizes[i],MPI_DOUBLE,i,MPI_COMM_WORLD);
+      MPI_Barrier(MPI_COMM_WORLD);
+    
+      if ((i != processID ) && (myNeighbors[i]==1)) {
         // cached neighbors
         int* temp = ((theSOE->myActualNeighborsSharedDOFs).find(i)->second);
         for (int k=0; k<theSOE->maxShared; k++)
@@ -118,7 +118,7 @@ MPIDiagonalSolver::solve(void)
         int* data = new int[myNeighborsSizes[i]];
         theSOE->myActualNeighborsBsToSend[i]= new double[myNeighborsSizes[i]];
         intersectionsAB(myDOFs, (theSOE->myActualNeighborsSharedDOFs).find(i)->second, size, myNeighborsSizes[i], A, maxSharedA, B, maxSharedB,data,i);
-       }
+      }
     }
     //
     // solution step
@@ -201,22 +201,6 @@ MPIDiagonalSolver::solve(void)
     //if we get here we are done and return
     return 0;
   }
-}
-
-int
-MPIDiagonalSolver::sendSelf(int cTag,
-			       Channel &theChannel)
-{
-  return 0;
-}
-
-
-int 
-MPIDiagonalSolver::recvSelf(int cTag,
-			       Channel &theChannel, 
-			       FEM_ObjectBroker &theBroker)
-{
-  return 0;
 }
 
 
