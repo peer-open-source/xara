@@ -56,11 +56,10 @@ class SymSparseLinSOE : public LinearSOE
   private:
     int size;            // order of A
     int nnz;             // number of non-zeros in A
-    double *B, *X;       // 1d arrays containing coefficients of B and X
-    int *colA, *rowStartA;  //These are (ADJNCY, XADJ) pair.
+    int *colA, *rowStartA;  // These are (ADJNCY, XADJ) pair.
 
-    Vector *vectX;
-    Vector *vectB;
+    Vector vectX;
+    Vector vectB;
     int Bsize;
     bool factored;
 
