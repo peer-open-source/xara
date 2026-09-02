@@ -16,7 +16,7 @@
 #include <math.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
+#include <Logging.h>
 
 extern "C" {
 #include "nmat.h"
@@ -34,7 +34,7 @@ SymSparseLinSolver::SymSparseLinSolver()
 
 SymSparseLinSolver::~SymSparseLinSolver()
 { 
-    // nothing to do.
+  // nothing to do.
 }
 
 /*
@@ -47,11 +47,17 @@ extern "C" void pfsslv(int neqns, double *diag, double **penv, int nblks,
 
 int
 SymSparseLinSolver::solve()
+{
+
+}
+
+int
+SymSparseLinSolver::solve(const Vector& vecB, Vector& vecX)
 { 
     if (theSOE == 0) {
-        opserr << "WARNING SymSparseLinSolver::solve(void)- ";
-        opserr << " No LinearSOE object has been set\n";
-        return -1;
+      opserr << "WARNING SymSparseLinSolver::solve(void)- ";
+      opserr << " No LinearSOE object has been set\n";
+      return -1;
     }
 
     int      nblks = theSOE->nblks;
@@ -67,15 +73,16 @@ SymSparseLinSolver::solve()
 
     // check for quick return
     if (neq == 0)
-        return 0;
+      return 0;
 
     // first copy B into X
 
-    double *Xptr = &theSOE->X[0];
+    const double *B = &vecB(0);
+    double *Xptr = &vecX(0);
     for (int i=0; i<neq; i++) {
-        theSOE->X[i] = theSOE->B[i];
+      Xptr[i] = B[i];
     }
-    Xptr = &theSOE->X[0];
+    Xptr = &vecX(0);
 
     if (theSOE->factored == false) {
 
