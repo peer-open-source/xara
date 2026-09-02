@@ -32,8 +32,6 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 
 #if 1
 #include <elementAPI.h>
@@ -308,39 +306,6 @@ GimmeMCK::getVel()
   return *Udot;
 }
 
-int GimmeMCK::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(4);
-    data(0) = m;
-    data(1) = c;
-    data(2) = k;
-    data(3) = ki;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING GimmeMCK::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int GimmeMCK::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(4);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING GimmeMCK::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    m = data(0);
-    c = data(1);
-    k = data(2);
-    ki = data(3);
-    
-    return 0;
-}
-
 
 void GimmeMCK::Print(OPS_Stream &s, int flag)
 {
@@ -350,8 +315,8 @@ void GimmeMCK::Print(OPS_Stream &s, int flag)
         s << "GimmeMCK - currentTime: " << currentTime << endln;
         s << "  m: " << m << endln;
         s << "  c: " << c << endln;
-	s << "  k: " << k << endln;
-	s << "  ki: " << ki << endln;
+        s << "  k: " << k << endln;
+        s << "  ki: " << ki << endln;
     } else
         s << "GimmeMCK - no associated AnalysisModel\n";
 }
