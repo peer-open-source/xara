@@ -65,10 +65,7 @@ public:
     int update(const Vector &deltaU);
 
     const Vector &getVel(void);
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+
     void Print(OPS_Stream &s, int flag = 0);        
     
  private:
