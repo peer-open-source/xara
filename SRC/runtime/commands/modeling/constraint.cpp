@@ -37,7 +37,7 @@
 
 
 int
-TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                             TCL_Char ** const argv)
 {
   // fix tag <fixities>
@@ -47,14 +47,15 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
   Domain *theTclDomain = builder->getDomain();
 
   if (argc < 3) {
-    opserr << OpenSees::PromptValueError << "Missing required arguments\n";
+    opserr << OpenSees::PromptValueError
+           << "Missing required arguments\n";
     return TCL_ERROR;
   }
 
 
   // get the tag of the node
-  int nodeId;
-  if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
+  Node::Tag tag;
+  if (Tcl_GetInt(interp, argv[1], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError << "invalid tag\n";
     return TCL_ERROR;
   }
@@ -74,7 +75,7 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
       return TCL_ERROR;
     }
     // create a homogeneous constraint
-    SP_Constraint *theSP = new SP_Constraint(nodeId, dof-1, 0.0, true, true);
+    SP_Constraint *theSP = new SP_Constraint(tag, dof-1, 0.0, true, true);
 
     // add it to the domain
     if (theTclDomain->addSP_Constraint(theSP) == false) {
@@ -104,7 +105,7 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
     if (Tcl_GetInt(interp, argv[2 + i], &theFixity) != TCL_OK) {
       opserr << OpenSees::PromptValueError
              << "invalid fixity " << i + 1
-             << " - load " << nodeId;
+             << " - load " << tag;
       opserr << " " << ndf << " fixities\n";
       return TCL_ERROR;
 
@@ -117,7 +118,7 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
       }
       if (theFixity != 0) {
         // create a homogeneous constraint
-        SP_Constraint *theSP = new SP_Constraint(nodeId, i, 0.0, true, true);
+        SP_Constraint *theSP = new SP_Constraint(tag, i, 0.0, true, true);
 
         // add it to the domain
         if (theTclDomain->addSP_Constraint(theSP) == false) {
@@ -138,9 +139,10 @@ TclCommand_addHomogeneousBC(ClientData clientData, Tcl_Interp *interp, Tcl_Size 
   return TCL_OK;
 }
 
+
 int
 TclCommand_addHomogeneousBC_X(ClientData clientData, Tcl_Interp *interp,
-                                   Tcl_Size argc, TCL_Char ** const argv)
+                                ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
@@ -195,7 +197,7 @@ TclCommand_addHomogeneousBC_X(ClientData clientData, Tcl_Interp *interp,
 
 int
 TclCommand_addHomogeneousBC_Y(ClientData clientData, Tcl_Interp *interp,
-                                   Tcl_Size argc, TCL_Char ** const argv)
+                              ArgSize argc, TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
@@ -247,7 +249,7 @@ TclCommand_addHomogeneousBC_Y(ClientData clientData, Tcl_Interp *interp,
 
 int
 TclCommand_addHomogeneousBC_Z(ClientData clientData, Tcl_Interp *interp,
-                              Tcl_Size argc, TCL_Char ** const argv)
+                              ArgSize argc, TCL_Char ** const argv)
 {
 
   assert(clientData != nullptr);
@@ -302,8 +304,8 @@ TclCommand_addHomogeneousBC_Z(ClientData clientData, Tcl_Interp *interp,
 
 
 int
-TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
-                      TCL_Char ** const argv)
+TclCommand_addSP(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
+                  TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry* builder = static_cast<ModelRegistry*>(clientData);

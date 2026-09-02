@@ -49,7 +49,8 @@ DistributedDiagonalSOE::DistributedDiagonalSOE(DistributedDiagonalSolver &the_So
  size(0), A(0), B(0), X(0), vectX(0), vectB(0), isAfactored(false),
  processID(0), numProcesses(0),
  numChannels(0), theChannels(0), localCol(0), 
- myDOFs(0,32), myDOFsShared(0,16), numShared(0), dataShared(0), vectShared(0)
+ myDOFs(0,32), myDOFsShared(0)//,16)
+ , numShared(0), dataShared(0), vectShared(0)
  , theModel(0)
 {
     the_Solver.setLinearSOE(*this);
@@ -60,7 +61,8 @@ DistributedDiagonalSOE::DistributedDiagonalSOE()
  size(0), A(0), B(0), X(0), vectX(0), vectB(0), isAfactored(false),
  processID(0), numProcesses(0),
  numChannels(0), theChannels(0), localCol(0), 
- myDOFs(0,32), myDOFsShared(0,16), numShared(0), dataShared(0), vectShared(0)
+ myDOFs(0,32), myDOFsShared(0,16)
+ , numShared(0), dataShared(0), vectShared(0)
  , theModel(0)
 {
 
@@ -364,7 +366,7 @@ DistributedDiagonalSOE::addB(const Vector &v, const ID &id, double fact)
     opserr << "DistributedDiagonalSOE::addB() -";
     opserr << " Vector and ID not of similar sizes\n";
     return -1;
-  }    
+  }
 #endif
   
   if (fact == 1.0) { // do not need to multiply if fact == 1.0
@@ -462,18 +464,6 @@ DistributedDiagonalSOE::getB()
   return *vectB;
 }
 
-double 
-DistributedDiagonalSOE::normRHS()
-{
-  double norm =0.0;
-  for (int i=0; i<size; i++) {
-    double Yi = B[i];
-    norm += Yi*Yi;
-  }
-  return sqrt(norm);
-  
-}    
-
 
 int
 DistributedDiagonalSOE::setDiagonalSolver(DistributedDiagonalSolver &newSolver)
@@ -493,118 +483,7 @@ DistributedDiagonalSOE::setDiagonalSolver(DistributedDiagonalSolver &newSolver)
 }
 
 
-int 
-DistributedDiagonalSOE::sendSelf(int cTag, Channel &theChannel)
-{
-  processID = 0;
-  int sendID =0;
-  
-  // if P0 check if already sent. If already sent use old processID; if not allocate a new process 
-  // id for remote part of object, enlarge channel * to hold a channel * for this remote object.
-  
-  // if not P0, send current processID
-  
-  if (processID == 0) {
 
-    // check if already using this object
-    bool found = false;
-    for (int i=0; i<numChannels; i++)
-      if (theChannels[i] == &theChannel) {
-	sendID = i+1;
-	found = true;
-      }
-
-    // if new object, enlarge Channel pointers to hold new channel * & allocate new ID
-    if (found == false) {
-      int nextNumChannels = numChannels + 1;
-      Channel **nextChannels = new Channel *[nextNumChannels];
-      if (nextNumChannels == 0) {
-	opserr << "DistributedBandGenLinSOE::sendSelf() - failed to allocate channel array of size: " << 
-	  nextNumChannels << endln;
-	return -1;
-      }
-      for (int i=0; i<numChannels; i++)
-	nextChannels[i] = theChannels[i];
-      nextChannels[numChannels] = &theChannel;
-      numChannels = nextNumChannels;
-      
-      if (theChannels != 0)
-	delete [] theChannels;
-      
-      theChannels = nextChannels;
-      
-  if (localCol != 0)
-	delete [] localCol;
-      localCol = new ID *[numChannels];
-      if (localCol == 0) {
-	opserr << "DistributedBandGenLinSOE::sendSelf() - failed to allocate id array of size: " << 
-	  nextNumChannels << endln;
-	return -1;
-      }
-      for (int i=0; i<numChannels; i++)
-	localCol[i] = 0;    
-
-      // allocate new processID for remote object
-      sendID = numChannels;
-    }
-
-  } else 
-    sendID = processID;
-
-  // send remotes processID
-  ID idData(1);
-  idData(0) = sendID;
-  
-  int res = theChannel.sendID(0, cTag, idData);
-  if (res < 0) {
-    opserr <<"WARNING DistributedDiagonalSOE::sendSelf() - failed to send data\n";
-    return -1;
-  }
-
-  LinearSOESolver *theSoeSolver = this->getSolver();
-  if (theSoeSolver != 0) {
-    if (theSoeSolver->sendSelf(cTag, theChannel) < 0) {
-      opserr <<"WARNING DistributedDiagonalSOE::sendSelf() - failed to send solver\n";
-      return -1;
-    } 
-  } else {
-    opserr <<"WARNING DistributedDiagonalSOE::sendSelf() - no solver to send!\n";
-    return -1;
-  }
-
-  return 0;
-}
-
-
-int 
-DistributedDiagonalSOE::recvSelf(int cTag, Channel &theChannel, 
-		   FEM_ObjectBroker &theBroker)
-{
-  ID idData(1);
-  int res = theChannel.recvID(0, cTag, idData);
-  if (res < 0) {
-    opserr <<"WARNING DistributedProfileSPDLinSOE::recvSelf() - failed to send data\n";
-    return -1;
-  }	      
-  processID = idData(0);
-
-  numChannels = 1;
-  theChannels = new Channel *[1];
-  theChannels[0] = &theChannel;
-
-  localCol = new ID *[numChannels];
-  for (int i=0; i<numChannels; i++)
-    localCol[i] = 0;
-
-  DistributedDiagonalSolver *theDistributedDiagonalSolver = new DistributedDiagonalSolver();
-  if (theDistributedDiagonalSolver->recvSelf(cTag, theChannel, theBroker) < 0) {
-    opserr <<"WARNING DistributedBandgenLinSOE::sendSelf() - failed to recv solver\n";
-    return -1;
-  }
-  theDistributedDiagonalSolver->setLinearSOE(*this);
-  this->setSolver(*theDistributedDiagonalSolver);
-  return 0;
-}
 
 int
 DistributedDiagonalSOE::setChannels(int nChannels, Channel **theC)

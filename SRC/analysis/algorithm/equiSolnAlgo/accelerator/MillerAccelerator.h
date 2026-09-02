@@ -17,19 +17,14 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.1 $
-// $Date: 2008-12-03 23:44:54 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/accelerator/MillerAccelerator.h,v $
-
+//
 // Written: MHS
 // Created: April 2002
-
+//
 // Description: This file contains the class definition for 
 // MillerAccelerator. 
-
-#ifndef MillerAccelerator_h
-#define MillerAccelerator_h
+//
+# pragma once
 
 #include <Accelerator.h>
 #include <IncrementalIntegrator.h>
@@ -45,9 +40,9 @@ class MillerAccelerator: public Accelerator
   int accelerate(Vector &v, LinearSOE &theSOE, 
 		 IncrementalIntegrator &theIntegrator);
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
-  bool updateTangent(void);
+  bool updateTangent();
   
-  int getTangent(void) {return theTangent;}
+  int getTangent() {return theTangent;}
 
   void Print(OPS_Stream &, int flag) const final;
   
@@ -78,5 +73,3 @@ class MillerAccelerator: public Accelerator
   
   int theTangent;
 };
-
-#endif

@@ -16,12 +16,14 @@
 #define ALLOW_IMPLICIT_MATRIX
 #include "frames.hpp"
 #include <utility/Unroll.h>
-#include <ExactFrame3d.h>
-// #define XARA_ExactFrame02
+#include <Exact/ExactFrame3d.h>
+// #define XARA_HAVE_CosseratFrame
 
-#ifdef XARA_ExactFrame02
-#include <ExactFrame02.h>
-#include <ExactFrame3d04.h>
+#ifdef XARA_HAVE_CosseratFrame
+#include <Exact/ExactFrame02.h>
+// Formulations with transformation
+#include <Exact/CosseratFrame3d01.h> // iterative rotations
+#include <Exact/CosseratFrame3d02.h> // incremental rotations
 #endif
 // #include <ExactFrame03.h>
 #include <stdlib.h>
@@ -34,6 +36,7 @@ class CrdTransf;
 Element*
 CreateExactFrame(int tag,
                  int ndf,
+                 const char* name,
                  const std::vector<int>& nodev,
                  std::vector<FrameSection*>& sections,
                  BeamIntegration& beamIntegr,
@@ -48,21 +51,84 @@ CreateExactFrame(int tag,
   Element* element = nullptr;
 
   if (!options.shear_flag) {
-      opserr << OpenSees::PromptValueError 
-              << "ExactFrame3d requires shear formulation"
-              << OpenSees::SignalMessageEnd;
-      return nullptr;
-  }
-  int exact_version = 0;
-  if (getenv("ExactFrame")) {
-    exact_version = atoi(getenv("ExactFrame"));
-  }
-  if ((options.rotation_type != Rotations::Parameters::Iter) && 
-      (options.rotation_type != Rotations::Parameters::None) &&
-      (options.rotation_type != Rotations::Parameters::Init)) {
-    exact_version = 2;
+    opserr << OpenSees::PromptValueError 
+            << "ExactFrame3d requires shear formulation"
+            << OpenSees::SignalMessageEnd;
+    return nullptr;
   }
 
+  //
+  //
+  //
+  enum class ExactFrameElement {
+    Unknown,
+    SimoNoTransformation,
+    SimoWithTransformation,
+    IbraWithTransformation,
+    IbraNoTransformation,
+  } exact_version = ExactFrameElement::Unknown;
+
+  // if (getenv("ExactFrame")) {
+  //   exact_version = atoi(getenv("ExactFrame"));
+  // }
+  if (strcmp(name, "ExactFrame") == 0) {
+    if ((options.rotation_type != Rotations::Parameters::Iter) && 
+        (options.rotation_type != Rotations::Parameters::None) &&
+        (options.rotation_type != Rotations::Parameters::Init)) {
+      exact_version = ExactFrameElement::IbraNoTransformation;
+    }
+    else
+      exact_version = ExactFrameElement::SimoNoTransformation;
+  }
+  else if (strcmp(name, "ExactFrame02") == 0) {
+    exact_version = ExactFrameElement::IbraNoTransformation;
+  }
+  else if ((strcmp(name, "CosseratFrame") == 0) || 
+           (strcmp(name, "CosseratFrame01") == 0)) {
+    exact_version = ExactFrameElement::SimoWithTransformation;
+  }
+  else if (strcmp(name, "CosseratFrame02") == 0) {
+    exact_version = ExactFrameElement::IbraWithTransformation;
+  }
+
+  // Check rotations
+  if (exact_version == ExactFrameElement::SimoNoTransformation) {
+    if ((options.rotation_type != Rotations::Parameters::Iter) &&
+        (options.rotation_type != Rotations::Parameters::None)) {
+      opserr << OpenSees::PromptValueError 
+              << "ExactFrame3d with Simo rotation requires Iter or None rotation type"
+              << OpenSees::SignalMessageEnd;
+    }
+  }
+  else if (exact_version == ExactFrameElement::IbraNoTransformation) {
+    if ((options.rotation_type != Rotations::Parameters::Incr) &&
+        (options.rotation_type != Rotations::Parameters::Init)) {
+      opserr << OpenSees::PromptValueError 
+              << "ExactFrame3d with Ibrahimbegovic rotation requires Incr or Init rotation type"
+              << OpenSees::SignalMessageEnd;
+      switch (options.rotation_type) {
+        case Rotations::Parameters::None:
+          opserr << "None\n";
+          break;
+        case Rotations::Parameters::Iter:
+          opserr << "Iter\n";
+          break;
+        case Rotations::Parameters::Incr:
+          opserr << "Incr\n";
+          break;
+        case Rotations::Parameters::Init:
+          opserr << "Init\n";
+          break;
+      }
+    }
+  }
+  // if (offsets != nullptr &&
+  //     ((exact_version == ExactFrameElement::IbraNoTransformation) || 
+  //      (exact_version == ExactFrameElement::SimoNoTransformation))) {
+  //   opserr << ...
+  // }
+
+  //
   if (sections.size() < nodev.size()-1)
     for (unsigned i = 0; i < nodev.size()-1; ++i)
       sections.push_back(sections[0]);
@@ -81,17 +147,21 @@ CreateExactFrame(int tag,
       Unroll<0,2>([&](auto nwm) constexpr {
         if (nwm.value+6 == ndf) {
           // element = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
-          if (!exact_version) {
+          if (exact_version == ExactFrameElement::SimoNoTransformation) {
             element = new ExactFrame3d<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
             return;
           }
-#ifdef XARA_ExactFrame02
-          else if (exact_version == 2) {
-            element = new ExactFrame02<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf);
+#ifdef XARA_HAVE_CosseratFrame
+          else if (exact_version == ExactFrameElement::IbraNoTransformation) {
+            element = new ExactFrame02<nn.value, nwm.value>(tag, nodes, sections.data(), theTransf, options.rotation_type);
             return;
           }
-          else if (exact_version == 4) {
-            element = new ExactFrame3d04<nn.value, nwm.value>(tag, nodes, sections.data(), tb);
+          else if (exact_version == ExactFrameElement::SimoWithTransformation) {
+            element = new CosseratFrame3d01<nn.value, nwm.value>(tag, nodes, sections.data(), tb);
+            return;
+          }
+          else if (exact_version == ExactFrameElement::IbraWithTransformation) {
+            element = new CosseratFrame3d02<nn.value, nwm.value>(tag, nodes, sections.data(), tb, Rotations::Parameters::Init);
             return;
           }
 #endif

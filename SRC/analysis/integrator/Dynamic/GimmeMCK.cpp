@@ -34,6 +34,8 @@
 #include <AnalysisModel.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
+
+#if 1
 #include <elementAPI.h>
 #define OPS_Export
 
@@ -42,7 +44,6 @@ void *
 OPS_ADD_RUNTIME_VPV(OPS_GimmeMCK)
 {
     // pointer to an integrator that will be returned
-    TransientIntegrator *theIntegrator = 0;
     
     int argc = OPS_GetNumRemainingInputArgs();
     if (argc < 3) {
@@ -65,13 +66,10 @@ OPS_ADD_RUNTIME_VPV(OPS_GimmeMCK)
       }
     }
     
-    theIntegrator = new GimmeMCK(ddata[0], ddata[1], ddata[2], ki);
-    
-    if (theIntegrator == 0)
-        opserr << "WARNING - out of memory creating GimmeMCK integrator\n";
-    
-    return theIntegrator;
+    return new GimmeMCK(ddata[0], ddata[1], ddata[2], ki);
+
 }
+#endif
 
 
 GimmeMCK::GimmeMCK()
@@ -110,7 +108,8 @@ GimmeMCK::~GimmeMCK()
 }
 
 
-int GimmeMCK::newStep(double deltaT)
+int
+GimmeMCK::newStep(double deltaT)
 {
     updateCount = 0;
 
@@ -186,14 +185,15 @@ int GimmeMCK::revertToLastStep()
 }
 
 
-int GimmeMCK::formEleTangent(FE_Element *theEle)
+int
+GimmeMCK::formEleTangent(FE_Element *theEle)
 {
     theEle->zeroTangent();
 
     if (k != 0.0)
       theEle->addKtToTang(k);
     if (ki != 0.0)
-      theEle->addKtToTang(k);
+      theEle->addKiToTang(ki);
     if (c != 0.0)
       theEle->addCtoTang(c);
     if (m != 0.0)
@@ -203,7 +203,8 @@ int GimmeMCK::formEleTangent(FE_Element *theEle)
 }
 
 
-int GimmeMCK::formNodTangent(DOF_Group *theDof)
+int
+GimmeMCK::formNodTangent(DOF_Group *theDof)
 {
     theDof->zeroTangent();
 
@@ -216,7 +217,8 @@ int GimmeMCK::formNodTangent(DOF_Group *theDof)
 }
 
 
-int GimmeMCK::domainChanged()
+int
+GimmeMCK::domainChanged()
 {
     LinearSOE *theLinSOE = this->getLinearSOE();
     const Vector &x = theLinSOE->getX();

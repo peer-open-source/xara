@@ -17,8 +17,8 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-// 
-// Written: fmk 
+//
+// Written: fmk
 // Created: Sun Sept 15 11:47:47: 1996
 // Revision: A
 //
@@ -41,13 +41,13 @@
 DOF_Graph::~DOF_Graph()
 {
 
-}    
+}
 
 // constructs the Graph
 // assumes eqn numbers are numbered continuously from START_EQN_NUM
 
 DOF_Graph::DOF_Graph(AnalysisModel &theModel)
-:Graph(theModel.getNumEqn()), 
+:Graph(theModel.getNumEqn()),
  myModel(theModel)
 {
 
@@ -55,23 +55,23 @@ DOF_Graph::DOF_Graph(AnalysisModel &theModel)
     int numVertex = myModel.getNumEqn();
 
     if (numVertex <= 0) {
-	opserr << "WARNING DOF_Graph::DOF_Graph";
-	opserr << "  - 0 equations?\n";
-	return;
-    }	
+  opserr << "WARNING DOF_Graph::DOF_Graph";
+  opserr << "  - 0 equations?\n";
+  return;
+    }
 
     // now create the vertices with a reference equal to the eqn number.
-    // and a tag which ranges from START_VERTEX_NUM through 
+    // and a tag which ranges from START_VERTEX_NUM through
 
     for (int i =0; i<numVertex; i++) {
-	Vertex *vertexPtr = new Vertex(i, i);
-	
-	if (vertexPtr == 0) {
-	    opserr << "WARNING DOF_Graph::DOF_Graph";
-	    opserr << " - Not Enough Memory to create " << i+1 << "th Vertex\n";
-	    return;
-	}
-	this->addVertex(vertexPtr,false);	
+  Vertex *vertexPtr = new Vertex(i, i);
+
+  if (vertexPtr == 0) {
+      opserr << "WARNING DOF_Graph::DOF_Graph";
+      opserr << " - Not Enough Memory to create " << i+1 << "th Vertex\n";
+      return;
+  }
+  this->addVertex(vertexPtr,false);
     }
     *****************************************************************************/
 
@@ -99,27 +99,26 @@ DOF_Graph::DOF_Graph(AnalysisModel &theModel)
   }
 
   // now add the edges, by looping over the FE_elements, getting their
-  // IDs and adding edges between DOFs for equation numbers >= START_EQN_NUM 
+  // IDs and adding edges between DOFs for equation numbers >= START_EQN_NUM
   FE_Element *elePtr =nullptr;
   FE_EleIter &eleIter = myModel.getFEs();
   int cnt = 0;
-  while((elePtr = eleIter()) != nullptr) {
+  while ((elePtr = eleIter()) != nullptr) {
     const ID &id = elePtr->getID();
     cnt++;
     int size = id.Size();
-    for (int i=0; i<size; i++) {
+    for (int i = 0; i < size; i++) {
       int eqn1 = id(i);
-	    
+
       // if eqnNum of DOF is a valid eqn number add an edge
       // to all other DOFs with valid eqn numbers.
-      
-      if (eqn1 >=START_EQN_NUM) {
-	for (int j=i+1; j<size; j++) {
-	  int eqn2 = id(j);
-	  if (eqn2 >=START_EQN_NUM)
-	    this->addEdge(eqn1-START_EQN_NUM+START_VERTEX_NUM,
-			  eqn2-START_EQN_NUM+START_VERTEX_NUM);
-	}
+      if (eqn1 >= START_EQN_NUM) {
+        for (int j = i + 1; j < size; j++) {
+          int eqn2 = id(j);
+          if (eqn2 >= START_EQN_NUM && eqn1 != eqn2)
+            this->addEdge(eqn1 - START_EQN_NUM + START_VERTEX_NUM,
+                          eqn2 - START_EQN_NUM + START_VERTEX_NUM);
+        }
       }
     }
   }

@@ -28,9 +28,6 @@
 #ifndef DispBeamColumn2dThermal_h
 #define DispBeamColumn2dThermal_h
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 
 #include <Element.h>
 #include <Matrix.h>
@@ -54,23 +51,22 @@ class DispBeamColumn2dThermal : public Element
     DispBeamColumn2dThermal();
     ~DispBeamColumn2dThermal();
 
-    const char *getClassType(void) const {return "DispBeamColumn2dThermal";};
-    static constexpr const char* class_name = "DispBeamColumn2dThermal";
+    const char *getClassType() const {return "DispBeamColumn2dThermal";}
 
-    int getNumExternalNodes(void) const;
-    const ID &getExternalNodes(void);
-    Node **getNodePtrs(void);
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes();
+    Node **getNodePtrs();
 
-    int getNumDOF(void);
+    int getNumDOF();
     void setDomain(Domain *theDomain);
 
     // public methods to set the state of the element    
-    int commitState(void);
-    int revertToLastCommit(void);
-    int revertToStart(void);
+    int commitState();
+    int revertToLastCommit();
+    int revertToStart();
 
     // public methods to obtain stiffness, mass, damping and residual information    
-    int update(void);
+    int update();
     const Matrix &getTangentStiff(void);
     const Matrix &getInitialStiff(void);
     const Matrix &getMass(void);
@@ -89,7 +85,7 @@ class DispBeamColumn2dThermal : public Element
     int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker 
 		  &theBroker);
 
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInfo);

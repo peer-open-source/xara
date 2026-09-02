@@ -73,26 +73,26 @@ extern "C" int OPS_ResetInputNoBuilder(ClientData,
                                        TCL_Char ** const argv, Domain *);
 
 Tcl_CmdProc TclCommand_record;
-Tcl_CmdProc TclCommand_setLoadConst;
-Tcl_CmdProc TclCommand_setCreep;
+Tcl_CmdProc XaraCmd_setLoadConst;
+Tcl_CmdProc XaraCmd_setCreep;
 
 namespace {
 static struct {
   const char *name;
   int (*func)(ClientData, Tcl_Interp *, Tcl_Size, TCL_Char ** const);
 } domainCommands[] = {
-  {"loadConst",           &TclCommand_setLoadConst},
+  {"loadConst",           &XaraCmd_setLoadConst},
   {"recorder",            &TclAddRecorder},
   {"region",              &TclCommand_addMeshRegion},
 
   {"printGID",            &printModelGID},
 
-  {"setTime",             &TclCommand_setTime},
-  {"getTime",             &TclCommand_getTime},
-  {"setCreep",            &TclCommand_setCreep},
+  {"setTime",             &XaraCmd_setTime},
+  {"getTime",             &XaraCmd_getTime},
+  {"setCreep",            &XaraCmd_setCreep},
 
   // DAMPING
-  {"rayleigh",            &TclCommand_rayleighDamping},
+  {"rayleigh",            &XaraCmd_rayleigh},
   
   {"getLoadFactor",       &XaraCmd_getLoadFactor},
 
@@ -102,31 +102,30 @@ static struct {
   {"basicStiffness",      &basicStiffness},
 
 
-  {"nodeDOFs",            &nodeDOFs},
-  {"nodeCoord",           &nodeCoord},
-  {"nodeMass",            &nodeMass},
-  {"nodeVel",             &nodeVel},
-  {"nodeDisp",            &nodeDisp},
-  {"nodeAccel",           &nodeAccel},
-  {"nodeResponse",        &nodeResponse},
-  {"nodePressure",        &nodePressure},
-  {"nodeBounds",          &nodeBounds},
-  {"findNodeWithID",      &findID},
-  {"nodeUnbalance",       &nodeUnbalance},
-  {"nodeEigenvector",     &nodeEigenvector},
-  {"nodeReaction",        &nodeReaction},
+  {"nodeDOFs",            &XaraCmd_nodeDOFs},
+  {"nodeCoord",           &XaraCmd_nodeCoord},
+  {"nodeMass",            &XaraCmd_nodeMass},
+  {"nodeVel",             &XaraCmd_nodeVel},
+  {"nodeDisp",            &XaraCmd_nodeDisp},
+  {"nodeAccel",           &XaraCmd_nodeAccel},
+  {"nodeResponse",        &XaraCmd_nodeResponse},
+  {"nodePressure",        &XaraCmd_nodePressure},
+  {"nodeBounds",          &XaraCmd_nodeBounds},
+  {"findNodeWithID",      &XaraCmd_findID},
+  {"nodeUnbalance",       &XaraCmd_nodeUnbalance},
+  {"nodeEigenvector",     &XaraCmd_nodeEigenvector},
+  {"nodeReaction",        &XaraCmd_nodeReaction},
 
   {"reactions",           &XaraCmd_reactions},
 
-  {"setNodeVel",          &setNodeVel},
-  {"setNodeDisp",         &setNodeDisp},
-  {"setNodeAccel",        &setNodeAccel},
+  {"setNodeVel",          &XaraCmd_setNodeVel},
+  {"setNodeDisp",         &XaraCmd_setNodeDisp},
+  {"setNodeAccel",        &XaraCmd_setNodeAccel},
   {"setNodeCoord",        &XaraCmd_setNodeCoord},
-  {"setNodePressure",     &setNodePressure},
+  {"setNodePressure",     &XaraCmd_setNodePressure},
 
-  {"nodeRotation",        &nodeRotation},
-  {"getNodeTags",         &getNodeTags},
-
+  {"nodeRotation",        &XaraCmd_nodeRotation},
+  {"getNodeTags",         &XaraCmd_getNodeTags},
 
 
   {"getParamTags",        &getParamTags},
@@ -171,7 +170,7 @@ static struct {
 
 
 static int 
-TclCommand_BadDomainCommand(ClientData, Tcl_Interp* interp, 
+XaraCmd_BadDomainCommand(ClientData, Tcl_Interp* interp, 
                             Tcl_Size argc, 
                             TCL_Char** const argv)
 {
@@ -187,7 +186,7 @@ RemoveTclDomainCommands(Tcl_Interp* interp)
 {
   for (size_t i = 0; i < sizeof(domainCommands) / sizeof(domainCommands[0]); ++i) {
     // Tcl_DeleteCommand(interp, domainCommands[i].name);
-    Tcl_CreateCommand(interp, domainCommands[i].name,  &TclCommand_BadDomainCommand, nullptr, nullptr);
+    Tcl_CreateCommand(interp, domainCommands[i].name,  &XaraCmd_BadDomainCommand, nullptr, nullptr);
   }
   return 0;
 }
@@ -346,7 +345,7 @@ InitialStateAnalysis(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
 }
 
 int
-TclCommand_rayleighDamping(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_rayleigh(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                 TCL_Char ** const argv)
 {
   //

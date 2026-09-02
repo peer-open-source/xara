@@ -36,7 +36,8 @@
 
 
 FullGenLinLapackSolver::FullGenLinLapackSolver()
-:FullGenLinSolver(SOLVER_TAGS_FullGenLinLapackSolver),iPiv(0),sizeIpiv(0),det(1.0)
+:FullGenLinSolver(SOLVER_TAGS_FullGenLinLapackSolver),
+ iPiv(0),sizeIpiv(0),det(1.0)
 {
     
 }
@@ -46,6 +47,14 @@ FullGenLinLapackSolver::~FullGenLinLapackSolver()
   if (iPiv != nullptr)
     delete [] iPiv;
 }
+
+int 
+FullGenLinLapackSolver::setLinearSOE(FullGenLinSOE &theFullGenSOE)
+{
+  theSOE = &theFullGenSOE;
+  return 0;
+}
+
 
 void
 FullGenLinLapackSolver::setDeterminant()
@@ -73,6 +82,12 @@ FullGenLinLapackSolver::getDeterminant()
 int
 FullGenLinLapackSolver::solve()
 {
+  return this->solve(theSOE->getB(), theSOE->X);
+}
+
+int
+FullGenLinLapackSolver::solve(const Vector& vecB, Vector& vecX)
+{
   assert(theSOE != nullptr);
   
   int n = theSOE->size;
@@ -80,8 +95,6 @@ FullGenLinLapackSolver::solve()
   // check for quick return
   if (n == 0)
     return 0;
-  // else if (n <= 6)
-  //   return theSOE->matA->rSolve(theSOE->B, theSOE->X);
   
   // check iPiv is large enough
   assert(!(sizeIpiv < n));
@@ -91,14 +104,14 @@ FullGenLinLapackSolver::solve()
   int ldB = n;
   int info;
   double *Aptr = theSOE->A;
-  double *Xptr = &theSOE->X[0];
-  double *Bptr = &theSOE->B[0];
+  double *Xptr = &vecX[0];
+  const double *Bptr = &vecB(0);
   int *iPIV = iPiv;
-  
+
   // first copy B into X
   for (int i=0; i<n; i++)
     *(Xptr++) = *(Bptr++);
-  Xptr = &theSOE->X[0];
+  Xptr = &vecX[0];
 
   //
   // now solve AX = Y
@@ -147,24 +160,6 @@ FullGenLinLapackSolver::setSize()
   } else if (n == 0)
     return 0;
 
-  return 0;
-}
-
-
-int
-FullGenLinLapackSolver::sendSelf(int commitTag,
-                     Channel &theChannel)
-{
-  // nothing to do
-  return 0;
-}
-
-int
-FullGenLinLapackSolver::recvSelf(int commitTag,
-                     Channel &theChannel, 
-                     FEM_ObjectBroker &theBroker)
-{
-  // nothing to do
   return 0;
 }
 

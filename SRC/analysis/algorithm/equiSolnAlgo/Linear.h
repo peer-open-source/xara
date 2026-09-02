@@ -18,11 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
-// $Revision: 1.4 $
-// $Date: 2006-09-05 23:02:11 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/Linear.h,v $
-                                                                        
-                                                                        
 // File: ~/OOP/analysis/algorithm/Linear.h 
 // 
 // Written: fmk 
@@ -35,10 +30,7 @@
 // to solve the equations.
 // 
 // What: "@(#)Linear.h, revA"
-
-#ifndef Linear_h
-#define Linear_h
-
+#pragma once
 #include <EquiSolnAlgo.h>
 
 class Linear: public EquiSolnAlgo
@@ -47,18 +39,10 @@ public:
   Linear(int theTangent = CURRENT_TANGENT, int factorOnce = 0);
   ~Linear();
 
-  int solveCurrentStep(void);
-
-  virtual int sendSelf(int commitTag, Channel &);
-  virtual int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &);
-  
+  int solveCurrentStep() final;
   void Print(OPS_Stream &, int flag) const final;    
 
 private:
   int incrTangent;
   int factorOnce;
 };
-
-#endif
-
-

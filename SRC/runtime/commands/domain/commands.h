@@ -18,25 +18,28 @@
 // NODES
 //
 // domain/node.cpp
-Tcl_CmdProc nodeCoord;
-Tcl_CmdProc nodeDOFs;
-Tcl_CmdProc nodeMass;
-Tcl_CmdProc nodePressure;
-Tcl_CmdProc nodeDisp;
-Tcl_CmdProc nodeVel;
-Tcl_CmdProc nodeAccel;
-Tcl_CmdProc nodeReaction;
-Tcl_CmdProc nodeUnbalance;
-Tcl_CmdProc nodeEigenvector;
-Tcl_CmdProc nodeRotation;
+Tcl_CmdProc XaraCmd_nodeCoord;
+Tcl_CmdProc XaraCmd_nodeDOFs;
+Tcl_CmdProc XaraCmd_nodeMass;
+Tcl_CmdProc XaraCmd_nodePressure;
+Tcl_CmdProc XaraCmd_nodeDisp;
+Tcl_CmdProc XaraCmd_nodeVel;
+Tcl_CmdProc XaraCmd_nodeAccel;
+Tcl_CmdProc XaraCmd_nodeReaction;
+Tcl_CmdProc XaraCmd_nodeUnbalance;
+Tcl_CmdProc XaraCmd_nodeEigenvector;
+Tcl_CmdProc XaraCmd_nodeRotation;
+Tcl_CmdProc XaraCmd_nodeResponse;
 // setters
 Tcl_CmdProc XaraCmd_setNodeCoord;
-Tcl_CmdProc setNodeDisp;
-Tcl_CmdProc setNodeVel;
-Tcl_CmdProc setNodeAccel;
-Tcl_CmdProc setNodePressure;
+Tcl_CmdProc XaraCmd_setNodeDisp;
+Tcl_CmdProc XaraCmd_setNodeVel;
+Tcl_CmdProc XaraCmd_setNodeAccel;
+Tcl_CmdProc XaraCmd_setNodePressure;
 // other
-Tcl_CmdProc nodeBounds;
+Tcl_CmdProc XaraCmd_nodeBounds;
+Tcl_CmdProc XaraCmd_findID;
+Tcl_CmdProc XaraCmd_getNodeTags;
 
 
 // domain/region.cpp
@@ -111,10 +114,10 @@ Tcl_CmdProc TclCommand_sensitivityAlgorithm;
 
 // Tcl_CmdProc startTimer;
 // Tcl_CmdProc stopTimer;
-Tcl_CmdProc TclCommand_getTime;
-Tcl_CmdProc TclCommand_setTime;
+Tcl_CmdProc XaraCmd_getTime;
+Tcl_CmdProc XaraCmd_setTime;
 
-Tcl_CmdProc TclCommand_rayleighDamping;
+Tcl_CmdProc XaraCmd_rayleigh;
 
 Tcl_CmdProc modalDamping;
 
@@ -157,15 +160,11 @@ Tcl_CmdProc getEleLoadClassTags;
 Tcl_CmdProc getEleLoadTags;
 
 
-Tcl_CmdProc findID;
 
 
 
 //
 
-Tcl_CmdProc nodeResponse;
-
 Tcl_CmdProc XaraCmd_reactions;
 
-Tcl_CmdProc getNodeTags;
 Tcl_CmdProc retainedNodes;

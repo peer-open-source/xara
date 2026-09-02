@@ -130,106 +130,13 @@ extern "C" void    dCreate_Dense_Matrix(SuperMatrix *, int, int, double *, int,
 */
 
 int
-SuperLU::solve()
-{
-  assert(theSOE != nullptr);
-
-  int n = theSOE->size;
-
-  // check for quick return
-  if (n == 0)
-    return 0;
-
-  if (sizePerm == 0) {
-    // opserr << "WARNING SuperLU::solve(void)- ";
-    // opserr << " size for row and col permutations 0 - has setSize() been called?\n";
-    return -1;
-  }
-
-    /*
-    DataFileStream dataStream("K.txt");
-    dataStream.open();
-    dataStream << n << " " << theSOE->nnz-n << endln;
-
-    // output diagonal entries
-    for (int i=0; i<n; i++) 
-      for (int j=theSOE->colStartA[i]; j<theSOE->colStartA[i+1]; j++)
-        if (theSOE->rowA[j] == i)
-          dataStream << theSOE->A[j] << endln;
-
-    // rowA - diagonals
-    for (int i=0; i<=n; i++) 
-      dataStream << theSOE->colStartA[i]-i+1 << endln; 
-
-    for (int i=0; i<n; i++) 
-      for (int j=theSOE->colStartA[i]; j<theSOE->colStartA[i+1]; j++)
-        if (theSOE->rowA[j] != i)
-          dataStream << theSOE->rowA[j]+1 << endln;
-
-    for (int i=0; i<n; i++) 
-      for (int j=theSOE->colStartA[i]; j<theSOE->colStartA[i+1]; j++)
-        if (theSOE->rowA[j] != i)
-          dataStream << theSOE->A[j] << endln;
-    dataStream.close();
-    */
-
-  // first copy B into X
-  double *Xptr = &theSOE->X[0];
-  double *Bptr = &theSOE->B[0];
-  for (int i=0; i<n; i++)
-    *(Xptr++) = *(Bptr++);
-
-  GlobalLU_t Glu; /* Not needed on return. */
-
-  if (theSOE->factored == false) {
-    // factor the matrix
-    int info;
-
-    if ((L.ncol != 0) && (symmetric == 'N')) {
-      Destroy_SuperNode_Matrix(&L);
-      Destroy_CompCol_Matrix(&U);          
-    }
-
-    dgstrf(&options, &AC, relax, panelSize,
-          etree, NULL, 0, perm_c, perm_r, &L, &U, &Glu, &stat, &info);
-
-
-    if (info != 0) {        
-      // opserr << "WARNING SuperLU::solve(void)- ";
-      // opserr << " Error " << info << " returned in factorization dgstrf()\n";
-      return -info;
-    }
-
-    if (symmetric == 'Y')
-      options.Fact= SamePattern_SameRowPerm;
-    else
-      options.Fact = SamePattern;
-    
-    theSOE->factored = true;
-  }        
-
-  // do forward and backward substitution
-  trans_t trans = NOTRANS;
-  int info;
-  dgstrs (trans, &L, &U, perm_c, perm_r, &B, &stat, &info);    
-
-  if (info != 0) {        
-    // opserr << "WARNING SuperLU::solve(void)- ";
-    // opserr << " Error " << info << " returned in substitution dgstrs()\n";
-    return -info;
-  }
-
-  return 0;
-}
-
-
-
-
-int
 SuperLU::setSize()
 {
   int n = theSOE->size;
-  if (n > 0) {
+  if (n == 0)
+    return 0;
+
+  else if (n > 0) {
     // create space for the permutation vectors 
     // and the elimination tree
     if (sizePerm < n) {
@@ -259,11 +166,10 @@ SuperLU::setSize()
 
     // obtain and apply column permutation to give SuperMatrix AC
     get_perm_c(permSpec, &A, perm_c);
-
     sp_preorder(&options, &A, perm_c, etree, &AC);
 
-    // create the rhs SuperMatrix B 
-    dCreate_Dense_Matrix(&B, n, 1, &theSOE->X[0], n, SLU_DN, SLU_D, SLU_GE);
+    // // create the rhs SuperMatrix B 
+    // dCreate_Dense_Matrix(&B, n, 1, &theSOE->X[0], n, SLU_DN, SLU_D, SLU_GE);
       
     // set the refact variable to 'N' after first factorization with new size 
     // can set to 'Y'.
@@ -271,9 +177,7 @@ SuperLU::setSize()
 
     if (symmetric == 'Y')
       options.SymmetricMode=YES;
-
-  } else if (n == 0)
-    return 0;
+  }
   else {
     // opserr << "WARNING SuperLU::setSize()";
     // opserr << " - order of system <  0\n";
@@ -283,32 +187,85 @@ SuperLU::setSize()
   return 0;
 }
 
-int
-SuperLU::sendSelf(int cTag, Channel &theChannel)
-{
-  // nothing to do
-  return 0;
-}
+
 
 int
-SuperLU::recvSelf(int ctag,
-                  Channel &theChannel, 
-                  FEM_ObjectBroker &theBroker)
+SuperLU::solve()
 {
-  // nothing to do
-  return 0;
+  return this->solve(theSOE->getB(), theSOE->X);
 }
 
 
+int
+SuperLU::solve(const Vector& vecB, Vector& vecX)
+{
+  assert(theSOE != nullptr);
+
+  int n = theSOE->size;
+
+  // check for quick return
+  if (n == 0)
+    return 0;
+
+  if (sizePerm == 0) {
+    // opserr << "WARNING SuperLU::solve(void)- ";
+    // opserr << " size for row and col permutations 0 - has setSize() been called?\n";
+    return -1;
+  }
+
+  // first copy B into X
+  double *Xptr = &vecX(0);
+  const double *Bptr = &vecB(0);
+  for (int i=0; i<n; i++)
+    *(Xptr++) = *(Bptr++);
+
+  Xptr = &vecX(0);
+
+  // create the rhs SuperMatrix B 
+  dCreate_Dense_Matrix(&B, n, 1, &vecX(0), n, SLU_DN, SLU_D, SLU_GE);
+
+  GlobalLU_t Glu; /* Not needed on return. */
+
+  if (theSOE->factored == false) {
+    // factor the matrix
+    int info;
+
+    if ((L.ncol != 0) && (symmetric == 'N')) {
+      Destroy_SuperNode_Matrix(&L);
+      Destroy_CompCol_Matrix(&U);          
+    }
+
+    dgstrf(&options, &AC, relax, panelSize,
+           etree, NULL, 0, perm_c, perm_r, &L, &U, &Glu, &stat, &info);
 
 
+    if (info != 0) {        
+      // opserr << "WARNING SuperLU::solve(void)- ";
+      // opserr << " Error " << info << " returned in factorization dgstrf()\n";
+      return -info;
+    }
 
+    if (symmetric == 'Y')
+      options.Fact= SamePattern_SameRowPerm;
+    else
+      options.Fact = SamePattern;
+    
+    theSOE->factored = true;
+  }        
 
+  // do forward and backward substitution
+  trans_t trans = NOTRANS;
+  int info;
+  dgstrs(trans, &L, &U, perm_c, perm_r, &B, &stat, &info);    
 
+  if (info != 0) {
+    // opserr << "WARNING SuperLU::solve(void)- ";
+    // opserr << " Error " << info << " returned in substitution dgstrs()\n";
+    return -info;
+  }
 
-
-
-
+  return 0;
+}
 
 
 

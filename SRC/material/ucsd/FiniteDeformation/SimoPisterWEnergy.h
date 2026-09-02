@@ -29,7 +29,7 @@
 #define SimoPisterWEnergy_H
 
 #include <Vector.h>
-#include <Tensor.h>
+// #include <Tensor.h>
 #include <Channel.h>
 #include <OPS_Globals.h>
 #include <W.h>
@@ -41,7 +41,7 @@ class SimoPisterWEnergy : public WEnergy
   private:
     double K;
   public:
-    SimoPisterWEnergy( double  );
+    SimoPisterWEnergy(double);
     SimoPisterWEnergy(  );
     ~SimoPisterWEnergy( ) ;
     WEnergy *copy( );

@@ -17,20 +17,14 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.1 $
-// $Date: 2007-10-26 03:56:45 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/accelerator/RaphsonAccelerator.h,v $
-
+//
 // Written: MHS
 // Created: April 2002
-
+//
 // Description: This file contains the class definition for 
 // RaphsonAccelerator. 
-
-#ifndef RaphsonAccelerator_h
-#define RaphsonAccelerator_h
-
+//
+#pragma once
 #include "Accelerator.h"
 #include <IncrementalIntegrator.h>
 
@@ -44,15 +38,12 @@ class RaphsonAccelerator: public Accelerator
   int accelerate(Vector &v, LinearSOE &theSOE, 
 		 IncrementalIntegrator &theIntegrator);
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& updated);
-  bool updateTangent(void) {return true;}
+  bool updateTangent() override {return true;}
 
-  int getTangent(void) {return theTangent;}
+  int getTangent() override {return theTangent;}
 
   void Print(OPS_Stream &, int flag) const final;
-  
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);
+
 
  private:
   // Flag indicating which tangent to form
@@ -63,5 +54,3 @@ class RaphsonAccelerator: public Accelerator
   // Total number of iterations for the time step
   int totalIter;
 };
-
-#endif

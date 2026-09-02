@@ -17,21 +17,16 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1 $
-// $Date: 2007-10-26 03:49:05 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/accelerator/Accelerator.cpp,v $
-                                                                        
+//
 // Written: MHS
 // Created: April 2002
-
+//
 // Description: This file contains the class implementation for 
 // Accelerator. 
-
+//
 #include <Accelerator.h>
 
 Accelerator::Accelerator(int classTag)
-: MovableObject(classTag)
 {
 
 }

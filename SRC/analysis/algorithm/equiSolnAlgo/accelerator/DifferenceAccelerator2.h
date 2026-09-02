@@ -17,14 +17,10 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $Source$
-
+//
 // Written: MHS
 // Created: April 2002
-
+//
 // Description: This file contains the class definition for 
 // DifferenceAccelerator2. 
 

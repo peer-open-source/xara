@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1 $
-// $Date: 2008-12-03 23:44:54 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/accelerator/MillerAccelerator.cpp,v $
-                                                                        
+//
 // Written: MHS
 // Created: April 2002
 
@@ -105,9 +101,10 @@ extern "C" int naccel_(int *n, int *itr, int *mvec,
 
 #endif
 
+
 int
 MillerAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE, 
-			      IncrementalIntegrator &theIntegrator)
+                              IncrementalIntegrator &theIntegrator)
 {
   // Vector for fData
   Vector fVec(fData, numEqns);
@@ -187,7 +184,7 @@ MillerAccelerator::updateTangent(IncrementalIntegrator &theIntegrator, bool& fac
 }
 
 bool
-MillerAccelerator::updateTangent(void)
+MillerAccelerator::updateTangent()
 {
   if (dimension >= maxDimension) {
     dimension = 0;

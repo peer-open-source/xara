@@ -856,6 +856,7 @@ GeneralizedNewmark::formSensitivityRHS(int passedGradNumber)
   return 0;
 }
 
+
 int 
 GeneralizedNewmark::formIndependentSensitivityRHS()
 {

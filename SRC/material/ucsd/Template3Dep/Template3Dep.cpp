@@ -1,66 +1,31 @@
 /*
-
 ################################################################################
-
 # COPYRIGHT (C):     :-))                                                      #
-
 # PROJECT:           Object Oriented Finite Element Program                    #
-
 # PURPOSE:           General platform for elaso-plastic constitutive model     #
-
 #                    implementation                                            #
-
 # CLASS:             Template3Dep (the base class for all material point)     #
-
 #                                                                              #
-
 # VERSION:                                                                     #
-
 # LANGUAGE:          C++.ver >= 2.0 ( Borland C++ ver=3.00, SUN C++ ver=2.1 )  #
-
 # TARGET OS:         DOS || UNIX || . . .                                      #
-
 # DESIGNER(S):       Boris Jeremic, Zhaohui Yang                               #
-
 # PROGRAMMER(S):     Boris Jeremic, Zhaohui Yang                               #
-
 #                                                                              #
-
 #                                                                              #
-
 # DATE:              08-03-2000                                                #
-
 # UPDATE HISTORY:    09-12-2000						       #
-
 #		     May 2004, Zhao Cheng splitting the elastic part	         #
-
 #                    Oct. 2004 Zhao Cheng, small addition for u-p-U modeling   #
-
 #                    Mar. 2005 Guanzhou updated constitutive driver to be      #
-
 #	                       compatible with global Newton-Raphson iterations#                                                         #
-
 #                              BackwardEuler has been corrected                #
-
 #                                                                              #
-
 # SHORT EXPLANATION: This file contains the class implementation for           #
-
 #                    Template3Dep.                                             #
-
 #                                                                              #
-
 ################################################################################
-
 */
-
-
-
-#ifndef Template3Dep_CPP
-
-#define Template3Dep_CPP
-
-
 
 #define ITMAX 30
 
@@ -6456,93 +6421,25 @@ EPState Template3Dep::FESubIncrementation( const straintensor & strain_increment
 
     straintensor total_strain = elastic_subincremental_strain;
 
-    //elastic_subincremental_stress.reportshort("SUB INCREMENT in stresses\n");
-
-    //opserr << "INCREMENT strain " << strain_increment << endlnn ;
-
-    //opserr << "SUB INCREMENT strain " << elastic_subincremental_strain << endlnn ;
-
-
-
     for( int steps=0 ; steps < number_of_subincrements ; steps++ ){
 
+      //start_stress.reportshort("START stress\n");
 
-
-        //start_stress.reportshort("START stress\n");
-
-        FESI_EPS = ForwardEulerEPState( elastic_subincremental_strain);
-
-
-
-  // Update the EPState in Template3Dep
-
-  this->setEPS( FESI_EPS );
+      FESI_EPS = ForwardEulerEPState( elastic_subincremental_strain);
 
 
 
-        back_stress = FESI_EPS.getStress();
+      // Update the EPState in Template3Dep
 
-  //opserr.unsetf(ios::showpos);
+      this->setEPS( FESI_EPS );
 
-  //opserr << setw(4);
-
-        //opserr << "Step No. " << steps << "  ";
-
-
-
-  //opserr.setPrecision(SCIENTIFIC);
-
-  //opserr.precision(3);
-
-
-
-  // opserr
-
-  // opserr.setf(ios::showpos);
-
-  // opserr.precision(3);
-
-
-
-  //opserr << setw(7);
-
-  //opserr << "p " << back_stress.p_hydrostatic() << "  ";
-
-  //opserr << setw(7);
-
-  //opserr << "q " << back_stress.q_deviatoric() << "  ";
-
-  //opserr << setw(7);
-
-  //opserr << " theta " << back_stress.theta() << "  ";
-
-  //opserr << setw(7);
-
-  //opserr << "alfa1 " << FESI_EPS.getScalarVar(1) << "  ";
-
-  //opserr << setw(7);
-
-  //opserr << "f = " << getYS()->f( &FESI_EPS ) << endlnn;
-
-
-
-        //begin_stress = back_stress;
-
-        //total_strain = total_strain + elastic_subincremental_strain;
-
-
+      back_stress = FESI_EPS.getStress();
 
      }
 
+   this->setEPS( old_EPS );
 
-
-     //    ::fprintf(stderr,"}");
-
-     this->setEPS( old_EPS );
-
-     return FESI_EPS;
-
-
+   return FESI_EPS;
 
 }
 
@@ -6623,56 +6520,6 @@ EPState Template3Dep::BESubIncrementation( const straintensor & strain_increment
           opserr << "Template3Dep::BESubIncrementation  failed to converge at " << steps << "th(of "
 
      << number_of_subincrements << "step sub-BackwardEuler Algor.\n";
-
-    //exit(1);
-
-          //g3ErrorHandler->fatal("Template3Dep::BESubIncrementation  failed to converge using %d step sub-BackwardEuler Algor.", number_of_subincrements );
-
-    //exit(1);
-
-
-
-        //back_stress = BESI_EPS.getStress();
-
-  //opserr.unsetf(ios::showpos);
-
-  //opserr << setw(4);
-
-        //opserr << "Step No. " << steps << "  ";
-
-  //
-
-  //opserr.setf(ios::scientific);
-
-  //opserr.setf(ios::showpos);
-
-  //opserr.precision(3);
-
-  //opserr << setw(7);
-
-  //opserr << " back-stress  p " << back_stress.p_hydrostatic() << "  ";
-
-  //opserr << setw(7);
-
-  //opserr << "q " << back_stress.q_deviatoric() << "  ";
-
-  //opserr << setw(7);
-
-  //opserr << "alfa1 " << BESI_EPS.getScalarVar(1) << "  ";
-
-  //opserr << setw(7);
-
-  //opserr << "f = " << MP->YS->f( &BESI_EPS ) << "  "<< endlnn;
-
-
-
-
-
-    //  opserr.setf(ios::scientific);
-
-    // opserr.setf(ios::showpos);
-
-    // opserr.precision(3);
 
   opserr.width(7);
 
@@ -7569,26 +7416,3 @@ OPS_Stream& operator<< (OPS_Stream& os, const Template3Dep & MP)
 //}
 
 //
-
-#endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

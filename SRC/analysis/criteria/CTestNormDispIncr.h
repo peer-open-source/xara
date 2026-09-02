@@ -27,8 +27,7 @@
 // Date: 09/98
 // Modified: 05/05 ahs
 //
-#ifndef CTestNormDispIncr_h
-#define CTestNormDispIncr_h
+#pragma once
 
 #include <ConvergenceTest.h>
 class EquiSolnAlgo;
@@ -38,8 +37,6 @@ class LinearSOE;
 class CTestNormDispIncr: public ConvergenceTest
 {
 public:
-    // constructors
-    CTestNormDispIncr();
     CTestNormDispIncr(double tol, int maxNumIter, int printFlag, int normType=2, double maxTol = OPS_MAXTOL);
 
     ~CTestNormDispIncr();
@@ -72,5 +69,3 @@ private:
     int nType;          // type of norm to use (1-norm, 2-norm, p-norm, max-norm)
     Vector norms;       // vector to hold the norms
 };
-
-#endif

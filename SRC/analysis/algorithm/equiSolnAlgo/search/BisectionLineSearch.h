@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.3 $
-// $Date: 2003-02-14 23:00:42 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/BisectionLineSearch.h,v $
-
+//
 // Written: fmk 
 // Created: 11/01
 
@@ -42,13 +38,11 @@
 //      if s(eta(j+1))*s(l) < 0 { eta(u) = eta(j+1) and s(u) = s(eta(j+1))
 //      if s(eta(j+1))*s(u) < 0 { eta(l) = eta(j+1) and s(l) = s(eta(j+1))
 //      if s(eta(j+1))*s(u) == 0  SOLN FOUND.
-
-#ifndef BisectionLineSearch_h
-#define BisectionLineSearch_h
+#pragma once
 
 #include <LineSearch.h>
 class Vector;
-//class OPS_Stream; //Jeremic@ucdavis.edu taken out since there is an include<iOPS_Stream.h> in LineSearch.h
+class OPS_Stream;
 
 class BisectionLineSearch: public LineSearch
 {
@@ -79,7 +73,4 @@ class BisectionLineSearch: public LineSearch
     double maxEta;
     int    printFlag;
 };
-
-#endif
-
 

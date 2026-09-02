@@ -17,19 +17,14 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.4 $
-// $Date: 2009-05-11 20:58:23 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/profileSPD/ProfileSPDLinSOE.h,v $
-                                                                        
-                                                                        
+//
 // Written: fmk 
 // Revision: A
 //
 // Description: This file contains the class definition for ProfileSPDLinSOE
 // ProfileSPDLinSOE is a subclass of LinearSOE. It uses the LAPACK Upper storage
 // scheme to store the components of the A matrix.
-
+//
 // What: "@(#) ProfileSPDLinSOE.h, revA"
 
 #ifndef SProfileSPDLinSOE_h
@@ -49,27 +44,27 @@ class SProfileSPDLinSOE : public LinearSOE
 
     virtual ~SProfileSPDLinSOE();
 
-    virtual int getNumEqn(void) const;
+    virtual int getNumEqn() const;
     virtual int setSize(Graph &theGraph);
     virtual int addA(const Matrix &, const ID &, double fact = 1.0);
     virtual int addB(const Vector &, const ID &, double fact = 1.0);    
     virtual int setB(const Vector &, double fact = 1.0);
     
-    virtual void zeroA(void);
-    virtual void zeroB(void);
+    virtual void zeroA();
+    virtual void zeroB();
 
     virtual void setX(int loc, double value);
     virtual void setX(const Vector &x);
     
-    virtual const Vector &getX(void);
-    virtual const Vector &getB(void);
-    virtual double normRHS(void);
+    virtual const Vector &getX();
+    virtual const Vector &getB();
+    virtual double normRHS();
 
     virtual int setProfileSPDSolver(SProfileSPDLinSolver &newSolver);    
     virtual int sendSelf(int commitTag, Channel &theChannel);
     virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
-    friend class SProfileSPDLinSolver;    
+    friend class SProfileSPDLinSolver;
     
   protected:
     int size, profileSize;    

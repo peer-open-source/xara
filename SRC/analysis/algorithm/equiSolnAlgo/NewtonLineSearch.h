@@ -17,16 +17,11 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.4 $
-// $Date: 2005-11-29 22:42:42 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/NewtonLineSearch.h,v $
-
+//
 // Written: fmk 
 // Created: 11/96 
 // Modified: Ed "C++" Love 10/00 to perform the line search
 //
-
 // Description: This file contains the class definition for 
 // NewtonLineSearch. NewtonLineSearch is a class which performs a Newton-Raphson 
 // with line search solution algorithm in solving the equations as outline in

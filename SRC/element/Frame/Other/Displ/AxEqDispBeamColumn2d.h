@@ -33,16 +33,7 @@ PROVIDED "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
 UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 ********************************************************************************* */
-                                                                        
-#ifndef AxEqDispBeamColumn2d_h
-#define AxEqDispBeamColumn2d_h
-
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
-
-
-
+//
 // Written: Danilo Tarquini 
 //
 // Description: This file contains the interface for the AxEqDispBeamColumn2d class.
@@ -52,7 +43,7 @@ UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 // associated SectionForceDeformation object.
 //
 // What: "@(#) AxEqDispBeamColumn2d.h, revA"
-
+#pragma once
 #include <Element.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -75,7 +66,7 @@ public:
 	AxEqDispBeamColumn2d();  // Constructor 2
 	~AxEqDispBeamColumn2d(); // Destructor
 
-					  // METHODS TO RETRIEVE MAIN ELEMENT TYPE AND CONNECTIVITY
+	// METHODS TO RETRIEVE MAIN ELEMENT TYPE AND CONNECTIVITY
 	const char *getClassType() const { return "AxEqDispBeamColumn2d"; }
 
 	int getNumExternalNodes() const;
@@ -169,5 +160,3 @@ private:
 	int parameterID;
 	// AddingSensitivity:END ///////////////////////////////////////////
 };
-#endif
-

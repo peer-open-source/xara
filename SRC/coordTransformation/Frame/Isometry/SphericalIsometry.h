@@ -61,6 +61,12 @@ public:
   MatrixND<3,6> getTranslationGradient(int node) const final;
   MatrixND<6*nn,6*nn> getHessian(const VectorND<6>& pw) final;
 
+  int
+  setOffsets(std::array<Vector3D, nn>* offsets) override {
+    this->offsets = offsets;
+    return 0;
+  }
+
 private:
   double L;
   double Ln;
@@ -75,6 +81,7 @@ private:
   Vector3D theta;
   double cg;
   double angle;
+  std::array<Vector3D, nn>* offsets = nullptr; // offsets
 };
 
 
@@ -100,6 +107,11 @@ SphericalIsometry<nn>::initialize(std::array<Node*,nn>& nodes)
 
   for (int i=0; i<3; i++)
     dX[i] = XJ[i] - XI[i];
+
+  if (offsets != nullptr) [[unlikely]] {
+    dX.addVector(1.0, (*offsets)[nn-1],  1.0);
+    dX.addVector(1.0, (*offsets)[   0], -1.0);
+  }
 
   L = dX.norm();
   Ln = L;
@@ -210,7 +222,7 @@ SphericalIsometry<nn>::getRotationGradient(int node)
     WR.addDiagonal(0.5);
     WR.addSpin(theta, -0.5*cg);
   }
-  Gb.template insert<0,3>(WR, 1.0);
+  Gb.template insert<0,3>(WR, -1.0);
   return Gb;
 }
 

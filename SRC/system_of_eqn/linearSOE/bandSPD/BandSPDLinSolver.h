@@ -17,15 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.2 $
-// $Date: 2009-05-11 20:55:31 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/bandSPD/BandSPDLinSolver.h,v $
-                                                                        
-                                                                        
-#ifndef BandSPDLinSolver_h
-#define BandSPDLinSolver_h
-
+//
 // Written: fmk 
 // Created: Tue Sep 26 16:27:47: 1996
 //
@@ -36,6 +28,7 @@
 // are used to solve a system of equations of type BandSPDLinSOE.
 //
 // What: "@(#) BandSPDLinSolver.h, revA"
+#pragma once
 
 #include <LinearSOESolver.h>
 class BandSPDLinSOE;
@@ -55,6 +48,3 @@ class BandSPDLinSolver : public LinearSOESolver
   private:
 
 };
-
-#endif
-

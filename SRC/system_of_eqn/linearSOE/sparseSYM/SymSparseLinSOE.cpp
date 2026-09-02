@@ -37,7 +37,8 @@ using std::nothrow;
 
 SymSparseLinSOE::SymSparseLinSOE(SymSparseLinSolver &the_Solver, int lSparse)
 : LinearSOE(the_Solver, LinSOE_TAGS_SymSparseLinSOE),
-  size(0), nnz(0), B(0), X(0), colA(0), rowStartA(0),
+  size(0), nnz(0), 
+  colA(0), rowStartA(0),
   vectX(0), vectB(0), 
   Bsize(0), factored(false),
   nblks(0), xblk(0), invp(0), diag(0), penv(0), rowblks(0),
@@ -99,10 +100,6 @@ SymSparseLinSOE::~SymSparseLinSOE()
   if (invp != 0)  free(invp);
     
   // free the "C++" style vectors.
-  if (B != 0) delete [] B;
-  if (X != 0) delete [] X;
-  if (vectX != 0) delete vectX;    
-  if (vectB != 0) delete vectB;
   if (rowStartA != 0) delete [] rowStartA;
   if (colA != 0) delete [] colA;
 }
@@ -119,18 +116,22 @@ SymSparseLinSOE::getNumEqn() const
  * It is the same as the pair (ADJNCY, XADJ).
  * Then perform the symbolic factorization by calling symFactorization().
  */
-int SymSparseLinSOE::setSize(Graph &theGraph)
+int 
+SymSparseLinSOE::setSize(Graph &theGraph)
 {
 
   int result = 0;
-  int oldSize = size;
   size = theGraph.getNumVertex();
+  if (size == 0) {
+    nnz = 0;
+    return 0;
+  }
 
   // first itearte through the vertices of the graph to get nnz
   Vertex *theVertex;
   int newNNZ = 0;
   VertexIter &theVertices = theGraph.getVertices();
-  while ((theVertex = theVertices()) != 0) {
+  while ((theVertex = theVertices()) != nullptr) {
     const ID &theAdjacency = theVertex->getAdjacency();
     newNNZ += theAdjacency.Size(); 
   }
@@ -139,38 +140,22 @@ int SymSparseLinSOE::setSize(Graph &theGraph)
   colA = new int[newNNZ];
 
   factored = false;
+  vectX.resize(size);
+  vectB.resize(size);
   
   if (size > Bsize) { // we have to get space for the vectors
     
-    // delete the old    
-    if (B != 0) delete [] B;
-    if (X != 0) delete [] X;
+    // delete the old 
     if (rowStartA != 0) delete [] rowStartA;
 
     // create the new
-    B = new  double[size];
-    X = new  double[size];
     rowStartA = new int[size+1]; 
     Bsize = size;
   }
 
-  // zero the vectors
-  for (int j=0; j<size; j++) {
-      B[j] = 0;
-      X[j] = 0;
-  }
-  
-  // create new Vectors objects
-  if (size != oldSize) {
-    if (vectX != nullptr)
-      delete vectX;
+  vectB.Zero();
+  vectX.Zero();
 
-    if (vectB != nullptr)
-      delete vectB;
-
-    vectX = new Vector(X,size);
-    vectB = new Vector(B,size);    
-  }
 
   // fill in rowStartA and colA
   if (size != 0) {
@@ -181,10 +166,10 @@ int SymSparseLinSOE::setSize(Graph &theGraph)
     for (int a=0; a<size; a++) {
       theVertex = theGraph.getVertexPtr(a);
       if (theVertex == 0) {
-          // opserr << "WARNING:SymSparseLinSOE::setSize :";
-          // opserr << " vertex " << a << " not in graph! - size set to 0\n";
-          size = 0;
-          return -1;
+        // opserr << "WARNING:SymSparseLinSOE::setSize :";
+        // opserr << " vertex " << a << " not in graph! - size set to 0\n";
+        size = 0;
+        return -1;
       }
 
       const ID &theAdjacency = theVertex->getAdjacency();
@@ -225,8 +210,7 @@ int SymSparseLinSOE::setSize(Graph &theGraph)
 }
 
 
-/* Perform the element stiffness assembly here.
- */
+// Perform the element stiffness assembly.
 int
 SymSparseLinSOE::addA(const Matrix &in_m, const ID &in_id, double fact)
 {
@@ -383,9 +367,12 @@ SymSparseLinSOE::addA(const Matrix &in_m, const ID &in_id, double fact)
     
 /* assemble the force vector B (A*X = B).
  */
-int SymSparseLinSOE::addB(const Vector &in_v, const ID &in_id, double fact)
+int
+SymSparseLinSOE::addB(const Vector &in_v, const ID &in_id, double fact)
 {
   assert(in_id.Size() == in_v.Size());
+
+  double *B = &vectB(0);
 
   // check for a quick return 
   if (fact == 0.0)
@@ -423,21 +410,21 @@ int SymSparseLinSOE::addB(const Vector &in_v, const ID &in_id, double fact)
 
   if (fact == 1.0) { // do not need to multiply if fact == 1.0
     for (int i=0; i<idSize; i++) {
-        int pos = newID[i];
-        if (pos <size && pos >= 0)
-      B[pos] += v[i];
+      int pos = newID[i];
+      if (pos <size && pos >= 0)
+        B[pos] += v[i];
     }
   } else if (fact == -1.0) { // do not need to multiply if fact == -1.0
     for (int i=0; i<idSize; i++) {
-        int pos = newID[i];
-        if (pos <size && pos >= 0)
-      B[pos] -= v[i];
+      int pos = newID[i];
+      if (pos <size && pos >= 0)
+        B[pos] -= v[i];
     }
   } else {
     for (int i=0; i<idSize; i++) {
-        int pos = newID[i];
-        if (pos <size && pos >= 0)
-      B[pos] += v[i] * fact;  // assemble
+      int pos = newID[i];
+      if (pos <size && pos >= 0)
+        B[pos] += v[i] * fact;  // assemble
     }
   }    
 
@@ -453,6 +440,7 @@ int
 SymSparseLinSOE::setB(const Vector &v, double fact)
 {
   assert(v.Size() == size);
+  double *B = &vectB(0);
 
   // check for a quick return 
   if (fact == 0.0)
@@ -508,14 +496,13 @@ SymSparseLinSOE::zeroA()
 void 
 SymSparseLinSOE::zeroB()
 {
-  double *Bptr = B;
-  for (int i=0; i<size; i++)
-      *Bptr++ = 0;
+  vectB.Zero();
 }
 
 void 
 SymSparseLinSOE::setX(int loc, double value)
 {
+  double *X = &vectX(0);
   if (loc < size && loc >=0)
     X[loc] = value;
 }
@@ -523,50 +510,20 @@ SymSparseLinSOE::setX(int loc, double value)
 void
 SymSparseLinSOE::setX(const Vector &x)
 {
-  if (x.Size() == size && vectX != 0) 
-    *vectX = x;
+  if (x.Size() == size) 
+    vectX = x;
 }
 
 
 const Vector &
 SymSparseLinSOE::getX()
 {
-  assert(vectX != nullptr);
-  return *vectX;
+  return vectX;
 }
 
 const Vector &
 SymSparseLinSOE::getB()
 {
-  assert(vectB != nullptr);
-  return *vectB;
-}
-
-double 
-SymSparseLinSOE::normRHS()
-{
-  double norm =0.0;
-  for (int i=0; i<size; i++) {
-  double Yi = B[i];
-  norm += Yi*Yi;
-  }
-  return sqrt(norm);
-}
-
-
-int 
-SymSparseLinSOE::sendSelf(int cTag, Channel &theChannel)
-{
-  // not implemented.
-  return 0;
-}
-
-
-int 
-SymSparseLinSOE::recvSelf(int cTag, 
-              Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  // not implemented.
-  return 0;
+  return vectB;
 }
 

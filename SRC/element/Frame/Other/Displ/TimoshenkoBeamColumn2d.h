@@ -28,10 +28,6 @@
 #ifndef TimoshenkoBeamColumn2d_h
 #define TimoshenkoBeamColumn2d_h
 
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
-
 #include <Element.h>
 #include <Matrix.h>
 #include <Vector.h>
@@ -53,8 +49,7 @@ class TimoshenkoBeamColumn2d : public Element
     TimoshenkoBeamColumn2d();
     ~TimoshenkoBeamColumn2d();
 
-    const char *getClassType() const {return "TimoshenkoBeamColumn2d";};
-    static constexpr const char* class_name = "TimoshenkoBeamColumn2d";
+    const char *getClassType() const {return "TimoshenkoBeamColumn2d";}
 
     int getNumExternalNodes() const;
     const ID &getExternalNodes();

@@ -198,16 +198,3 @@ SecantAccelerator3::Print(OPS_Stream &s, int flag) const
   else
     s << "\tNo cut-outs" << "\n";
 }
-
-int
-SecantAccelerator3::sendSelf(int commitTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int
-SecantAccelerator3::recvSelf(int commitTag, Channel &theChannel, 
-			     FEM_ObjectBroker &theBroker)
-{
-  return -1;
-}

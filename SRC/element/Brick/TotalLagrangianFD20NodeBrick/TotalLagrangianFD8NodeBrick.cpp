@@ -82,7 +82,7 @@ NDMaterial &m, double b1, double b2, double b3)
 }
 
 //-------------------------------------------------------------------------------------------
-TotalLagrangianFD8NodeBrick::TotalLagrangianFD8NodeBrick ()
+TotalLagrangianFD8NodeBrick::TotalLagrangianFD8NodeBrick()
 :Element(0, ELE_TAG_TotalLagrangianFD8NodeBrick ),
  theMaterial(0), connectedExternalNodes(NumNodes), Q(0), bf(NumDof), Ki(0)
 {
@@ -98,7 +98,7 @@ TotalLagrangianFD8NodeBrick::TotalLagrangianFD8NodeBrick ()
 }
 
 //-------------------------------------------------------------------------------------------------
-TotalLagrangianFD8NodeBrick::~TotalLagrangianFD8NodeBrick ()
+TotalLagrangianFD8NodeBrick::~TotalLagrangianFD8NodeBrick()
 {   
   int i;
   for (i=0; i<NumTotalGaussPts; i++) {
@@ -123,13 +123,15 @@ int TotalLagrangianFD8NodeBrick::getNumExternalNodes () const
 }
 
 //=============================================================================
-const ID& TotalLagrangianFD8NodeBrick::getExternalNodes ()
+const ID& 
+TotalLagrangianFD8NodeBrick::getExternalNodes ()
 {
   return connectedExternalNodes;
 }
 
 //=============================================================================
-Node **TotalLagrangianFD8NodeBrick::getNodePtrs(void)
+Node **
+TotalLagrangianFD8NodeBrick::getNodePtrs()
 {
   return theNodes;
 }
@@ -182,8 +184,8 @@ int TotalLagrangianFD8NodeBrick::commitState()
   if ((retVal = this->Element::commitState()) != 0)
     opserr << "TotalLagrangianFD8NodeBrick::commitState () - failed in base class";
 
-  int i;
-  for (i=0; i<NumTotalGaussPts; i++)
+
+  for (int i=0; i<NumTotalGaussPts; i++)
     retVal += theMaterial[i]->commitState();
 
   return retVal;
@@ -202,7 +204,7 @@ int TotalLagrangianFD8NodeBrick::revertToLastCommit ()
 }
 
 //=============================================================================
-int TotalLagrangianFD8NodeBrick::revertToStart ()
+int TotalLagrangianFD8NodeBrick::revertToStart()
 {
     int retVal = 0;
     

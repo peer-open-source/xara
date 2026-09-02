@@ -39,10 +39,6 @@ class BFGS: public EquiSolnAlgo
     ~BFGS();
 
     int solveCurrentStep() final;
-    
-    virtual int sendSelf(int commitTag, Channel &) final;
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
-
     void Print(OPS_Stream &, int flag) const final;    
     
 
@@ -62,14 +58,13 @@ class BFGS: public EquiSolnAlgo
     Vector *residOld;  // residuals
     Vector *residNew;
 
-    Vector *du; //displacement increment
+    Vector *du; // displacement increment
 
-    Vector *b;  //current right-hand side
+    Vector *b;  // current right-hand side
 
-    Vector *temp; //temporary vector 
+    Vector *temp; // temporary vector 
 
     double *rdotz;
-
     double *sdotr;
   
 };

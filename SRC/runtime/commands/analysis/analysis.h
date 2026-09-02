@@ -24,6 +24,8 @@ static Tcl_CmdProc XaraCmd_analyze;
 static Tcl_CmdProc XaraCmd_eigen;
 static Tcl_CmdProc XaraCmd_printA;
 static Tcl_CmdProc XaraCmd_printB;
+static Tcl_CmdProc XaraCmd_applyA;
+static Tcl_CmdProc XaraCmd_solveA;
 static Tcl_CmdProc initializeAnalysis;
 static Tcl_CmdProc resetModel;
 static Tcl_CmdProc XaraCmd_constraints;
@@ -33,9 +35,7 @@ Tcl_CmdProc TclCommand_clearAnalysis;
 extern Tcl_CmdProc XaraCmd_numberer;
 extern Tcl_CmdProc XaraCmd_number;
 
-namespace OpenSees {
-Tcl_CmdProc responseSpectrumAnalysis;
-}
+Tcl_CmdProc XaraCmd_responseSpectrumAnalysis;
 
 // commands/analysis/integrator.cpp
 extern Tcl_CmdProc XaraCmd_integrator;
@@ -47,31 +47,35 @@ extern Tcl_CmdProc XaraCmd_systemSize;
 // commands/analysis/algorithm.cpp
 extern Tcl_CmdProc XaraCmd_algorithm;
 extern Tcl_CmdProc XaraCmd_numIter;
-extern Tcl_CmdProc TclCommand_accelCPU;
-extern Tcl_CmdProc TclCommand_totalCPU;
-extern Tcl_CmdProc TclCommand_solveCPU;
-extern Tcl_CmdProc TclCommand_numFact;
+extern Tcl_CmdProc XaraCmd_accelCPU;
+extern Tcl_CmdProc XaraCmd_totalCPU;
+extern Tcl_CmdProc XaraCmd_solveCPU;
+extern Tcl_CmdProc XaraCmd_numFact;
 
 // from commands/analysis/ctest.cpp
-extern Tcl_CmdProc specifyCTest;
-extern Tcl_CmdProc getCTestNorms;
-extern Tcl_CmdProc getCTestIter;
-extern Tcl_CmdProc TclCommand_algorithmRecorder;
+extern Tcl_CmdProc XaraCmd_test;
+extern Tcl_CmdProc XaraCmd_testNorms;
+extern Tcl_CmdProc XaraCmd_testIter;
+extern Tcl_CmdProc XaraCmd_algorithmRecorder;
 
 // from commands/analysis/sensitivity.cpp
 extern Tcl_CmdProc TclCommand_sensitivityAlgorithm;
 extern Tcl_CmdProc TclCommand_sensLambda;
 
+Tcl_CmdProc XaraCmd_printEigenMatrices;
+
 struct char_cmd {
   const char* name;
   Tcl_CmdProc*  func;
 } const tcl_analysis_cmds[] =  {
+    // {"printEigenMatrices", &XaraCmd_printEigenMatrices},
+
     {"system",              &XaraCmd_system},
     {"systemSize",          &XaraCmd_systemSize},
 
-    {"test",                &specifyCTest},
-    {"testIter",            &getCTestIter},
-    {"testNorms",           &getCTestNorms},
+    {"test",                &XaraCmd_test},
+    {"testIter",            &XaraCmd_testIter},
+    {"testNorms",           &XaraCmd_testNorms},
     {"integrator",          &XaraCmd_integrator},
     {"constraints",         &XaraCmd_constraints},
 
@@ -84,17 +88,21 @@ struct char_cmd {
     {"modalDampingQ",       &XaraCmd_modalDamping},
     {"printA",              &XaraCmd_printA},
     {"printB",              &XaraCmd_printB},
+    // for testing 
+    {"applyA",              &XaraCmd_applyA},
+    {"solveA",              &XaraCmd_solveA},
+
     {"reset",               &resetModel},
 
   // From algorithm.cpp
     {"algorithm",           &XaraCmd_algorithm},
     {"numIter",             &XaraCmd_numIter},
-    {"numFact",             &TclCommand_numFact},
-    {"accelCPU",            &TclCommand_accelCPU},
-    {"totalCPU",            &TclCommand_totalCPU},
-    {"solveCPU",            &TclCommand_solveCPU},
+    {"numFact",             &XaraCmd_numFact},
+    {"accelCPU",            &XaraCmd_accelCPU},
+    {"totalCPU",            &XaraCmd_totalCPU},
+    {"solveCPU",            &XaraCmd_solveCPU},
   // recorder.cpp
-    {"algorithmRecorder",   &TclCommand_algorithmRecorder},
+    {"algorithmRecorder",   &XaraCmd_algorithmRecorder},
 
   // sensitivity
     {"sensitivityAlgorithm", TclCommand_sensitivityAlgorithm},

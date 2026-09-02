@@ -317,32 +317,6 @@ VS3D4QuadWithSensitivity::getResistingForceIncInertia(void)
   
 }
 
-//
-// /////////////////////////////////////////////////////////////////////////////
-//
-
-int 
-VS3D4QuadWithSensitivity::sendSelf (int commitTag, Channel &theChannel) 
-{ 
-  // Not implemtented yet
-  return 0;
-}
-
-int 
-VS3D4QuadWithSensitivity::recvSelf (int commitTag, Channel &theChannel, 
-  FEM_ObjectBroker &theBroker) 
-{   
-  // Not implemtented yet
-  return 0;
-}
-
-int VS3D4QuadWithSensitivity::displaySelf (Renderer &theViewer, int displayMode, float fact, const char **modes, int numMode)
-{
-  int error = 0;
-  
-  return error;
-
-}     
 
 void VS3D4QuadWithSensitivity::Print(OPS_Stream &s, int flag)
 {

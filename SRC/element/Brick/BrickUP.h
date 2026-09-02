@@ -70,8 +70,7 @@ class BrickUP : public Element {
 			double perm1, double perm2, double perm3,
 		   double b1 = 0.0, double b2 = 0.0, double b3 = 0.0) ;
 
-    //destructor
-    virtual ~BrickUP( ) ;
+    virtual ~BrickUP( );
 
     const char *getClassType(void) const {return "BrickUP";}
 
@@ -95,10 +94,10 @@ class BrickUP : public Element {
 
 
     //return stiffness matrix
-    const Matrix &getTangentStiff( ) ;
-    const Matrix &getInitialStiff( ) ;
-    const Matrix &getDamp();
-    const Matrix &getMass( ) ;
+    const Matrix &getTangentStiff( ) override;
+    const Matrix &getInitialStiff( ) override;
+    const Matrix &getDamp() override;
+    const Matrix &getMass( ) override;
 
     void zeroLoad( ) ;
     int addLoad(ElementalLoad *theLoad, double loadFactor);
@@ -106,10 +105,6 @@ class BrickUP : public Element {
 
     const Vector &getResistingForce();
     const Vector &getResistingForceIncInertia();
-
-    // public methods for element output
-    int sendSelf (int commitTag, Channel &);
-    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker  &);
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &);

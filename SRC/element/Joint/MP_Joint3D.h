@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.3 $
-// $Date: 2010-04-23 22:53:56 $
-// $Source: /usr/local/cvs/OpenSees/SRC/element/joint/MP_Joint3D.h,v $
-                                                                        
+//
 #ifndef MP_Joint3D_h
 #define MP_Joint3D_h
 
@@ -35,8 +31,6 @@
 // point constraint.
 //
 
-// #include <DomainComponent.h>
-#include <stdbool.h>
 #include <MP_Constraint.h>
 #include <Node.h>
 #include <Domain.h>
@@ -51,20 +45,20 @@ class MP_Joint3D : public MP_Constraint
     // constructors        
     MP_Joint3D();
 
-    MP_Joint3D( Domain *theDomain, int nodeRetain, int nodeConstr,
+    MP_Joint3D(Domain *theDomain, int nodeRetain, int nodeConstr,
 		int nodeRot, int Rotdof, int nodeDisp, int Dispdof, int LrgDsp = 0 );
 
     // destructor    
     ~MP_Joint3D();
 
     // method to get information about the constraint
-    int getNodeRetained(void) const;
-    int getNodeConstrained(void) const;    
-    const ID &getConstrainedDOFs(void) const;        
-    const ID &getRetainedDOFs(void) const;            
+    int getNodeRetained() const override;
+    int getNodeConstrained() const;    
+    const ID &getConstrainedDOFs() const;        
+    const ID &getRetainedDOFs() const;            
     int applyConstraint(double pseudoTime);
-    bool isTimeVarying(void) const;
-    const Matrix &getConstraint(void);
+    bool isTimeVarying() const;
+    const Matrix &getConstraint();
     void setDomain(Domain *theDomain);
 
     // methods for output

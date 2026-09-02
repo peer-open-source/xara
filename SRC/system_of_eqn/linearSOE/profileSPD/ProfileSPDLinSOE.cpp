@@ -111,9 +111,9 @@ ProfileSPDLinSOE::~ProfileSPDLinSOE()
 
 
 int 
-ProfileSPDLinSOE::getNumEqn(void) const
+ProfileSPDLinSOE::getNumEqn() const
 {
-    return size;
+  return size;
 }
 
 int 
@@ -277,68 +277,6 @@ ProfileSPDLinSOE::addA(const Matrix &m, const ID &id, double fact)
 }
 
 
-int 
-ProfileSPDLinSOE::addColA(const Vector &colData, int col, double fact)
-{
-  // check for a quick return 
-  if (fact == 0.0)  return 0;
-  
-  if (colData.Size() != size) {
-    opserr << "ProfileSPDLinSOE::addColA() - colData size not equal to n\n";
-    return -1;
-  }
-
-  if (col > size && col < 0) {
-    opserr << "ProfileSPDLinSOE::addColA() - col " << col << "outside range 0 to " << size << endln;
-    return -1;
-  }
-
-  
-  if (fact == 1.0) { // do not need to multiply 
-
-    double *coliiPtr = &A[iDiagLoc[col] -1]; // -1 as fortran indexing 
-    int minColRow;
-    if (col == 0)
-      minColRow = 0;
-    else
-      minColRow = col - (iDiagLoc[col] - iDiagLoc[col-1]) +1;
-    for (int row=0; row<size; row++) {
-      double data = colData(row);
-      if (data != 0) {
-	if (row < size && row >= 0 && 
-	    row <= col && row >= minColRow) { 
-	  
-	  // we only add upper and inside profile
-	  double *APtr = coliiPtr + (row-col);
-	  *APtr += data;
-	}
-      }
-    }
-
-  } else {
-
-    double *coliiPtr = &A[iDiagLoc[col] -1]; // -1 as fortran indexing 
-    int minColRow;
-    if (col == 0)
-      minColRow = 0;
-    else
-      minColRow = col - (iDiagLoc[col] - iDiagLoc[col-1]) +1;
-
-    for (int row=0; row<size; row++) {
-      double data = colData(row);
-      if (data != 0) {
-	if (row <size && row >= 0 && 
-	    row <= col && row >= minColRow) { 
-	  
-	  // we only add upper and inside profile
-	  double *APtr = coliiPtr + (row-col);
-	  *APtr += data * fact;
-	}
-      }
-    }
-  }
-  return 0;
-}
 
     
 int 
@@ -452,12 +390,6 @@ ProfileSPDLinSOE::getB()
   return B;
 }
 
-double 
-ProfileSPDLinSOE::normRHS()
-{
-    return B.Norm();
-}    
-
 
 int
 ProfileSPDLinSOE::setProfileSPDSolver(ProfileSPDLinSolver &newSolver)
@@ -476,16 +408,3 @@ ProfileSPDLinSOE::setProfileSPDSolver(ProfileSPDLinSolver &newSolver)
     return this->setSolver(newSolver);
 }
 
-
-int 
-ProfileSPDLinSOE::sendSelf(int cTag, Channel &theChannel)
-{
-    return 0;
-}
-
-
-int 
-ProfileSPDLinSOE::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}

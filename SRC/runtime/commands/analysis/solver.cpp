@@ -137,7 +137,7 @@ G3Parse_newLinearSOE(ClientData clientData, Tcl_Interp* interp,
   }
 #endif
 
-  else if (strcasecmp(argv[1], "Umfpack")==0) {
+  else if ((strcasecmp(argv[1], "Umfpack")==0) || (strcasecmp(argv[1], "umfpack02")==0)) {
     // TODO: if "umfpack" is in solver.hpp, this wont be reached
     return TclDispatch_newUmfpackLinearSOE(clientData, interp, argc, argv);
   }
@@ -251,7 +251,7 @@ specifySparseGen(G3_Runtime* rt, int argc, G3_Char ** const argv)
     }
 
     else if ((strcmp(argv[count], "npRow")  == 0) ||
-                (strcmp(argv[count], "-npRow") == 0)) {
+             (strcmp(argv[count], "-npRow") == 0)) {
       count++;
       if (count >= argc) {
         opserr << OpenSees::PromptValueError

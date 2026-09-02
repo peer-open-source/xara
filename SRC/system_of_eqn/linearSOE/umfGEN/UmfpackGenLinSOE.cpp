@@ -40,7 +40,8 @@
 
 UmfpackGenLinSOE::UmfpackGenLinSOE(UmfpackGenLinSolver &the_Solver)
   :LinearSOE(the_Solver, LinSOE_TAGS_UmfpackGenLinSOE),
-   X(), B(), Ap(), Ai(), Ax()
+   X(), B(), Ap(), Ai(), Ax(),
+   theSolver(&the_Solver)
 {
   the_Solver.setLinearSOE(*this);
 }
@@ -56,7 +57,7 @@ UmfpackGenLinSOE::UmfpackGenLinSOE()
 
 UmfpackGenLinSOE::~UmfpackGenLinSOE()
 {
-
+  // Currently the parent LinearSOE owns theSolver.
 }
 
 
@@ -64,6 +65,16 @@ int
 UmfpackGenLinSOE::getNumEqn() const
 {
   return X.Size();
+}
+
+
+int 
+UmfpackGenLinSOE::solve()
+{
+  if (theSolver != 0)
+    return (theSolver->solve());
+  else 
+    return -1;
 }
 
 int
@@ -97,46 +108,47 @@ UmfpackGenLinSOE::setSize(Graph &theGraph)
   Ap.push_back(0);
   for (int a=0; a<size; a++) {
 
-      theVertex = theGraph.getVertexPtr(a);
-      if (theVertex == 0) {
-          opserr << "WARNING:UmfpackGenLinSOE::setSize :";
-          opserr << " vertex " << a << " not in graph! - size set to 0\n";
-          size = 0;
-          return -1;
-      }
+    theVertex = theGraph.getVertexPtr(a);
+    if (theVertex == 0) {
+        opserr << "WARNING:UmfpackGenLinSOE::setSize :";
+        opserr << " vertex " << a << " not in graph! - size set to 0\n";
+        size = 0;
+        return -1;
+    }
 
-      const ID &theAdjacency = theVertex->getAdjacency();
-      int idSize = theAdjacency.Size();
-      ID col(0,idSize+1);
+    const ID &theAdjacency = theVertex->getAdjacency();
+    int idSize = theAdjacency.Size();
+    ID col(0,idSize+1);
 
-      // diagonal
-      col.insert(theVertex->getTag());
+    // diagonal
+    col.insert(theVertex->getTag());
 
-      // now we have to place the entries in the ID into order in Ai
-      for (int i=0; i<idSize; i++) {
-          int row = theAdjacency(i);
-          col.insert(row);
-      }
+    // now we have to place the entries in the ID into order in Ai
+    for (int i=0; i<idSize; i++) {
+        int row = theAdjacency(i);
+        col.insert(row);
+    }
 
-      // copy to Ai
-      for (int i=0; i<col.Size(); i++) {
-          Ai.push_back(col(i));
-      }
+    // copy to Ai
+    for (int i=0; i<col.Size(); i++) {
+        Ai.push_back(col(i));
+    }
 
-      // set Ap
-      Ap.push_back(Ap[a]+col.Size());
+    // set Ap
+    Ap.push_back(Ap[a]+col.Size());
   }
 
   // invoke setSize() on the Solver
   LinearSOESolver *the_Solver = this->getSolver();
   int solverOK = the_Solver->setSize();
   if (solverOK < 0) {
-      opserr << "WARNING:UmfpackGenLinSOE::setSize :";
-      opserr << " solver failed setSize()\n";
-      return solverOK;
+    opserr << "WARNING:UmfpackGenLinSOE::setSize :";
+    opserr << " solver failed setSize()\n";
+    return solverOK;
   }
   return 0;
 }
+
 
 int
 UmfpackGenLinSOE::addA(const Matrix &m, const ID &id, double fact)
@@ -149,54 +161,55 @@ UmfpackGenLinSOE::addA(const Matrix &m, const ID &id, double fact)
 
   // check that m and id are of similar size
   if (idSize != m.noRows() && idSize != m.noCols()) {
-      opserr << "UmfpackGenLinSOE::addA() ";
-      opserr << " - Matrix and ID not of similar sizes\n";
-      return -1;
+    opserr << "UmfpackGenLinSOE::addA() ";
+    opserr << " - Matrix and ID not of similar sizes\n";
+    return -1;
   }
 
   int size = X.Size();
   if (fact == 1.0) { // do not need to multiply
-      for (int j=0; j<idSize; j++) {
-          int col = id(j);
-          if (col<0 || col>=size) {
-              continue;
-          }
-          for (int i=0; i<idSize; i++) {
-              int row = id(i);
-              if (row<0 || row>=size) {
-                  continue;
-              }
-
-              // find place in A
-              for (int k=Ap[col]; k<Ap[col+1]; k++) {
-                  if (Ai[k] == row) {
-                      Ax[k] += m(i,j);
-                      break;
-                  }
-              }
-          }
+    for (int j=0; j<idSize; j++) {
+      int col = id(j);
+      if (col<0 || col>=size) {
+        continue;
       }
-  } else {
-      for (int j=0; j<idSize; j++) {
-          int col = id(j);
-          if (col<0 || col>=X.Size()) {
-              continue;
-          }
-          for (int i=0; i<idSize; i++) {
-              int row = id(i);
-              if (row<0 || row>=X.Size()) {
-                  continue;
-              }
+      for (int i=0; i<idSize; i++) {
+        int row = id(i);
+        if (row<0 || row>=size) {
+          continue;
+        }
 
-              // find place in A
-              for (int k=Ap[col]; k<Ap[col+1]; k++) {
-                  if (Ai[k] == row) {
-                      Ax[k] += fact*m(i,j);
-                      break;
-                  }
-              }
+        // find place in A
+        for (int k=Ap[col]; k<Ap[col+1]; k++) {
+          if (Ai[k] == row) {
+              Ax[k] += m(i,j);
+              break;
           }
+        }
       }
+    }
+  }
+  else {
+    for (int j=0; j<idSize; j++) {
+      int col = id(j);
+      if (col<0 || col>=X.Size()) {
+        continue;
+      }
+      for (int i=0; i<idSize; i++) {
+        int row = id(i);
+        if (row<0 || row>=X.Size()) {
+            continue;
+        }
+
+        // find place in A
+        for (int k=Ap[col]; k<Ap[col+1]; k++) {
+          if (Ai[k] == row) {
+            Ax[k] += fact*m(i,j);
+            break;
+          }
+        }
+      }
+    }
   }
 
   return 0;
@@ -293,9 +306,9 @@ UmfpackGenLinSOE::zeroB()
 void
 UmfpackGenLinSOE::setX(int loc, double value)
 {
-    if (loc<X.Size() && loc>=0) {
-        X(loc) = value;
-    }
+  if (loc<X.Size() && loc>=0) {
+    X(loc) = value;
+  }
 }
 
 
@@ -303,7 +316,7 @@ void
 UmfpackGenLinSOE::setX(const Vector &x)
 {
   if (x.Size() == X.Size()) {
-      X = x;
+    X = x;
   }
 }
 
@@ -343,14 +356,3 @@ UmfpackGenLinSOE::setUmfpackGenLinSolver(UmfpackGenLinSolver &newSolver)
 }
 
 
-int
-UmfpackGenLinSOE::sendSelf(int cTag, Channel &)
-{
-  return 0;
-}
-
-int
-UmfpackGenLinSOE::recvSelf(int cTag, Channel &, FEM_ObjectBroker &)
-{
-  return 0;
-}

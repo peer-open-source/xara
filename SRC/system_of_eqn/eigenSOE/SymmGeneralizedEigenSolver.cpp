@@ -25,7 +25,6 @@
 #include <AnalysisModel.h>
 #include <DOF_Group.h>
 #include <FE_Element.h>
-#include <Integrator.h>
 
 #ifndef _WIN32
 #define DSYGVX dsygvx_
@@ -63,7 +62,8 @@ SymmGeneralizedEigenSolver::~SymmGeneralizedEigenSolver()
 }
 
 
-int SymmGeneralizedEigenSolver::solve(int nEigen, bool generalized, bool findSmallest)
+int
+SymmGeneralizedEigenSolver::solve(int nEigen, bool generalized, bool findSmallest)
 {
   if (generalized == false) {
     opserr << "SymmGeneralizedEigenSolver::solve() - only solves generalized problem\n";
@@ -76,228 +76,228 @@ int SymmGeneralizedEigenSolver::solve(int nEigen, bool generalized, bool findSma
     return -1;
   }
 
-    // check for quick return
-    if (nEigen < 1) {
-        numEigen = 0;
-        return 0;
-    }
+  // check for quick return
+  if (nEigen < 1) {
+      numEigen = 0;
+      return 0;
+  }
 
-    // get the number of equations
-    int n = theSOE->size;
+  // get the number of equations
+  int n = theSOE->size;
+  
+  // set the number of eigenvalues
+  numEigen = nEigen;
+  if (numEigen > n)
+      numEigen = n;
+
+  // Lower and upper range of eigenpairs
+  int il = 1;
+  int iu = numEigen;
+  
+  // solve K*x = lam*M*x
+  int itype = 1;
+  
+  // compute eigenvalues and eigenvectors
+  char jobz[] = "V";
+
+  // compute range of eigenvalues
+  char range[] = "I";
+
+  // upper or lower triangle of A and B
+  char uplo[] = "U";
+
+  // stiffness matrix data
+  double *Kptr = theSOE->A;
     
-    // set the number of eigenvalues
-    numEigen = nEigen;
-    if (numEigen > n)
-        numEigen = n;
+  double *kCopy = new double[n*n];
+  for (int i = 0; i < n*n; i++)
+    kCopy[i] = Kptr[i];
+  
+  // leading dimension of K
+  int ldK = n;
 
-    // Lower and upper range of eigenpairs
-    int il = 1;
-    int iu = numEigen;
-    
-    // solve K*x = lam*M*x
-    int itype = 1;
-    
-    // compute eigenvalues and eigenvectors
-    char jobz[] = "V";
+  // mass matrix data
+  double *Mptr = theSOE->M;
 
-    // compute range of eigenvalues
-    char range[] = "I";
+  // Check for zero mass on diagonal, add some small mass
+  int index = 0;
+  for (int i = 0; i < n; i++) {
+    if (Mptr[index] == 0.0)
+      Mptr[index] = Kptr[index]*msmall;
+    index += n+1;
+  }
+  
+  double *mCopy = new double[n*n];
+  for (int i=0; i<n*n; i++)
+    mCopy[i] = Mptr[i];
+  
+  // leading dimension of M
+  int ldM = n;
 
-    // upper or lower triangle of A and B
-    char uplo[] = "U";
+  // allocate memory for eigenvalues
+  // double *alphaR = new double [n];
+  // double *alphaI = new double [n];
+  // double *beta   = new double [n];
 
-    // stiffness matrix data
-    double *Kptr = theSOE->A;
-      
-    double *kCopy = new double[n*n];
-    for (int i = 0; i < n*n; i++)
-      kCopy[i] = Kptr[i];
-    
-    // leading dimension of K
-    int ldK = n;
+  if (eigenvalue != 0)
+      delete [] eigenvalue;
 
-    // mass matrix data
-    double *Mptr = theSOE->M;
+  eigenvalue = new double [n];
 
-    // Check for zero mass on diagonal, add some small mass
-    int index = 0;
-    for (int i = 0; i < n; i++) {
-      if (Mptr[index] == 0.0)
-        Mptr[index] = Kptr[index]*msmall;
-      index += n+1;
-    }
-    
-    double *mCopy = new double[n*n];
-    for (int i=0; i<n*n; i++)
-      mCopy[i] = Mptr[i];
-    
-    // leading dimension of M
-    int ldM = n;
+  // allocate memory for sorting index array
+  if (sortingID != 0)
+      delete [] sortingID;
+  sortingID = new int [n];
 
-    // allocate memory for eigenvalues
-    // double *alphaR = new double [n];
-    // double *alphaI = new double [n];
-    // double *beta   = new double [n];
+  // Not used
+  double vl = 0.0;
+  double vu = 0.0;
 
-    if (eigenvalue != 0)
-        delete [] eigenvalue;
+  // allocate memory for right eigenvectors
+  if (eigenvector != 0)
+      delete [] eigenvector;
+  eigenvector = new double [numEigen*n];
 
-    eigenvalue = new double [n];
+  // number of eigenvalues found
+  int m = 0;
+  
+  // 
+  int ldz = n;
+  double *w = eigenvalue;
+  double *z = eigenvector;
+  
+  double abstol = -1.0;
+  
+  // dimension of the workspace array
+  int lwork = n*(8+64);
+  int liwork = n*5;
 
-    // allocate memory for sorting index array
-    if (sortingID != 0)
-        delete [] sortingID;
-    sortingID = new int [n];
+  // allocate memory for workspace array
+  double *work = new double [lwork];
+  int *iwork = new int [liwork];
 
-    // Not used
-    double vl = 0.0;
-    double vu = 0.0;
+  // fail array
+  int *ifail = new int [n];
+  
+  // output information
+  int info = 0;
 
-    // allocate memory for right eigenvectors
-    if (eigenvector != 0)
-        delete [] eigenvector;
-    eigenvector = new double [numEigen*n];
+  // call the LAPACK eigenvalue subroutine
+  // itype=1, jobz='V', range='I', uplo='U', n=N, Kptr=A, ldK=N, Mptr=B, ldM=N,
+  // vl=N/A, vu=N/A, il=1, iu=nEigen, abstol=0
+  // m=out (num eigenvalues found)
+  // w=out (first m eigenvalues)
+  // z=out (first m eigenvectors)
+  // ldz=out (leading dimension of eigenvectors)
+  // work=double array of length lwork
+  // lwork=8*n
+  // iwork=int array of length 5*n
+  // ifail=out (0 if success, if info>0 ifail has indices of eigenvectors that failed to converge)
+  // info=out (0 if success, <0 arg error, >0 failed to converge)
+  DSYGVX(&itype, jobz, range, uplo, &n, Kptr, &ldK, Mptr, &ldM, 
+          &vl, &vu, &il, &iu, &abstol,
+          &m, w, z, &ldz, work, &lwork, iwork, ifail, &info);
+  
+  if (info < 0) {
+      opserr << "SymmGeneralizedEigenSolver::solve() - invalid argument number "
+          << -info << " passed to LAPACK dsygvx routine\n";
+      return info;
+  }
 
-    // number of eigenvalues found
-    int m = 0;
-    
-    // 
-    int ldz = n;
-    double *w = eigenvalue;
-    double *z = eigenvector;
-    
-    double abstol = -1.0;
-    
-    // dimension of the workspace array
-    int lwork = n*(8+64);
-    int liwork = n*5;
+  if (info > 0) {
+    opserr << "SymmGeneralizedEigenSolver::solve() - the LAPACK dsygvx routine "
+        << "returned error code " << info << "\n";
+    return -info;
+  }
 
-    // allocate memory for workspace array
-    double *work = new double [lwork];
-    int *iwork = new int [liwork];
+  theSOE->factored = true;
 
-    // fail array
-    int *ifail = new int [n];
-    
-    // output information
-    int info = 0;
-
-    // call the LAPACK eigenvalue subroutine
-    // itype=1, jobz='V', range='I', uplo='U', n=N, Kptr=A, ldK=N, Mptr=B, ldM=N,
-    // vl=N/A, vu=N/A, il=1, iu=nEigen, abstol=0
-    // m=out (num eigenvalues found)
-    // w=out (first m eigenvalues)
-    // z=out (first m eigenvectors)
-    // ldz=out (leading dimension of eigenvectors)
-    // work=double array of length lwork
-    // lwork=8*n
-    // iwork=int array of length 5*n
-    // ifail=out (0 if success, if info>0 ifail has indices of eigenvectors that failed to converge)
-    // info=out (0 if success, <0 arg error, >0 failed to converge)
-    DSYGVX(&itype, jobz, range, uplo, &n, Kptr, &ldK, Mptr, &ldM, 
-           &vl, &vu, &il, &iu, &abstol,
-           &m, w, z, &ldz, work, &lwork, iwork, ifail, &info);
-    
-    if (info < 0) {
-        opserr << "SymmGeneralizedEigenSolver::solve() - invalid argument number "
-            << -info << " passed to LAPACK dsygvx routine\n";
-        return info;
-    }
-
-    if (info > 0) {
-        opserr << "SymmGeneralizedEigenSolver::solve() - the LAPACK dsygvx routine "
-            << "returned error code " << info << endln;
-        return -info;
-    }
-
-    theSOE->factored = true;
-
-    for (int i=0; i<n; i++) {
-      /*
-        double mag = sqrt(alphaR[i]*alphaR[i]+alphaI[i]*alphaI[i]);
-        if (mag*DBL_EPSILON < fabs(beta[i])) {
-            if (alphaI[i] == 0.0) {
-                eigenvalue[i] = alphaR[i]/beta[i];
-            }
-            else {
-                eigenvalue[i] = -mag/beta[i];
-                opserr << "SymmGeneralizedEigenSolver::solve() - the eigenvalue "
-                    << i+1 << " is complex with magnitude "
-                    << -eigenvalue[i] << endln;
-            }
-        }
-        else {
-            eigenvalue[i] = DBL_MAX;
-        }
-      */
-        sortingID[i] = i;
-    }
-
-    //
-    // mass normalize the eigenvalues
-    //
-
-    Kptr = kCopy;
-    Mptr = mCopy;    
-    double *tmpV = new double[n];
+  for (int i=0; i<n; i++) {
     /*
-    // mass normailze all vectors .. NOTE instead of numEigen!
-    for (int k=0; k<n; k++) {
+      double mag = sqrt(alphaR[i]*alphaR[i]+alphaI[i]*alphaI[i]);
+      if (mag*DBL_EPSILON < fabs(beta[i])) {
+          if (alphaI[i] == 0.0) {
+              eigenvalue[i] = alphaR[i]/beta[i];
+          }
+          else {
+              eigenvalue[i] = -mag/beta[i];
+              opserr << "SymmGeneralizedEigenSolver::solve() - the eigenvalue "
+                  << i+1 << " is complex with magnitude "
+                  << -eigenvalue[i] << endln;
+          }
+      }
+      else {
+          eigenvalue[i] = DBL_MAX;
+      }
+    */
+      sortingID[i] = i;
+  }
+
+  //
+  // mass normalize the eigenvalues
+  //
+
+  Kptr = kCopy;
+  Mptr = mCopy;    
+  double *tmpV = new double[n];
+  /*
+  // mass normailze all vectors .. NOTE instead of numEigen!
+  for (int k=0; k<n; k++) {
+
+    for (int i=0; i<n; i++)
+      tmpV[i]=0.0;
+    
+    double factor = 0.0;
+    
+    // tmp = M * phi
+    for (int i=0; i<n; i++) { // foreach col
+      double *mijPtr = &Mptr[i*n];
+      for (int j=0; j<n; j++) { // foreach row
+        double mij = *mijPtr++;
+        tmpV[j] += mij*eigenvector[k*n+j];
+      }
+    }
+
+    // phi^t * tmp
+    for (int i=0; i<n; i++) { // foreach col
+      factor += eigenvector[k*n+i]*tmpV[i];
+    }
+
+    if (factor >= 0) {
+      factor=1.0/sqrt(factor);
 
       for (int i=0; i<n; i++)
-        tmpV[i]=0.0;
-      
-      double factor = 0.0;
-      
-      // tmp = M * phi
-      for (int i=0; i<n; i++) { // foreach col
-        double *mijPtr = &Mptr[i*n];
-        for (int j=0; j<n; j++) { // foreach row
-          double mij = *mijPtr++;
-          tmpV[j] += mij*eigenvector[k*n+j];
-        }
-      }
-
-      // phi^t * tmp
-      for (int i=0; i<n; i++) { // foreach col
-        factor += eigenvector[k*n+i]*tmpV[i];
-      }
-
-      if (factor >= 0) {
-        factor=1.0/sqrt(factor);
-
-        for (int i=0; i<n; i++)
-          eigenvector[k*n+i] = eigenvector[k*n+i]*factor;
-      }
+        eigenvector[k*n+i] = eigenvector[k*n+i]*factor;
     }
-    */
-    delete [] kCopy;
-    delete [] mCopy;
-    delete [] tmpV;
-    
-    // sort eigenvalues based on size
-    this->sort(numEigen, eigenvalue, sortingID);
+  }
+  */
+  delete [] kCopy;
+  delete [] mCopy;
+  delete [] tmpV;
+  
+  // sort eigenvalues based on size
+  this->sort(numEigen, eigenvalue, sortingID);
 
-    for (int i=0; i<numEigen; i++) {
-        if (eigenvalue[i] == DBL_MAX) {
-            opserr << "SymmGeneralizedEigenSolver::solve() - the eigenvalue "
-                    << i+1 << " is numerically undetermined or infinite\n";
-        } 
-    }
+  for (int i=0; i<numEigen; i++) {
+    if (eigenvalue[i] == DBL_MAX) {
+        opserr << "SymmGeneralizedEigenSolver::solve() - the eigenvalue "
+                << i+1 << " is numerically undetermined or infinite\n";
+    } 
+  }
 
-    int lworkOpt = (int) work[0];
-    if (lwork < lworkOpt) {
-        opserr << "SymmGeneralizedEigenSolver::solve() - optimal workspace size "
-                << lworkOpt << " is larger than provided workspace size "
-                << lwork << " consider increasing workspace\n";
-    }
+  int lworkOpt = (int) work[0];
+  if (lwork < lworkOpt) {
+    opserr << "SymmGeneralizedEigenSolver::solve() - optimal workspace size "
+            << lworkOpt << " is larger than provided workspace size "
+            << lwork << " consider increasing workspace\n";
+  }
 
-    // clean up the memory
-    delete [] work;
-    delete [] iwork;
-    delete [] ifail;        
+  // clean up the memory
+  delete [] work;
+  delete [] iwork;
+  delete [] ifail;
 
-    return 0;
+  return 0;
 }
 
 
@@ -369,37 +369,26 @@ SymmGeneralizedEigenSolver::getEigenvector(int mode, Vector &theVector)
 double
 SymmGeneralizedEigenSolver::getEigenvalue(int mode)
 {
-    if (mode <= 0 || mode > numEigen) {
-        opserr << "SymmGeneralizedEigenSolver::getEigenvalue() - mode " 
-            << mode << " is out of range (1 - " << numEigen << ")\n";
-        return 0.0;
-    }
+  if (mode <= 0 || mode > numEigen) {
+      opserr << "SymmGeneralizedEigenSolver::getEigenvalue() - mode " 
+          << mode << " is out of range (1 - " << numEigen << ")\n";
+      return 0.0;
+  }
 
-    if (eigenvalue != 0) {
-        return eigenvalue[mode-1];
-    }
-    else {
-        opserr << "SymmGeneralizedEigenSolver::getEigenvalue() - "
-            << "eigenvalues not yet computed\n";
-        return 0.0;
-    }      
+  if (eigenvalue != 0) {
+      return eigenvalue[mode-1];
+  }
+  else {
+      opserr << "SymmGeneralizedEigenSolver::getEigenvalue() - "
+          << "eigenvalues not yet computed\n";
+      return 0.0;
+  }      
 }
 
 
-int SymmGeneralizedEigenSolver::sendSelf(int commitTag, Channel &theChannel)
-{
-    return 0;
-}
 
-
-int SymmGeneralizedEigenSolver::recvSelf(int commitTag, Channel &theChannel, 
-    FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}
-
-
-void SymmGeneralizedEigenSolver::sort(int length, double *x, int *id)
+void 
+SymmGeneralizedEigenSolver::sort(int length, double *x, int *id)
 {
     // this is an implementation of shell sort that
     // additionally keeps track of the sorting order

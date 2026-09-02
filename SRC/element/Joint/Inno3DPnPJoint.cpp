@@ -2019,11 +2019,8 @@ void Inno3DPnPJoint::formK(Vector k)
 			}
         }
     }
-	
-	// opserr << " formK 5: K2!"	<< K2	 << endln;
-	
+
 	kRF.addMatrix(1.0,K2,-1.0);
-	// opserr << " formK 6: kRF!"	<< kRF	 << endln;
 	
 	Matrix Knew(30,30);
     Knew.Zero();
@@ -2319,12 +2316,6 @@ double Inno3DPnPJoint::getStepSize(double s0,double s1,Vector uExt,Vector duExt,
 		// intEq(2) = -fSpr(13) + fSpr(26) + fSpr(30) + fSpr(31);
 
 		// intEq(3) =  fSpr(18) - fSpr(27) - fSpr(28) - fSpr(30);
-
-		// opserr << "getStepSize(1) - fSpr: " << fSpr << endln;
-		// opserr << "getStepSize(1) - intEq: " << intEq << endln;
-		
-		// opserr << "getStepSize(1) - duInt: " << duInt << endln;
-		// opserr << "getStepSize(1) - intEq: " << intEq << endln;
 		
         sU = duInt^intEq;
 		

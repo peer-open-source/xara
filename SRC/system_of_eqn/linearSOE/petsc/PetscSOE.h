@@ -65,7 +65,7 @@ public:
 
     ~PetscSOE();
 
-    int getNumEqn(void) const;
+    int getNumEqn() const;
     int setSize(Graph &theGraph);
     int setSize(int MaxDOFtag);
     int setEigenSize(Graph &theGraph); 
@@ -78,23 +78,18 @@ public:
 
     int setB(const Vector &, double fact = 1.0);
 
-    void zeroA(void);
-    void zeroB(void);
-    void zeroM(void);
-    void zeroK(void);
+    void zeroA();
+    void zeroB();
+    void zeroM();
+    void zeroK();
 
-    const Vector &getX(void);
-    const Vector &getB(void);
-    double normRHS(void);
+    const Vector &getX();
+    const Vector &getB();
 
     void setX(int loc, double value);
     void setX(const Vector &x);
 
     int setSolver(PetscSolver &newSolver);
-
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel,
-                    FEM_ObjectBroker &theBroker);
 
 
     friend class PetscSolver;

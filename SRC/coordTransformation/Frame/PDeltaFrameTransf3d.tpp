@@ -118,8 +118,8 @@ PDeltaFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&pl, int op)
   if (op & Transform::Adjoint) {
 
     linear.push(pl, Transform::Adjoint);
-    // Include leaning column effects (P-Delta)
 
+    // Include leaning column effects (P-Delta)
     const Vector3D Du = linear.getDelta()/linear.getInitialLength();
 
     pl[0*ndf+1] -= Du[1] * N;

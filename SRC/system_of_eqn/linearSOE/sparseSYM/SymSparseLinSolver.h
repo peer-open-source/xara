@@ -12,10 +12,7 @@
 // solver. The user can choose three different ordering schema.
 //
 // What: "@(#) SymSparseLinSolver.h, revA"
-
-
-#ifndef SymSparseLinSolver_h
-#define SymSparseLinSolver_h
+#pragma once
 
 #include <LinearSOESolver.h>
 
@@ -28,20 +25,14 @@ class SymSparseLinSolver : public LinearSOESolver
     SymSparseLinSolver();     
     ~SymSparseLinSolver();
 
-    int solve(void);
-    int setSize(void);
+    int solve() override;
+    int solve(const Vector& B, Vector& X) override;
+    int setSize() override;
 
     int setLinearSOE(SymSparseLinSOE &theSOE); 
-	
-    int sendSelf(int cTag, Channel &theChannel);
-    int recvSelf(int cTag, 
-		 Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
+
   private:
 
     SymSparseLinSOE *theSOE;
     
 };
-
-#endif
-

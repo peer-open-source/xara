@@ -200,12 +200,14 @@ MP_Constraint::getConstraint()
     return *constraint;    
 }
 
-const Vector& MP_Constraint::getConstrainedDOFsInitialDisplacement() const
+const Vector&
+MP_Constraint::getConstrainedDOFsInitialDisplacement() const
 {
     return Uc0;
 }
 
-const Vector& MP_Constraint::getRetainedDOFsInitialDisplacement() const
+const Vector& 
+MP_Constraint::getRetainedDOFsInitialDisplacement() const
 {
     return Ur0;
 }

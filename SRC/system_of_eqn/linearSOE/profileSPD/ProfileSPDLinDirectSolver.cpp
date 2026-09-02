@@ -47,82 +47,85 @@ ProfileSPDLinDirectSolver::ProfileSPDLinDirectSolver(double tol)
     
 ProfileSPDLinDirectSolver::~ProfileSPDLinDirectSolver()
 {
-    if (RowTop != 0) delete [] RowTop;
-    if (topRowPtr != 0) free((void *)topRowPtr);
-    if (invD != 0) delete [] invD;
+  if (RowTop != 0) delete [] RowTop;
+  if (topRowPtr != 0) free((void *)topRowPtr);
+  if (invD != 0) delete [] invD;
 }
 
 int
 ProfileSPDLinDirectSolver::setSize()
 {
-    assert(theSOE != nullptr);
+  assert(theSOE != nullptr);
 
-    // check for quick return 
-    if (theSOE->size == 0)
-	return 0;
-    
-    size = theSOE->size;
-    
-    if (RowTop != 0) 
-      delete [] RowTop;
-    if (topRowPtr != 0) 
-      free((void *)topRowPtr);
-    if (invD != 0) 
-      delete [] invD;
-
-    RowTop = new int[size];
-
-    // we cannot use topRowPtr = new (double *)[size] with the cxx compiler
-    topRowPtr = (double **)malloc(size *sizeof(double *));
-
-    invD = new double[size];
-
-    // set some pointers
-    double *A = theSOE->A;
-    int *iDiagLoc = theSOE->iDiagLoc;
-
-    // set RowTop and topRowPtr info
-
-    RowTop[0] = 0;
-    topRowPtr[0] = A;
-    for (int j=1; j<size; j++) {
-	int icolsz = iDiagLoc[j] - iDiagLoc[j-1];
-	RowTop[j] = j - icolsz +  1;
-	topRowPtr[j] = &A[iDiagLoc[j-1]]; // FORTRAN array indexing in iDiagLoc
-    }
-
-    size = theSOE->size;
+  // check for quick return 
+  if (theSOE->size == 0)
     return 0;
+  
+  size = theSOE->size;
+  
+  if (RowTop != 0) 
+    delete [] RowTop;
+  if (topRowPtr != 0) 
+    free((void *)topRowPtr);
+  if (invD != 0) 
+    delete [] invD;
+
+  RowTop = new int[size];
+
+  // we cannot use topRowPtr = new (double *)[size] with the cxx compiler
+  topRowPtr = (double **)malloc(size *sizeof(double *));
+
+  invD = new double[size];
+
+  // set pointers
+  double *A = theSOE->A;
+  int *iDiagLoc = theSOE->iDiagLoc;
+
+  // set RowTop and topRowPtr info
+
+  RowTop[0] = 0;
+  topRowPtr[0] = A;
+  for (int j=1; j<size; j++) {
+    int icolsz = iDiagLoc[j] - iDiagLoc[j-1];
+    RowTop[j] = j - icolsz +  1;
+    topRowPtr[j] = &A[iDiagLoc[j-1]]; // FORTRAN array indexing in iDiagLoc
+  }
+
+  size = theSOE->size;
+  return 0;
+}
+
+int
+ProfileSPDLinDirectSolver::solve()
+{
+  return this->solve(theSOE->B, theSOE->X);
 }
 
 
-int 
-ProfileSPDLinDirectSolver::solve(void)
+int
+ProfileSPDLinDirectSolver::solve(const Vector& vecB, Vector& vecX)
 {
   //  Timer timer;
   //  timer.start();
 
-    // check for quick returns
-    assert(theSOE != nullptr);
-    // if (theSOE == 0) {
-    //     opserr << "ProfileSPDLinDirectSolver::solve(void): ";
-    //     opserr << " - No ProfileSPDSOE has been assigned\n";
-    //     return -1;
-    // }
-    
-    if (theSOE->size == 0)
-	return 0;
+  // check for quick returns
+  assert(theSOE != nullptr);
+  
+  if (theSOE->size == 0)
+    return 0;
 
-    // set some pointers
-    double *B = &theSOE->B[0];
-    double *X = &theSOE->X[0];
-    int theSize = theSOE->size;
-    // copy B into X
-    for (int ii=0; ii<theSize; ii++)
-		X[ii] = B[ii];
+  // set pointers
+  // const double *B = &theSOE->B[0];
+  // double *X = &theSOE->X[0];
+  const double * B = &(vecB(0));
+  double *X = &(vecX(0));
+  int theSize = theSOE->size;
+  // copy B into X
+  for (int ii=0; ii<theSize; ii++)
+  X[ii] = B[ii];
 
-    
-    if (theSOE->isAfactored == false)  {
+  
+  if (theSOE->isAfactored == false)  {
 
 		// FACTOR & SOLVE
 		double *ajiPtr, *akjPtr, *akiPtr, *bjPtr;    
@@ -132,12 +135,12 @@ ProfileSPDLinDirectSolver::solve(void)
 
 		double a00 = theSOE->A[0];
 		if (a00 <= 0.0) {
-		// opserr << "ProfileSPDLinDirectSolver::solve() - ";
-		// opserr << " aii < 0 (i, aii): (0,0)\n"; 
-		return(-2);
+      // opserr << "ProfileSPDLinDirectSolver::solve() - ";
+      // opserr << " aii < 0 (i, aii): (0,0)\n"; 
+      return(-2);
 		}    
-		
-			invD[0] = 1.0/theSOE->A[0];	
+  
+    invD[0] = 1.0/theSOE->A[0];
 		
 		// for every col across 
 		for (int i=1; i<theSize; i++) {
@@ -146,28 +149,28 @@ ProfileSPDLinDirectSolver::solve(void)
 			ajiPtr = topRowPtr[i];
 
 			for (int j=rowitop; j<i; j++) {
-			double tmp = *ajiPtr;
-			int rowjtop = RowTop[j];
+        double tmp = *ajiPtr;
+        int rowjtop = RowTop[j];
 
-			if (rowitop > rowjtop) {
+        if (rowitop > rowjtop) {
 
-				akjPtr = topRowPtr[j] + (rowitop-rowjtop);
-				akiPtr = topRowPtr[i];
+          akjPtr = topRowPtr[j] + (rowitop-rowjtop);
+          akiPtr = topRowPtr[i];
 
-				for (int k=rowitop; k<j; k++) 
-				tmp -= *akjPtr++ * *akiPtr++ ;
+          for (int k=rowitop; k<j; k++) 
+          tmp -= *akjPtr++ * *akiPtr++ ;
 
-				*ajiPtr++ = tmp;
-			}
-			else {
-				akjPtr = topRowPtr[j];
-				akiPtr = topRowPtr[i] + (rowjtop-rowitop);
+          *ajiPtr++ = tmp;
+        }
+        else {
+          akjPtr = topRowPtr[j];
+          akiPtr = topRowPtr[i] + (rowjtop-rowitop);
 
-				for (int k=rowjtop; k<j; k++) 
-				tmp -= *akjPtr++ * *akiPtr++ ;
+          for (int k=rowjtop; k<j; k++) 
+          tmp -= *akjPtr++ * *akiPtr++ ;
 
-				*ajiPtr++ = tmp;
-			}
+          *ajiPtr++ = tmp;
+        }
 			}
 
 			/* now form i'th col of [U] and determine [dii] */
@@ -178,24 +181,24 @@ ProfileSPDLinDirectSolver::solve(void)
 			double tmp = 0;	    
 			
 			for (int jj=rowitop; jj<i; jj++) {
-			double aji = *ajiPtr;
-			double lij = aji * invD[jj];
-			tmp -= lij * *bjPtr++; 		
-			*ajiPtr++ = lij;
-			aii = aii - lij*aji;
+        double aji = *ajiPtr;
+        double lij = aji * invD[jj];
+        tmp -= lij * *bjPtr++; 		
+        *ajiPtr++ = lij;
+        aii = aii - lij*aji;
 			}
 			
 			// check that the diag > the tolerance specified
 			if (aii == 0.0) {
-			// opserr << "ProfileSPDLinDirectSolver::solve() - ";
-			// opserr << " aii < 0 (i, aii): (" << i << ", " << aii << ")\n"; 
-			return -2;
+        // opserr << "ProfileSPDLinDirectSolver::solve() - ";
+        // opserr << " aii < 0 (i, aii): (" << i << ", " << aii << ")\n"; 
+        return -2;
 			}
 			if (fabs(aii) <= minDiagTol) {
-			// opserr << "ProfileSPDLinDirectSolver::solve() - ";
-			// opserr << " aii < minDiagTol (i, aii): (" << i;
-			// opserr << ", " << aii << ")\n"; 
-			return -2;
+        // opserr << "ProfileSPDLinDirectSolver::solve() - ";
+        // opserr << " aii < minDiagTol (i, aii): (" << i;
+        // opserr << ", " << aii << ")\n"; 
+        return -2;
 			}		
 			invD[i] = 1.0/aii; 
 			X[i] += tmp;	    
@@ -220,59 +223,58 @@ ProfileSPDLinDirectSolver::solve(void)
 			double *ajiPtr = topRowPtr[k]; 		
 
 			for (int j=rowktop; j<k; j++) 
-			X[j] -= *ajiPtr++ * bk;
-		}   	 	
+        X[j] -= *ajiPtr++ * bk;
+		}
+  }
+
+  else {
+    // JUST DO SOLVE
+
+    // do forward substitution 
+    for (int i=1; i<theSize; i++) {
+      
+      int rowitop = RowTop[i];	    
+      double *ajiPtr = topRowPtr[i];
+      double *bjPtr  = &X[rowitop];  
+      double tmp = 0;	    
+      
+      for (int j=rowitop; j<i; j++) 
+        tmp -= *ajiPtr++ * *bjPtr++;
+
+      X[i] += tmp;
     }
 
-    else {
-
-	// JUST DO SOLVE
-
-	// do forward substitution 
-	for (int i=1; i<theSize; i++) {
-	    
-	    int rowitop = RowTop[i];	    
-	    double *ajiPtr = topRowPtr[i];
-	    double *bjPtr  = &X[rowitop];  
-	    double tmp = 0;	    
-	    
-	    for (int j=rowitop; j<i; j++) 
-		tmp -= *ajiPtr++ * *bjPtr++; 
-	    
-	    X[i] += tmp;
-	}
-
-	// divide by diag term 
-	double *bjPtr = X; 
-	double *aiiPtr = invD;
-	for (int j=0; j<theSize; j++) 
-	    *bjPtr++ = *aiiPtr++ * X[j];
+    // divide by diag term 
+    double *bjPtr = X; 
+    double *aiiPtr = invD;
+    for (int j=0; j<theSize; j++) 
+      *bjPtr++ = *aiiPtr++ * X[j];
 
 
-	// now do the back substitution storing result in X
-	for (int k=(theSize-1); k>0; k--) {
+    // now do the back substitution storing result in X
+    for (int k=(theSize-1); k>0; k--) {
 
-	    int rowktop = RowTop[k];
-	    double bk = X[k];
-	    double *ajiPtr = topRowPtr[k]; 		
+      int rowktop = RowTop[k];
+      double bk = X[k];
+      double *ajiPtr = topRowPtr[k]; 		
 
-	    for (int j=rowktop; j<k; j++) 
-		X[j] -= *ajiPtr++ * bk;
-	}   	 
-    }    
+      for (int j=rowktop; j<k; j++) 
+        X[j] -= *ajiPtr++ * bk;
+    }   	 
+  }
 
-    return 0;
+  return 0;
 }
 
 double
-ProfileSPDLinDirectSolver::getDeterminant(void) 
+ProfileSPDLinDirectSolver::getDeterminant() 
 {
-   int theSize = theSOE->size;
-   double determinant = 1.0;
-   for (int i=0; i<theSize; i++)
-     determinant *= invD[i];
-   determinant = 1.0/determinant;
-   return determinant;
+  int theSize = theSOE->size;
+  double determinant = 1.0;
+  for (int i=0; i<theSize; i++)
+    determinant *= invD[i];
+  determinant = 1.0/determinant;
+  return determinant;
 }
 
 #if 0
@@ -296,99 +298,88 @@ ProfileSPDLinDirectSolver::factor(int n)
 
     // check for quick returns
     assert(theSOE != nullptr);
-    // if (theSOE == 0) {
-    //     opserr << "ProfileSPDLinDirectSolver::factor: ";
-    //     opserr << " - No ProfileSPDSOE has been assigned\n";
-    //     return -1;
-    // }
 
     int theSize = theSOE->size;    
     assert( ! (n > theSize));
-    // if (n > theSize) {
-    //     opserr << "ProfileSPDLinDirectSolver::factor: ";
-    //     opserr << " - n " << n << " greater than size of system" << theSize << endln;
-    //     return -1;
-    // }
 
     if (theSize == 0 || n == 0)
-	return 0;
+      return 0;
 
-    // set some pointers
-    if (theSOE->isAfactored == false)  {
+  // set some pointers
+  if (theSOE->isAfactored == false)  {
 
-	// FACTOR & SOLVE
-	double *ajiPtr, *akjPtr, *akiPtr;    
-	
-	// if the matrix has not been factored already factor it into U^t D U
-	// storing D^-1 in invD as we go
+    // FACTOR & SOLVE
+    double *ajiPtr, *akjPtr, *akiPtr;    
     
-	invD[0] = 1.0/theSOE->A[0];	
-	
-	// for every col across 
-	for (int i=1; i<n; i++) {
+    // if the matrix has not been factored already factor it into U^t D U
+    // storing D^-1 in invD as we go
+      
+    invD[0] = 1.0/theSOE->A[0];	
+    
+    // for every col across 
+    for (int i=1; i<n; i++) {
 
-	    int rowitop = RowTop[i];
-	    ajiPtr = topRowPtr[i];
+      int rowitop = RowTop[i];
+      ajiPtr = topRowPtr[i];
 
-	    for (int j=rowitop; j<i; j++) {
-		double tmp = *ajiPtr;
-		int rowjtop = RowTop[j];
+      for (int j=rowitop; j<i; j++) {
+        double tmp = *ajiPtr;
+        int rowjtop = RowTop[j];
 
-		if (rowitop > rowjtop) {
+        if (rowitop > rowjtop) {
+          akjPtr = topRowPtr[j] + (rowitop-rowjtop);
+          akiPtr = topRowPtr[i];
 
-		    akjPtr = topRowPtr[j] + (rowitop-rowjtop);
-		    akiPtr = topRowPtr[i];
+          for (int k=rowitop; k<j; k++) 
+            tmp -= *akjPtr++ * *akiPtr++ ;
 
-		    for (int k=rowitop; k<j; k++) 
-			tmp -= *akjPtr++ * *akiPtr++ ;
+          *ajiPtr++ = tmp;
+        }
+        else {
+          akjPtr = topRowPtr[j];
+          akiPtr = topRowPtr[i] + (rowjtop-rowitop);
 
-		    *ajiPtr++ = tmp;
-		}
-		else {
-		    akjPtr = topRowPtr[j];
-		    akiPtr = topRowPtr[i] + (rowjtop-rowitop);
+          for (int k=rowjtop; k<j; k++) 
+            tmp -= *akjPtr++ * *akiPtr++ ;
 
-		    for (int k=rowjtop; k<j; k++) 
-			tmp -= *akjPtr++ * *akiPtr++ ;
+          *ajiPtr++ = tmp;
+        }
+      }
 
-		    *ajiPtr++ = tmp;
-		}
-	    }
+      /* now form i'th col of [U] and determine [dii] */
 
-	    /* now form i'th col of [U] and determine [dii] */
+      double aii = theSOE->A[theSOE->iDiagLoc[i] -1]; // FORTRAN ARRAY INDEXING
+      ajiPtr = topRowPtr[i];
+      
+      for (int jj=rowitop; jj<i; jj++) {
+        double aji = *ajiPtr;
+        double lij = aji * invD[jj];
+        *ajiPtr++ = lij;
+        aii = aii - lij*aji;
+      }
+      
+      // check that the diag > the tolerance specified
+      if (aii <= 0.0) {
+        // opserr << "ProfileSPDLinDirectSolver::solve() - ";
+        // opserr << " aii < 0 (i, aii): (" << i << ", " << aii << ")\n"; 
+        return(-2);
+      }
+      if (aii <= minDiagTol) {
+        // opserr << "ProfileSPDLinDirectSolver::solve() - ";
+        // opserr << " aii < minDiagTol (i, aii): (" << i;
+        // opserr << ", " << aii << ")\n"; 
+        return(-2);
+      }		
+      
 
-	    double aii = theSOE->A[theSOE->iDiagLoc[i] -1]; // FORTRAN ARRAY INDEXING
-	    ajiPtr = topRowPtr[i];
-	    
-	    for (int jj=rowitop; jj<i; jj++) {
-		double aji = *ajiPtr;
-		double lij = aji * invD[jj];
-		*ajiPtr++ = lij;
-		aii = aii - lij*aji;
-	    }
-	    
-	    // check that the diag > the tolerance specified
-	    if (aii <= 0.0) {
-		// opserr << "ProfileSPDLinDirectSolver::solve() - ";
-		// opserr << " aii < 0 (i, aii): (" << i << ", " << aii << ")\n"; 
-		return(-2);
-	    }
-	    if (aii <= minDiagTol) {
-		// opserr << "ProfileSPDLinDirectSolver::solve() - ";
-		// opserr << " aii < minDiagTol (i, aii): (" << i;
-		// opserr << ", " << aii << ")\n"; 
-		return(-2);
-	    }		
-	    
+      invD[i] = 1.0/aii; 
+    }
 
-	    invD[i] = 1.0/aii; 
-	}
+    theSOE->isAfactored = true;
+    theSOE->numInt = n;
 
-	theSOE->isAfactored = true;
-	theSOE->numInt = n;
-	
-    }	
-    return 0;
+  }
+  return 0;
 }
 
 
@@ -461,21 +452,4 @@ ProfileSPDLinDirectSolver::factor(int n)
     return 0;
 }
 */
-
-int
-ProfileSPDLinDirectSolver::sendSelf(int cTag,
-				    Channel &theChannel)
-{
-    return 0;
-}
-
-
-int 
-ProfileSPDLinDirectSolver::recvSelf(int cTag,
-				    Channel &theChannel, 
-				    FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}
-
 

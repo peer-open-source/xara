@@ -50,7 +50,8 @@ struct ProfileTCB {
   cond_t startBlock_cond;
   cond_t endBlock_cond;
 
-  double *A,*X,*B;
+  double *A,*X;
+  const double *B;
   int *iDiagLoc;
   int size;
   int blockSize;
@@ -170,120 +171,118 @@ ProfileSPDLinDirectThreadSolver::setSize()
 
 
 int 
-ProfileSPDLinDirectThreadSolver::solve(void)
+ProfileSPDLinDirectThreadSolver::solve()
 {
-    assert(theSOE != nullptr);
-    
-    // check for quick returns
-    if (theSOE->size == 0)
-	return 0;
-
-    // set some pointers
-    double *A = theSOE->A;
-    double *B = &theSOE->B[0];
-    double *X = &theSOE->X[0];
-    int *iDiagLoc = theSOE->iDiagLoc;
-    int size = theSOE->size;
-
-    // copy B into X
-    for (int ii=0; ii<size; ii++)
-	X[ii] = B[ii];
-    
-    if (theSOE->isAfactored == false)  {
-
-      mutex_lock(&tcb->start_mutex); 
-
-      invD[0] = 1.0/A[0];	
-
-      // assign the global variables the threads will need
-      tcb->A = A;
-      tcb->X = X;
-      tcb->B = B;
-      tcb->size = size;
-      tcb->minDiagTol = minDiagTol;
-      tcb->maxColHeight = maxColHeight;
-      tcb->RowTop = RowTop;
-      tcb->topRowPtr = topRowPtr;
-      tcb->invD = invD;
-      tcb->blockSize    = blockSize;
-      tcb->iDiagLoc     = iDiagLoc;
-      
-      tcb->info = 0;
-      tcb->workToDo     = NP;
-      tcb->currentBlock = -1;
-      tcb->threadID     = 0;
-      tcb->numThreads   = NP;
-      tcb->threadsDone  = 0;
-      tcb->threadsDoneBlock = NP;
-
-      // wake up the threads
-      cond_broadcast(&tcb->start_cond);
-      mutex_unlock(&tcb->start_mutex); 
-
-      // yield the LWP
-      thr_yield();
- 
-      // wait for all the threads to finish
-      mutex_lock(&tcb->end_mutex);
-
-      while (tcb->threadsDone < NP) 
-        cond_wait(&tcb->end_cond, &tcb->end_mutex);
-
-      mutex_unlock(&tcb->end_mutex);
-
-      theSOE->isAfactored = true;
-	
-      // divide by diag term 
-      double *bjPtr = X; 
-      double *aiiPtr = invD;
-      for (int j=0; j<size; j++) 
-	*bjPtr++ = *aiiPtr++ * X[j];
-
-      // now do the back substitution storing result in X
-      for (int k=(size-1); k>0; k--) {
-      
-	int rowktop = RowTop[k];
-	double bk = X[k];
-	double *ajiPtr = topRowPtr[k]; 		
-      
-	for (int j=rowktop; j<k; j++) 
-	  X[j] -= *ajiPtr++ * bk;
-      }   	 
-    } else { // just do forward and back substitution
-      
-      // do forward substitution 
-      for (int i=1; i<size; i++) {
-	    
-	int rowitop = RowTop[i];	    
-	double *ajiPtr = topRowPtr[i];
-	double *bjPtr  = &X[rowitop];  
-	double tmp = 0;	    
-	    
-	for (int j=rowitop; j<i; j++) 
-	  tmp -= *ajiPtr++ * *bjPtr++; 
-	    
-	X[i] += tmp;
-      }
-
-      // divide by diag term 
-      double *bjPtr = X; 
-      double *aiiPtr = invD;
-      for (int j=0; j<size; j++) 
-	*bjPtr++ = *aiiPtr++ * X[j];
-
-    
-      // now do the back substitution storing result in X
-      for (int k=(size-1); k>0; k--) {
-      
-	int rowktop = RowTop[k];
-	double bk = X[k];
-	double *ajiPtr = topRowPtr[k]; 		
-
-	for (int j=rowktop; j<k; j++) 
-	  X[j] -= *ajiPtr++ * bk;
-      }   	 
-    }    
+  assert(theSOE != nullptr);
+  
+  // check for quick returns
+  if (theSOE->size == 0)
     return 0;
+
+  // set some pointers
+  double *A = theSOE->A;
+  const double *B = &theSOE->B[0];
+  double *X = &theSOE->X[0];
+  int *iDiagLoc = theSOE->iDiagLoc;
+  int size = theSOE->size;
+
+  // copy B into X
+  for (int ii=0; ii<size; ii++)
+    X[ii] = B[ii];
+
+  if (theSOE->isAfactored == false)  {
+
+    mutex_lock(&tcb->start_mutex); 
+
+    invD[0] = 1.0/A[0];	
+
+    // assign the global variables the threads will need
+    tcb->A = A;
+    tcb->X = X;
+    tcb->B = B;
+    tcb->size = size;
+    tcb->minDiagTol = minDiagTol;
+    tcb->maxColHeight = maxColHeight;
+    tcb->RowTop = RowTop;
+    tcb->topRowPtr = topRowPtr;
+    tcb->invD = invD;
+    tcb->blockSize    = blockSize;
+    tcb->iDiagLoc     = iDiagLoc;
+    
+    tcb->info = 0;
+    tcb->workToDo     = NP;
+    tcb->currentBlock = -1;
+    tcb->threadID     = 0;
+    tcb->numThreads   = NP;
+    tcb->threadsDone  = 0;
+    tcb->threadsDoneBlock = NP;
+
+    // wake up the threads
+    cond_broadcast(&tcb->start_cond);
+    mutex_unlock(&tcb->start_mutex); 
+
+    // yield the LWP
+    thr_yield();
+
+    // wait for all the threads to finish
+    mutex_lock(&tcb->end_mutex);
+
+    while (tcb->threadsDone < NP) 
+      cond_wait(&tcb->end_cond, &tcb->end_mutex);
+
+    mutex_unlock(&tcb->end_mutex);
+
+    theSOE->isAfactored = true;
+
+    // divide by diag term 
+    double *bjPtr = X; 
+    double *aiiPtr = invD;
+    for (int j=0; j<size; j++) 
+      *bjPtr++ = *aiiPtr++ * X[j];
+
+    // now do the back substitution storing result in X
+    for (int k=(size-1); k>0; k--) {
+      int rowktop = RowTop[k];
+      double bk = X[k];
+      double *ajiPtr = topRowPtr[k]; 		
+          
+      for (int j=rowktop; j<k; j++) 
+        X[j] -= *ajiPtr++ * bk;
+    }   	 
+  }
+  else { // just do forward and back substitution
+    
+    // do forward substitution 
+    for (int i=1; i<size; i++) {
+      int rowitop = RowTop[i];	    
+      double *ajiPtr = topRowPtr[i];
+      double *bjPtr  = &X[rowitop];  
+      double tmp = 0;	    
+          
+      for (int j=rowitop; j<i; j++) 
+        tmp -= *ajiPtr++ * *bjPtr++; 
+
+      X[i] += tmp;
+    }
+
+    // divide by diag term 
+    double *bjPtr = X; 
+    double *aiiPtr = invD;
+    for (int j=0; j<size; j++) 
+      *bjPtr++ = *aiiPtr++ * X[j];
+
+  
+    // now do the back substitution storing result in X
+    for (int k=(size-1); k>0; k--) {
+      int rowktop = RowTop[k];
+      double bk = X[k];
+      double *ajiPtr = topRowPtr[k]; 		
+
+      for (int j=rowktop; j<k; j++) 
+        X[j] -= *ajiPtr++ * bk;
+    }
+  }    
+  return 0;
 }
 
 int 
@@ -293,28 +292,9 @@ ProfileSPDLinDirectThreadSolver::setProfileSOE(ProfileSPDLinSOE &theNewSOE)
     theSOE = &theNewSOE;
     return 0;
 }
-	
-int
-ProfileSPDLinDirectThreadSolver::sendSelf(int cTag,
-					  Channel &theChannel)
-{
-//     if (size != 0)
-// 	opserr << "ProfileSPDLinDirectThreadSolver::sendSelf - does not send itself YET\n"; 
-    return 0;
-}
 
-
-int 
-ProfileSPDLinDirectThreadSolver::recvSelf(int cTag,
-					  Channel &theChannel, 
-					  FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}
-
-
-
-void *ProfileSPDLinDirectThreadSolver_Worker(void *arg)
+void *
+ProfileSPDLinDirectThreadSolver_Worker(void *arg)
 {
   struct ProfileTCB* tcb = (struct ProfileTCB*)arg;
   // Do this loop forever - or until all the Non-Daemon threads have exited

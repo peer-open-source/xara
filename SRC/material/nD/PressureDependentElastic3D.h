@@ -24,14 +24,10 @@
 //#
 //#
 //===============================================================================
-
-
-#ifndef PressureDependentElastic3D_h
-#define PressureDependentElastic3D_h
+#pragma once
 
 #include <ElasticIsotropicMaterial.h>
 
-#include <Channel.h>
 
 
 class PressureDependentElastic3D : public ElasticIsotropicMaterial
@@ -47,29 +43,26 @@ class PressureDependentElastic3D : public ElasticIsotropicMaterial
     PressureDependentElastic3D ();
     ~PressureDependentElastic3D ();
 
-    const char *getClassType(void) const {return "PressureDependentElastic";}
+    const char *getClassType() const {return "PressureDependentElastic";}
 
-    int setTrialStrain (const Vector &v);
-    int setTrialStrain (const Vector &v, const Vector &r);
+    int setTrialStrain(const Vector &v);
+    int setTrialStrain(const Vector &v, const Vector &r);
     int setTrialStrainIncr (const Vector &v);
     int setTrialStrainIncr (const Vector &v, const Vector &r);
-    const Matrix &getTangent (void);
-    const Matrix &getInitialTangent (void);
+    const Matrix &getTangent();
+    const Matrix &getInitialTangent();
 
-    const Vector &getStress (void);
-    const Vector &getStrain (void);
+    const Vector &getStress() override;
+    const Vector &getStrain() override;
 
-    int commitState (void);
-    int revertToLastCommit (void);
-    int revertToStart (void);
+    int commitState() override;
+    int revertToLastCommit() override;
+    int revertToStart() override;
 
-    NDMaterial *getCopy (void);
+    NDMaterial *getCopy();
     NDMaterial *getCopy(const char *type);
-    const char *getType (void) const;
-    int getOrder (void) const;
-
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    const char *getType() const;
+    int getOrder() const;
 
     void Print(OPS_Stream &s, int flag);
 
@@ -86,6 +79,4 @@ class PressureDependentElastic3D : public ElasticIsotropicMaterial
     double p_n; // committed pressure
     double p_n1; // trial pressure
 };
-
-#endif
 

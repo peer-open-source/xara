@@ -1013,6 +1013,9 @@ __all__ = [
     "printModel",
     "printA",
     "printB",
+    "solveA",
+    "applyA",
+
     "printGID",
     "testNorm",
     "testNorms",

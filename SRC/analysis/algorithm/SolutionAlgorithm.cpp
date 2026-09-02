@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <Logging.h>
 
-// TODO!!!!
+// TODO!!!! only used by ComponentElement[23]d
 int SOLUTION_ALGORITHM_tangentFlag = 0;
 
 SolutionAlgorithm::SolutionAlgorithm(int clasTag)

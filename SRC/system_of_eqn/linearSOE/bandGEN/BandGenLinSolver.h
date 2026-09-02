@@ -17,13 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1.1.1 $
-// $Date: 2000-09-15 08:23:28 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/bandGEN/BandGenLinSolver.h,v $
-                                                                        
-                                                                        
-// File: ~/system_of_eqn/linearSOE/bandGEN/BandGenLinSolver.h
+//
 //
 // Written: fmk 
 // Created: Tue Sep 26 16:27:47: 1996
@@ -36,9 +30,8 @@
 // are used to solve a system of equations of type BandGenLinSOE.
 //
 // What: "@(#) BandGenLinSolver.h, revA"
-
-#ifndef BandGenLinSolver_h
-#define BandGenLinSolver_h
+//
+#pragma once
 
 #include <LinearSOESolver.h>
 class BandGenLinSOE;
@@ -49,8 +42,8 @@ class BandGenLinSolver : public LinearSOESolver
     BandGenLinSolver(int classTag);    
     virtual ~BandGenLinSolver();
 
-    virtual int solve(void) = 0;
-    virtual int setLinearSOE(BandGenLinSOE &theSOE);
+    virtual int solve() = 0;
+    virtual int setLinearSOE(BandGenLinSOE &);
     
   protected:
     BandGenLinSOE *theSOE;
@@ -58,6 +51,4 @@ class BandGenLinSolver : public LinearSOESolver
   private:
 
 };
-
-#endif
 

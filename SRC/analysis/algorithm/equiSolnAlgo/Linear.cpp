@@ -34,11 +34,10 @@
 #include <FEM_ObjectBroker.h>
 #include <ConvergenceTest.h>
 #include <ID.h>
-#include <string>
 
 // Constructor
 Linear::Linear(int theTangent, int Fact)
-  :EquiSolnAlgo(EquiALGORITHM_TAGS_Linear), incrTangent(theTangent), factorOnce(Fact)
+  : EquiSolnAlgo(EquiALGORITHM_TAGS_Linear), incrTangent(theTangent), factorOnce(Fact)
 {
 
 }
@@ -69,10 +68,10 @@ Linear::solveCurrentStep()
       return SolutionAlgorithm::BadFormTangent;
 
     if (factorOnce == 1)
-        factorOnce = 2;
+      factorOnce = 2;
   }
 
-  
+
   if (theIncIntegrator->formUnbalance() < 0)
     return SolutionAlgorithm::BadFormResidual;
 
@@ -84,27 +83,6 @@ Linear::solveCurrentStep()
   if (theIncIntegrator->update(theSOE->getX()) < 0)
     return SolutionAlgorithm::BadStepUpdate;
 
-  return 0;
-}
-
-
-int
-Linear::sendSelf(int cTag, Channel &theChannel)
-{
-  static ID iData(2);
-  iData(0) = incrTangent;
-  iData(1) = factorOnce;
-  return theChannel.sendID(cTag, 0, iData);
-}
-
-int
-Linear::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  static ID iData(2);
-  theChannel.recvID(cTag, 0, iData);
-  incrTangent = iData(0);
-  factorOnce = iData(1);
-  
   return 0;
 }
 

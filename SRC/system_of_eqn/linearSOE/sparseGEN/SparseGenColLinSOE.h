@@ -44,8 +44,8 @@ public:
 
   virtual ~SparseGenColLinSOE();
 
-  virtual int getNumEqn(void) const;
-  virtual int setSize(Graph&);
+  int getNumEqn() const override;
+  int setSize(Graph&) override;
   virtual int addA(const Matrix&, const ID&, double fact = 1.0);
   virtual int addB(const Vector&, const ID&, double fact = 1.0);
   virtual int setB(const Vector&, double fact = 1.0);
@@ -55,13 +55,9 @@ public:
 
   virtual const Vector& getX();
   virtual const Vector& getB();
-  virtual double normRHS();
 
   virtual void setX(int loc, double value);
   virtual void setX(const Vector& x);
-
-  virtual int sendSelf(int commitTag, Channel&);
-  virtual int recvSelf(int commitTag, Channel&, FEM_ObjectBroker& theBroker);
 
 
   friend class SuperLU;
@@ -78,5 +74,4 @@ protected:
   int Asize, Bsize; // size of the 1d array holding A
   bool factored;
 
-private:
 };

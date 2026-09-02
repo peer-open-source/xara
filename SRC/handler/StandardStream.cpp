@@ -330,56 +330,59 @@ OPS_Stream&
 StandardStream::operator<<(unsigned int n)
 {
   if (echoApplication == true)
-    OPS_CONSOLE << 1.0*n;
+    OPS_CONSOLE << n;
 
   if (fileOpen != 0)
-    theFile << 1.0*n;
+    theFile << n;
 
   return *this;
 }
+
 OPS_Stream& 
 StandardStream::operator<<(long n)
 {
-/*
-OPS_CONSOLE << n;
+  /*
+  OPS_CONSOLE << n;
+  */
 
-if (fileOpen != 0)
-  theFile << n;
-*/
+  if (fileOpen != 0)
+    theFile << n;
   return *this;
 }
+
 OPS_Stream& 
 StandardStream::operator<<(unsigned long n)
 {
 /*
   OPS_CONSOLE << n;
+*/
 
   if (fileOpen != 0)
     theFile << n;
-*/
   return *this;
 }
+
 OPS_Stream& 
 StandardStream::operator<<(short n)
 {
 /*
   OPS_CONSOLE << n;
+*/
 
   if (fileOpen != 0)
     theFile << n;
-*/
   return *this;
 }
+
 OPS_Stream& 
 StandardStream::operator<<(unsigned short n)
 {
 /*
   OPS_CONSOLE << n;
-
+*/
   if (fileOpen != 0)
     theFile << n;
-*/
-return *this;
+  return *this;
 }
 
 OPS_Stream& 

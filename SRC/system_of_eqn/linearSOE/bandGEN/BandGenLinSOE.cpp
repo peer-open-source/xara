@@ -30,28 +30,18 @@
 #include <Vertex.h>
 #include <VertexIter.h>
 #include <math.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <iostream>
 #include <assert.h>
 
 BandGenLinSOE::BandGenLinSOE(BandGenLinSolver &theSolvr)
 :LinearSOE(theSolvr, LinSOE_TAGS_BandGenLinSOE),
+ theSolver(&theSolvr),
  size(0), numSuperD(0), numSubD(0), A(0), B(0), X(0), 
  vectX(0), vectB(0), Asize(0), Bsize(0), factored(false)
 {
   theSolvr.setLinearSOE(*this);
 }
 
-BandGenLinSOE::BandGenLinSOE()
-:LinearSOE(LinSOE_TAGS_BandGenLinSOE),
- size(0), numSuperD(0), numSubD(0), A(0), 
- B(0), X(0), vectX(0), vectB(0), 
- Asize(0), Bsize(0), 
- factored(false)
-{
-
-}
 
 BandGenLinSOE::BandGenLinSOE(int classTag)
 :LinearSOE(classTag),
@@ -64,9 +54,11 @@ BandGenLinSOE::BandGenLinSOE(int classTag)
 }
 
 
+#if 0
 BandGenLinSOE::BandGenLinSOE(int N, int numSuperDiag, int numSubDiag,
                              BandGenLinSolver &theSolvr)
 :LinearSOE(theSolvr, LinSOE_TAGS_BandGenLinSOE),
+ theSolver(&theSolvr),
  size(N), numSuperD(numSuperDiag), numSubD(numSubDiag), A(0), 
  B(0), X(0), vectX(0), vectB(0), 
  Asize(0), Bsize(0), 
@@ -77,7 +69,7 @@ BandGenLinSOE::BandGenLinSOE(int N, int numSuperDiag, int numSubDiag,
 
   // zero the matrix
   for (int i=0; i<Asize; i++)
-      A[i] = 0;
+    A[i] = 0;
 
   B = new double[size];
   X = new double[size];
@@ -100,6 +92,7 @@ BandGenLinSOE::BandGenLinSOE(int N, int numSuperDiag, int numSubDiag,
       // opserr << " solver failed setSize() in constructor\n";
   }
 }
+#endif
 
 int
 BandGenLinSOE::getNumEqn() const
@@ -138,14 +131,14 @@ BandGenLinSOE::setSize(Graph &theGraph)
     int vertexNum = vertexPtr->getTag();
     const ID &theAdjacency = vertexPtr->getAdjacency();
     for (int i=0; i<theAdjacency.Size(); i++) {
-        int otherNum = theAdjacency(i);
-        int diff = vertexNum - otherNum;
-        if (diff > 0) {
-          if (diff > numSuperD)
-            numSuperD = diff;
-        } else 
-          if (diff < numSubD)
-            numSubD = diff;
+      int otherNum = theAdjacency(i);
+      int diff = vertexNum - otherNum;
+      if (diff > 0) {
+        if (diff > numSuperD)
+          numSuperD = diff;
+      } else 
+        if (diff < numSubD)
+          numSubD = diff;
     }
   }
   numSubD *= -1;
@@ -154,7 +147,7 @@ BandGenLinSOE::setSize(Graph &theGraph)
   if (newSize > Asize) { 
     // we have to get another space for A
     if (A != 0) 
-        delete [] A;
+      delete [] A;
 
     A = new double[newSize];
     Asize = newSize;
@@ -195,136 +188,80 @@ BandGenLinSOE::setSize(Graph &theGraph)
   return result;
 }
 
+
 int 
 BandGenLinSOE::addA(const Matrix &m, const ID &id, double fact)
 {
-    assert(id.Size() == m.noRows() && id.Size() == m.noCols());
+  assert(id.Size() == m.noRows() && id.Size() == m.noCols());
 
-    // check for a quick return 
-    if (fact == 0.0)  
-      return 0;
-
-    factored = false;
-    
-    // check that m and id are of similar size
-    const int idSize = id.Size();    
-
-    int ldA = 2*numSubD + numSuperD + 1;
-
-
-    if (fact == 1.0) { // do not need to multiply 
-      for (int i=0; i<idSize; i++) {
-        int col = id(i);
-        if (col < size && col >= 0) {
-          double *coliiPtr = A + col*ldA + numSubD + numSuperD;
-          for (int j=0; j<idSize; j++) {
-            int row = id(j);
-            if (row < size && row >= 0) {
-              int diff = col - row;
-              if (diff > 0) {
-                if (diff <= numSuperD) {
-                  double *APtr = coliiPtr - diff;
-                  *APtr += m(j,i);
-                }
-              }
-              else {
-                diff *= -1;
-                if (diff <= numSubD) {
-                  double *APtr = coliiPtr + diff;
-                  *APtr += m(j,i);
-                }
-              }
-            }
-          }  // for j
-        }
-      }  // for i
-    } else {
-      for (int i=0; i<idSize; i++) {
-        int col = id(i);
-        if (col < size && col >= 0) {
-          double *coliiPtr = A + col*ldA + numSubD + numSuperD;
-          for (int j=0; j<idSize; j++) {
-            int row = id(j);
-            if (row <size && row >= 0) {                    
-              int diff = col - row;
-              if (diff > 0) {
-                if (diff <= numSuperD) {
-                  double *APtr = coliiPtr - diff;
-                  *APtr += m(j,i) *fact;
-                }
-              } else {
-                diff *= -1;
-                if (diff <= numSubD) {
-                  double *APtr = coliiPtr + diff;
-                  *APtr += m(j,i) *fact;
-                }
-              }
-            }
-          }  // for j
-        }
-      }  // for i
-    }
-
+  // check for a quick return 
+  if (fact == 0.0)  
     return 0;
-}
 
-
-
-int 
-BandGenLinSOE::addColA(const Vector &colData, int col, double fact)
-{
-  assert(colData.Size() == size);
-  assert(col <= size && col >= 0);
   factored = false;
-
-  if (fact == 0.0)
-    return 0;
+  
+  // check that m and id are of similar size
+  const int idSize = id.Size();    
 
   int ldA = 2*numSubD + numSuperD + 1;
-  
+
+
   if (fact == 1.0) { // do not need to multiply 
-
-    double *coliiPtr = A + col*ldA + numSubD + numSuperD;
-    for (int row=0; row<size; row++) {
-      if (row <size && row >= 0) {                    
-        int diff = col - row;
-        if (diff > 0) {
-          if (diff <= numSuperD) {
-            double *APtr = coliiPtr - diff;
-            *APtr += colData(row);
-          }                        
-        } else {
-          diff *= -1;
-          if (diff <= numSubD) {
-            double *APtr = coliiPtr + diff;
-            *APtr += colData(row);
+    for (int i=0; i<idSize; i++) {
+      int col = id(i);
+      if (col < size && col >= 0) {
+        double *coliiPtr = A + col*ldA + numSubD + numSuperD;
+        for (int j=0; j<idSize; j++) {
+          int row = id(j);
+          if (row < size && row >= 0) {
+            int diff = col - row;
+            if (diff > 0) {
+              if (diff <= numSuperD) {
+                double *APtr = coliiPtr - diff;
+                *APtr += m(j,i);
+              }
+            }
+            else {
+              diff *= -1;
+              if (diff <= numSubD) {
+                double *APtr = coliiPtr + diff;
+                *APtr += m(j,i);
+              }
+            }
           }
-        }
+        }  // for j
       }
-    }  // for j
+    }  // for i
   } else {
-
-    double *coliiPtr = A + col*ldA + numSubD + numSuperD;
-    for (int row=0; row<size; row++) {
-      if (row <size && row >= 0) {                    
-        int diff = col - row;
-        if (diff > 0) {
-          if (diff <= numSuperD) {
-            double *APtr = coliiPtr - diff;
-            *APtr += colData(row);
-          }                        
-        } else {
-          diff *= -1;
-          if (diff <= numSubD) {
-            double *APtr = coliiPtr + diff;
-            *APtr += colData(row) * fact;
+    for (int i=0; i<idSize; i++) {
+      int col = id(i);
+      if (col < size && col >= 0) {
+        double *coliiPtr = A + col*ldA + numSubD + numSuperD;
+        for (int j=0; j<idSize; j++) {
+          int row = id(j);
+          if (row <size && row >= 0) {                    
+            int diff = col - row;
+            if (diff > 0) {
+              if (diff <= numSuperD) {
+                double *APtr = coliiPtr - diff;
+                *APtr += m(j,i) *fact;
+              }
+            } else {
+              diff *= -1;
+              if (diff <= numSubD) {
+                double *APtr = coliiPtr + diff;
+                *APtr += m(j,i) *fact;
+              }
+            }
           }
-        }
+        }  // for j
       }
-    }  
+    }  // for i
   }
+
   return 0;
 }
+
 
     
 int 
@@ -349,13 +286,13 @@ BandGenLinSOE::addB(const Vector &v, const ID &id, double fact)
     for (int i=0; i<idSize; i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-          B[pos] -= v(i);
+        B[pos] -= v(i);
     }
   } else {
     for (int i=0; i<idSize; i++) {
       int pos = id(i);
       if (pos <size && pos >= 0)
-          B[pos] += v(i) * fact;
+        B[pos] += v(i) * fact;
     }
   }
   return 0;
@@ -380,7 +317,6 @@ BandGenLinSOE::setB(const Vector &v, double fact)
     for (int i=0; i<size; i++) {
       B[i] = -v(i);
     }
-
   } else {
     for (int i=0; i<size; i++) {
       B[i] = v(i) * fact;
@@ -424,18 +360,6 @@ BandGenLinSOE::getB()
 }
 
 
-double 
-BandGenLinSOE::normRHS()
-{
-  double norm =0.0;
-  double *Bptr = B;
-  for (int i=0; i<size; i++) {
-    double Yi = *Bptr++;
-    norm += Yi*Yi;
-  }
-  return sqrt(norm);
-}    
-
 
 void 
 BandGenLinSOE::setX(int loc, double value)
@@ -450,21 +374,4 @@ BandGenLinSOE::setX(const Vector &x)
   if (x.Size() == vectX.Size())
     vectX = x;
 }
-
-
-
-
-int 
-BandGenLinSOE::sendSelf(int commitTag, Channel &theChannel)
-{
-  return 0;
-}
-
-
-int 
-BandGenLinSOE::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  return 0;
-}
-
 

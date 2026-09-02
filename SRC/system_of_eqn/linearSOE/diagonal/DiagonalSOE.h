@@ -41,28 +41,24 @@ class DiagonalSOE : public LinearSOE
 
     ~DiagonalSOE();
 
-    int getNumEqn(void) const;
-    int setSize(Graph &theGraph);
+    int getNumEqn() const;
+    int setSize(Graph &);
     int addA(const Matrix &, const ID &, double fact = 1.0);
     int addB(const Vector &, const ID &, double fact = 1.0);    
     int setB(const Vector &, double fact = 1.0);        
     
-    void zeroA(void);
-    void zeroB(void);
+    void zeroA();
+    void zeroB();
 
     int formAp(const Vector &p, Vector &Ap);
     
     void setX(int loc, double value);
     void setX(const Vector &x);
 
-    const Vector &getX(void);
-    const Vector &getB(void);
-    double normRHS(void);
+    const Vector &getX();
+    const Vector &getB();
 
-    int setDiagonalSolver(DiagonalSolver &newSolver);    
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+    int setDiagonalSolver(DiagonalSolver &newSolver);
 
     friend class DiagonalSolver;    
     friend class DiagonalDirectSolver;

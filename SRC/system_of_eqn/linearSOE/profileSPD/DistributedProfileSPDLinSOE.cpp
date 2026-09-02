@@ -91,7 +91,7 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
     Channel *theChannel = theChannels[0];
 
     theGraph.sendSelf(0, *theChannel);
-    
+
     static ID data(1);
     theChannel->recvID(0, 0, data);
     size = data(0);
@@ -101,9 +101,9 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
         delete [] iDiagLoc;
       iDiagLoc = new int[size];
     }
-    
+
     // receive my iDiagLoad
-    ID iLoc(size);    
+    ID iLoc(size);
     theChannel->recvID(0, 0, iLoc);
 
     // determine iDiagLoc, profileSize & local mapping
@@ -111,7 +111,8 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
     localCol[0] = subMap;
     Vertex *vertex;
     VertexIter &theSubVertices = theGraph.getVertices();
-    int cnt = 0; int loc = 0;  
+    int cnt = 0;
+    int loc = 0;
     while((vertex = theSubVertices()) != 0) {
       int vertexTag = vertex->getTag();
       (*subMap)(cnt) = vertexTag;
@@ -120,11 +121,11 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
         myProfileSize++;
         colHeight= 1;
       } else {
-        colHeight = iLoc[vertexTag] - iLoc[vertexTag-1];	    
+        colHeight = iLoc[vertexTag] - iLoc[vertexTag-1];
         myProfileSize += colHeight;
       }
       loc += colHeight;
-      iDiagLoc[cnt++] = loc;	      
+      iDiagLoc[cnt++] = loc;
     }
     (*sizeLocal)(0) = myProfileSize;
 
@@ -132,7 +133,7 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
     theChannel->sendID(0, 0, *subMap);
     theChannel->sendID(0, 0, *sizeLocal);
   } 
-  
+
   // if main domain, collect graphs from all subdomains,
   // merge into 1, number this one, send to subdomains the
   // id containing dof tags & start id's.
@@ -145,10 +146,11 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
     for (int j=0; j<numChannels; j++) {
       Channel *theChannel = theChannels[j];
       Graph theSubGraph;
-      
+
       if (theSubGraph.recvSelf(0, *theChannel, theBroker) < 0) {
-	// opserr << "WARNING DistributedProfileSPDLinSOE::setSize() : ";
-	// opserr << " - failed to recv graph\n";
+        // opserr << "WARNING DistributedProfileSPDLinSOE::setSize() : ";
+        // opserr << " - failed to recv graph\n";
+        return -1;
       }
 
       theGraph.merge(theSubGraph);
@@ -161,7 +163,7 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
     }
 
     size = theGraph.getNumVertex();
-  
+
     // check we have enough space in iDiagLoc and iLastCol
     // if not delete old and create new
     if (size != Bsize) { 
@@ -177,7 +179,7 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
 
     // now we go through the vertices to find the height of each col and
     // width of each row from the connectivity information.
-    
+
     Vertex *vertexPtr;
     VertexIter &theVertices = theGraph.getVertices();
 
@@ -227,18 +229,17 @@ DistributedProfileSPDLinSOE::setSize(Graph &theGraph)
       theChannel->recvID(0, 0, *subMap);
       theChannel->recvID(0, 0, remoteLocalSize);
       (*sizeLocal)(j) = remoteLocalSize(0);
-    }    
+    }
 
     myProfileSize = iDiagLoc[size-1];
   }
 
   profileSize = myProfileSize;
-  int numCols = theGraph.getNumVertex();
 
   if (processID != 0) {
     ID &globalMap = *(localCol[0]);
     ID *localMap = new ID(size);
-  
+
     localMap->Zero();
     for (int k=0; k< globalMap.Size(); k++)
       (*localMap)(globalMap(k)) = k; 
@@ -391,7 +392,8 @@ DistributedProfileSPDLinSOE::addA(const Matrix &m, const ID &id, double fact)
   return 0;
 }
 
-int 
+
+int
 DistributedProfileSPDLinSOE::solve()
 {
   static ID result(1);
@@ -484,9 +486,6 @@ DistributedProfileSPDLinSOE::addB(const Vector &v, const ID &id, double fact)
   
   // check for a quick return 
   if (fact == 0.0)  return 0;
-
-  // check that m and id are of similar size
-  int idSize = id.Size();        
 
   if (fact == 1.0) { // do not need to multiply if fact == 1.0
     for (int i=0; i<id.Size(); i++) {

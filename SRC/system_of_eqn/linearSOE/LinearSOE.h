@@ -18,8 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-#ifndef LinearSOE_h
-#define LinearSOE_h
 
 // Written: fmk 
 // Created: 11/96
@@ -33,7 +31,8 @@
 // given A, B and C to find the unknown X such that the equation is satisfied.
 //
 // What: "@(#) LinearSOE.h, revA"
-
+#pragma once
+#include <LinearAction.h>
 #include <MovableObject.h>
 #include <vector>
 
@@ -53,10 +52,16 @@ class LinearSOE : public MovableObject
     virtual ~LinearSOE();
 
     virtual int solve();
+    virtual int solve(const Vector& B, Vector& X) final;
+
+    virtual int setInverseUpdate(LinearAction * update);
+    virtual int setForwardUpdate(LinearAction * update);
 
     // pure virtual functions
     virtual int setSize(Graph &) =0;    
     virtual int getNumEqn() const =0;
+
+    // virtual bool symmetric() const =0;
     
     virtual int addA(const Matrix &, const ID &, double fact = 1.0) =0;
     virtual int addB(const Vector &, const ID &, double fact = 1.0) =0;
@@ -65,23 +70,21 @@ class LinearSOE : public MovableObject
 
     virtual int addA(const Matrix &);
 
-    // TODO: remove addColA
-    virtual int addColA(const Vector &col, int colIndex, double fact = 1.0) {
-      return -1;
-    }
-
     virtual void zeroA() =0;
     virtual void zeroB() =0;
 
-    virtual int formAp(const Vector &p, Vector &Ap);
+    virtual int formAp(const Vector &p, Vector &Ap) {return -1;};
 
     virtual const Vector &getX() = 0;
     virtual const Vector &getB() = 0;    
     virtual const Matrix *getA() {return nullptr;}
-    virtual int getA(int row, int col, double &value) const {return -2;}
+    virtual int   getA(int row, int col, double &value) const {return -2;}
   
     virtual double getDeterminant();
-    virtual double normRHS() = 0;
+    // turn on determinant calculation in the solve; return false if not supported
+    virtual bool   requireDeterminant();
+  
+    virtual double normRHS() {return this->getB().Norm();}
 
     virtual void setX(int loc, double value) =0;
     virtual void setX(const Vector &X) =0;
@@ -100,8 +103,6 @@ class LinearSOE : public MovableObject
 
   private:
     LinearSOESolver *theSolver;
+    LinearAction *m_fwd_update;
+    LinearAction *m_inv_update;
 };
-
-
-#endif
-

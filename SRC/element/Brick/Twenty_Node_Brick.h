@@ -18,14 +18,12 @@
 **                                                                    **
 ** ****************************************************************** */
 //
+// Twenty-node serendipity brick with 3x3x3 (27-point) Gauss integration.
+//
 // by Jinchi Lu and Zhaohui Yang (May 2004)
 //
-// 20NodeBrick element
-//
-#ifndef TWENTY_NODE_BRICK_H
-#define TWENTY_NODE_BRICK_H
+#pragma once
 
-#include <stdlib.h>
 #include <array>
 #include <ID.h>
 #include <Vector.h>
@@ -41,7 +39,9 @@ public:
 
   Twenty_Node_Brick(int tag, 
                     const std::array<int, 20>& node_tags,
-                    NDMaterial& theMaterial, double b1 = 0.0, double b2 = 0.0,
+                    NDMaterial& theMaterial, 
+                    double b1 = 0.0, 
+                    double b2 = 0.0,
                     double b3 = 0.0);
 
   virtual ~Twenty_Node_Brick();
@@ -53,10 +53,9 @@ public:
   }
 
   void setDomain(Domain*);
-
   int getNumExternalNodes() const;
 
-  //return connected external nodes
+  // return connected external nodes
   const ID& getExternalNodes();
   Node** getNodePtrs();
 
@@ -65,8 +64,6 @@ public:
   int commitState();
   int revertToLastCommit();
   int revertToStart();
-
-  void Print(OPS_Stream& s, int flag);
 
   int update();
 
@@ -81,6 +78,8 @@ public:
 
   const Vector& getResistingForce();
   const Vector& getResistingForceIncInertia();
+
+  void Print(OPS_Stream& s, int flag);
 
   // public methods for element output
   int sendSelf(int commitTag, Channel&);
@@ -101,6 +100,8 @@ private:
   const Matrix& getStiff(int flag);
 
   constexpr static int NEN = 20;
+  // quadrature data
+  static constexpr int nintu = 27;
 
 
   // static data
@@ -109,16 +110,12 @@ private:
   static Matrix mass;
   static Matrix damp;
 
-  // quadrature data
-  static constexpr int nintu = 27;
 
-
-  //node information
-  ID connectedExternalNodes; //eight node numbers
-  Node* nodePointers[NEN];    //pointers to eight nodes
+  // node information
+  ID connectedExternalNodes;  // node tags
+  Node* nodePointers[NEN];    // pointers to nodes
 
   std::array<NDMaterial*, nintu> materialPointers;
-  // NDMaterial** materialPointers; // pointer to the ND material objects
 
   //local nodal coordinates, three coordinates for each of twenty nodes
   //    static double xl[3][20] ;
@@ -138,5 +135,3 @@ private:
 
   // compute local shape functions
 };
-
-#endif

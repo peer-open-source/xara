@@ -75,6 +75,7 @@ CreateForceFrame(int tag,
 Element*
 CreateExactFrame(int tag,
                  int ndf,
+                 const char* name,
                  const std::vector<int>& nodev,
                  std::vector<FrameSection*>& sections,
                  BeamIntegration& beamIntegr,

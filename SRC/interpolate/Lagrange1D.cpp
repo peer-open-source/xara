@@ -38,7 +38,7 @@ lagrange(const double xi, const double xn[nn], double shp[2][nn])
   }
 }
 
-
+#if 0
 template <int ndm, int nn, int deriv, typename T> void 
 lagrange(const double xi, T shp[nn]);
 
@@ -47,7 +47,7 @@ lagrange(const double xi, T shp[nn]);
 
 
 
-template <> void 
+template <>  void 
 lagrange<1, 2, 0>(const double xi, double shp[2])
 {
   shp[0] = 0.5*(1. - xi);
@@ -107,5 +107,5 @@ lagrange<1, 4, 1>(const double xi, double shp[4])
   shp[2] = 0.5625*( 3. -  2.*xi -  9.*xi2);
   shp[3] = 0.0625*(-1. + 18.*xi + 27.*xi2);
 }
-
+#endif
 } // namespace OpenSees

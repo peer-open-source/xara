@@ -26,9 +26,7 @@
 // Created: 11/96 
 // Revision: A 
 //
-#ifndef ModifiedNewton_h
-#define ModifiedNewton_h
-
+#pragma once
 #include <EquiSolnAlgo.h>
 #include <Vector.h>
 
@@ -40,11 +38,8 @@ public:
   ModifiedNewton(int tangent, double iFactor = 0.0, double cFactor = 1.0);
   ~ModifiedNewton();
 
-  int solveCurrentStep();    
+  int solveCurrentStep() override;
   int getNumIterations() const override;
-
-  virtual int sendSelf(int commitTag, Channel &);
-  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
   void Print(OPS_Stream &, int flag) const final;
 
@@ -56,7 +51,4 @@ public:
     double iFactor;
     double cFactor;
 };
-
-#endif
-
 

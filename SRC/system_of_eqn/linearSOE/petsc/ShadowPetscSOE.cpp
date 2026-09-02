@@ -375,7 +375,7 @@ ShadowPetscSOE::getX(void)
 
 
 const Vector &
-ShadowPetscSOE::getB(void)
+ShadowPetscSOE::getB()
 {
   sendData[0] = 6;
   MPI_Bcast(sendBuffer, 3, MPI_INT, 0, PETSC_COMM_WORLD);
@@ -385,19 +385,6 @@ ShadowPetscSOE::getB(void)
 }
 
 
-double 
-ShadowPetscSOE::normRHS(void)
-{
-  theSOE.getB();
-  double norm =0.0;
-  int size = theSOE.size;
-  double *Bptr = theSOE.B;
-  for (int i=0; i<size; i++) {
-    double Yi = *Bptr++;
-    norm += Yi*Yi;
-  }
-  return sqrt(norm);
-}    
 
 
 void 
@@ -411,22 +398,5 @@ ShadowPetscSOE::setSolver(PetscSolver &newSolver)
 {
   opserr << "ShadowPetscSOE::setSolver - not yet working\n";
   return -1;
-}
-
-
-int 
-ShadowPetscSOE::sendSelf(int cTag, Channel &theChannel)
-{
-  opserr << "WARNING ShadowPetscSOE::sendSelf - does not send itself YET\n";
-  return 0;
-}
-
-
-int 
-ShadowPetscSOE::recvSelf(int cTag, 
-                         Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  opserr << "WARNING ShadowPetscSOE::sendSelf - does not receive itself YET\n";
-  return 0;
 }
 

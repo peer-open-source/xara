@@ -18,11 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
                                                                         
-// $Revision: 1.3 $
-// $Date: 2005-03-17 20:47:09 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/sparseGEN/SuperLU.h,v $
-                                                                        
-                                                                        
 #ifndef SuperLU_h
 #define SuperLU_h
 
@@ -60,10 +55,9 @@ class SuperLU : public SparseGenColLinSolver
     ~SuperLU();
 
     int solve() override;
+    int solve(const Vector& B, Vector& X) override;
     int setSize() override;
-
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    
+    bool requireDeterminant() override { return false; }
     
   private:
     SuperMatrix A,L,U,B,AC;

@@ -10,10 +10,16 @@
 //   2. only plastic state ( no elast2plast transfer)
 //   3. original strain only ( setSubStrainRate() does not work)
 //
-// refer to "Finite element response sensitivity analysis of multi-yield-surface J2 
+// refer to [1]
+//
+// References
+// [1] "Finite element response sensitivity analysis of multi-yield-surface J2 
 // plasticity model by direct differentiation method", Quan Gu, Joel P. Conte, Ahmed Elgamal
 // and Zhaohui Yang, Computer Methods in Applied Mechanics and Engineering
 // Volume 198, Issues 30-32, 1 June 2009, Pages 2272-2285 
+// [2] J.-H. Prévost, A. Asce, and R. Fellow, 
+//     "Anisotropic Undrained Stress-Strain Behavior of Clays,” 1978.
+//
 //
 //
 // MultiYieldSurfaceClay.cpp
@@ -89,8 +95,8 @@ void * OPS_ADD_RUNTIME_VPV(OPS_MultiYieldSurfaceClay)
     int tag;
     int numdata = 1;
     if (OPS_GetIntInput(&numdata, &tag) < 0) {
-	opserr << "WARNING invalid MultiYieldSurfaceClay tag\n";
-	return 0;
+      opserr << "WARNING invalid MultiYieldSurfaceClay tag\n";
+      return 0;
     }
 
     double param[10];
@@ -100,20 +106,20 @@ void * OPS_ADD_RUNTIME_VPV(OPS_MultiYieldSurfaceClay)
     param[9] = 20;
     numdata = 10;
     if (OPS_GetDoubleInput(&numdata, param) < 0) {
-	opserr << "WARNING invalid MultiYieldSurfaceClay double inputs\n";
-	return 0;
+      opserr << "WARNING invalid MultiYieldSurfaceClay double inputs\n";
+      return 0;
     }
 
     static double * gredu = 0;
     // user defined yield surfaces
     if (param[9] < 0 && param[9] > -40) {
-	param[9] = -int(param[9]);
-	numdata = int(2*param[9]);
-	gredu = new double[numdata];
-	if (OPS_GetDoubleInput(&numdata, gredu) < 0) {
-	    opserr << "WARNING invalid MultiYieldSurfaceClay double inputs\n";
-	    return 0;
-	}
+      param[9] = -int(param[9]);
+      numdata = int(2*param[9]);
+      gredu = new double[numdata];
+      if (OPS_GetDoubleInput(&numdata, gredu) < 0) {
+          opserr << "WARNING invalid MultiYieldSurfaceClay double inputs\n";
+          return 0;
+      }
     }
 
     MultiYieldSurfaceClay * clay =
@@ -162,12 +168,12 @@ MultiYieldSurfaceClay::MultiYieldSurfaceClay (int tag, int nd,
     exit(-1);
   }
   if (cohesi <= 0) {
-    opserr << "WARNING:MultiYieldSurfaceClay::MultiYieldSurfaceClay: cohesion <= 0" << endln;
-    opserr << "Will reset cohesion to zero." << endln;
+    opserr << "WARNING:MultiYieldSurfaceClay::MultiYieldSurfaceClay: cohesion <= 0" << "\n";
+    opserr << "Will reset cohesion to zero." << "\n";
     cohesi = 0.;
   }
   if (peakShearStra <= 0) {
-    opserr << "FATAL:MultiYieldSurfaceClay::MultiYieldSurfaceClay: peakShearStra <= 0" << endln;
+    opserr << "FATAL:MultiYieldSurfaceClay::MultiYieldSurfaceClay: peakShearStra <= 0" << "\n";
     exit(-1);
   }
   if (refPress <= 0) {
@@ -272,9 +278,9 @@ MultiYieldSurfaceClay::MultiYieldSurfaceClay (int tag, int nd,
   matN = matCount;
   matCount ++;
 
-	theSurfaces = new MultiYieldSurface[numberOfYieldSurf+1]; //first surface not used, pointer array??
-    committedSurfaces = new MultiYieldSurface[numberOfYieldSurf+1]; 
-	activeSurfaceNum = committedActiveSurf = 0; 
+  theSurfaces = new MultiYieldSurface[numberOfYieldSurf+1]; //first surface not used, pointer array??
+  committedSurfaces = new MultiYieldSurface[numberOfYieldSurf+1]; 
+  activeSurfaceNum = committedActiveSurf = 0; 
 
   setUpSurfaces(gredu);  // residualPress is calculated inside.
   debugMarks=0;   // quan debug nov. 2005
@@ -297,7 +303,7 @@ MultiYieldSurfaceClay::MultiYieldSurfaceClay ()
 }
 
 
-MultiYieldSurfaceClay::MultiYieldSurfaceClay (const MultiYieldSurfaceClay & a)
+MultiYieldSurfaceClay::MultiYieldSurfaceClay(const MultiYieldSurfaceClay & a)
  : NDMaterial(a.getTag(),ND_TAG_MultiYieldSurfaceClay), 
    currentStress(a.currentStress), trialStress(a.trialStress), 
   currentStrain(a.currentStrain), strainRate(a.strainRate),consistentTangent(6,6)
@@ -314,7 +320,6 @@ MultiYieldSurfaceClay::MultiYieldSurfaceClay (const MultiYieldSurfaceClay & a)
   activeSurfaceNum = a.activeSurfaceNum; 
 
 // for sensitivity
-	
 
 	parameterID = 0;        
 	SHVs = 0;
@@ -332,7 +337,7 @@ MultiYieldSurfaceClay::MultiYieldSurfaceClay (const MultiYieldSurfaceClay & a)
 
   theSurfaces = new MultiYieldSurface[numOfSurfaces+1];  //first surface not used
   committedSurfaces = new MultiYieldSurface[numOfSurfaces+1];  
-  for(int i=1; i<=numOfSurfaces; i++) {
+  for (int i=1; i<=numOfSurfaces; i++) {
     committedSurfaces[i] = a.committedSurfaces[i];  
     theSurfaces[i] = a.theSurfaces[i];  
   }
@@ -396,7 +401,7 @@ MultiYieldSurfaceClay::setTrialStrain(const Vector &strain)
   assert((ndm==3 && strain.Size()==6) || (ndm==2 && strain.Size()==3));
 
   static Vector temp(6);
-  if (ndm==3 && strain.Size()==6) 
+  if (ndm==3 && strain.Size() == 6) 
     temp = strain;
   else if (ndm==2 && strain.Size()==3) {
     temp[0] = strain[0];
@@ -443,7 +448,7 @@ MultiYieldSurfaceClay::setTrialStrainIncr(const Vector &strain)
 
 
 int
-MultiYieldSurfaceClay::setTrialStrainIncr (const Vector &strain, const Vector &rate)
+MultiYieldSurfaceClay::setTrialStrainIncr(const Vector &strain, const Vector &rate)
 {
   return setTrialStrainIncr(strain);
 }
@@ -522,17 +527,16 @@ MultiYieldSurfaceClay::getTangent()
   const int ndm = ndmx[matN];
 
   if (loadStage == 1 && e2p == 0) {
-	  opserr << "FATAL:MultiYieldSurfaceClay::Can not deal with e2p" 
-	       << endln; 
+	  opserr << "FATAL:MultiYieldSurfaceClay::Can not deal with e2p" << endln; 
 	  //exit(-1);
 	double coeff;
 	if (activeSurfaceNum > 0) {
-      devia = trialStress.deviator();
-      devia -= theSurfaces[activeSurfaceNum].center();
-	
-      double size = theSurfaces[activeSurfaceNum].size();
-      double plastModul = theSurfaces[activeSurfaceNum].modulus();
-      coeff = 6.*refShearModulus*refShearModulus/(2.*refShearModulus+plastModul)/size/size; 
+    devia = trialStress.deviator();
+    devia -= theSurfaces[activeSurfaceNum].center();
+
+    double size = theSurfaces[activeSurfaceNum].size();
+    double plastModul = theSurfaces[activeSurfaceNum].modulus();
+    coeff = 6.*refShearModulus*refShearModulus/(2.*refShearModulus+plastModul)/size/size; 
 	}
 	else 
 			coeff = 0.;
@@ -656,17 +660,18 @@ MultiYieldSurfaceClay::getStress()
   if (loadStage == 1 && e2p == 0)
     elast2Plast();
 
-  if (loadStage != 1) {  //linear elastic
+  if (loadStage != 1) {  // linear elastic
     //trialStrain.setData(currentStrain.t2Vector() + strainRate.t2Vector());
     getTangent();
     static Vector a(6);
     a = currentStress.t2Vector();
-	a.addMatrixVector(1.0, theTangent, strainRate.t2Vector(1), 1.0);
+    a.addMatrixVector(1.0, theTangent, strainRate.t2Vector(1), 1.0);
     trialStress.setData(a);
   }
 
   else {
-    for (i=1; i<=numOfSurfaces; i++) theSurfaces[i] = committedSurfaces[i];
+    for (int i=1; i<=numOfSurfaces; i++)
+      theSurfaces[i] = committedSurfaces[i];
     activeSurfaceNum = committedActiveSurf;
     subStrainRate = strainRate;
 	// output strainRate for debug
@@ -678,15 +683,17 @@ MultiYieldSurfaceClay::getStress()
       activeSurfaceNum = 0;
     }
     int numSubIncre = setSubStrainRate();
-    
-    for (i=0; i<numSubIncre; i++) {
+
+    for (int i=0; i<numSubIncre; i++) {
       if (i==0)  
         setTrialStress(currentStress);
       else 
         setTrialStress(trialStress);
 
-      if (activeSurfaceNum==0 && !isCrossingNextSurface()) continue;
-      if (activeSurfaceNum==0) activeSurfaceNum++;
+      if (activeSurfaceNum==0 && !isCrossingNextSurface())
+        continue;
+      if (activeSurfaceNum==0)
+        activeSurfaceNum++;
 //	  opserr << "enter into plasticity "<< endln;
       stressCorrection(0);
       updateActiveSurface();
@@ -695,7 +702,6 @@ MultiYieldSurfaceClay::getStress()
 	//--------- add consistent tangent part code -------------------
 	// unitTensor = I*I 
 	static Matrix unitTensor(6,6);
-	static Matrix tempTangent(6,6);
 	unitTensor.Zero();
 	for(int i=0;i<3;i++){
 		for(int j=0;j<3;j++){
@@ -705,6 +711,7 @@ MultiYieldSurfaceClay::getStress()
 	// change derivation to deviatoric strain into deviation to totall strain
 	//tempTangent=dTrialStressdStrain*unitTensor;    cause problem !
 
+	static Matrix tempTangent(6,6);
 	doubledotMatrixProduct(tempTangent,dTrialStressdStrain,unitTensor);
 	tempTangent /= -3.0;
 	dTrialStressdStrain.addMatrix(1.0, tempTangent,1.0);
@@ -713,13 +720,13 @@ MultiYieldSurfaceClay::getStress()
 //	opserr << "step6. getStress, change into total strain dTrialStressdStrain is," << dTrialStressdStrain<< endln;
 
 
-    //--------------------------------------------------------------------
+  //--------------------------------------------------------------------
 
 
-    //volume stress change
-    double volum = refBulkModulus*(strainRate.volume()*3.);
-    volum += currentStress.volume();
-    // if (volum > 0) volum = 0.;
+  //volume stress change
+  double volum = refBulkModulus*(strainRate.volume()*3.);
+  volum += currentStress.volume();
+  // if (volum > 0) volum = 0.;
 
 
   static Vector temp(6);
@@ -770,7 +777,8 @@ MultiYieldSurfaceClay::getStrain()
 }
 
 
-int MultiYieldSurfaceClay::commitState()
+int
+MultiYieldSurfaceClay::commitState()
 {
   int loadStage = loadStagex[matN];
   int numOfSurfaces = numOfSurfacesx[matN];
@@ -795,13 +803,15 @@ int MultiYieldSurfaceClay::commitState()
 }
  
 
-int MultiYieldSurfaceClay::revertToLastCommit()
+int
+MultiYieldSurfaceClay::revertToLastCommit()
 {
   return 0;
 }
 
 
-int MultiYieldSurfaceClay::revertToStart()
+int
+MultiYieldSurfaceClay::revertToStart()
 {
   activeSurfaceNum = committedActiveSurf = 0; 
   currentStrain.Zero();
@@ -855,7 +865,8 @@ int MultiYieldSurfaceClay::revertToStart()
 }
 
 
-NDMaterial * MultiYieldSurfaceClay::getCopy (void)
+NDMaterial * 
+MultiYieldSurfaceClay::getCopy()
 {
   MultiYieldSurfaceClay * copy = new MultiYieldSurfaceClay(*this);
 
@@ -876,7 +887,8 @@ MultiYieldSurfaceClay::getCopy(const char *code)
 }
 
 
-const char * MultiYieldSurfaceClay::getType() const
+const char * 
+MultiYieldSurfaceClay::getType() const
 {
   int ndm = ndmx[matN];
 
@@ -884,7 +896,8 @@ const char * MultiYieldSurfaceClay::getType() const
 }
 
 
-int MultiYieldSurfaceClay::getOrder() const
+int
+MultiYieldSurfaceClay::getOrder() const
 {
   int ndm = ndmx[matN];
 
@@ -1061,39 +1074,37 @@ int MultiYieldSurfaceClay::recvSelf(int commitTag, Channel &theChannel,
 
 
 Response*
-MultiYieldSurfaceClay::setResponse (const char **argv, int argc, OPS_Stream &theOutput)
+MultiYieldSurfaceClay::setResponse(const char **argv, int argc, OPS_Stream &theOutput)
 {
   if (strcmp(argv[0],"stress") == 0 || strcmp(argv[0],"stresses") == 0)
-		return new MaterialResponse(this, 1, this->getCommittedStress());
+    return new MaterialResponse(this, 1, this->getCommittedStress());
 
   else if (strcmp(argv[0],"strain") == 0 || strcmp(argv[0],"strains") == 0)
-		return new MaterialResponse(this, 2, this->getCommittedStrain());
+    return new MaterialResponse(this, 2, this->getCommittedStrain());
     
-	else if (strcmp(argv[0],"tangent") == 0)
-		return new MaterialResponse(this, 3, this->getTangent());
+  else if (strcmp(argv[0],"tangent") == 0)
+    return new MaterialResponse(this, 3, this->getTangent());
     
-	else if (strcmp(argv[0],"backbone") == 0) {
-	    int numOfSurfaces = numOfSurfacesx[matN];
-        static Matrix curv(numOfSurfaces+1,(argc-1)*2);
-		  for (int i=1; i<argc; i++)
-		   	curv(0,(i-1)*2) = atoi(argv[i]);
-		return new MaterialResponse(this, 4, curv);
-	}
-	else if (strcmp(argv[0],"stressSensitivity") == 0 || strcmp(argv[0],"stresssensitivity") == 0) {
-		int gradientNum = atoi(argv[1]);
-			return new MaterialResponse(this, gradientNum+100, this->getCommittedStressSensitivity(1));  // use only size of matrix
+  else if (strcmp(argv[0],"backbone") == 0) {
+    int numOfSurfaces = numOfSurfacesx[matN];
+    static Matrix curv(numOfSurfaces+1,(argc-1)*2);
+    for (int i=1; i<argc; i++)
+      curv(0,(i-1)*2) = atoi(argv[i]);
+    return new MaterialResponse(this, 4, curv);
+  }
+  else if (strcmp(argv[0],"stressSensitivity") == 0 || strcmp(argv[0],"stresssensitivity") == 0) {
+    int gradientNum = atoi(argv[1]);
+      return new MaterialResponse(this, gradientNum+100, this->getCommittedStressSensitivity(1));  // use only size of matrix
 
-	}
-	else if (strcmp(argv[0],"strainSensitivity") == 0 || strcmp(argv[0],"strainsensitivity") == 0) {
-		int gradientNum = atoi(argv[1]);
-		return new MaterialResponse(this, gradientNum+500, this->getCommittedStrainSensitivity(1));
-	}
+  }
+  else if (strcmp(argv[0],"strainSensitivity") == 0 || strcmp(argv[0],"strainsensitivity") == 0) {
+    int gradientNum = atoi(argv[1]);
+    return new MaterialResponse(this, gradientNum+500, this->getCommittedStrainSensitivity(1));
+  }
   // use only size of matrix
 
-	
-
-	else
-		return 0;
+  else
+    return 0;
 }
 
 
@@ -1178,7 +1189,7 @@ MultiYieldSurfaceClay::getBackbone(Matrix & bb)
 				plastModulus = factor*theSurfaces[i-1].modulus();
 				elast_plast = 2*shearModulus*plastModulus/(2*shearModulus+plastModulus);
 				stress2 = factor*theSurfaces[i].size()/1.732050807568877;
-                strain2 = 2*(stress2-stress1)/elast_plast + strain1;
+        strain2 = 2*(stress2-stress1)/elast_plast + strain1;
 				gre = stress2/strain2;
                 bb(i,k*2) = strain2; bb(i,k*2+1) = gre;
 			}
@@ -1236,7 +1247,8 @@ MultiYieldSurfaceClay::getCommittedStress()
 }
 
 
-const Vector & MultiYieldSurfaceClay::getCommittedStrain (void)
+const Vector &
+MultiYieldSurfaceClay::getCommittedStrain()
 {	
 	int ndm = ndmx[matN];
 
@@ -1254,15 +1266,16 @@ const Vector & MultiYieldSurfaceClay::getCommittedStrain (void)
 
 
 // NOTE: surfaces[0] is not used 
-void MultiYieldSurfaceClay::setUpSurfaces (double * gredu)
+void 
+MultiYieldSurfaceClay::setUpSurfaces(double * gredu)
 { 
-    double residualPress = residualPressx[matN];
-    double refPressure = refPressurex[matN];
-    double pressDependCoeff =pressDependCoeffx[matN];
-    int numOfSurfaces = numOfSurfacesx[matN];
-    double frictionAngle = frictionAnglex[matN];
-	double cohesion = cohesionx[matN];
-    double peakShearStrain = peakShearStrainx[matN];
+  double residualPress = residualPressx[matN];
+  double refPressure = refPressurex[matN];
+  double pressDependCoeff =pressDependCoeffx[matN];
+  int numOfSurfaces = numOfSurfacesx[matN];
+  double frictionAngle = frictionAnglex[matN];
+  double cohesion = cohesionx[matN];
+  double peakShearStrain = peakShearStrainx[matN];
 
 	double  stress1, stress2, strain1, strain2, size, elasto_plast_modul, plast_modul;
 	double pi = 3.14159265358979;
@@ -1311,7 +1324,6 @@ void MultiYieldSurfaceClay::setUpSurfaces (double * gredu)
         plast_modul = UP_LIMIT;
       if (ii==numOfSurfaces)
         plast_modul = 0;
-
       
       {
         static Vector temp(6);
@@ -1412,7 +1424,8 @@ MultiYieldSurfaceClay::yieldFunc(const T2Vector & stress,
 }
 
 
-void MultiYieldSurfaceClay::deviatorScaling(T2Vector & stress, const MultiYieldSurface * surfaces, 
+void
+MultiYieldSurfaceClay::deviatorScaling(T2Vector & stress, const MultiYieldSurface * surfaces, 
 																			int surfaceNum, int count)
 {
 //	changed by guquan Jan 31 2004
@@ -1450,7 +1463,8 @@ void MultiYieldSurfaceClay::deviatorScaling(T2Vector & stress, const MultiYieldS
 }
 
 
-void MultiYieldSurfaceClay::initSurfaceUpdate()
+void
+MultiYieldSurfaceClay::initSurfaceUpdate()
 {
 	if (activeSurfaceNum == 0) return; 
 
@@ -1474,7 +1488,8 @@ void MultiYieldSurfaceClay::initSurfaceUpdate()
 }
 
 
-void MultiYieldSurfaceClay::paramScaling(void)
+void
+MultiYieldSurfaceClay::paramScaling()
 {
 	int numOfSurfaces = numOfSurfacesx[matN];
 	double frictionAngle = frictionAnglex[matN];
@@ -1763,15 +1778,14 @@ void MultiYieldSurfaceClay::stressCorrection(int crossedSurface)
 }
 
 
-void MultiYieldSurfaceClay::updateActiveSurface()
+void
+MultiYieldSurfaceClay::updateActiveSurface()
 {
   int numOfSurfaces = numOfSurfacesx[matN];
 
   if (activeSurfaceNum == numOfSurfaces) return;
 
 	static T2Vector direction;
-	static Vector t1(6);
-	static Vector t2(6);
 	static Vector center(6);
 	center = theSurfaces[activeSurfaceNum].center();
 	double size = theSurfaces[activeSurfaceNum].size();
@@ -1780,6 +1794,8 @@ void MultiYieldSurfaceClay::updateActiveSurface()
 	double outsize = theSurfaces[activeSurfaceNum+1].size();
 
 
+	static Vector t1(6);
+	static Vector t2(6);
 	//t1 = trialStress.deviator() - center;
 	//t2 = center - outcenter;
 	t1 = trialStress.deviator();
@@ -1791,10 +1807,11 @@ void MultiYieldSurfaceClay::updateActiveSurface()
 	double B = 2. * (t1 && t2);
 	double C = (t2 && t2) - 2./3.* outsize * outsize;
 	double X = secondOrderEqn(A,B,C,0);
-	if ( fabs(X-1.) < LOW_LIMIT ) X = 1.;
-	if (X < 1.){
+	if ( fabs(X-1.) < LOW_LIMIT )
+    X = 1.;
+	if (X < 1.) {
 	  opserr << "FATAL:MultiYieldSurfaceClay::updateActiveSurface(): error in Direction of surface motion." 
-	       << endln; 
+           << "\n"; 
 	  exit(-1);
 	}
 
@@ -1836,7 +1853,7 @@ void MultiYieldSurfaceClay::updateActiveSurface()
 }      
 
 
-void MultiYieldSurfaceClay::updateInnerSurface(void)
+void MultiYieldSurfaceClay::updateInnerSurface()
 {
 	if (activeSurfaceNum <= 1) return;
 
@@ -1859,7 +1876,8 @@ void MultiYieldSurfaceClay::updateInnerSurface(void)
 }
 
 
-int MultiYieldSurfaceClay:: isCrossingNextSurface(void)
+int
+MultiYieldSurfaceClay::isCrossingNextSurface()
 {
   int numOfSurfaces = numOfSurfacesx[matN];
   if (activeSurfaceNum == numOfSurfaces) return 0;  
@@ -1874,7 +1892,7 @@ int MultiYieldSurfaceClay:: isCrossingNextSurface(void)
 
 ///////////////////////// add sensitivity ///////////////////////////////////
 int  
-MultiYieldSurfaceClay:: setParameter(const char **argv, int argc, Parameter &param)
+MultiYieldSurfaceClay::setParameter(const char **argv, int argc, Parameter &param)
 {	if (argc < 1)
 		return -1;
 
@@ -1894,12 +1912,11 @@ MultiYieldSurfaceClay:: setParameter(const char **argv, int argc, Parameter &par
                 
 	return -1;
 }
-	
+
+
 int 
-MultiYieldSurfaceClay::updateParameter(int passedParameterID, 
-												 Information &info){
-//     opserr << "updatePatameter is called " << endln;
-     // exit(-1); // make sure it is not called
+MultiYieldSurfaceClay::updateParameter(int passedParameterID, Information &info)
+{
 	// I still can not understand when this is called and for what purpose.
 
 // --------switch 6  used! --------------------------------
@@ -1926,15 +1943,18 @@ MultiYieldSurfaceClay::updateParameter(int passedParameterID,
 	return 0;
 	}
 
-int MultiYieldSurfaceClay::activateParameter(int passedParameterID){
-	parameterID = passedParameterID;
-	return 0;						
-	}
+int
+MultiYieldSurfaceClay::activateParameter(int passedParameterID)
+{
+  parameterID = passedParameterID;
+  return 0;
+}
 
 
 
 
-void MultiYieldSurfaceClay::setUpSurfacesSensitivity(int passedGradNumber )
+void
+MultiYieldSurfaceClay::setUpSurfacesSensitivity(int passedGradNumber)
 { 
 
 // --- to be consistent with MHS new framework ---- 2009
@@ -1943,15 +1963,15 @@ void MultiYieldSurfaceClay::setUpSurfacesSensitivity(int passedGradNumber )
 
 //  opserr <<"for checking  setupSurfaceSensi version 1.27"<<endln;
 // do some checking job	
-	if( surfacesSensitivityMark==0) {
-	opserr << "surfacesSensitivityMark not exist !!!" << endln;
-	exit (-1);
-	}
+  if( surfacesSensitivityMark==0) {
+    opserr << "surfacesSensitivityMark not exist !!!" << endln;
+    exit (-1);
+  }
 	
 	for (int i=1; i<passedGradNumber; i++) {
-		if (this-> isSurfacesSensitivitySetUp(i) != 1) {
-				opserr << "previous Grad's surfacesSensitivityMark not set up !!!" << endln;
-				exit (-1);
+		if (this->isSurfacesSensitivitySetUp(i) != 1) {
+      opserr << "previous Grad's surfacesSensitivityMark not set up !!!" << endln;
+      exit (-1);
 		}
 	}
 
@@ -2451,7 +2471,8 @@ double MultiYieldSurfaceClay::getLoadingFuncSensitivity(const T2Vector & contact
 
 
 
-void MultiYieldSurfaceClay::updateActiveSurfaceSensitivity()
+void
+MultiYieldSurfaceClay::updateActiveSurfaceSensitivity()
 {
   int numOfSurfaces = numOfSurfacesx[matN];
 
@@ -2493,8 +2514,7 @@ void MultiYieldSurfaceClay::updateActiveSurfaceSensitivity()
 
    // ------- sensitivity for step 1 .------------------------
 
-	static 
-		Vector dTempStress(6),dCenter(6),tempStress(6),dOutCenter(6);
+	static Vector dTempStress(6),dCenter(6),tempStress(6),dOutCenter(6);
 
 	Vector dTempStress1(6),dMu(6);
 	double	dA,dB,dC,dX,dSize,dOutSize;
@@ -2515,9 +2535,12 @@ void MultiYieldSurfaceClay::updateActiveSurfaceSensitivity()
 	dB=2.*(dOutCenter && t1)+2.*(t2 &&dTempStress);
 	dC=2.*(dOutCenter && t2)-4./3.*outsize*dOutSize;
 	
-	dX=(-dA*X*X-dB*X-dC)/(2.*A*X+B);
+	dX = (-dA*X*X-dB*X-dC)/(2.*A*X+B);
 //	if ( fabs(X-1.) < LOW_LIMIT ) dX = 0.; 
-	if (mark==1) {dX=0.;mark=0;}
+	if (mark==1) {
+    dX=0.;
+    mark=0;
+  }
 
 
 	//---------step2. ----------------------------------------

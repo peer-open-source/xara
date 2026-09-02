@@ -45,7 +45,7 @@
 #include <stresst.h>
 #include <straint.h>
 
-#include <NDMaterial.h>
+#include <BJMaterial.h>
 
 #include <Information.h>
 #include <Channel.h>
@@ -61,11 +61,9 @@ class TotalLagrangianFD8NodeBrick: public Element
   public:
 
     TotalLagrangianFD8NodeBrick(int tag,
-
-    int node_numb_1,  int node_numb_2,  int node_numb_3,  int node_numb_4,
-    int node_numb_5,  int node_numb_6,  int node_numb_7,  int node_numb_8,
-
-    NDMaterial &m, double b1=0.0, double b2=0.0, double b3=0.0);
+      int node_numb_1,  int node_numb_2,  int node_numb_3,  int node_numb_4,
+      int node_numb_5,  int node_numb_6,  int node_numb_7,  int node_numb_8,
+      NDMaterial &m, double b1=0.0, double b2=0.0, double b3=0.0);
 
 
     TotalLagrangianFD8NodeBrick();
@@ -122,7 +120,7 @@ class TotalLagrangianFD8NodeBrick: public Element
 
   private:
 
-    NDMaterial **theMaterial; // Pointer to the NDMaterial objects
+    BJMaterial **theMaterial; // Pointer to the NDMaterial objects
     ID  connectedExternalNodes; // Tags of TotalLagrangianFD20Brick nodes
     Node *theNodes[8];
 
@@ -157,14 +155,14 @@ class TotalLagrangianFD8NodeBrick: public Element
     tensor Jacobian_3D(double , double , double);
     tensor Jacobian_3Dinv(double , double , double);
     tensor dh_Global(double , double , double);
-    tensor getNodesCrds(void);
-    tensor getNodesDisp(void);
+    tensor getNodesCrds();
+    tensor getNodesDisp();
 
-    tensor getStiffnessTensor(void);
-    tensor getRtensor(void);
-    tensor getBodyForce(void);
-    tensor getSurfaceForce(void);
-    tensor getForces(void);
+    tensor getStiffnessTensor();
+    tensor getRtensor();
+    tensor getBodyForce();
+    tensor getSurfaceForce();
+    tensor getForces();
 
 };
 

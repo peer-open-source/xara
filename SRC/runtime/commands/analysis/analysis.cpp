@@ -72,7 +72,7 @@ XaraInit_AnalysisCommands(Tcl_Interp *interp, ModelRegistry& context)
   Tcl_CreateCommand(interp, "numberer",   XaraCmd_numberer, analysis, nullptr);
   Tcl_CreateCommand(interp, "number",     XaraCmd_number, analysis, nullptr);
 
-  Tcl_CreateCommand(interp, "responseSpectrumAnalysis", &OpenSees::responseSpectrumAnalysis, nullptr, nullptr);
+  Tcl_CreateCommand(interp, "responseSpectrumAnalysis", &XaraCmd_responseSpectrumAnalysis, nullptr, nullptr);
 
 
   static int ncmd = sizeof(tcl_analysis_cmds)/sizeof(char_cmd);
@@ -663,9 +663,10 @@ XaraCmd_printA(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char
 
 
   bool ret = false;
-  double m = 0.0, c = 0.0, k = 0.0;
+  double m = 0.0, c = 0.0, k = 0.0, ki=0.0;
   bool do_mck = false;
   int currentArg = 1;
+  IncrementalIntegrator::TangentFlagType stiffness_state = CURRENT_TANGENT;
   while (currentArg < argc) {
     if ((strcmp(argv[currentArg], "file") == 0) ||
         (strcmp(argv[currentArg], "-file") == 0)) {
@@ -714,6 +715,14 @@ XaraCmd_printA(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char
       }
       do_mck = true;
     }
+    else if ((strcmp(argv[currentArg], "-ki") == 0)) {
+      currentArg++;
+      if (Tcl_GetDouble(interp, argv[currentArg], &ki) != TCL_OK) {
+        opserr << OpenSees::PromptValueError << "failed to read float following flag -ki\n";
+        return TCL_ERROR;
+      }
+      do_mck = true;
+    }
     currentArg++;
   }
   
@@ -724,21 +733,21 @@ XaraCmd_printA(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char
 
   // construct integrator here so that it is not
   // destructed when the `if` scope ends
-  GimmeMCK integrator(m, c, k, 0.0);
+  GimmeMCK integrator(m, c, k, ki);
   if (do_mck) {
     oldint = builder->getTransientIntegrator();
     builder->set(integrator, false);
-    integrator.formTangent(0);
+    integrator.formTangent(stiffness_state);
     integrator.revertToLastStep();
   }
 
   else if (builder->getStaticIntegrator() != nullptr) {
-    builder->getStaticIntegrator()->formTangent();
+    builder->getStaticIntegrator()->formTangent(stiffness_state);
     builder->getStaticIntegrator()->revertToLastStep();
   }
 
   else if (builder->getTransientIntegrator() != nullptr) {
-    builder->getTransientIntegrator()->formTangent(0);
+    builder->getTransientIntegrator()->formTangent(stiffness_state);
     builder->getTransientIntegrator()->revertToLastStep();
   }
   else {
@@ -801,6 +810,7 @@ XaraCmd_printA(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char
   return res;
 }
 
+
 static int
 XaraCmd_printB(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
 {
@@ -840,16 +850,16 @@ XaraCmd_printB(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char
   LinearSOE  *theSOE = builder->getLinearSOE();
   if (theSOE != nullptr) {
 
-    // TODO
-    builder->formUnbalance();
-
     if (theSOE->getNumEqn() == 0) {
       opserr << OpenSees::PromptValueError 
              << "System of equations is empty\n";
       return TCL_ERROR;
     }
 
-    const Vector &b = theSOE->getB();
+    Vector b(theSOE->getNumEqn());
+    // TODO
+    builder->formUnbalance(b);
+
 
     if (ret) {
       const int size = b.Size();
@@ -866,6 +876,208 @@ XaraCmd_printB(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char
 
   return res;
 }
+
+
+static int
+XaraCmd_applyA(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
+{
+  assert(clientData != nullptr);
+  BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
+
+  int res = 0;
+
+  FileStream outputFile;
+  OPS_Stream *output = &opserr;
+
+  bool ret = true;
+  int currentArg = 1;
+  while (currentArg < argc) {
+    if ((strcmp(argv[currentArg], "file") == 0) ||
+        (strcmp(argv[currentArg], "-file") == 0)) {
+      currentArg++;
+      if (currentArg == argc) {
+        opserr << OpenSees::PromptValueError
+               << "-file missing argument\n";
+        return TCL_ERROR;
+      }
+
+      if (outputFile.setFile(argv[currentArg]) != 0) {
+        opserr << "print <filename> .. - failed to open file: "
+               << argv[currentArg] << "\n";
+        return TCL_ERROR;
+      }
+      output = &outputFile;
+    }
+    else
+      break;
+  }
+
+  // Ensure there is one remaining argument, which is the vector to apply A to
+  if (currentArg >= argc) {
+    opserr << OpenSees::PromptValueError
+           << "applyA requires a vector argument\n";
+    return TCL_ERROR;
+  }
+
+  LinearSOE  *theSOE = builder->getLinearSOE();
+  if (theSOE == nullptr) {
+    opserr << OpenSees::PromptValueError 
+           << "No linear system of equations has been set\n";
+    return TCL_ERROR;
+  }
+  if (theSOE->getNumEqn() == 0) {
+    opserr << OpenSees::PromptValueError 
+            << "System of equations is empty\n";
+    return TCL_ERROR;
+  }
+
+
+  Vector B(theSOE->getNumEqn());
+  Vector X(theSOE->getNumEqn());
+
+  // Split argv[currentArg] into a vector of doubles and store in X
+  int list_argc;
+  TCL_Char **list_argv;
+  if (Tcl_SplitList(interp, argv[currentArg], &list_argc, &list_argv) != TCL_OK) {
+    opserr << OpenSees::PromptValueError
+           << "applyA failed to split vector argument\n";
+    return TCL_ERROR;
+  }
+  for (int i = 0; i < list_argc; ++i) {
+    double val;
+    if (Tcl_GetDouble(interp, list_argv[i], &val) != TCL_OK) {
+      opserr << OpenSees::PromptValueError
+             << "applyA failed to read vector element " << i << "\n";
+      Tcl_Free((char *)list_argv);
+      return TCL_ERROR;
+    }
+    if (i < X.Size())
+      X(i) = val;
+  }
+  Tcl_Free((char *)list_argv);
+
+  if (theSOE->formAp(X, B) < 0) {
+    opserr << OpenSees::PromptValueError
+           << "applyA failed to apply matrix A to vector\n";
+    return TCL_ERROR;
+  }
+
+  if (ret) {
+    const int size = B.Size();
+    Tcl_Obj* list = Tcl_NewListObj(size, nullptr);
+    for (int i = 0; i < size; ++i)
+      Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj(B[i]));
+
+    Tcl_SetObjResult(interp, list);
+  } else {
+    *output << B;
+    outputFile.close();
+  }
+
+  return res;
+}
+
+
+static int
+XaraCmd_solveA(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char ** const argv)
+{
+  assert(clientData != nullptr);
+  BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
+
+  int res = 0;
+
+  FileStream outputFile;
+  OPS_Stream *output = &opserr;
+
+  bool ret = true;
+  int currentArg = 1;
+  while (currentArg < argc) {
+    if ((strcmp(argv[currentArg], "file") == 0) ||
+        (strcmp(argv[currentArg], "-file") == 0)) {
+      currentArg++;
+      if (currentArg == argc) {
+        opserr << OpenSees::PromptValueError
+               << "-file missing argument\n";
+        return TCL_ERROR;
+      }
+
+      if (outputFile.setFile(argv[currentArg]) != 0) {
+        opserr << "print <filename> .. - failed to open file: "
+               << argv[currentArg] << "\n";
+        return TCL_ERROR;
+      }
+      output = &outputFile;
+    }
+    else
+      break;
+  }
+
+  // Ensure there is one remaining argument, which is the vector to apply A to
+  if (currentArg >= argc) {
+    opserr << OpenSees::PromptValueError
+           << "applyA requires a vector argument\n";
+    return TCL_ERROR;
+  }
+
+  LinearSOE  *theSOE = builder->getLinearSOE();
+  if (theSOE == nullptr) {
+    opserr << OpenSees::PromptValueError 
+           << "No linear system of equations has been set\n";
+    return TCL_ERROR;
+  }
+  if (theSOE->getNumEqn() == 0) {
+    opserr << OpenSees::PromptValueError 
+            << "System of equations is empty\n";
+    return TCL_ERROR;
+  }
+
+
+  Vector B(theSOE->getNumEqn());
+  Vector X(theSOE->getNumEqn());
+
+  // Split argv[currentArg] into a vector of doubles and store in X
+  int list_argc;
+  TCL_Char **list_argv;
+  if (Tcl_SplitList(interp, argv[currentArg], &list_argc, &list_argv) != TCL_OK) {
+    opserr << OpenSees::PromptValueError
+           << "solveA failed to split vector argument\n";
+    return TCL_ERROR;
+  }
+  for (int i = 0; i < list_argc; ++i) {
+    double val;
+    if (Tcl_GetDouble(interp, list_argv[i], &val) != TCL_OK) {
+      opserr << OpenSees::PromptValueError
+             << "solveA failed to read vector element " << i << "\n";
+      Tcl_Free((char *)list_argv);
+      return TCL_ERROR;
+    }
+    if (i < X.Size())
+      B(i) = val;
+  }
+  Tcl_Free((char *)list_argv);
+
+  // opserr << "Solving Ax = b for x, where b = " << B << "\n";
+  if (theSOE->solve(B, X) < 0) {
+    opserr << OpenSees::PromptValueError
+           << "applyA failed to apply matrix A to vector\n";
+    return TCL_ERROR;
+  }
+
+  if (ret) {
+    const int size = X.Size();
+    Tcl_Obj* list = Tcl_NewListObj(size, nullptr);
+    for (int i = 0; i < size; ++i)
+      Tcl_ListObjAppendElement(interp, list, Tcl_NewDoubleObj(X[i]));
+
+    Tcl_SetObjResult(interp, list);
+  } else {
+    *output << X;
+    outputFile.close();
+  }
+
+  return res;
+}
+
 
 // This is removed from the Tcl_Interp in model.cpp
 extern int
@@ -969,15 +1181,15 @@ XaraCmd_constraints(ClientData clientData,
         verbose = true;
       else if (strcmp(argv[i], "-autoPenalty") == 0) {
         if (user_penalty_done) {
-          opserr << OpenSees::PromptValueError << "cannot use with userPenalty\n";
+          opserr << OpenSees::PromptValueError << "cannot use with userPenalty" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         if (argc < i+1) {
-          opserr << OpenSees::PromptValueError << "autoPenalty needs a value\n";
+          opserr << OpenSees::PromptValueError << "autoPenalty needs a value" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[i+1], &auto_penalty_oom) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "autoPenalty needs a numeric value\n";
+          opserr << OpenSees::PromptValueError << "autoPenalty needs a numeric value" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         i++;
@@ -986,15 +1198,15 @@ XaraCmd_constraints(ClientData clientData,
       }
       else if (strcmp(argv[i], "-userPenalty") == 0) {
         if (argc < i+1) {
-          opserr << OpenSees::PromptValueError << "userPenalty needs a value\n";
+          opserr << OpenSees::PromptValueError << "userPenalty needs a value" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         if (auto_penalty_done) {
-          opserr << OpenSees::PromptValueError << "cannot use userPenalty with autoPenalty\n";
+          opserr << OpenSees::PromptValueError << "cannot use userPenalty with autoPenalty" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         if (Tcl_GetDouble(interp, argv[i+1], &user_penalty) != TCL_OK) {
-          opserr << OpenSees::PromptValueError << "userPenalty needs a numeric value\n";
+          opserr << OpenSees::PromptValueError << "userPenalty needs a numeric value" << OpenSees::SignalMessageEnd;
           return TCL_ERROR;
         }
         i++;
@@ -1002,7 +1214,7 @@ XaraCmd_constraints(ClientData clientData,
         user_penalty_done = true;
       }
       else {
-        opserr << OpenSees::PromptValueError << "unknown option " << argv[i] << "\n";
+        opserr << OpenSees::PromptValueError << "unknown option " << argv[i] << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
     }

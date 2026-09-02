@@ -26,19 +26,11 @@
 #include <LinearSOE.h>
 #include <Logging.h>
 
-CTestNormDispIncr::CTestNormDispIncr()
-    : ConvergenceTest(CONVERGENCE_TEST_CTestNormDispIncr),
-      tol(0), maxTol(OPS_MAXTOL), maxNumIter(0), currentIter(0), printFlag(0),
-      norms(25), nType(2)
-{
-
-}
-
 
 CTestNormDispIncr::CTestNormDispIncr(double theTol, int maxIter, int printIt, int normType, double max)
-    : ConvergenceTest(CONVERGENCE_TEST_CTestNormDispIncr),
-      tol(theTol), maxTol(max), maxNumIter(maxIter), currentIter(0), printFlag(printIt),
-      nType(normType), norms(maxIter)
+  : ConvergenceTest(CONVERGENCE_TEST_CTestNormDispIncr),
+    tol(theTol), maxTol(max), maxNumIter(maxIter), currentIter(0), printFlag(printIt),
+    nType(normType), norms(maxIter)
 {
 
 }
@@ -53,148 +45,148 @@ CTestNormDispIncr::~CTestNormDispIncr()
 ConvergenceTest*
 CTestNormDispIncr::getCopy(int iterations)
 {
-    return new CTestNormDispIncr(this->tol, iterations, 0, this->nType, this->maxTol) ;
+  return new CTestNormDispIncr(this->tol, iterations, 0, this->nType, this->maxTol) ;
 }
 
 
 void
 CTestNormDispIncr::setTolerance(double newTol)
 {
-    tol = newTol;
-}
-
-
-
-int
-CTestNormDispIncr::test(LinearSOE& theSOE)
-{
-
-    // check to ensure the algo does invoke start() - this is needed otherwise
-    // may never get convergence later on in analysis!
-    if (currentIter == 0) {
-        opserr << "WARNING: CTestNormDispIncr::test - start() was never invoked.\n";
-        return -2;
-    }
-
-    // get the X vector & determine it's norm & save the value in norms vector
-    const Vector &x = theSOE.getX();
-    double norm = x.pNorm(nType);
-    if (currentIter <= maxNumIter)
-        norms(currentIter-1) = norm;
-
-    // print the data if required
-    if (printFlag & ConvergenceTest::PrintTest) {
-        pstream << LOG_ITERATE 
-               << "Iter: "           << pad(currentIter)
-               << ", Norm: "         << pad(norm) 
-               << ", Norm dR: "  << pad(theSOE.getB().pNorm(nType))
-               << "\n";
-    }
-    else if (printFlag & ConvergenceTest::PrintTest02) {
-        pstream << LOG_ITERATE 
-               << "Iter: "     << currentIter
-               << ", Norm: "         << pad(norm) 
-               << "\n";
-        pstream << "\tNorm dX: "  << pad(norm) 
-               << ", Norm dR: "  << pad(theSOE.getB().pNorm(nType))
-               << "\n"
-               << "\tdX: "       << x
-               << "\tdR: "       << theSOE.getB();
-    }
-
-    //
-    // check if the algorithm converged
-    //
-
-    // if converged - print & return ok
-    if (norm <= tol) {
-
-        // do some printing first
-        if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-            pstream << "\n";
-
-        if (printFlag & ConvergenceTest::PrintSuccess) {
-            pstream << LOG_SUCCESS 
-                   << "Iter: "          << pad(currentIter)
-                   << ", Norm dU: "        << pad(norm)
-                   << ", Norm dR: " << pad(theSOE.getB().pNorm(nType))
-                   << "\n";
-        }
-
-        // return the number of times test has been called
-        return currentIter;
-    }
-
-    // failed to converged after specified number of iterations - but RETURN OK
-    else if ((printFlag & ConvergenceTest::AlwaysSucceed) && currentIter >= maxNumIter) {
-        if (printFlag & ConvergenceTest::PrintFailure) {
-            pstream << LOG_FAILURE
-                   << ", Norm dU: " << pad(norm)  // << " (max: " << tol;
-                   << ", Norm dR: " << pad(theSOE.getB().pNorm(nType))
-                   << LOG_CONTINUE
-                   << "failed to converge but going on - "
-                   << "\n";
-        }
-        return currentIter;
-    }
-
-    // failed to converged after specified number of iterations - return FAILURE -2
-    else if (currentIter >= maxNumIter || norm > maxTol) { // failes to converge
-        if (printFlag & ConvergenceTest::PrintFailure) {
-          pstream << LOG_FAILURE 
-                 // << LOG_CONTINUE
-                 << "Iter: "             << pad(currentIter)
-                 << ", Norm: "           << pad(norm)
-                 << ", Norm deltaR: "    << pad(theSOE.getB().pNorm(nType))
-                 << "\n";
-        }
-        currentIter++;
-        return ConvergenceTest::Failure;
-    }
-
-    // algorithm not yet converged - increment counter and return -1
-    else {
-        currentIter++;
-        return ConvergenceTest::Continue;
-    }
+  tol = newTol;
 }
 
 
 int
 CTestNormDispIncr::start(LinearSOE& theSOE)
 {
-    // set iteration count = 1
-    norms.Zero();
-    currentIter = 1;
-    return 0;
+  // set iteration count = 1
+  norms.Zero();
+  currentIter = 1;
+  return 0;
 }
 
 
-int CTestNormDispIncr::getNumTests()
+int
+CTestNormDispIncr::test(LinearSOE& theSOE)
 {
+
+  // check to ensure the algo does invoke start() - this is needed otherwise
+  // may never get convergence later on in analysis!
+  if (currentIter == 0) {
+      opserr << "WARNING: CTestNormDispIncr::test - start() was never invoked.\n";
+      return -2;
+  }
+
+  // get the X vector & determine it's norm & save the value in norms vector
+  const Vector &x = theSOE.getX();
+  double norm = x.pNorm(nType);
+  if (currentIter <= maxNumIter)
+      norms(currentIter-1) = norm;
+
+  // print the data if required
+  if (printFlag & ConvergenceTest::PrintTest) {
+      pstream << LOG_ITERATE 
+              << "Iter: "           << pad(currentIter)
+              << ", dX: "         << pad(norm) 
+              << ", dR: "  << pad(theSOE.getB().pNorm(nType))
+              << "\n";
+  }
+  else if (printFlag & ConvergenceTest::PrintTest02) {
+      pstream << LOG_ITERATE 
+              << "Iter: "     << currentIter
+              << ", dX: "     << pad(norm) 
+              << "\n";
+      pstream << "\tNorm dX: "  << pad(norm) 
+              << ", Norm dR: "  << pad(theSOE.getB().pNorm(nType))
+              << "\n"
+              << "\tdX: "       << x
+              << "\tdR: "       << theSOE.getB();
+  }
+
+  //
+  // check if the algorithm converged
+  //
+
+  // if converged - print & return ok
+  if (norm <= tol) {
+    // do some printing first
+    if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
+        pstream << "\n";
+
+    if (printFlag & ConvergenceTest::PrintSuccess) {
+        pstream << LOG_SUCCESS 
+                << "Iter: "          << pad(currentIter)
+                << ", dX: "        << pad(norm)
+                << ", dR: " << pad(theSOE.getB().pNorm(nType))
+                << "\n";
+    }
+
+    // return the number of times test has been called
     return currentIter;
+  }
+
+  // failed to converged after specified number of iterations - but RETURN OK
+  else if ((printFlag & ConvergenceTest::AlwaysSucceed) && currentIter >= maxNumIter) {
+    if (printFlag & ConvergenceTest::PrintFailure) {
+        pstream << LOG_FAILURE
+                << ", dX: " << pad(norm)  // << " (max: " << tol;
+                << ", dR: " << pad(theSOE.getB().pNorm(nType))
+                << LOG_CONTINUE
+                << "failed to converge but going on - "
+                << "\n";
+    }
+    return currentIter;
+  }
+
+  // failed to converged after specified number of iterations - return FAILURE -2
+  else if (currentIter >= maxNumIter || norm > maxTol) { // failes to converge
+      if (printFlag & ConvergenceTest::PrintFailure) {
+        pstream << LOG_FAILURE 
+                // << LOG_CONTINUE
+                << "Iter: "             << pad(currentIter)
+                << ", Norm: "           << pad(norm)
+                << ", Norm deltaR: "    << pad(theSOE.getB().pNorm(nType))
+                << "\n";
+      }
+      currentIter++;
+      return ConvergenceTest::Failure;
+  }
+
+  // algorithm not yet converged - increment counter and return -1
+  else {
+      currentIter++;
+      return ConvergenceTest::Continue;
+  }
+}
+
+
+
+int 
+CTestNormDispIncr::getNumTests()
+{
+  return currentIter;
 }
 
 
 int 
 CTestNormDispIncr::getMaxNumTests()
 {
-    return maxNumIter;
+  return maxNumIter;
 }
 
 
 double 
 CTestNormDispIncr::getRatioNumToMax()
 {
-    double div = maxNumIter;
-    return currentIter/div;
+  double div = maxNumIter;
+  return currentIter/div;
 }
 
 
 const Vector& 
 CTestNormDispIncr::getNorms()
 {
-    return norms;
+  return norms;
 }
 
 

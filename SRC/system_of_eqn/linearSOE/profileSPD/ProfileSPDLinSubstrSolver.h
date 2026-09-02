@@ -48,6 +48,8 @@ class ProfileSPDLinSubstrSolver : public ProfileSPDLinDirectSolver,
     ~ProfileSPDLinSubstrSolver();
 
     int solve() override;
+    int solve(const Vector& B, Vector& X) override;
+
     int condenseA(int numInt);
     int condenseRHS(int numInt, Vector *v =0);
     int computeCondensedMatVect(int numInt, const Vector &u);    

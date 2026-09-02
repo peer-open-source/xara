@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1 $
-// $Date: 2005-05-25 23:33:46 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/diagonal/DistributedDiagonalSolver.h,v $
-
+//
 // Written: fmk 
 // Created: 05/05
 //
@@ -44,11 +40,17 @@ class DistributedDiagonalSolver : public LinearSOESolver
     DistributedDiagonalSolver(double minDiagTol=1.0e-18);    
     virtual ~DistributedDiagonalSolver();
 
-    virtual int solve(void);
-    virtual int setSize(void);
-    virtual int setLinearSOE(DistributedDiagonalSOE &theSOE);
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+    int solve() override;
+    int solve(const Vector& B, Vector& X) override {
+      // TODO: implement solve(B, X) for DistributedDiagonalSolver
+      return -1;
+    }
+
+    int setSize() override;
+
+    bool requireDeterminant() override { return false; }
+
+    virtual int setLinearSOE(DistributedDiagonalSOE &);
     
   protected:
     DistributedDiagonalSOE *theSOE;

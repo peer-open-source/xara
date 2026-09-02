@@ -31,9 +31,7 @@
 // of LinearSOESOlver. It solves diagonal system directly!
 
 // What: "@(#) DiagonalDirectSolver.h, revA"
-
-#ifndef DiagonalDirectSolver_h
-#define DiagonalDirectSolver_h
+#pragma once
 
 #include <DiagonalSolver.h>
 class DiagonalSOE;
@@ -44,14 +42,16 @@ class DiagonalDirectSolver : public DiagonalSolver
     DiagonalDirectSolver(double tol=1.0e-18);    
     virtual ~DiagonalDirectSolver();
 
-    virtual int solve(void);        
-    virtual int setSize(void);    
-    double getDeterminant(void);
+    int solve() override;
+    int solve(const Vector& B, Vector& X) override;
+    int setSize() override;
+    double getDeterminant() override;
+    bool requireDeterminant() override { return true; }
 #if 0 
     virtual int setDiagonalSOE(DiagonalSOE &theSOE);
 #endif
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int sendSelf(int commitTag, Channel &);
+    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     
   protected:
     double minDiagTol;
@@ -59,7 +59,3 @@ class DiagonalDirectSolver : public DiagonalSolver
   private:
 
 };
-
-
-#endif
-

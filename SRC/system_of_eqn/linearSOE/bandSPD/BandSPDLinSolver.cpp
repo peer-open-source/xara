@@ -47,7 +47,7 @@ BandSPDLinSolver::~BandSPDLinSolver()
 int 
 BandSPDLinSolver::setLinearSOE(BandSPDLinSOE &theBandSPDSOE)
 {
-    theSOE = &theBandSPDSOE;
-    return 0;
+  theSOE = &theBandSPDSOE;
+  return 0;
 }
 

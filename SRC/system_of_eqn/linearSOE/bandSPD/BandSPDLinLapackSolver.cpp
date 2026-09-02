@@ -41,9 +41,14 @@ BandSPDLinLapackSolver::~BandSPDLinLapackSolver()
 
 }
 
-
 int
 BandSPDLinLapackSolver::solve()
+{
+  return this->solve(theSOE->getB(), theSOE->X);
+}
+
+int
+BandSPDLinLapackSolver::solve(const Vector& vecB, Vector& vecX)
 {
   assert(theSOE != nullptr);
   if (theSOE->size == 0)
@@ -56,14 +61,14 @@ BandSPDLinLapackSolver::solve()
   int ldB = n;
   int info;
   double *Aptr = theSOE->A;
-  double *Xptr = &theSOE->X[0];
-  double *Bptr = &theSOE->B[0];
+  double *Xptr = &vecX(0);
+  const double *Bptr = &vecB(0);
 
   // first copy B into X
   for (int i=0; i<n; i++)
     *(Xptr++) = *(Bptr++);
 
-  Xptr = &theSOE->X[0];
+  Xptr = &vecX(0);
 
   // now solve AX = Y
 
@@ -71,12 +76,11 @@ BandSPDLinLapackSolver::solve()
   if (theSOE->factored == false) {
     // factor and solve
     DPBSV(tflag, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
-
-  } else {
+  }
+  else {
     // solve only using factored matrix
     // unsigned int sizeC = 1;
     // DPBTRS("U", sizeC, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
-
     DPBTRS(tflag, &n,&kd,&nrhs,Aptr,&ldA,Xptr,&ldB,&info);
   }
 
@@ -101,21 +105,3 @@ BandSPDLinLapackSolver::setSize()
   // nothing to do
   return 0;
 }
-
-int
-BandSPDLinLapackSolver::sendSelf(int cTag, Channel &theChannel)
-{
-  // nothing to do
-  return 0;
-}
-
-int
-BandSPDLinLapackSolver::recvSelf(int tag,
-                                Channel &theChannel,
-                                FEM_ObjectBroker &theBroker)
-{
-  // nothing to do
-  return 0;
-}
-
-

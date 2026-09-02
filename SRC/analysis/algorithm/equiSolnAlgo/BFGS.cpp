@@ -113,16 +113,9 @@ BFGS::solveCurrentStep()
 
   LinearSOE  *theSOE = this->getLinearSOEptr();
 
-  if ((theIntegrator == 0) || (theSOE == 0)
-      || (theTest == 0)){
-      return SolutionAlgorithm::BadAlgorithm;
+  if ((theIntegrator == 0) || (theSOE == 0) || (theTest == 0)) {
+    return SolutionAlgorithm::BadAlgorithm;
   }        
-
-  if (theTest->start(*theSOE) < 0) {
-    return SolutionAlgorithm::BadTestStart;
-  }
-
-  ConvergenceTest* localTest = theTest->getCopy( this->numberLoops );
 
   if (rdotz == 0)
     rdotz = new double[numberLoops+3];
@@ -130,8 +123,15 @@ BFGS::solveCurrentStep()
   if (sdotr == 0)
     sdotr = new double[numberLoops+3];
 
+  if (theTest->start(*theSOE) < 0) {
+    return SolutionAlgorithm::BadTestStart;
+  }
 
-  int result = -1;
+  ConvergenceTest* localTest = theTest->getCopy(this->numberLoops);
+
+
+
+  int result = ConvergenceTest::Continue;
   int count = 0;
   do {
 
@@ -171,7 +171,7 @@ BFGS::solveCurrentStep()
     if ( residOld == 0 ) 
       residOld = new Vector(systemSize);
 
-    *residOld = theSOE->getB( ) ;
+    *residOld = theSOE->getB();
     *residOld *= (-1.0 );
 
     // form the residual again
@@ -210,7 +210,7 @@ BFGS::solveCurrentStep()
       BFGSUpdate( theIntegrator, theSOE, *du, *b, nBFGS ) ;
 
       if ( theIntegrator->update( *du ) < 0 )
-          return SolutionAlgorithm::BadStepUpdate;
+        return SolutionAlgorithm::BadStepUpdate;
       
       // increment broyden counter
       nBFGS += 1;
@@ -366,22 +366,6 @@ void  BFGS::BFGSUpdate(IncrementalIntegrator *theIntegrator,
     du -= *temp;
 
   } //end for i
-
-}
-
-
-int
-BFGS::sendSelf(int cTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int
-BFGS::recvSelf(int cTag, 
-               Channel &theChannel, 
-               FEM_ObjectBroker &theBroker)
-{
-  return -1;
 }
 
 

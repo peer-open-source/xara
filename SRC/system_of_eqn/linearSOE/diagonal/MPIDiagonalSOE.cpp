@@ -41,7 +41,8 @@ MPIDiagonalSOE::MPIDiagonalSOE(MPIDiagonalSolver &the_Solver)
    myDOFsArray(0), myDOFsSharedArray(0),maxDOFsSharedArray(0),posLocKey(0),
    processID(0), numProcesses(0),
    numChannels(0), theChannels(0), localCol(0),
-   myDOFs(0,32), myDOFsShared(0,16), numShared(0), theModel(0)
+   myDOFs(0,32), myDOFsShared(0)//,16)
+   , numShared(0), theModel(0)
 {
   MPI_Comm_rank(MPI_COMM_WORLD, &processID);
   the_Solver.setLinearSOE(*this);
@@ -189,7 +190,7 @@ MPIDiagonalSOE::setSize(Graph &theGraph)
       piDOFs->setData(piData,allSizes[i]);
       intersections(myDOFs, *piDOFs, size, allSizes[i], piShared, sharedDOFs);
       if ( (*piShared)!=0 & (actualNeighbors < maxNeighbors) ) { 
-	myNeighbors[i] = 1;
+        myNeighbors[i] = 1;
       }
     }
   }
@@ -683,21 +684,9 @@ MPIDiagonalSOE::getB(void)
   if (vectB == 0) {
     opserr << "FATAL MPIDiagonalSOE::getB - vectB == 0";
     exit(-1);
-  }        
+  }
   return *vectB;
 }
-
-double 
-MPIDiagonalSOE::normRHS(void)
-{
-  double norm =0.0;
-  for (int i=0; i<size; i++) {
-    double Yi = B[i];
-    norm += Yi*Yi;
-  }
-  return sqrt(norm);
-  
-}    
 
 
 int
@@ -718,19 +707,6 @@ MPIDiagonalSOE::setDiagonalSolver(MPIDiagonalSolver &newSolver)
 }
 
 
-int 
-MPIDiagonalSOE::sendSelf(int cTag, Channel &theChannel)
-{
-  return 0;
-}
-
-
-int 
-MPIDiagonalSOE::recvSelf(int cTag, Channel &theChannel, 
-				 FEM_ObjectBroker &theBroker)
-{
-  return 0;
-}
 
 int
 MPIDiagonalSOE::setChannels(int nChannels, Channel **theC)

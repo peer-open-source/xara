@@ -915,4 +915,3 @@ AnalysisModel::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBrok
 {
   return 0;
 }
-

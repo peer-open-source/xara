@@ -57,11 +57,11 @@ namespace OpenSees {
 using OpenSees::Versor;
 using OpenSees::Matrix3D;
 
-class Node :
-  public TaggedObject,
-  public MovableObject
+class Node : public TaggedObject, public MovableObject
 {
   public:
+    typedef int Tag;
+  
     enum class Field {
       R1, R2, R3, SE2, SE3, None
     } field;
@@ -81,6 +81,7 @@ class Node :
     VIRTUAL int  getNumberDOF() const;
     VIRTUAL void setDOF_GroupPtr(DOF_Group *);
     VIRTUAL DOF_Group *getDOF_GroupPtr();
+    Rotations::Parameters getRotationParameters() const {return rotationType;}
 
     // public methods for obtaining the nodal coordinates
     VIRTUAL const Vector &getCrds() const;

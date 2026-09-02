@@ -17,18 +17,13 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.15 $
-// $Date: 2008-11-19 23:42:25 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/handler/TransformationConstraintHandler.cpp,v $
-                                                                        
-                                                                        
+//
 // Written: fmk 
 // Created: May 1998
 // Revision: A
 //
 // What: "@(#) TransformationConstraintHandler.C, revA"
-
+//
 #include <TransformationConstraintHandler.h>
 #include <stdlib.h>
 
@@ -69,6 +64,7 @@ TransformationConstraintHandler::~TransformationConstraintHandler()
   if (theFEs != 0)
     delete [] theFEs;
 }
+
 
 int
 TransformationConstraintHandler::handle(const ID *nodesLast)
@@ -288,7 +284,7 @@ TransformationConstraintHandler::handle(const ID *nodesLast)
     } else {
 
       if (transformedEle.getLocation(tag) < 0) {
-        fePtr = new ElementFE(numFeEle, elePtr);
+        fePtr = elePtr->createFE_Element(numFeEle);
       }
       else {
         fePtr = new TransformationFE(numFeEle, elePtr);

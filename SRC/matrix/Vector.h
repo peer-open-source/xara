@@ -91,7 +91,7 @@ class Vector
     int addMatrixTransposeVector(double factThis, const Matrix &m, const Vector &v, double factOther);
 
     // overloaded operators
-    inline double operator()(int x) const;
+    inline const double& operator()(int x) const;
     inline double &operator()(int x);
     inline double operator[](int x) const;  
     double &operator[](int x); // this operator does bounds checks
@@ -170,7 +170,7 @@ Vector::Zero() {
 }
 
 
-inline double 
+inline const double&
 Vector::operator()(int x) const
 {
   assert(x >= 0 && x < sz);

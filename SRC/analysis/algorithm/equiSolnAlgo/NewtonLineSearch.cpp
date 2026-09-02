@@ -18,14 +18,14 @@
 **                                                                    **
 ** ****************************************************************** */
 //
+// Description: This file contains the implementation for NewtonLineSearch. 
+// 
+// What: "@(#)NewtonLineSearch.h, revA"
+//
 // Written: fmk 
 // Created: 11/96 
 // Modified: Ed "C++" Love 10/00 to perform the line search
 //
-// Description: This file contains the implementation for NewtonLineSearch. 
-// 
-// What: "@(#)NewtonLineSearch.h, revA"
-
 #include <NewtonLineSearch.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
@@ -44,14 +44,12 @@ NewtonLineSearch::NewtonLineSearch()
 }
 
 
-
 NewtonLineSearch::NewtonLineSearch(LineSearch *theSearch) 
 :EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonLineSearch),
  theLineSearch(theSearch)
 {
 
 }
-
 
 
 NewtonLineSearch::~NewtonLineSearch()
@@ -70,9 +68,7 @@ NewtonLineSearch::solveCurrentStep()
   LinearSOE  *theSOE = this->getLinearSOEptr();
 
   if ((theIntegrator == 0) || (theSOE == 0) || (theTest == 0)){
-    opserr << "WARNING NewtonLineSearch::solveCurrentStep() - setLinks() has";
-    opserr << " not been called - or no ConvergenceTest has been set\n";
-    return -5;
+    return SolutionAlgorithm::BadAlgorithm;
   }        
 
   theLineSearch->newStep(*theSOE);
@@ -90,51 +86,55 @@ NewtonLineSearch::solveCurrentStep()
   int result = -1;
   do {
 
-      // residual at this iteration before next solve 
-      const Vector &Resid0 = theSOE->getB() ;
+    // residual at this iteration before next solve 
+    const Vector &Resid0 = theSOE->getB() ;
+
+    // form the tangent
+    if (theIntegrator->formTangent() < 0)
+      return SolutionAlgorithm::BadFormTangent;
+
+    if (theSOE->solve() < 0)
+      return SolutionAlgorithm::BadLinearSolve;      
+
+
+    // line search direction 
+    const Vector &dx0 = theSOE->getX() ;
+
+    // initial value of s
+    double s0 = - (dx0 ^ Resid0); 
+
+    if (theIntegrator->update(theSOE->getX()) < 0)     
+      return SolutionAlgorithm::BadStepUpdate;
+
+
+    if (theIntegrator->formUnbalance() < 0)
+      return SolutionAlgorithm::BadFormResidual;
+
+    // do a line search only if convergence criteria not met
+    theOtherTest->start(*theSOE);
+    result = theOtherTest->test(*theSOE);
+
+    if (result < 1) {
+      // new residual 
+      const Vector &Resid = theSOE->getB();
       
-      // form the tangent
-      if (theIntegrator->formTangent() < 0)
-        return SolutionAlgorithm::BadFormTangent;
+      // new value of s 
+      double s = - ( dx0 ^ Resid );
       
+      int search_result = 0;
+      if (theLineSearch != nullptr)
+        search_result = theLineSearch->search(s0, s, *theSOE, *theIntegrator);
 
-      if (theSOE->solve() < 0)
-        return SolutionAlgorithm::BadLinearSolve;      
-
-
-      // line search direction 
-      const Vector &dx0 = theSOE->getX() ;
-
-      // initial value of s
-      double s0 = - (dx0 ^ Resid0); 
-
-      if (theIntegrator->update(theSOE->getX()) < 0)     
-        return SolutionAlgorithm::BadStepUpdate;
-
-
-      if (theIntegrator->formUnbalance() < 0)
-        return SolutionAlgorithm::BadFormResidual;
-
-      // do a line search only if convergence criteria not met
-      theOtherTest->start(*theSOE);
-      result = theOtherTest->test(*theSOE);
-
-      if (result < 1) {
-        // new residual 
-        const Vector &Resid = theSOE->getB() ;
-        
-        // new value of s 
-        double s = - ( dx0 ^ Resid ) ;
-        
-        if (theLineSearch != nullptr)
-          theLineSearch->search(s0, s, *theSOE, *theIntegrator);
+      if (search_result < 0) {
+        return search_result;
       }
+    }
 
-      this->record(0);
+    this->record(0);
 
-      result = theTest->test(*theSOE);
+    result = theTest->test(*theSOE);
 
-  }  while (result == ConvergenceTest::Continue);
+  } while (result == ConvergenceTest::Continue);
 
   if (result == ConvergenceTest::Failure)
     return SolutionAlgorithm::TestFailed;
@@ -163,6 +163,7 @@ NewtonLineSearch::sendSelf(int cTag, Channel &theChannel)
 
   return 0;
 }
+
 
 int
 NewtonLineSearch::recvSelf(int cTag, 
@@ -207,12 +208,4 @@ NewtonLineSearch::Print(OPS_Stream &s, int flag) const
   if (theLineSearch != 0)
     theLineSearch->Print(s, flag);
 }
-
-
-
-
-
-
-
-
 

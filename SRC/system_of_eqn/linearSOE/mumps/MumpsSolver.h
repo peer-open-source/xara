@@ -17,15 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.6 $
-// $Date: 2008-04-15 07:15:29 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/mumps/MumpsSolver.h,v $
-                                                                        
-                                                                        
-#ifndef MumpsSolver_h
-#define MumpsSolver_h
-
+//
 // Written: fmk 
 // Created: 02/06
 //
@@ -43,7 +35,7 @@
 // http://www.enseeiht.fr/apo/MUMPS/ or http://graal.ens-lyon.fr/MUMPS
 
 // What: "@(#) Mumps.h, revA"
-
+#pragma once
 #include <LinearSOESolver.h>
 extern "C" {
 #include <dmumps_c.h>
@@ -59,16 +51,16 @@ class MumpsSolver : public LinearSOESolver
   virtual ~MumpsSolver();
   
   int solve() override;
-  int setSize();
-  
-  int sendSelf(int commitTag, Channel &) override;
-  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    
+  int setSize() override;
+
 
   int setLinearSOE(MumpsSOE &theSOE);
+  // bool factored() const { return factored; }
+  void resetFactored() { factored = false; }
 
  private:
-  int initializeMumps();
-  int solveAfterInitialization();
+  int initializeMumps(Vector& vecX);
+  int solveAfterInitialization(const Vector &vecB, Vector &vecX);
 
   DMUMPS_STRUC_C id;
   MumpsSOE *theMumpsSOE;
@@ -76,7 +68,5 @@ class MumpsSolver : public LinearSOESolver
   int icntl14;
   int icntl7;
   bool needsSetSize;
+  bool factored;
 };
-
-#endif
-

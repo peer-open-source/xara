@@ -55,9 +55,6 @@ public:
     double getRatioNumToMax() override;
     const Vector &getNorms() override;
 
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker) override;
-
 private:
     int maxNumIter;     // max number of iterations
     int currentIter;    // number of times test() has been invokes since last start()

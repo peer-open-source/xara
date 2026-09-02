@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.2 $
-// $Date: 2001-02-17 06:32:38 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/profileSPD/ProfileSPDLinDirectSolver.h,v $
-                                                                        
-                                                                        
+//
 // Written: fmk 
 // Created: 2012
 // Revision: A
@@ -46,16 +41,14 @@ class SProfileSPDLinSolver : public LinearSOESolver
     SProfileSPDLinSolver(double tol=1.0e-12);    
     virtual ~SProfileSPDLinSolver();
 
-    virtual int solve(void);        
-    virtual int setSize(void);    
-    double getDeterminant(void);
+    virtual int solve();        
+    virtual int setSize();    
+    double getDeterminant();
+    bool requireDeterminant() override { return true; }
 
     virtual int factor(int n);
     virtual int setLinearSOE(SProfileSPDLinSOE &theSOE);
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+
   protected:
     SProfileSPDLinSOE *theSOE;
 

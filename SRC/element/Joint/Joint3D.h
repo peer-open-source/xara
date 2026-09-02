@@ -33,7 +33,6 @@
 #ifndef Joint3D_h
 #define Joint3D_h
 
-#include <stdbool.h>
 #include <Matrix.h>
 #include <Vector.h>
 #include <Element.h>
@@ -57,29 +56,29 @@ public:
 
   ~Joint3D();
 
-  const char* getClassType(void) const { return "Joint3D"; };
+  const char* getClassType() const { return "Joint3D"; }
 
   // methods dealing with domain
-  int	getNumExternalNodes(void) const;
-  const	ID& getExternalNodes(void);
-  Node** getNodePtrs(void);
-  int	getNumDOF(void);
+  int	getNumExternalNodes() const;
+  const	ID& getExternalNodes();
+  Node** getNodePtrs();
+  int	getNumDOF();
 
   void	setDomain(Domain* theDomain);
-  bool	isSubdomain(void) { return false; };
+  bool	isSubdomain() { return false; };
 
   // methods dealing with committed state and update
-  int update(void);
-  int commitState(void);
-  int revertToLastCommit(void);
-  int revertToStart(void);
+  int update() override;
+  int commitState();
+  int revertToLastCommit();
+  int revertToStart();
 
   // methods to return the current linearized stiffness,
   // damping and mass matrices
-  const	Matrix& getTangentStiff(void);
-  const Matrix& getInitialStiff(void);
-  const	Matrix& getDamp(void);
-  const	Matrix& getMass(void);
+  const	Matrix& getTangentStiff() override;
+  const Matrix& getInitialStiff() override;
+  const	Matrix& getDamp() override;
+  const	Matrix& getMass() override;
 
   // methods for returning and applying loads
   //virtual Vector &getUVLoadVector(double q1, double q2);
@@ -95,7 +94,7 @@ public:
   int getResponse(int responseID, Information& eleInformation);
   int sendSelf(int commitTag, Channel& theChannel);
   int recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker);
-  void Print(OPS_Stream& s, int flag = 0);
+  void Print(OPS_Stream& s, int flag);
 
 
 protected:

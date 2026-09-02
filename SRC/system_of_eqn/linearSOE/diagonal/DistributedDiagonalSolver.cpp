@@ -59,14 +59,14 @@ DistributedDiagonalSolver::setLinearSOE(DistributedDiagonalSOE &theProfileSPDSOE
 }
 
 int 
-DistributedDiagonalSolver::setSize(void)
+DistributedDiagonalSolver::setSize()
 {
   return 0;
 }
 
 
 int 
-DistributedDiagonalSolver::solve(void)
+DistributedDiagonalSolver::solve()
 {
   int size = theSOE->size;
   int processID = theSOE->processID;
@@ -77,7 +77,7 @@ DistributedDiagonalSolver::solve(void)
   int numShared = theSOE->numShared;
   ID &myDOFs = theSOE->myDOFs;
   ID &myDOFsShared = theSOE->myDOFsShared;
-  
+
   double *X = theSOE->X;
   double *B = theSOE->B;
   double *A = theSOE->A;
@@ -87,7 +87,6 @@ DistributedDiagonalSolver::solve(void)
   //
   // first copy A & B contributions to sharedData
   //
-
   for (int i=0; i<numShared; i++)
     dataShared[i] = 0.0;
 
@@ -117,13 +116,13 @@ DistributedDiagonalSolver::solve(void)
       static Vector otherShared(1);
       otherShared.resize(2*numShared);
       for (int i=0; i<numChannels; i++) {
-	Channel *theChannel = theChannels[i];
-	theChannel->recvVector(0, 0, otherShared);
-	*vectShared += otherShared;
+        Channel *theChannel = theChannels[i];
+        theChannel->recvVector(0, 0, otherShared);
+        *vectShared += otherShared;
       }
       for (int i=0; i<numChannels; i++) {
-	Channel *theChannel = theChannels[i];
-	theChannel->sendVector(0, 0, *vectShared);
+        Channel *theChannel = theChannels[i];
+        theChannel->sendVector(0, 0, *vectShared);
       }
     }
   }
@@ -132,8 +131,6 @@ DistributedDiagonalSolver::solve(void)
   //
   // set the corresponding A & B entries
   //
-  
-  
   for (int i=0; i<numShared; i++) {
     int dof = myDOFsShared(i);
     int loc = myDOFs.getLocation(dof);
@@ -146,33 +143,10 @@ DistributedDiagonalSolver::solve(void)
   //
   // now solve
   //
-  
   for (int i=0; i<size; i++) {
     X[i] = B[i]/A[i];
   }
 
-  return 0;
-}
-
-int
-DistributedDiagonalSolver::sendSelf(int cTag,
-			       Channel &theChannel)
-{
-  static Vector data(1);
-  data(0) = minDiagTol;
-  return theChannel.sendVector(0, cTag, data);
-}
-
-
-int 
-DistributedDiagonalSolver::recvSelf(int cTag,
-			       Channel &theChannel, 
-			       FEM_ObjectBroker &theBroker)
-{
-  static Vector data(1);
-  theChannel.recvVector(0, cTag, data);
-
-  minDiagTol = data(0);
   return 0;
 }
 

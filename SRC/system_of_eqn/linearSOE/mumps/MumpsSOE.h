@@ -17,14 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.7 $
-// $Date: 2009-05-11 20:56:11 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/mumps/MumpsSOE.h,v $
-                                                                        
-#ifndef MumpsSOE_h
-#define MumpsSOE_h
-
+//
 // Written: fmk 
 // Created: 02/06
 //
@@ -38,7 +31,7 @@
 //                         2 General Symmetric
 //
 // What: "@(#) MumpsSOE.h, revA"
-
+#pragma once
 #include <LinearSOE.h>
 #include <Vector.h>
 
@@ -63,7 +56,7 @@ class MumpsSOE : public LinearSOE
     virtual ~MumpsSOE();
 
     int getNumEqn() const override;
-    int setSize(Graph &theGraph) override;
+    int setSize(Graph &) override;
     int addA(const Matrix &, const ID &, double fact = 1.0) override;
     int addB(const Vector &, const ID &, double fact = 1.0) override;    
     int setB(const Vector &, double fact = 1.0) override; 
@@ -72,15 +65,12 @@ class MumpsSOE : public LinearSOE
     void zeroB() override;
     
     const Vector &getX() override;
-    const Vector &getB() override;    
-    double normRHS() override;
+    const Vector &getB() override;
 
     void setX(int loc, double value) override;        
-    void setX(const Vector &x) override;        
-    virtual int setMumpsSolver(MumpsSolver &);    
+    void setX(const Vector &x) override;
+    virtual int setMumpsSolver(MumpsSolver &);
 
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    
 
     friend class MumpsSolver;    
     friend class MumpsParallelSolver;    
@@ -98,7 +88,3 @@ class MumpsSOE : public LinearSOE
 
   private:
 };
-
-
-#endif
-
