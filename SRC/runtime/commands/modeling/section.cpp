@@ -378,19 +378,19 @@ XaraCmd_section(ClientData clientData, Tcl_Interp *interp,
   else if ((strcmp(argv[1], "ReinforcedConcreteLayeredMembraneSection") == 0) || 
            (strcmp(argv[1], "RCLayeredMembraneSection") == 0) || 
            (strcmp(argv[1], "RCLMS") == 0)) {
-      void* theMat = OPS_ReinforcedConcreteLayeredMembraneSection(rt, argc, argv);
-      if (theMat != 0)
-          theSection = (SectionForceDeformation*)theMat;
-      else
-          return TCL_ERROR;
+    void* theMat = OPS_ReinforcedConcreteLayeredMembraneSection(rt, argc, argv);
+    if (theMat != 0)
+        theSection = (SectionForceDeformation*)theMat;
+    else
+        return TCL_ERROR;
   }
 
   else if ((strcmp(argv[1], "LayeredMembraneSection") == 0) || (strcmp(argv[1], "LMS") == 0)) {
-      void* theMat = OPS_LayeredMembraneSection(rt, argc, argv);
-      if (theMat != 0)
-          theSection = (SectionForceDeformation*)theMat;
-      else
-          return TCL_ERROR;
+    void* theMat = OPS_LayeredMembraneSection(rt, argc, argv);
+    if (theMat != 0)
+        theSection = (SectionForceDeformation*)theMat;
+    else
+        return TCL_ERROR;
   }
 
   //
