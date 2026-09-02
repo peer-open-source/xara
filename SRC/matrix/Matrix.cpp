@@ -967,16 +967,17 @@ Matrix::addMatrixTripleProduct(double thisFact,
   // now form B * C * fact store in matrixWork == A area
   // NOTE: looping as per blas3 DGEMM : j,k,i
 
-  int rowsB = B.numRows;
-  double *ckjPtr  = &(C.data)[0];
-  for (int j=0; j<numCols; j++) {
-    double *aijPtrA = &matrixWork[j*rowsB];
-    for (int k=0; k<B.numCols; k++) {
-      double tmp = *ckjPtr++ * otherFact;
-      double *aijPtr = aijPtrA;
-      double *bikPtr = &(B.data)[k*rowsB];
-      for (int i=0; i<rowsB; i++) 
-        *aijPtr++ += *bikPtr++ * tmp;
+    int rowsB = B.numRows;
+    double *ckjPtr  = &(C.data)[0];
+    for (int j=0; j<numCols; j++) {
+      double *aijPtrA = &matrixWork[j*rowsB];
+      for (int k=0; k<B.numCols; k++) {
+        double tmp = *ckjPtr++ * otherFact;
+        double *aijPtr = aijPtrA;
+        double *bikPtr = &(B.data)[k*rowsB];
+        for (int i=0; i<rowsB; i++) 
+          *aijPtr++ += *bikPtr++ * tmp;
+      }
     }
   }
 
@@ -1530,8 +1531,12 @@ Matrix::Print(OPS_Stream &s, int flag) const
 {
   if (flag == 0) {
     for (int i=0; i<noRows(); i++) {
-      for (int j=0; j<noCols(); j++)
-          s <<  (*this)(i,j) << " ";
+      for (int j=0; j<noCols(); j++) {
+        double mij = (*this)(i,j);
+        if (fabs(mij) < 1e-10)
+          mij = 0.0;
+        s <<  mij << " ";
+      }
       s << "\n";
     }
   }

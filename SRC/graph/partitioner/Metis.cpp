@@ -35,9 +35,6 @@
 #include <Vertex.h>
 #include <Logging.h>
 
-/* stuff needed to get the program working on the clump & NOW machines*/
-#include <stdbool.h>
-
 //int IsWeighted =0;
 
 #ifndef _USE_METIS_5p1
