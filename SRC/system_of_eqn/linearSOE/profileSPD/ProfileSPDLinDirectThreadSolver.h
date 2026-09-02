@@ -44,14 +44,11 @@ class ProfileSPDLinDirectThreadSolver : public ProfileSPDLinSolver
     ProfileSPDLinDirectThreadSolver(int numProcessors, int blockSize, double tol);    
     virtual ~ProfileSPDLinDirectThreadSolver();
 
-    virtual int solve(void);        
-    virtual int setSize(void);    
+    int solve() override;        
+    int setSize() override;
+    bool requireDeterminant() override { return false; }
 
     virtual int setProfileSOE(ProfileSPDLinSOE &theSOE);
-
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
 
   protected:
     int NP;
