@@ -425,121 +425,13 @@ XaraClassBroker::getPtrNewGraphNumberer(int classTag)
 Element *
 XaraClassBroker::getNewElement(int classTag)
 {
-  switch ((std::size_t)classTag) {
-
-    DISPATCH(Truss2);
-    DISPATCH(TrussSection);
-    DISPATCH(InertiaTruss);
-
-    DISPATCH(ElasticBeam2d);
-    DISPATCH(ModElasticBeam2d);
-    DISPATCH(ModElasticBeam3d);
-    DISPATCH(ElasticBeam3d);
-    DISPATCH(ElasticTimoshenkoBeam2d);
-    DISPATCH(ElasticTimoshenkoBeam3d);
-    DISPATCH(ForceBeamColumn2d);
-    DISPATCH(ForceBeamColumn3d);
-    DISPATCH(DispBeamColumn2d);
-    DISPATCH(DispBeamColumn3d);
-    DISPATCH(DispBeamColumnAsym3d);
-    DISPATCH(MixedBeamColumnAsym3d);
-
-// Quads
-    DISPATCH(FourNodeQuadUP);
-    DISPATCH(FourNodeQuad);
-    DISPATCH(Tri31);
-    DISPATCH(EnhancedQuad);
-    DISPATCH(NineNodeMixedQuad);
-    DISPATCH(NineNodeQuad);
-    DISPATCH(EightNodeQuad);
-    DISPATCH(ConstantPressureVolumeQuad);
-    DISPATCH(BBarFourNodeQuadUP);
-    DISPATCH(NineFourNodeQuadUP);
-
-    DISPATCH(PML2D);
-    DISPATCH(PML3D);
-
-// Bricks
-    DISPATCH(Brick);
-    DISPATCH(BbarBrick);
-    DISPATCH(BBarBrickUP);
-    DISPATCH(BrickUP);
-    DISPATCH(TwentyEightNodeBrickUP);
-
-// Shells
-    DISPATCH(ShellMITC4);
-    DISPATCH(ShellMITC9);
-    DISPATCH(ShellDKGQ);
-    DISPATCH(ShellNLDKGQ);
-    DISPATCH(ASDShellQ4);
-
-    DISPATCH(ZeroLength);
-    DISPATCH(ZeroLengthSection);
-    DISPATCH(ZeroLengthContact2D);
-    DISPATCH(ZeroLengthContact3D);
-    DISPATCH(ZeroLengthInterface2D);
-    DISPATCH(ZeroLengthContactNTS2D);
-    DISPATCH(ZeroLengthContactASDimplex);
-
-
-    DISPATCH(Joint2D);
-    DISPATCH(TwoNodeLink);
-    DISPATCH(LinearElasticSpring);
-    DISPATCH(Inerter);
-
-    DISPATCH(MVLEM);
-    DISPATCH(SFI_MVLEM);
-    DISPATCH(MVLEM_3D);
-    DISPATCH(SFI_MVLEM_3D);
-
-
-    DISPATCH(ElastomericBearingBoucWen2d);
-    DISPATCH(ElastomericBearingBoucWen3d);
-    DISPATCH(ElastomericBearingPlasticity2d);
-    DISPATCH(ElastomericBearingPlasticity3d);
-    DISPATCH(ElastomericBearingUFRP2d);
-    DISPATCH(ElastomericX);
-    DISPATCH(HDR);
-    DISPATCH(LeadRubberX);
-    DISPATCH(FlatSliderSimple2d);
-    DISPATCH(FlatSliderSimple3d);
-    DISPATCH(FPBearingPTV);
-    DISPATCH(RJWatsonEQS2d);
-    DISPATCH(RJWatsonEQS3d);
-    DISPATCH(SingleFPSimple2d);
-    DISPATCH(SingleFPSimple3d);
-    DISPATCH(TripleFrictionPendulum);
-
-    DISPATCH(RockingBC);
-    DISPATCH(ASDEmbeddedNodeElement);
-    DISPATCH(ASDAbsorbingBoundary2D);
-    DISPATCH(ASDAbsorbingBoundary3D);
-
-  default:
-    opserr << "XaraClassBroker::getNewElement - ";
-    opserr << " - no Element type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 Node *
 XaraClassBroker::getNewNode(int classTag)
 {
-  switch (classTag) {
-  case NOD_TAG_Node:
-#ifdef HEAP_NODE
-    return new HeapNode(classTag);
-#else
-    return new Node(classTag);
-#endif
-
-  default:
-    opserr << "XaraClassBroker::getNewNode - ";
-    opserr << " - no Node type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 MP_Constraint *
@@ -563,22 +455,7 @@ XaraClassBroker::getNewMP(int classTag)
 SP_Constraint *
 XaraClassBroker::getNewSP(int classTag)
 {
-  switch (classTag) {
-  case CNSTRNT_TAG_SP_Constraint:
-    return new SP_Constraint(classTag);
-
-  case CNSTRNT_TAG_ImposedMotionSP:
-    return new ImposedMotionSP();
-
-  case CNSTRNT_TAG_ImposedMotionSP1:
-    return new ImposedMotionSP1();
-
-  default:
-    opserr << "XaraClassBroker::getNewSP - ";
-    opserr << " - no SP_Constraint type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 Pressure_Constraint *
@@ -600,37 +477,7 @@ XaraClassBroker::getNewPC(int classTag)
 ElementalLoad *
 XaraClassBroker::getNewElementalLoad(int classTag)
 {
-  switch (classTag) {
-
-  case LOAD_TAG_Beam2dUniformLoad:
-    return new Beam2dUniformLoad();
-
-  case LOAD_TAG_Beam2dPointLoad:
-    return new Beam2dPointLoad();
-
-  case LOAD_TAG_Beam3dUniformLoad:
-    return new Beam3dUniformLoad();
-
-  case LOAD_TAG_Beam3dPointLoad:
-    return new Beam3dPointLoad();
-
-  case LOAD_TAG_BrickSelfWeight:
-    return new BrickSelfWeight();
-
-  case LOAD_TAG_SelfWeight:
-    return new SelfWeight();
-
-  case LOAD_TAG_SurfaceLoader:
-    return new SurfaceLoader();
-
-  default:
-    opserr << "XaraClassBroker::getNewNodalLoad - ";
-    opserr << " - no NodalLoad type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
-
-  return 0;
+  return nullptr;
 }
 
 CrdTransf *
