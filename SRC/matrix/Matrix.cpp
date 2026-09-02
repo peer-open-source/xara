@@ -824,7 +824,6 @@ Matrix::addMatrixTransposeProduct(double thisFact,
   return 0;
 }
 
-
 // to perform this += T' * B * T
 int
 Matrix::addMatrixTripleProduct(double thisFact, 
@@ -967,17 +966,16 @@ Matrix::addMatrixTripleProduct(double thisFact,
   // now form B * C * fact store in matrixWork == A area
   // NOTE: looping as per blas3 DGEMM : j,k,i
 
-    int rowsB = B.numRows;
-    double *ckjPtr  = &(C.data)[0];
-    for (int j=0; j<numCols; j++) {
-      double *aijPtrA = &matrixWork[j*rowsB];
-      for (int k=0; k<B.numCols; k++) {
-        double tmp = *ckjPtr++ * otherFact;
-        double *aijPtr = aijPtrA;
-        double *bikPtr = &(B.data)[k*rowsB];
-        for (int i=0; i<rowsB; i++) 
-          *aijPtr++ += *bikPtr++ * tmp;
-      }
+  int rowsB = B.numRows;
+  double *ckjPtr  = &(C.data)[0];
+  for (int j=0; j<numCols; j++) {
+    double *aijPtrA = &matrixWork[j*rowsB];
+    for (int k=0; k<B.numCols; k++) {
+      double tmp = *ckjPtr++ * otherFact;
+      double *aijPtr = aijPtrA;
+      double *bikPtr = &(B.data)[k*rowsB];
+      for (int i=0; i<rowsB; i++) 
+        *aijPtr++ += *bikPtr++ * tmp;
     }
   }
 
