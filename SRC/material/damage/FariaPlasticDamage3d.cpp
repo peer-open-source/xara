@@ -660,115 +660,6 @@ FariaPlasticDamage3d::getOrder() const
 }
 
 
-int 
-FariaPlasticDamage3d::sendSelf(int commitTag, Channel &theChannel)
-{
-  static Vector data(1+8+4 + 5*6);
-
-  data(0) = this->getTag();
-
-  data(1) = E;
-  data(2) = nu;
-  data(3) = ft;
-  data(4) = Fc;
-  data(5) = beta;
-  data(6) = Ap;
-  data(7) = An;
-  data(8) = Bn;
-
-  data(9)  = rpCommit;
-  data(10) = rnCommit;
-  data(11) = dpCommit;
-  data(12) = dnCommit;  
-
-  for (int i = 0; i < 6; i++) {
-    data(13+i) = epsCommit(i);
-    data(13+6+i) = sigCommit(i);
-    data(13+12+i) = sigeCommit(i);
-    data(13+18+i) = eps_pCommit(i);
-    // data(13+24+i) = sigePCommit(i);
-  }
-
-  int res = 0;
-  int dbTag = this->getDbTag();
-
-  res = theChannel.sendVector(dbTag, commitTag, data);
-  if (res < 0) {
-    opserr << "FariaPlasticDamage3d::sendSelf -- could not send Vector\n";
-    return res;
-  }
-  Matrix Ccm(Ccommit);
-  res = theChannel.sendMatrix(dbTag, commitTag, Ccm);
-  if (res < 0) {
-    opserr << "FariaPlasticDamage3d::sendSelf -- could not send Ccommit matrix\n";
-    return res;
-  }  
-  
-  return res;
-}
-
-int 
-FariaPlasticDamage3d::recvSelf(int commitTag, Channel &theChannel, 
-				  FEM_ObjectBroker &theBroker)
-{
-  int res = 0;
-  int dbTag = this->getDbTag();
-
-  static Vector data(43);  
-  res = theChannel.recvVector(dbTag, commitTag, data);
-  if (res < 0) {
-    opserr << "FariaPlasticDamage3d::recvSelf -- could not receive Vector\n";
-    return res;
-  }
-
-  this->setTag((int)data(0));
-
-  E = data(1);
-  nu = data(2);
-  ft = data(3);
-  Fc = data(4);
-  beta = data(5);
-  Ap = data(6);
-  An = data(7);
-  Bn = data(8);
-
-  rpCommit = data(9);
-  rnCommit = data(10);
-  dpCommit = data(11);
-  dnCommit = data(12);
-
-  for (int i = 0; i < 6; i++) {
-    epsCommit(i) = data(13+i);
-    sigCommit(i) = data(13+6+i);
-    sigeCommit(i) = data(13+12+i);
-    eps_pCommit(i) = data(13+18+i);
-  }
-  
-  Matrix Ccm(Ccommit);
-  res = theChannel.recvMatrix(dbTag, commitTag, Ccm);
-  if (res < 0) {
-    opserr << "FariaPlasticDamage3d::recvSelf -- could not receive Ccommit matrix\n";
-    return res;
-  }  
-
-  double G  = E/2./(1. +    nu);     // Shear modulus
-  double K  = E/3./(1. - 2.*nu);     // Bulk  modulus
-  Ce.zero();
-  Ce.addMatrix(Voigt::IIvol, K);
-  Ce.addMatrix(Voigt::IIdevCon, 2.*G);
-
-  rp = rpCommit;
-  rn = rnCommit;
-  dp = dpCommit;
-  dn = dnCommit;
-  eps = epsCommit;
-  sig = sigCommit;
-  sige = sigeCommit;
-  eps_p = eps_pCommit;
-  C = Ccommit;
-  
-  return res;
-}
 
 void 
 FariaPlasticDamage3d::Print(OPS_Stream &s, int flag) 
@@ -789,10 +680,10 @@ FariaPlasticDamage3d::Print(OPS_Stream &s, int flag)
   }
 
   else {
-    opserr << this->getType() << ": " << this->getTag() << "\n";
-    opserr << "stress: " << Vector(retStress) << "\n";
-    opserr << "strain: " << Vector(retStrain) << "\n";
-    opserr << "tangent: " << Matrix(retTangent) << "\n";
+    s << this->getType() << ": " << this->getTag() << "\n";
+    s << "stress: " << Vector(retStress) << "\n";
+    s << "strain: " << Vector(retStrain) << "\n";
+    s << "tangent: " << Matrix(retTangent) << "\n";
   }
 }       
 
