@@ -1,3 +1,17 @@
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
 //
 // Description: This file contains the class definition for
 // UmfpackSolver02.
@@ -32,10 +46,8 @@ public:
 
     int setLinearSOE(SparseGenCSC &);
 
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
-
     double getDeterminant() override;
+    bool requireDeterminant() override { doDeterminant = true; return true; }
 
 private:
     void clearSymbolic();
