@@ -124,12 +124,6 @@ LinearSOE::solve(const Vector& b, Vector& x)
 }
 
 
-int
-LinearSOE::formAp(const Vector &p, Vector &Ap)
-{
-  return -1;
-}
-
 
 double
 LinearSOE::getDeterminant()
@@ -138,6 +132,15 @@ LinearSOE::getDeterminant()
     return theSolver->getDeterminant();
   else 
     return 0;
+}
+
+bool
+LinearSOE::requireDeterminant()
+{
+  if (theSolver != nullptr)
+    return theSolver->requireDeterminant();
+  else 
+    return false;
 }
 
 
