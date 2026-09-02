@@ -32,7 +32,7 @@ Matrix Brick02::mass(24,24);
 
 Brick02::Brick02()
 : Element(0, ELE_TAG_Brick),
-  connectedExternalNodes(NEN), applyLoad(0), load(0), Ki(0),
+  conn(NEN), applyLoad(0), load(0), Ki(0),
   K_wrap(0,0), p_wrap(0), response_wrap(0), inertia_wrap(0)
 {
   stiff.zero();
@@ -65,7 +65,7 @@ Brick02::Brick02(int tag,
                  NDMaterial &theMaterial,
                  double b1, double b2, double b3)
   : Element(tag, ELE_TAG_Brick),
-    connectedExternalNodes(NEN), applyLoad(0), load(0), Ki(0),
+    conn(NEN), applyLoad(0), load(0), Ki(0),
     K_wrap(0,0), p_wrap(0), response_wrap(0), inertia_wrap(0)
 {
   stiff.zero();
@@ -79,7 +79,7 @@ Brick02::Brick02(int tag,
   inertia_wrap.setData(inertia);
 
   for (int i=0; i<NEN; i++) {
-    connectedExternalNodes(i) = nodes[i];
+    conn(i) = nodes[i];
     theNodes[i] = nullptr;
   }
 
@@ -113,9 +113,9 @@ Brick02::~Brick02()
 FE_Element*
 Brick02::createFE_Element(int tag)
 {
-  if (getenv("OLD_FE") != nullptr)
-    return new ElementFE(tag, this);
-  else
+  // if (getenv("OLD_FE") != nullptr)
+  //   return new ElementFE(tag, this);
+  // else
     return new TemplateElementFE<NDOF>(tag, *this);
 }
 
@@ -124,7 +124,7 @@ void
 Brick02::setDomain(Domain *theDomain)
 {
   for (int i=0; i<NEN; i++)
-    theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
+    theNodes[i] = theDomain->getNode(conn(i));
 
   if (theDomain != nullptr)
     this->Element::link(*theDomain);
@@ -143,7 +143,7 @@ Brick02::getNumExternalNodes() const
 const ID&
 Brick02::getExternalNodes()
 {
-  return connectedExternalNodes;
+  return conn;
 }
 
 
@@ -757,7 +757,7 @@ Brick02::getResponse(int responseID, Information &eleInfo)
     static Vector output(stressAtNodes);
 
     stressAtNodes.zero();
-    OpenSees::StressExtrapolation<NEN,NIP,NST>(materialPointers, We, stressAtNodes);
+    Xara::StressExtrapolation<NEN,NIP,NST>(materialPointers, We, stressAtNodes);
     return eleInfo.setVector(output);
   }
 
@@ -859,14 +859,14 @@ Brick02::sendSelf(int commitTag, Channel &theChannel)
     idData(i+8) = matDbTag;
   }
 
-  idData(16) = connectedExternalNodes(0);
-  idData(17) = connectedExternalNodes(1);
-  idData(18) = connectedExternalNodes(2);
-  idData(19) = connectedExternalNodes(3);
-  idData(20) = connectedExternalNodes(4);
-  idData(21) = connectedExternalNodes(5);
-  idData(22) = connectedExternalNodes(6);
-  idData(23) = connectedExternalNodes(7);
+  idData(16) = conn(0);
+  idData(17) = conn(1);
+  idData(18) = conn(2);
+  idData(19) = conn(3);
+  idData(20) = conn(4);
+  idData(21) = conn(5);
+  idData(22) = conn(6);
+  idData(23) = conn(7);
 
   res += theChannel.sendID(dataTag, commitTag, idData);
   if (res < 0) {
@@ -933,14 +933,14 @@ Brick02::recvSelf(int commitTag,
   b[2] = dData(6);
 
 
-  connectedExternalNodes(0) = idData(16);
-  connectedExternalNodes(1) = idData(17);
-  connectedExternalNodes(2) = idData(18);
-  connectedExternalNodes(3) = idData(19);
-  connectedExternalNodes(4) = idData(20);
-  connectedExternalNodes(5) = idData(21);
-  connectedExternalNodes(6) = idData(22);
-  connectedExternalNodes(7) = idData(23);
+  conn(0) = idData(16);
+  conn(1) = idData(17);
+  conn(2) = idData(18);
+  conn(3) = idData(19);
+  conn(4) = idData(20);
+  conn(5) = idData(21);
+  conn(6) = idData(22);
+  conn(7) = idData(23);
 
 
   if (materialPointers[0] == nullptr) {
@@ -1001,10 +1001,10 @@ Brick02::Print(OPS_Stream &s, int flag)
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"Brick02\", ";
     s << "\"nodes\": ["
-      << connectedExternalNodes(0) << ", ";
+      << conn(0) << ", ";
     for (int i=1; i<7; i++)
-      s << connectedExternalNodes(i) << ", ";
-    s << connectedExternalNodes(7) << "], ";
+      s << conn(i) << ", ";
+    s << conn(7) << "], ";
     s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
     s << "\"material\": [" << materialPointers[0]->getTag() << "]}";
 
@@ -1054,20 +1054,20 @@ Brick02::Print(OPS_Stream &s, int flag)
   if (flag == OPS_PRINT_CURRENTSTATE) {
     s << "Standard Eight Node Brick02 \n";
     s << "Element Number: " << this->getTag() << "\n";
-    s << "Nodes: " << connectedExternalNodes;
+    s << "Nodes: " << conn;
 
     s << "Material Information : \n ";
     materialPointers[0]->Print(s, flag);
 
     s << "\n";
-    s << this->getTag() << " " << connectedExternalNodes(0)
-      << " " << connectedExternalNodes(1)
-      << " " << connectedExternalNodes(2)
-      << " " << connectedExternalNodes(3)
-      << " " << connectedExternalNodes(4)
-      << " " << connectedExternalNodes(5)
-      << " " << connectedExternalNodes(6)
-      << " " << connectedExternalNodes(7)
+    s << this->getTag() << " " << conn(0)
+      << " " << conn(1)
+      << " " << conn(2)
+      << " " << conn(3)
+      << " " << conn(4)
+      << " " << conn(5)
+      << " " << conn(6)
+      << " " << conn(7)
       << "\n";
 
     s << "Body Forces: " << b[0] << " " << b[1] << " " << b[2] << "\n";
