@@ -39,10 +39,6 @@ public:
     int getEigenvector(int mode, Vector &theVector) final;
     virtual double getEigenvalue(int mode);
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-                 FEM_ObjectBroker &theBroker);
-
 private:
     void sort(int length, double *x, int *id);
     SymmGeneralizedEigenSOE *theSOE;
