@@ -45,20 +45,12 @@
 // Written: Ed "C++" Love
 //
 #include <J2PlaneStrain.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <Logging.h>
 // static vectors and matrices
 Vector J2PlaneStrain::strain_vec(3);
 Vector J2PlaneStrain::stress_vec(3);
 Matrix J2PlaneStrain::tangent_matrix(3,3) ;
 
-
-J2PlaneStrain::J2PlaneStrain()
- : J2Plasticity() 
-{
-
-}
 
 
 J2PlaneStrain::J2PlaneStrain(
@@ -79,16 +71,6 @@ J2PlaneStrain::J2PlaneStrain(
 }
 
 
-J2PlaneStrain :: 
-J2PlaneStrain(   int    tag, 
-                 double K, 
-                 double G ) :
-J2Plasticity( tag, ND_TAG_J2PlaneStrain, K, G )
-{ 
-
-}
-
-
 J2PlaneStrain::~J2PlaneStrain() 
 { 
 
@@ -97,23 +79,20 @@ J2PlaneStrain::~J2PlaneStrain()
 
 NDMaterial* 
 J2PlaneStrain::getCopy() 
-{ 
-  J2PlaneStrain  *clone;
-  clone = new J2PlaneStrain() ;   //new instance of this class
-  *clone = *this ;          //asignment to make copy
-  return clone ;
+{
+  return this->J2Plasticity::getCopy(this->getType());
 }
 
 
 
-//send back type of material
-const char* J2PlaneStrain :: getType( ) const 
+const char* 
+J2PlaneStrain::getType( ) const 
 {
   return "PlaneStrain" ;
 }
 
 
-int J2PlaneStrain :: getOrder( ) const 
+int J2PlaneStrain::getOrder( ) const 
 { 
   return 3 ; 
 } 
@@ -149,7 +128,7 @@ J2PlaneStrain::setTrialStrainIncr( const Vector &v )
 
 
 const Vector& 
-J2PlaneStrain :: getStrain( ) 
+J2PlaneStrain::getStrain( ) 
 {
   strain_vec(0) =       strain(0,0) ;
   strain_vec(1) =       strain(1,1) ;
@@ -160,7 +139,7 @@ J2PlaneStrain :: getStrain( )
 
 
 const Vector& 
-J2PlaneStrain :: getStress( ) 
+J2PlaneStrain::getStress( ) 
 {
   stress_vec(0) = stress(0,0) ;
   stress_vec(1) = stress(1,1) ;
@@ -169,7 +148,7 @@ J2PlaneStrain :: getStress( )
   return stress_vec ;
 }
 
-const Matrix& J2PlaneStrain :: getTangent( ) 
+const Matrix& J2PlaneStrain::getTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -196,7 +175,8 @@ const Matrix& J2PlaneStrain :: getTangent( )
 } 
 
 
-const Matrix& J2PlaneStrain :: getInitialTangent( ) 
+const Matrix&
+J2PlaneStrain::getInitialTangent( ) 
 {
   // matrix to tensor mapping
   //  Matrix      Tensor
@@ -296,71 +276,3 @@ J2PlaneStrain::index_map(int matrix_index, int& i, int& j) const
 
   return;
 }
-
-int
-J2PlaneStrain::sendSelf (int commitTag, Channel &theChannel)
-{
-  // we place all the data needed to define material and it's state
-  // int a vector object
-  static Vector data(19);
-  int cnt = 0;
-  data(cnt++) = this->getTag();
-  data(cnt++) = bulk;
-  data(cnt++) = shear;
-  data(cnt++) = sigma_0;
-  data(cnt++) = sigma_infty;
-  data(cnt++) = delta;
-  data(cnt++) = Hard;
-  data(cnt++) = eta;
-  data(cnt++) = rho;
-
-  data(cnt++) = xi_n;
-
-  //  data(cnt++) = commitEps22;
-  for (int i=0; i<3; i++)
-    for (int j=0; j<3; j++)
-      data(cnt++) = epsilon_p_n(i,j);
-
-  // send the vector object to the channel
-  if (theChannel.sendVector(this->getDbTag(), commitTag, data) < 0) {
-    opserr << "J2PlaneStrain::sendSelf - failed to send vector to channel\n";
-    return -1;
-  }
-  return 0;
-}
-
-int
-J2PlaneStrain::recvSelf (int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker)
-{
-
-  // recv the vector object from the channel which defines material param and state
-  static Vector data(19);
-  if (theChannel.recvVector(this->getDbTag(), commitTag, data) < 0) {
-    opserr << "J2PlaneStrain::recvSelf - failed to sned vectorto channel\n";
-    return -1;
-  }
-
-  // set the material parameters and state variables
-  int cnt = 0;
-  this->setTag(data(cnt++));
-  bulk = data(cnt++);
-  shear = data(cnt++);
-  sigma_0 = data(cnt++);
-  sigma_infty = data(cnt++);
-  delta = data(cnt++);
-  Hard = data(cnt++);
-  eta = data(cnt++);
-  rho = data(cnt++);
-  xi_n = data(cnt++);
-  for (int i=0; i<3; i++)
-    for (int j=0; j<3; j++) 
-      epsilon_p_n(i,j) = data(cnt++);
-
-  epsilon_p_nplus1 = epsilon_p_n;
-  xi_nplus1        = xi_n;
-
-  return 0;
-}
-
-
