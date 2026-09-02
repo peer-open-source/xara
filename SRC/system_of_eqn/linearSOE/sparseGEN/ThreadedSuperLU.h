@@ -50,12 +50,9 @@ class ThreadedSuperLU : public SparseGenColLinSolver
 
     ~ThreadedSuperLU();
 
-    int solve(void);
-    int setSize(void);
-
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);        
+    int solve() override;
+    int setSize() override;
+    bool requireDeterminant() override { return false; }
     
   private:
     SuperMatrix A,L,U,B,AC;
