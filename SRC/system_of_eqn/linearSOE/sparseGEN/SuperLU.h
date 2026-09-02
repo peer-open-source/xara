@@ -57,6 +57,7 @@ class SuperLU : public SparseGenColLinSolver
     int solve() override;
     int solve(const Vector& B, Vector& X) override;
     int setSize() override;
+    bool requireDeterminant() override { return false; }
     
   private:
     SuperMatrix A,L,U,B,AC;
