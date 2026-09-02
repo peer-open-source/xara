@@ -36,8 +36,7 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
+
 #include <elementAPI.h>
 #define OPS_Export 
 
@@ -325,33 +324,6 @@ const Vector &
 WilsonTheta::getVel()
 {
   return *Udot;
-}
-
-int WilsonTheta::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(1);
-    data(0) = theta;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WilsonTheta::sendSelf() - failed to send the data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int WilsonTheta::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(1);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING WilsonTheta::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    theta  = data(0);
-    
-    return 0;
 }
 
 
