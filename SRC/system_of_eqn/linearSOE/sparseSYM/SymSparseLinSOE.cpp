@@ -121,7 +121,6 @@ SymSparseLinSOE::setSize(Graph &theGraph)
 {
 
   int result = 0;
-  int oldSize = size;
   size = theGraph.getNumVertex();
   if (size == 0) {
     nnz = 0;

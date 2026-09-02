@@ -48,7 +48,7 @@ extern "C" void pfsslv(int neqns, double *diag, double **penv, int nblks,
 int
 SymSparseLinSolver::solve()
 {
-
+  return this->solve(theSOE->getB(), theSOE->vectX);
 }
 
 int
