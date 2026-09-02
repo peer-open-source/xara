@@ -35,14 +35,14 @@
 
 BandGenLinLapackSolver::BandGenLinLapackSolver(bool doDet_)
 :BandGenLinSolver(SOLVER_TAGS_BandGenLinLapackSolver),
- iPiv(0), iPivSize(0), doDet(doDet_)
+ iPiv(nullptr), iPivSize(0), doDet(doDet_)
 {
 
 }
 
 BandGenLinLapackSolver::~BandGenLinLapackSolver()
 {
-  if (iPiv != 0)
+  if (iPiv != nullptr)
     delete [] iPiv;
 }
 
@@ -102,6 +102,9 @@ BandGenLinLapackSolver::solve(const Vector& vecB, Vector& vecX)
   assert(theSOE != nullptr);
 
   int n = theSOE->size;
+  if (n == 0)
+    return 0;
+
   // check iPiv is large enough
   assert(!(iPivSize < n));
 
@@ -117,9 +120,9 @@ BandGenLinLapackSolver::solve(const Vector& vecB, Vector& vecX)
   int    *iPIV = iPiv;
 
   // first copy B into X
-  for (int i=0; i<n; i++) {
+  for (int i=0; i<n; i++)
     *(Xptr++) = *(Bptr++);
-  }
+
   Xptr = &vecX(0);
 
   // now solve AX = B
@@ -162,7 +165,7 @@ BandGenLinLapackSolver::setSize()
   // if iPiv not big enough, free it and get one large enough
   if (iPivSize < theSOE->size) {
     if (iPiv != nullptr)
-        delete [] iPiv;
+      delete [] iPiv;
 
     iPiv = new int[theSOE->size];
     iPivSize = theSOE->size;
