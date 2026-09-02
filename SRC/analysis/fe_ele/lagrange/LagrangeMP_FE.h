@@ -19,8 +19,8 @@
 ** ****************************************************************** */
 //
 // File: ~/analysis/fe_ele/lagrange/LagrangeMP_FE.h
-// 
-// Written: fmk 
+//
+// Written: fmk
 // Created: 02/99
 // Revision: A
 //
@@ -47,41 +47,60 @@ class MP_Constraint;
 class Node;
 class DOF_Group;
 
-class LagrangeMP_FE: public FE_Element
+class LagrangeMP_FE final : public FE_Element
 {
   public:
-    LagrangeMP_FE(int tag, Domain &theDomain, MP_Constraint &theMP, 
-		  DOF_Group &theDofGrp, double alpha = 1.0);
-    virtual ~LagrangeMP_FE();    
+    LagrangeMP_FE(int tag, Domain &theDomain, MP_Constraint &theMP,
+                  DOF_Group &theDofGrp, double alpha = 1.0);
+    ~LagrangeMP_FE() override;
 
-    // public methods
-    int  setID(AnalysisModel&) final;
-    const ID &getID() const final {return myID;};
-    const Matrix &getTangent(Integrator *) final;    
-    const Vector &getResidual(Integrator *) final;
-    virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
+    int  setID(AnalysisModel &) final;
+    const ID &getID() const final { return myID; }
 
-    virtual const Vector &getK_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getKi_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
+    const Matrix &getTangent(Integrator *) override;
+    const Vector &getResidual(Integrator *) override;
+    const Vector &getTangForce(const Vector &x, double fact = 1.0) override;
+    const Vector &getK_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getKi_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getC_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getM_Force(const Vector &x, double fact = 1.0) override;
 
-    void zeroTangent() final {tang? tang->Zero() : void();};
-    
+    void zeroTangent() override;
+    void addKtToTang(double fact = 1.0) override;
+    void addKiToTang(double fact = 1.0) override;
+    void addCtoTang(double fact = 1.0) override;
+    void addMtoTang(double fact = 1.0) override;
+
+    void zeroResidual() override;
+    void addRtoResidual(double fact = 1.0) override;
+    void addRIncInertiaToResidual(double fact = 1.0) override;
+    void addM_Force(const Vector &accel, double fact = 1.0) override;
+    void addD_Force(const Vector &vel, double fact = 1.0) override;
+
   private:
-    ID myID;
-    double alpha;
     void determineTangent();
-    
+
+    const Matrix &getStaticTangent()
+    {
+      if (timeVarying)
+        this->determineTangent();
+      return *tang;
+    }
+
+    ID myID;
+
     MP_Constraint *theMP;
     Node *theConstrainedNode;
-    Node *theRetainedNode;    
+    Node *theRetainedNode;
 
     DOF_Group *theDofGroup;
-    Matrix *tang;
+    Matrix *tang;     // unscaled static coupling
+    Matrix *sysTang;  // integrator-assembled system tangent
     Vector *resid;
+    const bool timeVarying;
+    bool urLoaded;  // true once upper-right C^T has been copied into sysTang
+    double alpha;
+    int numU;  // number of displacement dofs before lambda block
 };
 
 #endif
-
-
