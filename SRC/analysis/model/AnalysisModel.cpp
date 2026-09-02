@@ -355,7 +355,7 @@ AnalysisModel::getDOFGraph()
         if (eqn1 >=START_EQN_NUM) {
           for (int j=i+1; j<size; j++) {
             int eqn2 = id(j);
-            if (eqn2 >= START_EQN_NUM && eqn1 != eqn2)
+            if (eqn2 >= START_EQN_NUM)
               myDOFGraph->addEdgeFast(eqn1-START_EQN_NUM+START_VERTEX_NUM,
                                   eqn2-START_EQN_NUM+START_VERTEX_NUM);
           }
