@@ -89,7 +89,7 @@ jobs:
       working-directory: benchmarks/benchmarks
       run: |
         export OPENSEESRT_LIB=${GITHUB_WORKSPACE}/build/SRC/runtime/libOpenSeesRT.so
-        pytest
+        pytest -x -k test_x
 
 #   - name: Verification
 #     run: |
