@@ -46,7 +46,7 @@ jobs:
 
     - name: Post warning count
       # Only run if it's a PR (not just a push)
-#     if: ${{ github.event_name == 'pull_request' }}
+ #    if: ${{ github.event_name == 'pull_request' }}
       if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
 
       uses: actions/github-script@v6
@@ -61,8 +61,35 @@ jobs:
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.issue.number,
-            body: `We found **${warningCount}** compiler warnings in the latest build.`
+            body: `Counted **${warningCount}** compiler warnings in Ubuntu build.`
           });
+
+    - name: Checkout benchmarks
+      uses: actions/checkout@v5
+      with:
+        repository: simpsoba/benchmarks
+        ref: main
+        path: benchmarks
+
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.12"
+        cache: pip
+        # cache-dependency-path: benchmarks/requirements*.txt
+
+    - name: Install dependencies
+      working-directory: benchmarks
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest xara
+
+    - name: Run pytest
+      working-directory: benchmarks/benchmarks
+      run: |
+        export OPENSEESRT_LIB=${GITHUB_WORKSPACE}/build/SRC/runtime/libOpenSeesRT.so
+        pytest
 
 #   - name: Verification
 #     run: |
