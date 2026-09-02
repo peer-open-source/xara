@@ -175,9 +175,9 @@ int
 Vector::Assemble(const Vector &V, const ID &l, double fact )
 {
   int result = 0;
-  int pos;
-  for (int i=0; i<l.Size(); i++) {
-    pos = l(i);
+  const int szi = l.Size();
+  for (int i=0; i<szi; i++) {
+    int pos = l(i);
     
     if (pos < 0)
       ;
@@ -900,10 +900,10 @@ Vector::operator*(double fact) const
 Vector 
 Vector::operator/(double fact) const
 {
-    assert(fact != 0.0);
-    Vector result(*this);
-    result /= fact;
-    return result;
+  assert(fact != 0.0);
+  Vector result(*this);
+  result /= fact;
+  return result;
 }
 
 
