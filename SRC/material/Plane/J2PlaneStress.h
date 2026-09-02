@@ -12,14 +12,7 @@
 ** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.7 $
-// $Date: 2008-10-20 22:23:03 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/nD/J2PlaneStress.h,v $
-
-#ifndef J2PlaneStress_h
-#define J2PlaneStress_h
-
+//
 // Written: Ed "C++" Love
 //
 // J2PlaneStress isotropic hardening material class
@@ -51,7 +44,7 @@
 // 
 //  set eta := 0 for rate independent case
 //
-
+#pragma once
 #include <Vector.h>
 #include <Matrix.h>
 
@@ -60,14 +53,8 @@ using namespace OpenSees;
 
 class J2PlaneStress : public J2Plasticity {
 
-//-------------------Declarations-------------------------------
+public:
 
-  public : 
-
-  //null constructor
-  J2PlaneStress( ) ;
-
-  //full constructor
   J2PlaneStress(   int    tag, 
                    double K,
                    double G,
@@ -78,13 +65,9 @@ class J2PlaneStress : public J2Plasticity {
                    double viscosity =0,
 		   double rho =0) ;
 
-
-  //elastic constructor
-  J2PlaneStress( int tag, double K, double G ) ;
-
   ~J2PlaneStress( ) ;
 
-  const char *getClassType(void) const {return "J2PlaneStress";}
+  const char *getClassType() const {return "J2PlaneStress";}
 
   NDMaterial* getCopy( ) final;
 
@@ -113,10 +96,6 @@ class J2PlaneStress : public J2Plasticity {
   int revertToLastCommit( ) ;
   int revertToStart( ) ;
 
-  //sending and receiving
-  int sendSelf(int commitTag, Channel &) ;  
-  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker & ) ;
-
 protected:
   //index mapping special for plane stress because of 
   // condensation on tangent
@@ -131,7 +110,4 @@ private :
 
   double commitEps22;
 
-} ; //end of J2PlaneStress declarations
-
-
-#endif
+} ; 
