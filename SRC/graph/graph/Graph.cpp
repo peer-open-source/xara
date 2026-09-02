@@ -18,7 +18,7 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// Written: fmk 
+// Written: fmk
 // Created: 11/96
 // Revision: A
 //
@@ -58,16 +58,16 @@ Graph::Graph(TaggedObjectStorage &theVerticesStorage)
 {
   TaggedObject *theObject;
   TaggedObjectIter &theObjects = theVerticesStorage.getComponents();
-  while ((theObject = theObjects()) != 0) 
+  while ((theObject = theObjects()) != 0)
     if (theObject->getTag() > nextFreeTag)
       nextFreeTag = theObject->getTag() + 1;
 
   theVerticesStorage.clearAll();
   theVertexIter = new VertexIter(myVertices);
 }
-    
 
-Graph::Graph(Graph &other) 
+
+Graph::Graph(Graph &other)
   :myVertices(0), theVertexIter(0), numEdge(0), nextFreeTag(START_VERTEX_NUM),
   vertices()
 {
@@ -104,21 +104,21 @@ Graph::~Graph()
 {
   // invoke delete on the Vertices
   myVertices->clearAll();
-  
+
   if (myVertices != 0)
     delete myVertices;
-    
+
   if (theVertexIter != 0)
     delete theVertexIter;
 }
 
 
-// bool addVertex(int vertexTag, int vertexRef, 
-//		 int vertexWeight=0, int vertexColor = 0) 
+// bool addVertex(int vertexTag, int vertexRef,
+//     int vertexWeight=0, int vertexColor = 0)
 // Method to add a vertex to the graph. If the adjacency list
 // of the vertex is not empty the graph will first check to see all
 // vertices in the the the vertices adjacency list exist in the graph
-// before the vertex is added. 
+// before the vertex is added.
 
 bool
 Graph::addVertex(Vertex *vertexPtr, bool checkAdjacency)
@@ -140,7 +140,7 @@ Graph::addVertex(Vertex *vertexPtr, bool checkAdjacency)
               opserr << "WARNING Graph::addVertex";
               opserr << " - vertex with adjacent vertex not in graph\n";
               return false;
-          }		
+          }
         }
     }
   }
@@ -163,17 +163,19 @@ Graph::addVertex(Vertex *vertexPtr, bool checkAdjacency)
 // the Graph. A check is first made to see if vertices with tags given by
 // {\em vertexTag} and {\em otherVertexTag} exist in the graph. If they
 // do not exist a $-1$ is returned, otherwise the method invokes {\em
-// addEdge()} on each of the corresponding vertices in the 
+// addEdge()} on each of the corresponding vertices in the
 // graph. Returns $0$ if sucessfull, a negative number if not.
 
-int 
+int
 Graph::addEdge(int vertexTag, int otherVertexTag)
 {
-  // get pointers to the vertices, if one does not exist return
+  // Self-loops are not stored in adjacency; do not inflate numEdge.
+  if (vertexTag == otherVertexTag)
+    return 0;
 
   Vertex *vertex1 = this->getVertexPtr(vertexTag);
   Vertex *vertex2 = this->getVertexPtr(otherVertexTag);
-  if ((vertex1 == 0) || (vertex2 == 0)) {
+  if (vertex1 == nullptr || vertex2 == nullptr) {
     opserr << "WARNING Graph::addEdge() - one or both of the vertices ";
     opserr << vertexTag << " " << otherVertexTag << " not in Graph\n";
     return -1;
@@ -219,18 +221,21 @@ Graph::startAddEdge()
   }
 }
 
-int 
+int
 Graph::addEdgeFast(int vertexTag, int otherVertexTag)
 {
-  // get pointers to the vertices, if one does not exist return
-  if ((int)vertices.size()<=vertexTag ||
-      (int)vertices.size()<=otherVertexTag) {
+  // See Graph::addEdge: self-loops must not inflate numEdge.
+  if (vertexTag == otherVertexTag)
+    return 0;
+
+  if ((int)vertices.size() <= vertexTag ||
+      (int)vertices.size() <= otherVertexTag) {
     opserr << "WARNING: the size of vertices is not correct\n";
     return -1;
   }
   Vertex *vertex1 = vertices[vertexTag];
   Vertex *vertex2 = vertices[otherVertexTag];
-  if ((vertex1 == 0) || (vertex2 == 0)) {
+  if (vertex1 == nullptr || vertex2 == nullptr) {
     opserr << "WARNING Graph::addEdge() - one or both of the vertices ";
     opserr << vertexTag << " " << otherVertexTag << " not in Graph\n";
     return -1;
@@ -273,7 +278,7 @@ Graph::getVertexPtr(int vertexTag)
 
 
 VertexIter &
-Graph::getVertices() 
+Graph::getVertices()
 {
   // reset the iter and then return it
   theVertexIter->reset();
@@ -281,20 +286,20 @@ Graph::getVertices()
 }
 
 
-int 
+int
 Graph::getNumVertex() const
 {
   return myVertices->getNumComponents();
 }
 
-int 
+int
 Graph::getNumEdge() const
 {
   return numEdge;
 }
 
-int 
-Graph::getFreeTag() 
+int
+Graph::getFreeTag()
 {
   return nextFreeTag;
 }
@@ -345,16 +350,16 @@ Graph::merge(Graph &other) {
     for (int i=0; i<adjacency.Size(); i++) {
       if (this->addEdge(vertexTag, adjacency(i)) < 0) {
         opserr << "Graph::merge - could not add an edge!\n";
-        return -2;	
+        return -2;
       }
     }
   }
-  
+
   return result;
 }
 
 
-void 
+void
 Graph::Print(OPS_Stream &s, int flag)
 {
   myVertices->Print(s, flag);
@@ -362,10 +367,10 @@ Graph::Print(OPS_Stream &s, int flag)
 
 
 
-int 
+int
 Graph::sendSelf(int commitTag, Channel &theChannel)
 {
-  // check not a datastore .. 
+  // check not a datastore ..
   if (theChannel.isDatastore() != 0) {
     opserr << "Graph::sendSelf() - does not at present send to a database\n";
     return -1;
@@ -405,9 +410,9 @@ Graph::sendSelf(int commitTag, Channel &theChannel)
       vertexData[vertexLocation++] = tmp;
       vertexData[vertexLocation++] = adjSize;
       for (int i=0; i<adjSize; i++)
-        vertexData[adjacencyLocation++] = adjacency(i);	  
+        vertexData[adjacencyLocation++] = adjacency(i);
       vertexWeights[weightLoc++] = vertexPtr->getWeight();
-    }  
+    }
 
     ID verticesData(vertexData, 5*numVertex + 2*numEdge, true);
     if (theChannel.sendID(0, commitTag, verticesData) < 0) {
@@ -436,8 +441,8 @@ Graph::sendSelf(int commitTag, Channel &theChannel)
 }
 
 
-int 
-Graph::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker) 
+int
+Graph::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
   // check not from a datastore
   if (theChannel.isDatastore() != 0) {
@@ -502,7 +507,7 @@ Graph::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
   for (int i=0; i<numVertex; i++) {
     Vertex *theVertex = new Vertex(0, 0);
     if (theVertex->recvSelf(commitTag, theChannel, theBroker) < 0) {
-      opserr << "Graph::recvSelf() - vertex failed to receive itself\n";      
+      opserr << "Graph::recvSelf() - vertex failed to receive itself\n";
       return -5;
     }
     this->addVertex(theVertex, false);
