@@ -39,6 +39,8 @@
 #include <isoparametric.tpp>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
+#include <analysis/fe_ele/TemplateElementFE.h>
+#include <analysis/fe_ele/ElementFE.h>
 
 
 using namespace OpenSees;
@@ -52,7 +54,7 @@ Matrix  Brick::mass(24,24) ;
 
 Brick::Brick() 
 : Element( 0, ELE_TAG_Brick),
- connectedExternalNodes(8), applyLoad(0), load(0), Ki(0)
+ conn(8), applyLoad(0), load(0), Ki(0)
 {
 
   for (int i=0; i<8; i++ ) {
@@ -71,11 +73,11 @@ Brick::Brick(int tag,
              NDMaterial &theMaterial,
              double b1, double b2, double b3)
   : Element(tag, ELE_TAG_Brick),
-   connectedExternalNodes(8), applyLoad(0), load(0), Ki(0)
+   conn(8), applyLoad(0), load(0), Ki(0)
 {
 
   for (int i=0; i<NEN; i++) {
-    connectedExternalNodes(i) = nodes[i];
+    conn(i) = nodes[i];
     theNodes[i] = nullptr;
   }
 
@@ -103,12 +105,20 @@ Brick::~Brick()
     delete Ki;
 }
 
+FE_Element*
+Brick::createFE_Element(int tag)
+{
+  // if (getenv("OLD_FE") != nullptr)
+    // return new ElementFE(tag, this);
+  // else
+    return new TemplateElementFE<24>(tag, *this);
+}
 
 void
 Brick::setDomain(Domain *theDomain ) 
 {
   for (int i=0; i<NEN; i++ ) 
-    theNodes[i] = theDomain->getNode( connectedExternalNodes(i) ) ;
+    theNodes[i] = theDomain->getNode( conn(i) ) ;
 
   if (theDomain != nullptr)
     this->Element::link(*theDomain);
@@ -127,7 +137,7 @@ Brick::getNumExternalNodes() const
 const ID&
 Brick::getExternalNodes() 
 {
-  return connectedExternalNodes ;
+  return conn;
 } 
 
 
@@ -156,8 +166,8 @@ Brick::commitState()
   }
 
   for (int i=0; i<NIP; i++ ) 
-    success += materialPointers[i]->commitState( ) ;
-  
+    success += materialPointers[i]->commitState();
+
   return success ;
 }
  
@@ -264,7 +274,7 @@ Brick::getInitialStiff()
 
     // extract shape functions from saved array
     for (int p = 0; p < nShape; p++ ) {
-       for (int q = 0; q < numberNodes; q++ )
+      for (int q = 0; q < numberNodes; q++ )
         shp[p][q]  = Shape[p][q][i] ;
     }
 
@@ -584,8 +594,6 @@ Brick::update()
   static double dvol[numberGauss] ; // volume element
   static double Shape[nShape][numberNodes][numberGauss] ; // all the shape functions
 
-  static Vector strain(nstress);
-
   // gauss loop to compute and save shape functions 
 
   int count = 0;
@@ -616,6 +624,8 @@ Brick::update()
   }
 
   int success = 0;
+
+  static Vector strain(nstress);
 
   // Gauss loop 
   for (int i = 0; i < NIP; i++ ) {
@@ -791,7 +801,7 @@ Brick::formResidAndTangent( int tang_flag )
         computeB( j, shp, BJ );
 
         static MatrixND<NDF,nstress> BJtranD{};
-        BJtranD.addMatrixTransposeProduct(0.0,  BJ, D, dvol[i]) ;
+        BJtranD.addMatrixTransposeProduct(0.0,  BJ, D, dvol[i]);
 
         int kk = 0 ;
         for (int k = 0; k < NEN; k++ ) {
@@ -873,8 +883,6 @@ Brick::computeB(int node,
 
   return B;
 }
-
-
 
 
 
@@ -1046,7 +1054,7 @@ Brick::getResponse(int responseID, Information &eleInfo)
     static Vector output(stressAtNodes);
 
     stressAtNodes.zero();
-    OpenSees::StressExtrapolation<NEN,NIP,NST>(materialPointers, We, stressAtNodes);
+    Xara::StressExtrapolation<NEN,NIP,NST>(materialPointers, We, stressAtNodes);
     return eleInfo.setVector(output);
   }
 
@@ -1109,177 +1117,6 @@ Brick::updateParameter(int parameterID, Information &info)
 }
 
 
-int
-Brick::sendSelf(int commitTag, Channel &theChannel)
-{
-  int res = 0;
-  
-  // note: we don't check for dataTag == 0 for Element
-  // objects as that is taken care of in a commit by the Domain
-  // object - don't want to have to do the check if sending data
-  int dataTag = this->getDbTag();
-  
-  // Quad packs its data into a Vector and sends this to theChannel
-  // along with its dbTag and the commitTag passed in the arguments
-
-  // Now quad sends the ids of its materials
-  int matDbTag;
-  
-  static ID idData(26);
-
-  idData(24) = this->getTag();
-  if (alphaM != 0 || betaK != 0 || betaK0 != 0 || betaKc != 0) 
-    idData(25) = 1;
-  else
-    idData(25) = 0;
-  
-
-  for (int i = 0; i < NIP; i++) {
-    idData(i) = materialPointers[i]->getClassTag();
-    matDbTag = materialPointers[i]->getDbTag();
-    // NOTE: we do have to ensure that the material has a database
-    // tag if we are sending to a database channel.
-    if (matDbTag == 0) {
-      matDbTag = theChannel.getDbTag();
-      if (matDbTag != 0)
-        materialPointers[i]->setDbTag(matDbTag);
-    }
-    idData(i+8) = matDbTag;
-  }
-  
-  idData(16) = connectedExternalNodes(0);
-  idData(17) = connectedExternalNodes(1);
-  idData(18) = connectedExternalNodes(2);
-  idData(19) = connectedExternalNodes(3);
-  idData(20) = connectedExternalNodes(4);
-  idData(21) = connectedExternalNodes(5);
-  idData(22) = connectedExternalNodes(6);
-  idData(23) = connectedExternalNodes(7);
-
-  res += theChannel.sendID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING Brick::sendSelf() - " << this->getTag() << " failed to send ID\n";
-    return res;
-  }
-
-  static Vector dData(7);
-  dData(0) = alphaM;
-  dData(1) = betaK;
-  dData(2) = betaK0;
-  dData(3) = betaKc;
-  dData(4) = b[0];
-  dData(5) = b[1];
-  dData(6) = b[2];
-
-  if (theChannel.sendVector(dataTag, commitTag, dData) < 0) {
-    opserr << "Brick::sendSelf() - failed to send double data\n";
-    return -1;
-  }    
-
-  // Finally, quad asks its material objects to send themselves
-  for (int i = 0; i < NIP; i++) {
-    res += materialPointers[i]->sendSelf(commitTag, theChannel);
-    if (res < 0) {
-      opserr << "WARNING Brick::sendSelf() - " << this->getTag() << " failed to send its Material\n";
-      return res;
-    }
-  }
-  
-  return res;
-}
-    
-int
-Brick::recvSelf(int commitTag, 
-                Channel &theChannel, 
-                FEM_ObjectBroker &theBroker)
-{
-  int res = 0;
-  
-  int dataTag = this->getDbTag();
-
-  static ID idData(26);
-  res += theChannel.recvID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING Brick::recvSelf() - " << this->getTag() << " failed to receive ID\n";
-    return res;
-  }
-
-  this->setTag(idData(24));
-
-  static Vector dData(7);
-  if (theChannel.recvVector(dataTag, commitTag, dData) < 0) {
-    opserr << "DispBeamColumn2d::sendSelf() - failed to recv double data\n";
-    return -1;
-  }    
-  alphaM = dData(0);
-  betaK = dData(1);
-  betaK0 = dData(2);
-  betaKc = dData(3);
-  b[0] = dData(4);
-  b[1] = dData(5);
-  b[2] = dData(6);
-
-
-  connectedExternalNodes(0) = idData(16);
-  connectedExternalNodes(1) = idData(17);
-  connectedExternalNodes(2) = idData(18);
-  connectedExternalNodes(3) = idData(19);
-  connectedExternalNodes(4) = idData(20);
-  connectedExternalNodes(5) = idData(21);
-  connectedExternalNodes(6) = idData(22);
-  connectedExternalNodes(7) = idData(23);
-
-
-  if (materialPointers[0] == nullptr) {
-    for (int i = 0; i < NIP; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+8);
-      // Allocate new material with the sent class tag
-      materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-      if (materialPointers[i] == 0) {
-        opserr << "Brick::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << "\n";
-        return -1;
-      }
-      // Now receive materials into the newly allocated space
-      materialPointers[i]->setDbTag(matDbTag);
-      res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) {
-        opserr << "NLBeamColumn3d::recvSelf() - material " << i << "failed to recv itself\n";
-        return res;
-      }
-    }
-  }
-  // materials exist, ensure materials of correct type and recvSelf on them
-  else {
-    for (int i = 0; i < NIP; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+8);
-      // Check that material is of the right type; if not,
-      // delete it and create a new one of the right type
-      if (materialPointers[i]->getClassTag() != matClassTag) {
-        delete materialPointers[i];
-        materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-        if (materialPointers[i] == nullptr) {
-          opserr << "Broker could not create NDMaterial of class type " <<
-          matClassTag << "\n";
-          return -1;
-        }
-        materialPointers[i]->setDbTag(matDbTag);
-      }
-      // Receive the material
-
-      res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) {
-        opserr << "material " << i << "failed to recv itself\n";
-        return res;
-      }
-    }
-  }
-
-  return res;
-}
-
-
 void
 Brick::Print(OPS_Stream &s, int flag)
 {
@@ -1288,10 +1125,10 @@ Brick::Print(OPS_Stream &s, int flag)
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"Brick\", ";
     s << "\"nodes\": ["
-      << connectedExternalNodes(0) << ", ";
+      << conn(0) << ", ";
     for (int i = 1; i < 7; i++)
-      s << connectedExternalNodes(i) << ", ";
-    s << connectedExternalNodes(7) << "], ";
+      s << conn(i) << ", ";
+    s << conn(7) << "], ";
     s << "\"bodyForces\": [" << b[0] << ", " << b[1] << ", " << b[2] << "], ";
     s << "\"material\": [" << materialPointers[0]->getTag() << "]}";
 
@@ -1341,20 +1178,20 @@ Brick::Print(OPS_Stream &s, int flag)
   if (flag == OPS_PRINT_CURRENTSTATE) {
     s << "Standard Eight Node Brick \n";
     s << "Element Number: " << this->getTag() << "\n";
-    s << "Nodes: " << connectedExternalNodes;
+    s << "Nodes: " << conn;
     
     s << "Material Information : \n ";
     materialPointers[0]->Print(s, flag);
     
     s << "\n";
-    s << this->getTag() << " " << connectedExternalNodes(0)
-        << " " << connectedExternalNodes(1)
-        << " " << connectedExternalNodes(2)
-        << " " << connectedExternalNodes(3)
-        << " " << connectedExternalNodes(4)
-        << " " << connectedExternalNodes(5)
-        << " " << connectedExternalNodes(6)
-        << " " << connectedExternalNodes(7)
+    s << this->getTag() << " " << conn(0)
+        << " " << conn(1)
+        << " " << conn(2)
+        << " " << conn(3)
+        << " " << conn(4)
+        << " " << conn(5)
+        << " " << conn(6)
+        << " " << conn(7)
         << "\n";
     
     s << "Body Forces: " << b[0] << " " << b[1] << " " << b[2] << "\n";
