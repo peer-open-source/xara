@@ -46,7 +46,7 @@ class DiagonalSolver : public LinearSOESolver
     DiagonalSolver(int classTag);    
     virtual ~DiagonalSolver();
 
-    virtual int solve(void) = 0;
+    virtual int solve() = 0;
     virtual int setLinearSOE(DiagonalSOE &theSOE);
     
   protected:
