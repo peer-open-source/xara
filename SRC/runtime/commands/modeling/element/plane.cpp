@@ -7,8 +7,7 @@
 // Description: This file contains the implementation of the
 //              TclBasicBuilder_addFourNodeQuad() command.
 //
-// Written: fmk
-// Created: 07/99
+// Written: cmp
 //
 #include <stdlib.h>
 #include <string.h>
@@ -21,8 +20,10 @@
 #else
 #  include <strings.h>
 #endif
+
 #include <Logging.h>
 #include <Parsing.h>
+#include <XCP.h>
 #include <Domain.h>
 #include <ArgumentTracker.h>
 #include <section/PlaneSection.h>
@@ -152,7 +153,7 @@ NodeCounts = {
 int
 TclBasicBuilder_addFourNodeQuad(ClientData clientData, 
                                 Tcl_Interp *interp, 
-                                Tcl_Size argc,
+                                ArgSize argc,
                                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -165,7 +166,8 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
 
   if (builder->getNDM() != 2 || (builder->getNDF() != 2 && builder->getNDF() != 3)) {
     opserr << OpenSees::PromptValueError 
-           << "model dimensions and/or nodal DOF not compatible with quad element\n";
+           << "model dimensions and/or nodal DOF not compatible with quad element"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -235,7 +237,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
   //
   // Element Tag
   //
-  int tag;
+  Xara::Tag tag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
     opserr << OpenSees::PromptValueError 
            << "invalid element tag " << argv[2] 
@@ -253,7 +255,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
     nen = it->second;
 
   int argi = 3;
-  std::vector<int> multi_nodes;
+  std::vector<Xara::Tag> multi_nodes;
   {
     int list_argc;
     TCL_Char **list_argv;
@@ -326,7 +328,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
 
 
 
-  int mat_tag;
+  Xara::Tag mat_tag;
   NDMaterial *nd_mat = nullptr;
   double thickness = 1.0;
   double p = 0.0;   // uniform normal traction (pressure)
@@ -335,7 +337,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
   double b2 = 0.0;
   TCL_Char *type = nullptr;
   Element::MassSource mass_source = Element::MassSource::Material;
-  Element::MassType mass_type = Element::MassType::Diagonal;
+  Element::MassType   mass_type = Element::MassType::Diagonal;
 
   if (true) {
     enum class Position : int {
@@ -357,7 +359,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
           return TCL_ERROR;
         }
 
-        int stag;
+        Xara::Tag stag;
         if (Tcl_GetInt(interp, argv[i], &stag) != TCL_OK) {
           opserr << OpenSees::PromptValueError 
                  << "failed to read section tag "
@@ -461,23 +463,35 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
     // Positional arguments
     //
     for (int i : positional) {
-      switch (tracker.current()) {
+      auto position = tracker.current();
+      // if strict backwards compatibility is required, 
+      // switch the order of thickness and material for SSPquad
+      if (strstr(argv[1], "SSP") != nullptr && Xara::CheckPolicy(interp, XCP::XCP0002)) {
+        if (position == Position::Material) {
+          position = Position::Thickness;
+        }
+        else if (position == Position::Thickness) {
+          position = Position::Material;
+          type = argv[i+1];
+        }
+      }
+      //
+      switch (position) {
         case Position::Material:
           if (Tcl_GetInt(interp, argv[i], &mat_tag) != TCL_OK) {
             opserr << OpenSees::PromptValueError 
                    << "invalid material tag " << argv[i] 
                    << "\n";
             return TCL_ERROR;
-          } else {
-            nd_mat = builder->getTypedObject<NDMaterial>(mat_tag);
-            if (nd_mat == nullptr)
-              return TCL_ERROR;
-      
-            nd_mat = nd_mat->getCopy(type);
-            if (nd_mat == nullptr) {
-              opserr << OpenSees::PromptValueError << "invalid material\n";
-              return TCL_ERROR;
-            }
+          }
+          nd_mat = builder->getTypedObject<NDMaterial>(mat_tag);
+          if (nd_mat == nullptr)
+            return TCL_ERROR;
+    
+          nd_mat = nd_mat->getCopy(type);
+          if (nd_mat == nullptr) {
+            opserr << OpenSees::PromptValueError << "invalid material\n";
+            return TCL_ERROR;
           }
           tracker.increment();
           break;
@@ -567,6 +581,16 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
       tracker.increment();
     }
   }
+
+
+  // In OpenSees, when zero density was passed in the element command,
+  // quads would default to using the material density. 
+  if (Xara::CheckPolicy(interp, XCP::XCP0001)) {
+    if (rho == 0.0 && mass_source == Element::MassSource::Element) {
+      mass_source = Element::MassSource::Material;
+    }
+  }
+
 
 
   //
