@@ -30,6 +30,7 @@
 // are used to solve a system of equations of type BandGenLinSOE.
 //
 // What: "@(#) BandGenLinSolver.h, revA"
+//
 #pragma once
 
 #include <LinearSOESolver.h>
