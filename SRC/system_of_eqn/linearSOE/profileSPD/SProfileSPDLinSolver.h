@@ -44,13 +44,11 @@ class SProfileSPDLinSolver : public LinearSOESolver
     virtual int solve();        
     virtual int setSize();    
     double getDeterminant();
+    bool requireDeterminant() override { return true; }
 
     virtual int factor(int n);
     virtual int setLinearSOE(SProfileSPDLinSOE &theSOE);
-    
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker);
-    
+
   protected:
     SProfileSPDLinSOE *theSOE;
 
