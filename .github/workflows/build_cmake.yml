@@ -83,7 +83,7 @@ jobs:
       working-directory: benchmarks
       run: |
         python -m pip install --upgrade pip
-        pip install pytest xara
+        pip install pytest xara jax
 
     - name: Run pytest
       working-directory: benchmarks/benchmarks
