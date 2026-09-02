@@ -74,9 +74,6 @@ public:
     double getCFactor();
     const Vector &getVel();
 
-    // MovableObject
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
     
     void Print(OPS_Stream &, int flag) final;
 
