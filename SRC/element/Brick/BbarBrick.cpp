@@ -1304,7 +1304,7 @@ BbarBrick::getResponse(int responseID, Information &eleInfo)
     static Vector output(stressAtNodes);
 
     stressAtNodes.zero();
-    OpenSees::StressExtrapolation<NEN,NIP,NST>(&materialPointers[0], We, stressAtNodes);
+    Xara::StressExtrapolation<NEN,NIP,NST>(&materialPointers[0], We, stressAtNodes);
     return eleInfo.setVector(output);
   }
 
