@@ -26,7 +26,8 @@
 
 #include "FileChannel.h"
 
-FileChannel::FileChannel( int readWrite ) {
+FileChannel::FileChannel( int readWrite ) 
+{
   strcpy(fileNameBase,"domain");
   commitStep = 0;
   fileType = readWrite;
@@ -111,7 +112,9 @@ int FileChannel::setCommitStep(int commitTag) {
  * Close the file if hasn't already been closed and set the pointer
  * to NULL to be really sure
  */
-void FileChannel::closeFile() {
+void
+FileChannel::closeFile()
+{
   if (theFile != NULL) {
 	fclose(theFile);
 	theFile = NULL;
@@ -123,13 +126,13 @@ FileChannel::~FileChannel(){
 }
 
 char * 
-FileChannel::addToProgram(void) 
+FileChannel::addToProgram() 
 {
   return 0;
 }
 
 int 
-FileChannel::setUpConnection(void)
+FileChannel::setUpConnection()
 {
   return 0;
 }
@@ -338,33 +341,32 @@ int FileChannel::sendID(int dbTag, int commitTag, const ID &theID,ChannelAddress
  * pre! old and new ID have the same data size (uncorrupted)
  * and same endianness
  */
-int FileChannel::recvID(int dbTag, int commitTag, 
+int
+FileChannel::recvID(int dbTag, int commitTag, 
 	       ID &theID,  ChannelAddress *theAddress) 
 {
 
-  int nleft,size,i;
-  size = theID.Size();
+  int nleft;
+  int size = theID.Size();
   int *data = new int[size];
   void * gMsg = (void *)data;;
   nleft =  theID.Size() * sizeof(int);
 
-  if( theFile ) {
+  if ( theFile ) {
+    
+    int i =  fread( gMsg, nleft, 1, theFile);
   
-	i =  fread( gMsg, nleft, 1, theFile);
- 
-	if ( i == 1 ) {
-	  theID.setData( data, size );
-	  return 0;
-	}
-	opserr << "FileChannel::recvID, error reading from open file\n";
+    if ( i == 1 ) {
+      theID.setData( data, size );
+      return 0;
+    }
+    opserr << "FileChannel::recvID, error reading from open file\n";
   }
   else
-	opserr << "FileChannel::recvID, error reading, NULL file handle\n";
+    opserr << "FileChannel::recvID, error reading, NULL file handle\n";
 
   return -1;
-
-
-}    
+}
 
 
 //OK< here, we can't afford not to be a friend of NDarray; it'd be really complicated to read.
@@ -379,37 +381,36 @@ FileChannel::sendnDarray(int dbTag, int commitTag, const nDarray &theNDarray,Cha
   int elem =   (theNDarray.pc_nDarray_rep)->total_numb;
 
   // send rank  
-  if( fwrite( (void *)&rank, sizeof(int), 1, theFile ) != 1) {
-	opserr << "FileChannel::sendnDarray, error writing rank to file\n";
-	return -1;
+  if ( fwrite( (void *)&rank, sizeof(int), 1, theFile ) != 1) {
+    opserr << "FileChannel::sendnDarray, error writing rank to file\n";
+    return -1;
   } 
 
   //send the length of the data array
   if ( fwrite( (void *)&elem, sizeof(int), 1, theFile ) != 1 ) {
   	opserr << 
 	  "FileChannel::sendnDarray, error writing num elements to file\n";
-	return -1;
+    return -1;
   } 
   
   // send each dimension 
   for ( i = 0; i < rank; i++ ) {
     j = dim[i];
  
-    if (  fwrite( (void *)&j, sizeof(int), 1, theFile ) != 1) {
-	opserr << 
-	  "FileChannel::sendnDarray, error writing array dimension to file\n";
-	return -1;
+    if (fwrite( (void *)&j, sizeof(int), 1, theFile ) != 1) {
+      opserr << 
+        "FileChannel::sendnDarray, error writing array dimension to file\n";
+      return -1;
     }
   }
 
   
    //send the data in the array
-  if( fwrite( (void *)data, sizeof(double), elem, theFile) != elem ){
-  	opserr << 
-	  "FileChannel::sendnDarray, error writing array elements to file\n";
-	return -1;
-	} 
- 
+  if ( fwrite( (void *)data, sizeof(double), elem, theFile) != elem ) {
+      opserr << 
+      "FileChannel::sendnDarray, error writing array elements to file\n";
+    return -1;
+	}
   return 0;
 }
 
@@ -430,14 +431,14 @@ FileChannel::recvnDarray(int dbTag, int commitTag, nDarray &theNDarray, ChannelA
 
 
   // receive rank  
-  if( fread( (void *)&rank, sizeof(int), 1, theFile ) != 1) {
-	opserr << "FileChannel::receivenDarray, error reading rank to file\n";
-	return -1;
-  } 
+  if ( fread( (void *)&rank, sizeof(int), 1, theFile ) != 1) {
+    opserr << "FileChannel::receivenDarray, error reading rank to file\n";
+    return -1;
+  }
 
   if ( rank != n_rank ) {
-	opserr << "FileChannel::recvnDarray, mismatch in rank of nDArray\n";
-	return -1;
+    opserr << "FileChannel::recvnDarray, mismatch in rank of nDArray\n";
+    return -1;
   }
 
   //receive the length of the data array
@@ -447,23 +448,23 @@ FileChannel::recvnDarray(int dbTag, int commitTag, nDarray &theNDarray, ChannelA
 	return -1;
   } 
 
-  if( elem != n_elem )	{
-	opserr << "FileChannel::recvnDarray, mismatch in length of nDArray\n";
-	return -1;
+  if ( elem != n_elem )	{
+    opserr << "FileChannel::recvnDarray, mismatch in length of nDArray\n";
+    return -1;
   }
 
   // receive each dimension 
   for ( i = 0; i < rank; i++ ) {
-	if (  fread( (void *)&j, sizeof(int), 1, theFile ) != 1) {
-	opserr << 
-	  "FileChannel::receivenDarray, error reading array dimension from file\n";
-	return -1;
-	}
-	n_dim[i] = j;
+    if (  fread( (void *)&j, sizeof(int), 1, theFile ) != 1) {
+      opserr << 
+        "FileChannel::receivenDarray, error reading array dimension from file\n";
+      return -1;
+    }
+    n_dim[i] = j;
   }
   
   //receive the data in the array
-   if( fread( gmsg, sizeof(double), elem, theFile) != elem ){
+   if ( fread( gmsg, sizeof(double), elem, theFile) != elem ){
     opserr << 
       "FileChannel::receivenDarray, error writing array elements to file\n";
     return -1;
