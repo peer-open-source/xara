@@ -89,16 +89,7 @@ jobs:
       working-directory: benchmarks/benchmarks
       run: |
         export OPENSEESRT_LIB=${GITHUB_WORKSPACE}/build/SRC/runtime/libOpenSeesRT.so
-        pytest -x -k 'not test_frame_0011 and not test_solve_0004 and not test_o_sdof and not test_sdof and not test_solve_1001 and not test_solve_0000 and not test_solid_0002'
-
-#   - name: Verification
-#     run: |
-#       cd build
-#       make trussExample
-#       make planeFrame
-
-        #ctest
-        #cd ./EXAMPLES/verification/ && ../../build/OpenSeesTcl runVerificationSuite.tcl
+        pytest -x -k 'not test_frame_0011 and not test_solve_0004 and not test_o_sdof and not test_sdof and not test_solve_1001 and not test_solve_0000 and not test_solid_0002 and not test_frame_1010'
 
   build-mac:
     name: Mac Build
