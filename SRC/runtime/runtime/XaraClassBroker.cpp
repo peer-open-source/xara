@@ -13,12 +13,12 @@
 //
 //===----------------------------------------------------------------------===//
 //
-//===----------------------------------------------------------------------===//
 // Purpose: This file contains the class definition for XaraClassBroker.
 // XaraClassBroker is is an object broker class that is meant to become
 // a threadsafe replacement for the BrokerAllClasses class.
 // All methods are virtual to allow for subclasses; which can be
 // used by programmers when introducing new subclasses of the main objects.
+//
 //===----------------------------------------------------------------------===//
 //
 
@@ -30,9 +30,6 @@ using namespace OpenSees::Hash::literals;
 
 #include "packages.h"
 #include <XaraClassBroker.h>
-
-// ActorTypes
-#include "domain/subdomain/ActorSubdomain.h"
 
 // Convergence tests
 #include "analysis/criteria/CTestNormUnbalance.h"
@@ -49,70 +46,10 @@ using namespace OpenSees::Hash::literals;
 #include "graph/numberer/SimpleNumberer.h"
 
 // uniaxial material model header files
-#include "BoucWen/BoucWenMaterial.h"
-#include "SPSW02.h"
-#include "ElasticMaterial.h"
-#include "ElasticMultiLinear.h"
-#include "ElasticPowerFunc.h"
-#include "Elastic2Material.h"
-#include "ElasticPPMaterial.h"
-#include "ParallelMaterial.h"
-#include "ASD_SMA_3K.h"
-#include "OriginCentered.h"
-#include "Steel01.h"
-#include "Steel02.h"
-#include "Steel2.h"
-#include "Steel4.h"
-#include "FatigueMaterial.h"
-#include "ReinforcingSteel/ReinforcingSteel.h"
-#include "HardeningMaterial.h"
-#include "HystereticMaterial.h"
-#include "EPPGapMaterial.h"
-#include "ViscousMaterial.h"
-#include "ViscousDamper.h"
-#include "PathIndependentMaterial.h"
-#include "SeriesMaterial.h"
-#include "CableMaterial.h"
-#include "ENTMaterial.h"
-#include "MinMaxMaterial.h"
-#include "ModIMKPeakOriented.h"
-#include "snap/Clough.h"
-#include "limitState/LimitStateMaterial.h"
-#include "wrapper/InitStressMaterial.h"
-#include "wrapper/InitStrainMaterial.h"
-#include "Bond_SP01.h"
-#include "SimpleFractureMaterial.h"
-#include <HystereticPoly.h> // Salvatore Sessa 14-Jan-2021
 
 // PY springs: RWBoulanger and BJeremic
 #include "PY/PySimple1.h"
-#include "PY/TzSimple1.h"
-#include "PY/QzSimple1.h"
-#include "PY/PySimple2.h"
-#include "PY/TzSimple2.h"
-#include "PY/QzSimple2.h"
-#include "PY/PyLiq1.h"
-#include "PY/TzLiq1.h"
-#include "PY/QzLiq1.h"
 
-#include "fedeas/FedeasBond1Material.h"
-#include "fedeas/FedeasBond2Material.h"
-#include "fedeas/FedeasConcr1Material.h"
-#include "fedeas/FedeasConcr2Material.h"
-#include "fedeas/FedeasConcr3Material.h"
-#include "fedeas/FedeasHardeningMaterial.h"
-#include "fedeas/FedeasHyster1Material.h"
-#include "fedeas/FedeasHyster2Material.h"
-#include "fedeas/FedeasSteel1Material.h"
-#include "fedeas/FedeasSteel2Material.h"
-
-#include "Bilin.h"
-#include "drain/DrainBilinearMaterial.h"
-#include "drain/DrainClough1Material.h"
-#include "drain/DrainClough2Material.h"
-#include "drain/DrainPinch1Material.h"
-#include "abutment/HyperbolicGapMaterial.h"
-#include "ImpactMaterial.h"
 
 // Sections
 #include "ElasticSection2d.h"
@@ -130,18 +67,6 @@ using namespace OpenSees::Hash::literals;
 #include "LayeredShellFiberSection.h" // Yuli Huang & Xinzheng Lu
 
 // NDMaterials
-#include "ElasticIsotropicPlaneStrain2D.h"
-#include "ElasticIsotropicPlaneStress2D.h"
-#include "ElasticIsotropicPlateFiber.h"
-#include "ElasticIsotropicAxiSymm.h"
-#include "ElasticIsotropicThreeDimensional.h"
-#include "J2PlaneStrain.h"
-#include "J2PlaneStress.h"
-#include "J2PlateFiber.h"
-#include "J2AxiSymm.h"
-#include "J2ThreeDimensional.h"
-#include "PlaneStressMaterial.h"
-#include "PlateFiberMaterial.h"
 // start Yuli Huang & Xinzheng L
 #include "PlateRebarMaterial.h"
 #include "PlateFromPlaneStressMaterial.h"
@@ -157,28 +82,6 @@ using namespace OpenSees::Hash::literals;
 #include "soil/PressureDependMultiYield.h"
 #include "soil/PressureDependMultiYield02.h"
 #include "soil/PressureIndependMultiYield.h"
-
-#include "UWmaterials/ContactMaterial2D.h"
-#include "UWmaterials/ContactMaterial3D.h"
-#include "UWmaterials/DruckerPrager3D.h"
-#include "UWmaterials/DruckerPragerPlaneStrain.h"
-#include "UWmaterials/BoundingCamClay.h"
-#include "UWmaterials/BoundingCamClay3D.h"
-#include "UWmaterials/BoundingCamClayPlaneStrain.h"
-#include "UWmaterials/ManzariDafalias.h"
-#include "UWmaterials/ManzariDafalias3D.h"
-#include "UWmaterials/ManzariDafaliasPlaneStrain.h"
-#include "UWmaterials/ManzariDafaliasRO.h"
-#include "UWmaterials/ManzariDafalias3DRO.h"
-#include "UWmaterials/ManzariDafaliasPlaneStrainRO.h"
-#include "UWmaterials/PM4Sand.h"
-#include "UWmaterials/PM4Silt.h"
-#include "J2CyclicBoundingSurface3D.h"
-#include "J2CyclicBoundingSurfacePlaneStrain.h"
-#include "UWmaterials/InitialStateAnalysisWrapper.h"
-#include "stressDensityModel/stressDensity.h"
-#include "InitStressNDMaterial.h"
-
 //
 // element header files
 //
@@ -270,12 +173,6 @@ using namespace OpenSees::Hash::literals;
 #include "Bearing/friction/SingleFPSimple2d.h"
 #include "Bearing/friction/SingleFPSimple3d.h"
 #include "Bearing/friction/TripleFrictionPendulum.h"
-// friction models
-#include "Bearing/friction/frictionModel/Coulomb.h"
-#include "Bearing/friction/frictionModel/VelDependent.h"
-#include "Bearing/friction/frictionModel/VelPressureDep.h"
-#include "Bearing/friction/frictionModel/VelDepMultiLinear.h"
-#include "Bearing/friction/frictionModel/VelNormalFrcDep.h"
 
 
 #include "mvlem/MVLEM.h"       
@@ -399,45 +296,12 @@ using namespace OpenSees::Hash::literals;
 #include "DomainDecompAlgo.h"
 
 // integrator header files
-#include "ArcLength.h"
 #include "DisplacementControl.h"
 #ifdef _PARALLEL_PROCESSING
 #include "DistributedDisplacementControl.h"
 #endif
 #include "LoadControl.h"
 
-#include "TransientIntegrator.h"
-#include "CentralDifference.h"
-#include "CentralDifferenceAlternative.h"
-#include "CentralDifferenceNoDamping.h"
-#include "Collocation.h"
-#include "CollocationHSFixedNumIter.h"
-#include "CollocationHSIncrLimit.h"
-#include "CollocationHSIncrReduct.h"
-#include "HHT.h"
-#include "HHT_TP.h"
-#include "HHTExplicit.h"
-#include "HHTExplicit_TP.h"
-#include "HHTGeneralized.h"
-#include "HHTGeneralized_TP.h"
-#include "HHTGeneralizedExplicit.h"
-#include "HHTGeneralizedExplicit_TP.h"
-#include "HHTHSFixedNumIter.h"
-#include "HHTHSFixedNumIter_TP.h"
-#include "HHTHSIncrLimit.h"
-#include "HHTHSIncrLimit_TP.h"
-#include "HHTHSIncrReduct.h"
-#include "HHTHSIncrReduct_TP.h"
-#include "KRAlphaExplicit.h"
-#include "KRAlphaExplicit_TP.h"
-#include "Newmark.h"
-#include "NewmarkExplicit.h"
-#include "NewmarkHSFixedNumIter.h"
-#include "NewmarkHSIncrLimit.h"
-#include "NewmarkHSIncrReduct.h"
-#include "TRBDF2.h"
-#include "TRBDF3.h"
-#include "WilsonTheta.h"
 
 // system of eqn header files
 #include "LinearSOE.h"
@@ -530,19 +394,7 @@ XaraClassBroker::~XaraClassBroker() {}
 Actor *
 XaraClassBroker::getNewActor(int classTag, Channel *theChannel)
 {
-  switch (classTag) {
-
-#ifdef _PARALLEL_PROCESSING
-  case ACTOR_TAGS_SUBDOMAIN:
-    return new ActorSubdomain(*theChannel, *this);
-#endif
-
-  default:
-    opserr << "XaraClassBroker::getNewActor - ";
-    opserr << " - no ActorType type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 
@@ -869,412 +721,32 @@ XaraClassBroker::getNewBeamIntegration(int classTag)
 UniaxialMaterial *
 XaraClassBroker::getNewUniaxialMaterial(int classTag)
 {
-  switch (classTag) {
-  case MAT_TAG_SPSW02:
-    return new SPSW02(); // SAJalali
-  case MAT_TAG_BoucWen:
-    return new BoucWenMaterial(); // SAJalali
-  case MAT_TAG_ElasticMaterial:
-    return new ElasticMaterial();
-
-  case MAT_TAG_Elastic2Material:
-    return new Elastic2Material();
-
-  case MAT_TAG_ElasticPPMaterial:
-    return new ElasticPPMaterial();
-
-  case MAT_TAG_ElasticMultiLinear:
-    return new ElasticMultiLinear();
-
-  case MAT_TAG_ElasticPowerFunc:
-    return new ElasticPowerFunc();
-
-  case MAT_TAG_ParallelMaterial:
-    return new ParallelMaterial();
-
-  case MAT_TAG_ASD_SMA_3K:
-    return new ASD_SMA_3K();
-
-// Steel
-  case MAT_TAG_Steel01:
-    return new Steel01();
-
-  case MAT_TAG_Steel02:
-    return new Steel02();
-
-  case MAT_TAG_Steel2:
-    return new Steel2();
-
-  case MAT_TAG_Steel4:
-    return new Steel4();
-
-  case MAT_TAG_OriginCentered:
-    return new OriginCentered();
-
-  case MAT_TAG_ReinforcingSteel:
-    return new ReinforcingSteel(0);
-
-  case MAT_TAG_Hardening:
-    return new HardeningMaterial();
-
-// Other
-  case MAT_TAG_PySimple1:
-    return new PySimple1();
-
-  case MAT_TAG_PyLiq1:
-    return new PyLiq1();
-
-  case MAT_TAG_TzSimple1:
-    return new TzSimple1();
-
-  case MAT_TAG_PySimple2:
-    return new PySimple2();
-
-  case MAT_TAG_TzSimple2:
-    return new TzSimple2();
-
-  case MAT_TAG_Fatigue:
-    return new FatigueMaterial();
-
-  case MAT_TAG_TzLiq1:
-    return new TzLiq1();
-
-  case MAT_TAG_QzSimple1:
-    return new QzSimple1();
-
-  case MAT_TAG_QzSimple2:
-    return new QzSimple2();
-
-  case MAT_TAG_QzLiq1:
-    return new QzLiq1();
-
-  case MAT_TAG_Hysteretic:
-    return new HystereticMaterial();
-
-  case MAT_TAG_ModIMKPeakOriented:
-    return new ModIMKPeakOriented();
-
-  case MAT_TAG_SnapClough:
-    return new Clough();
-
-  case MAT_TAG_LimitState:
-    return new LimitStateMaterial();
-
-  case MAT_TAG_EPPGap:
-    return new EPPGapMaterial();
-
-  case MAT_TAG_Viscous:
-    return new ViscousMaterial();
-
-  case MAT_TAG_ViscousDamper:
-    return new ViscousDamper();
-
-  case MAT_TAG_PathIndependent:
-    return new PathIndependentMaterial();
-
-  case MAT_TAG_SeriesMaterial:
-    return new SeriesMaterial();
-
-  case MAT_TAG_CableMaterial:
-    return new CableMaterial();
-
-  case MAT_TAG_ENTMaterial:
-    return new ENTMaterial();
-
-#if defined(OPSDEF_UNIAXIAL_FEDEAS)
-  case MAT_TAG_FedeasBond1:
-    return new FedeasBond1Material();
-
-  case MAT_TAG_FedeasBond2:
-    return new FedeasBond2Material();
-
-
-  case MAT_TAG_FedeasHardening:
-    return new FedeasHardeningMaterial();
-
-  case MAT_TAG_FedeasHysteretic1:
-    return new FedeasHyster1Material();
-
-  case MAT_TAG_FedeasHysteretic2:
-    return new FedeasHyster2Material();
-
-  case MAT_TAG_FedeasSteel1:
-    return new FedeasSteel1Material();
-
-  case MAT_TAG_FedeasSteel2:
-    return new FedeasSteel2Material();
-#endif // OPSDEF_UNIAXIAL_FEDEAS
-  case MAT_TAG_DrainBilinear:
-    return new DrainBilinearMaterial();
-
-  case MAT_TAG_HyperbolicGapMaterial:
-    return new HyperbolicGapMaterial();
-
-  case MAT_TAG_ImpactMaterial:
-    return new ImpactMaterial();
-
-  case MAT_TAG_Bilin:
-    return new Bilin();
-
-  case MAT_TAG_DrainClough1:
-    return new DrainClough1Material();
-
-  case MAT_TAG_DrainClough2:
-    return new DrainClough2Material();
-
-  case MAT_TAG_DrainPinch1:
-    return new DrainPinch1Material();
-
-  case MAT_TAG_MinMax:
-    return new MinMaxMaterial();
-
-  case MAT_TAG_InitStrain:
-    return new InitStrainMaterial();
-
-  case MAT_TAG_InitStress:
-    return new InitStressMaterial();
-
-  case MAT_TAG_Bond_SP01:
-    return new Bond_SP01();
-
-  case MAT_TAG_SimpleFractureMaterial:
-    return new SimpleFractureMaterial();
-
-  case MAT_TAG_HystereticPoly: // Salvatore Sessa
-    return new HystereticPoly();
-
-  default:
-
-    UniaxialPackage *matCommands = theUniaxialPackage;
-    bool found = false;
-    while (matCommands != NULL && found == false) {
-      if ((matCommands->classTag == classTag) && (matCommands->funcPtr != 0)) {
-        UniaxialMaterial *result = (*(matCommands->funcPtr))();
-        return result;
-      }
-      matCommands = matCommands->next;
-    }
-
-    opserr << "XaraClassBroker::getNewUniaxialMaterial - ";
-    opserr << " - no UniaxialMaterial type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 SectionForceDeformation *
 XaraClassBroker::getNewSection(int classTag)
 {
-  switch (classTag) {
-  case SEC_TAG_Elastic2d:
-    return new ElasticSection2d();
-
-  case SEC_TAG_Elastic3d:
-    return new ElasticSection3d();
-
-  // case SEC_TAG_Generic1d:
-  //   return new GenericSection1d();
-
-    // case SEC_TAG_GenericNd:
-    // return new GenericSectionNd();
-
-  case SEC_TAG_Aggregator:
-    return new SectionAggregator();
-
-    // case SEC_TAG_Fiber:
-    // return new FiberSection();
-
-  case SEC_TAG_FiberSection2d:
-    return new FiberSection2d();
-
-  case SEC_TAG_FiberSection3d:
-    return new FiberSection3d();
-
-  case SEC_TAG_FiberSectionAsym3d:
-    return new FiberSectionAsym3d(); // Xinlong Du
-
-  case SEC_TAG_ElasticMembranePlateSection:
-    return new ElasticMembranePlateSection();
-
-  case SEC_TAG_MembranePlateFiberSection:
-    return new MembranePlateFiberSection();
-
-  // start Yuli Huang & Xinzheng Lu LayeredShellFiberSection
-  case SEC_TAG_LayeredShellFiberSection:
-    return new LayeredShellFiberSection();
-    // end Yuli Huang & Xinzheng Lu LayeredShellFiberSection
-
-  case SEC_TAG_Bidirectional:
-    return new Bidirectional();
-
-  default:
-    opserr << "XaraClassBroker::getNewSection - ";
-    opserr << " - no section type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 NDMaterial *
 XaraClassBroker::getNewNDMaterial(int classTag)
 {
-  switch (classTag) {
-  case ND_TAG_ElasticIsotropicPlaneStrain2d:
-    return new ElasticIsotropicPlaneStrain2D();
-
-  case ND_TAG_ElasticIsotropicPlaneStress2d:
-    return new ElasticIsotropicPlaneStress2D();
-
-  case ND_TAG_ElasticIsotropicAxiSymm:
-    return new ElasticIsotropicAxiSymm();
-
-  case ND_TAG_ElasticIsotropicPlateFiber:
-    return new ElasticIsotropicPlateFiber();
-
-  case ND_TAG_ElasticIsotropicThreeDimensional:
-    return new ElasticIsotropicThreeDimensional();
-
-  case ND_TAG_PlaneStressMaterial:
-    return new PlaneStressMaterial();
-
-  // start Yuli Huang & Xinzheng
-  case ND_TAG_PlateRebarMaterial:
-    return new PlateRebarMaterial();
-
-  case ND_TAG_PlateFromPlaneStressMaterial:
-    return new PlateFromPlaneStressMaterial();
-
-  case ND_TAG_PlaneStressUserMaterial:
-    return new PlaneStressUserMaterial();
-    // end Yuli Huang & Xinzheng Lu
-
-  case ND_TAG_PlateFiberMaterial:
-    return new PlateFiberMaterial();
-
-  case ND_TAG_FluidSolidPorousMaterial:
-    return new FluidSolidPorousMaterial();
-
-  case ND_TAG_PressureDependMultiYield:
-    return new PressureDependMultiYield();
-
-  case ND_TAG_PressureDependMultiYield02:
-    return new PressureDependMultiYield02();
-
-  case ND_TAG_PressureIndependMultiYield:
-    return new PressureIndependMultiYield();
-
-  case ND_TAG_ContactMaterial2D:
-    return new ContactMaterial2D();
-
-  case ND_TAG_ContactMaterial3D:
-    return new ContactMaterial3D();
-
-  case ND_TAG_DruckerPrager3D:
-    return new DruckerPrager3D();
-
-  case ND_TAG_DruckerPragerPlaneStrain:
-    return new DruckerPragerPlaneStrain();
-
-  case ND_TAG_BoundingCamClay3D:
-    return new BoundingCamClay3D();
-
-  case ND_TAG_BoundingCamClayPlaneStrain:
-    return new BoundingCamClayPlaneStrain();
-
-  case ND_TAG_ManzariDafalias:
-    return new ManzariDafalias();
-
-  case ND_TAG_ManzariDafalias3D:
-    return new ManzariDafalias3D();
-
-  case ND_TAG_ManzariDafaliasPlaneStrain:
-    return new ManzariDafaliasPlaneStrain();
-
-  case ND_TAG_ManzariDafaliasRO:
-    return new ManzariDafaliasRO();
-
-  case ND_TAG_ManzariDafalias3DRO:
-    return new ManzariDafalias3DRO();
-
-  case ND_TAG_ManzariDafaliasPlaneStrainRO:
-    return new ManzariDafaliasPlaneStrainRO();
-
-  case ND_TAG_PM4Sand:
-    return new PM4Sand();
-
-  case ND_TAG_PM4Silt:
-    return new PM4Silt();
-
-  case ND_TAG_J2CyclicBoundingSurface3D:
-    return new J2CyclicBoundingSurface3D();
-
-  case ND_TAG_J2CyclicBoundingSurfacePlaneStrain:
-    return new J2CyclicBoundingSurfacePlaneStrain();
-
-  case ND_TAG_InitialStateAnalysisWrapper:
-    return new InitialStateAnalysisWrapper();
-  case ND_TAG_stressDensity:
-    return new stressDensity();
-  case ND_TAG_CycLiqCP3D:
-    return new CycLiqCP3D();
-
-  case ND_TAG_CycLiqCPPlaneStrain:
-    return new CycLiqCPPlaneStrain();
-
-  case ND_TAG_CycLiqCPSP3D:
-    return new CycLiqCPSP3D();
-
-  case ND_TAG_CycLiqCPSPPlaneStrain:
-    return new CycLiqCPSPPlaneStrain();
-
-  case ND_TAG_InitStressNDMaterial:
-    return new InitStressNDMaterial();
-
-  default:
-    opserr << "XaraClassBroker::getNewNDMaterial - ";
-    opserr << " - no NDMaterial type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 Fiber *
 XaraClassBroker::getNewFiber(int classTag)
 {
-  switch (classTag) {
-  default:
-    opserr << "XaraClassBroker::getNewFiber - ";
-    opserr << " - no Fiber type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
+
 
 FrictionModel *
 XaraClassBroker::getNewFrictionModel(int classTag)
 {
-  switch (classTag) {
-  case FRN_TAG_Coulomb:
-    return new Coulomb();
-
-  case FRN_TAG_VelDependent:
-    return new VelDependent();
-
-  case FRN_TAG_VelPressureDep:
-    return new VelPressureDep();
-
-  case FRN_TAG_VelDepMultiLinear:
-    return new VelDepMultiLinear();
-
-  case FRN_TAG_VelNormalFrcDep:
-    return new VelNormalFrcDep();
-
-  default:
-    opserr << "XaraClassBroker::getNewFrictionModel - ";
-    opserr << " - no FrictionModel type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 ConvergenceTest *
@@ -1574,99 +1046,20 @@ XaraClassBroker::getNewTransientIntegrator(int classTag)
 IncrementalIntegrator *
 XaraClassBroker::getNewIncrementalIntegrator(int classTag)
 {
-  switch (classTag) {
-  case INTEGRATOR_TAGS_LoadControl:
-    return new LoadControl(1.0, 1, 1.0, 1.0);
-
-
-  case INTEGRATOR_TAGS_Newmark:
-    return new Newmark();
-
-#ifdef _PARALLEL_PROCESSING
-  case INTEGRATOR_TAGS_DistributedDisplacementControl:
-    return new DistributedDisplacementControl();
-#endif
-
-  default:
-    opserr << "XaraClassBroker::getNewIncrementalIntegrator - ";
-    opserr << " - no IncrementalIntegrator type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
+
 
 LinearSOE *
 XaraClassBroker::getNewLinearSOE(int classTagSOE)
 {
-  LinearSOE *theSOE = nullptr;
-
-  switch (classTagSOE) {
-
-  case LinSOE_TAGS_SparseGenColLinSOE:
-    theSOE = new SparseGenColLinSOE();
-    return theSOE;
-
-#ifdef _PARALLEL_PROCESSING
-
-#ifdef _MUMPS
-  case LinSOE_TAGS_MumpsParallelSOE:
-    theSOE = new MumpsParallelSOE();
-    return theSOE;
-#endif
-
-#ifdef _PETSC
-  case LinSOE_TAGS_PetscSOE:
-    theSOE = new PetscSOE(*(new PetscSolver()));
-    return theSOE;
-#endif
-
-  case LinSOE_TAGS_DistributedBandGenLinSOE:
-
-    theSOE = new DistributedBandGenLinSOE();
-    return theSOE;
-
-  case LinSOE_TAGS_DistributedBandSPDLinSOE:
-
-    theSOE = new DistributedBandSPDLinSOE();
-    return theSOE;
-
-  case LinSOE_TAGS_DistributedProfileSPDLinSOE:
-
-    theSOE = new DistributedProfileSPDLinSOE();
-    return theSOE;
-
-  case LinSOE_TAGS_DistributedDiagonalSOE:
-
-    theSOE = new DistributedDiagonalSOE();
-    return theSOE;
-
-  case LinSOE_TAGS_DistributedSparseGenColLinSOE:
-
-    theSOE = new DistributedSparseGenColLinSOE();
-    return theSOE;
-
-#endif
-
-  default:
-    opserr << "XaraClassBroker::getNewLinearSOE - ";
-    opserr << " - no LinearSOE type exists for class tag ";
-    opserr << classTagSOE << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 EigenSOE *
 XaraClassBroker::getNewEigenSOE(int classTagSOE)
 {
-
-  switch (classTagSOE) {
-
-  default:
-    opserr << "XaraClassBroker::getNewEigenSOE - ";
-    opserr << " - no EigenSOE type exists for class tag ";
-    opserr << classTagSOE << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 DomainSolver *
