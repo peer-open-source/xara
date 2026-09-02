@@ -131,17 +131,6 @@ UmfpackSolver02::setLinearSOE(SparseGenCSC &soe)
   return 0;
 }
 
-int
-UmfpackSolver02::sendSelf(int, Channel &)
-{
-  return -1;
-}
-
-int
-UmfpackSolver02::recvSelf(int, Channel &, FEM_ObjectBroker &)
-{
-  return -1;
-}
 
 double
 UmfpackSolver02::getDeterminant()
