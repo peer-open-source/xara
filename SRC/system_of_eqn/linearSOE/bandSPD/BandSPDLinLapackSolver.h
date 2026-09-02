@@ -43,5 +43,6 @@ public:
   int solve() override;
   int solve(const Vector& B, Vector& X) override;
   int setSize() override;
+  bool requireDeterminant() override { return false; }
 };
 
