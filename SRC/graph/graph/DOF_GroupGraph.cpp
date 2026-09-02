@@ -34,8 +34,8 @@
 
 // constructs the Graph
 DOF_GroupGraph::DOF_GroupGraph(AnalysisModel &theModel)
-:Graph(theModel.getNumDOF_Groups()+START_VERTEX_NUM), 
- myModel(theModel)
+: Graph(theModel.getNumDOF_Groups()+START_VERTEX_NUM), 
+  myModel(theModel)
 {
 
     int numVertex = myModel.getNumDOF_Groups();
@@ -52,7 +52,6 @@ DOF_GroupGraph::DOF_GroupGraph(AnalysisModel &theModel)
     // and a tag which ranges from 0 through numVertex-1
 
     DOF_GrpIter &dofIter2 = theModel.getDOFs();
-    int count = START_VERTEX_NUM;
     while ((dofPtr = dofIter2()) != nullptr) {
         int DOF_GroupTag = dofPtr->getTag();
         int DOF_GroupNodeTag = dofPtr->getNodeTag();
@@ -67,8 +66,7 @@ DOF_GroupGraph::DOF_GroupGraph(AnalysisModel &theModel)
     
     FE_Element *elePtr;
     FE_EleIter &eleIter = myModel.getFEs();
-
-    while((elePtr = eleIter()) != 0) {
+    while((elePtr = eleIter()) != nullptr) {
         const ID &id = elePtr->getDOFtags();
         int size = id.Size();
         for (int i=0; i<size; i++) {

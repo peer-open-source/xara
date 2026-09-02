@@ -51,11 +51,11 @@ class ProfileSPDLinDirectBlockSolver : public ProfileSPDLinSolver
     virtual int solve();
     int solve(const Vector& B, Vector& X);
     virtual int setSize();
+    bool requireDeterminant() override { return false; }
+
 #if 0
     virtual int setProfileSOE(ProfileSPDLinSOE &theSOE);
 #endif
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
 
     
   protected:

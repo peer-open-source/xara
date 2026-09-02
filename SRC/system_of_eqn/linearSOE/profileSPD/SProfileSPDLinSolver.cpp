@@ -439,20 +439,3 @@ SProfileSPDLinSolver::factor(int n)
     return 0;
 }
 */
-
-int
-SProfileSPDLinSolver::sendSelf(int cTag,
-				    Channel &theChannel)
-{
-    return 0;
-}
-
-
-int 
-SProfileSPDLinSolver::recvSelf(int cTag,
-				    Channel &theChannel, 
-				    FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}
-

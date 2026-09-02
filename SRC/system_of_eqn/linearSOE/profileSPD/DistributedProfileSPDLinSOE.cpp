@@ -487,9 +487,6 @@ DistributedProfileSPDLinSOE::addB(const Vector &v, const ID &id, double fact)
   // check for a quick return 
   if (fact == 0.0)  return 0;
 
-  // check that m and id are of similar size
-  int idSize = id.Size();        
-
   if (fact == 1.0) { // do not need to multiply if fact == 1.0
     for (int i=0; i<id.Size(); i++) {
       int pos = id(i);

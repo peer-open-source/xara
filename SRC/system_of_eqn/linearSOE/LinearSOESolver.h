@@ -29,9 +29,7 @@
 // to solve a system of equations.
 //
 // What: "@(#) LinearSOESolver.h, revA"
-
-#ifndef LinearSOESolver_h
-#define LinearSOESolver_h
+#pragma once
 #include <MovableObject.h>
 
 class LinearSOE;
@@ -69,7 +67,9 @@ class LinearSOESolver : public MovableObject
     virtual int solve(const Vector& B, Vector& X) {return -1;}
     virtual int setSize() = 0;
     virtual double getDeterminant() {return 1.0;}
-};
 
-#endif
+    virtual bool requireDeterminant() {return false;};
+    virtual bool requireFormAp() {return false;};
+    virtual bool requireAsymmetric() {return false;};
+};
 

@@ -33,11 +33,9 @@ class MPIDiagonalSolver : public LinearSOESolver
     MPIDiagonalSolver(double minDiagTol=1.0e-18);    
     virtual ~MPIDiagonalSolver();
 
-    virtual int solve(void);
-    virtual int setSize(void);
-    virtual int setLinearSOE(MPIDiagonalSOE &theSOE);
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
+    int solve() override;
+    int setSize() override;
+    int setLinearSOE(MPIDiagonalSOE &theSOE);
 
     //    void intersectionsAB(ID& arrayA, int* arrayB, int sizeA, int sizeB, double* A, double* sharedA, double* B, double* sharedB);
     void intersectionsAB(ID& arrayA, int* arrayB, int sizeA, int sizeB, double* A, double* sharedA, double* B, double* sharedB, int* storage, int neighbor_pid);

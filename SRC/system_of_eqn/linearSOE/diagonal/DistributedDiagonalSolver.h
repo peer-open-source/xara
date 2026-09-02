@@ -48,9 +48,9 @@ class DistributedDiagonalSolver : public LinearSOESolver
 
     int setSize() override;
 
+    bool requireDeterminant() override { return false; }
+
     virtual int setLinearSOE(DistributedDiagonalSOE &);
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);    
     
   protected:
     DistributedDiagonalSOE *theSOE;

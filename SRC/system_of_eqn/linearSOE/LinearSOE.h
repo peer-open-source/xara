@@ -73,7 +73,7 @@ class LinearSOE : public MovableObject
     virtual void zeroA() =0;
     virtual void zeroB() =0;
 
-    virtual int formAp(const Vector &p, Vector &Ap);
+    virtual int formAp(const Vector &p, Vector &Ap) {return -1;};
 
     virtual const Vector &getX() = 0;
     virtual const Vector &getB() = 0;    
@@ -81,6 +81,9 @@ class LinearSOE : public MovableObject
     virtual int   getA(int row, int col, double &value) const {return -2;}
   
     virtual double getDeterminant();
+    // turn on determinant calculation in the solve; return false if not supported
+    virtual bool   requireDeterminant();
+  
     virtual double normRHS() {return this->getB().Norm();}
 
     virtual void setX(int loc, double value) =0;

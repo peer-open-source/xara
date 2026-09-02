@@ -824,7 +824,6 @@ Matrix::addMatrixTransposeProduct(double thisFact,
   return 0;
 }
 
-
 // to perform this += T' * B * T
 int
 Matrix::addMatrixTripleProduct(double thisFact, 
@@ -1530,8 +1529,12 @@ Matrix::Print(OPS_Stream &s, int flag) const
 {
   if (flag == 0) {
     for (int i=0; i<noRows(); i++) {
-      for (int j=0; j<noCols(); j++)
-          s <<  (*this)(i,j) << " ";
+      for (int j=0; j<noCols(); j++) {
+        double mij = (*this)(i,j);
+        if (fabs(mij) < 1e-10)
+          mij = 0.0;
+        s <<  mij << " ";
+      }
       s << "\n";
     }
   }

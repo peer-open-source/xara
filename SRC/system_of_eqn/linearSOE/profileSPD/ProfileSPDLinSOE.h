@@ -44,21 +44,23 @@ class ProfileSPDLinSOE : public LinearSOE
 
     virtual ~ProfileSPDLinSOE();
 
-    virtual int getNumEqn() const;
-    virtual int setSize(Graph &theGraph);
-    virtual int addA(const Matrix &, const ID &, double fact = 1.0);
+    int getNumEqn() const override;
+    int setSize(Graph &theGraph) override;
+    int addA(const Matrix &, const ID &, double fact = 1.0) override;
 
     virtual int addB(const Vector &, const ID &, double fact = 1.0);    
     virtual int setB(const Vector &, double fact = 1.0);
     
-    virtual void zeroA();
-    virtual void zeroB();
+    void zeroA() override;
+    void zeroB() override;
 
     virtual void setX(int loc, double value);
     virtual void setX(const Vector &x);
     
     virtual const Vector &getX();
     virtual const Vector &getB();
+
+    // int formAp(const Vector &p, Vector &Ap) override;
 
     virtual int setProfileSPDSolver(ProfileSPDLinSolver &newSolver);
 

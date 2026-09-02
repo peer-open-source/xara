@@ -39,9 +39,10 @@ class BandGenLinLapackSolver : public BandGenLinSolver
 
     int solve() override;
     int solve(const Vector& B, Vector& X) override;
-    int setSize();
+    int setSize() override;
 
-    virtual double getDeterminant() override;
+    double getDeterminant() override;
+    bool requireDeterminant() override { doDet = true; return true; }
     
   private:
     int *iPiv;

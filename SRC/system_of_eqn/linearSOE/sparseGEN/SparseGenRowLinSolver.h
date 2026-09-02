@@ -17,10 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-#ifndef SparseGenRowLinSolver_h
-#define SparseGenRowLinSolver_h
-
+//
 // $Revision: 1.1 $
 // $Date: 2005-04-08 02:38:18 $
 // $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/sparseGEN/SparseGenRowLinSolver.h,v $
@@ -36,8 +33,9 @@
 // are used to solve a system of equations of type SparseGenRowLinSOE.
 //
 // What: "@(#) SparseGenRowLinSolver.h, revA"
-
+#pragma once
 #include <LinearSOESolver.h>
+
 class SparseGenRowLinSOE;
 
 class SparseGenRowLinSolver : public LinearSOESolver
@@ -54,6 +52,3 @@ class SparseGenRowLinSolver : public LinearSOESolver
   private:
 
 };
-
-#endif
-

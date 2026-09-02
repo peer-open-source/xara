@@ -192,22 +192,6 @@ BandSPDLinThreadSolver::setSize()
 }
 
 
-int
-BandSPDLinThreadSolver::sendSelf(Channel &theChannel, 
-				 FEM_ObjectBroker &theBroker)
-{
-    // nothing to do
-    return 0;
-}
-
-int
-BandSPDLinThreadSolver::recvSelf(Channel &theChannel, 
-				 FEM_ObjectBroker &theBroker)
-{
-    // nothing to do
-    return 0;
-}
-
 
 
 

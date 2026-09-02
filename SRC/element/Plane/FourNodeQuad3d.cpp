@@ -34,8 +34,6 @@
 #include <string.h>
 #include <Information.h>
 #include <Parameter.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
 
@@ -795,245 +793,76 @@ FourNodeQuad3d::getResistingForceIncInertia()
   return P;
 }
 
-int
-FourNodeQuad3d::sendSelf(int commitTag, Channel &theChannel)
-{
-  int res = 0;
-  
-  // note: we don't check for dataTag == 0 for Element
-  // objects as that is taken care of in a commit by the Domain
-  // object - don't want to have to do the check if sending data
-  int dataTag = this->getDbTag();
-  
-  // Quad packs its data into a Vector and sends this to theChannel
-  // along with its dbTag and the commitTag passed in the arguments
-  static Vector data(10);
-  data(0) = this->getTag();
-  data(1) = thickness;
-  data(3) = b[0];
-  data(4) = b[1];
-  data(5) = pressure;
-
-  data(6) = alphaM;
-  data(7) = betaK;
-  data(8) = betaK0;
-  data(9) = betaKc;
-  
-  res += theChannel.sendVector(dataTag, commitTag, data);
-  if (res < 0) {
-    opserr << "WARNING FourNodeQuad3d::sendSelf() - " << this->getTag() << " failed to send Vector\n";
-    return res;
-  }	      
-  
-
-  // Now quad sends the ids of its materials
-  int matDbTag;
-  
-  static ID idData(12);
-  
-  int i;
-  for (i = 0; i < 4; i++) {
-    idData(i) = theMaterial[i]->getClassTag();
-    matDbTag = theMaterial[i]->getDbTag();
-    // NOTE: we do have to ensure that the material has a database
-    // tag if we are sending to a database channel.
-    if (matDbTag == 0) {
-      matDbTag = theChannel.getDbTag();
-			if (matDbTag != 0)
-			  theMaterial[i]->setDbTag(matDbTag);
-    }
-    idData(i+4) = matDbTag;
-  }
-  
-  idData(8) = connectedExternalNodes(0);
-  idData(9) = connectedExternalNodes(1);
-  idData(10) = connectedExternalNodes(2);
-  idData(11) = connectedExternalNodes(3);
-
-  res += theChannel.sendID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING FourNodeQuad3d::sendSelf() - " << this->getTag() << " failed to send ID\n";
-    return res;
-  }
-
-  // Finally, quad asks its material objects to send themselves
-  for (i = 0; i < 4; i++) {
-    res += theMaterial[i]->sendSelf(commitTag, theChannel);
-    if (res < 0) {
-      opserr << "WARNING FourNodeQuad3d::sendSelf() - " << this->getTag() << " failed to send its Material\n";
-      return res;
-    }
-  }
-  
-  return res;
-}
-
-int
-FourNodeQuad3d::recvSelf(int commitTag, Channel &theChannel,
-		       FEM_ObjectBroker &theBroker)
-{
-  int res = 0;
-  
-  int dataTag = this->getDbTag();
-
-  // Quad creates a Vector, receives the Vector and then sets the 
-  // internal data with the data in the Vector
-  static Vector data(10);
-  res += theChannel.recvVector(dataTag, commitTag, data);
-  if (res < 0) {
-    opserr << "WARNING FourNodeQuad3d::recvSelf() - failed to receive Vector\n";
-    return res;
-  }
-  
-  this->setTag((int)data(0));
-  thickness = data(1);
-  b[0] = data(3);
-  b[1] = data(4);
-  pressure = data(5);
-
-  alphaM = data(6);
-  betaK = data(7);
-  betaK0 = data(8);
-  betaKc = data(9);
-
-  static ID idData(12);
-  // Quad now receives the tags of its four external nodes
-  res += theChannel.recvID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING FourNodeQuad3d::recvSelf() - " << this->getTag() << " failed to receive ID\n";
-    return res;
-  }
-
-  connectedExternalNodes(0) = idData(8);
-  connectedExternalNodes(1) = idData(9);
-  connectedExternalNodes(2) = idData(10);
-  connectedExternalNodes(3) = idData(11);
-  
-
-  if (theMaterial == 0) {
-    // Allocate new materials
-    theMaterial = new NDMaterial *[4];
-    if (theMaterial == 0) {
-      opserr << "FourNodeQuad3d::recvSelf() - Could not allocate NDMaterial* array\n";
-      return -1;
-    }
-    for (int i = 0; i < 4; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+4);
-      // Allocate new material with the sent class tag
-      theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-      if (theMaterial[i] == 0) {
-	opserr << "FourNodeQuad3d::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
-	return -1;
-      }
-      // Now receive materials into the newly allocated space
-      theMaterial[i]->setDbTag(matDbTag);
-      res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) {
-opserr << "NLBeamColumn3d::recvSelf() - material " << i << "failed to recv itself\n";
-	return res;
-      }
-    }
-  }
-
-  // materials exist , ensure materials of correct type and recvSelf on them
-  else {
-    for (int i = 0; i < 4; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+4);
-      // Check that material is of the right type; if not,
-      // delete it and create a new one of the right type
-      if (theMaterial[i]->getClassTag() != matClassTag) {
-	delete theMaterial[i];
-	theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-	if (theMaterial[i] == 0) {
-opserr << "NLBeamColumn3d::recvSelf() - material " << i << "failed to create\n";
-				
-	  return -1;
-	}
-      }
-      // Receive the material
-      theMaterial[i]->setDbTag(matDbTag);
-      res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) {
-opserr << "NLBeamColumn3d::recvSelf() - material " << i << "failed to recv itself\n";
-	return res;
-      }
-    }
-  }
-  
-  return res;
-}
 
 void
 FourNodeQuad3d::Print(OPS_Stream &s, int flag)
 {
-    if (flag == 2) {
+  if (flag == 2) {
 
-        s << "#FourNodeQuad3d\n";
+      s << "#FourNodeQuad3d\n";
 
-        int i;
-        const int numNodes = 4;
-        const int nstress = 3;
+      int i;
+      const int numNodes = 4;
+      const int nstress = 3;
 
-        for (i = 0; i < numNodes; i++) {
-            const Vector &nodeCrd = theNodes[i]->getCrds();
-            const Vector &nodeDisp = theNodes[i]->getDisp();
-            s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << endln;
-        }
+      for (i = 0; i < numNodes; i++) {
+          const Vector &nodeCrd = theNodes[i]->getCrds();
+          const Vector &nodeDisp = theNodes[i]->getDisp();
+          s << "#NODE " << nodeCrd(0) << " " << nodeCrd(1) << " " << endln;
+      }
 
-        // spit out the section location & invoke print on the scetion
-        const int numMaterials = 4;
+      // spit out the section location & invoke print on the scetion
+      const int numMaterials = 4;
 
-        static Vector avgStress(nstress);
-        static Vector avgStrain(nstress);
-        avgStress.Zero();
-        avgStrain.Zero();
-        for (i = 0; i < numMaterials; i++) {
-            avgStress += theMaterial[i]->getStress();
-            avgStrain += theMaterial[i]->getStrain();
-        }
-        avgStress /= numMaterials;
-        avgStrain /= numMaterials;
+      static Vector avgStress(nstress);
+      static Vector avgStrain(nstress);
+      avgStress.Zero();
+      avgStrain.Zero();
+      for (i = 0; i < numMaterials; i++) {
+          avgStress += theMaterial[i]->getStress();
+          avgStrain += theMaterial[i]->getStrain();
+      }
+      avgStress /= numMaterials;
+      avgStrain /= numMaterials;
 
-        s << "#AVERAGE_STRESS ";
-        for (i = 0; i < nstress; i++)
-            s << avgStress(i) << " ";
-        s << endln;
+      s << "#AVERAGE_STRESS ";
+      for (i = 0; i < nstress; i++)
+          s << avgStress(i) << " ";
+      s << endln;
 
-        s << "#AVERAGE_STRAIN ";
-        for (i = 0; i < nstress; i++)
-            s << avgStrain(i) << " ";
-        s << endln;
-    }
-    
-    if (flag == OPS_PRINT_CURRENTSTATE) {
-        s << "\nFourNodeQuad3d, element id:  " << this->getTag() << endln;
-        s << "\tConnected external nodes:  " << connectedExternalNodes;
-        s << "\tthickness:  " << thickness << endln;
-        s << "\tsurface pressure:  " << pressure << endln;
-        s << "\tmass density:  " << rho << endln;
-        s << "\tbody forces:  " << b[0] << " " << b[1] << endln;
-        theMaterial[0]->Print(s, flag);
-        s << "\tStress (xx yy xy)" << endln;
-        for (int i = 0; i < 4; i++)
-            s << "\t\tGauss point " << i + 1 << ": " << theMaterial[i]->getStress();
-    }
-    
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << "\t\t\t{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"FourNodeQuad3d\", ";
-        s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
-        s << connectedExternalNodes(1) << ", ";
-        s << connectedExternalNodes(2) << ", ";
-        s << connectedExternalNodes(3) << "], ";
-        s << "\"thickness\": " << thickness << ", ";
-        s << "\"surfacePressure\": " << pressure << ", ";
-        s << "\"masspervolume\": " << rho << ", ";
-        s << "\"bodyForces\": [" << b[0] << ", " << b[1] << "], ";
-        s << "\"material\": \"" << theMaterial[0]->getTag() << "\"}";
-    }
+      s << "#AVERAGE_STRAIN ";
+      for (i = 0; i < nstress; i++)
+          s << avgStrain(i) << " ";
+      s << endln;
+  }
+  
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+      s << "\nFourNodeQuad3d, element id:  " << this->getTag() << endln;
+      s << "\tConnected external nodes:  " << connectedExternalNodes;
+      s << "\tthickness:  " << thickness << endln;
+      s << "\tsurface pressure:  " << pressure << endln;
+      s << "\tmass density:  " << rho << endln;
+      s << "\tbody forces:  " << b[0] << " " << b[1] << endln;
+      theMaterial[0]->Print(s, flag);
+      s << "\tStress (xx yy xy)" << endln;
+      for (int i = 0; i < 4; i++)
+          s << "\t\tGauss point " << i + 1 << ": " << theMaterial[i]->getStress();
+  }
+  
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+      s << OPS_PRINT_JSON_ELEM_INDENT << "{";
+      s << "\"name\": " << this->getTag() << ", ";
+      s << "\"type\": \"FourNodeQuad3d\", ";
+      s << "\"nodes\": [" << connectedExternalNodes(0) << ", ";
+      s << connectedExternalNodes(1) << ", ";
+      s << connectedExternalNodes(2) << ", ";
+      s << connectedExternalNodes(3) << "], ";
+      s << "\"thickness\": " << thickness << ", ";
+      s << "\"surfacePressure\": " << pressure << ", ";
+      s << "\"masspervolume\": " << rho << ", ";
+      s << "\"bodyForces\": [" << b[0] << ", " << b[1] << "], ";
+      s << "\"material\": \"" << theMaterial[0]->getTag() << "\"}";
+  }
 }
 
 

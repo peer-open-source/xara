@@ -292,28 +292,9 @@ ProfileSPDLinDirectThreadSolver::setProfileSOE(ProfileSPDLinSOE &theNewSOE)
     theSOE = &theNewSOE;
     return 0;
 }
-	
-int
-ProfileSPDLinDirectThreadSolver::sendSelf(int cTag,
-					  Channel &theChannel)
-{
-//     if (size != 0)
-// 	opserr << "ProfileSPDLinDirectThreadSolver::sendSelf - does not send itself YET\n"; 
-    return 0;
-}
 
-
-int 
-ProfileSPDLinDirectThreadSolver::recvSelf(int cTag,
-					  Channel &theChannel, 
-					  FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}
-
-
-
-void *ProfileSPDLinDirectThreadSolver_Worker(void *arg)
+void *
+ProfileSPDLinDirectThreadSolver_Worker(void *arg)
 {
   struct ProfileTCB* tcb = (struct ProfileTCB*)arg;
   // Do this loop forever - or until all the Non-Daemon threads have exited

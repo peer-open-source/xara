@@ -150,26 +150,3 @@ DistributedDiagonalSolver::solve()
   return 0;
 }
 
-
-int
-DistributedDiagonalSolver::sendSelf(int cTag,
-			       Channel &theChannel)
-{
-  static Vector data(1);
-  data(0) = minDiagTol;
-  return theChannel.sendVector(0, cTag, data);
-}
-
-
-int 
-DistributedDiagonalSolver::recvSelf(int cTag,
-			       Channel &theChannel, 
-			       FEM_ObjectBroker &theBroker)
-{
-  static Vector data(1);
-  theChannel.recvVector(0, cTag, data);
-
-  minDiagTol = data(0);
-  return 0;
-}
-

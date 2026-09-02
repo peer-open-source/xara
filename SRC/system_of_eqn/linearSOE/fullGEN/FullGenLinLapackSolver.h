@@ -26,9 +26,7 @@
 // Created: Tue Sep 26 16:27:47: 1996
 // Revision: A
 //
-#ifndef FullGenLinLapackSolver_h
-#define FullGenLinLapackSolver_h
-
+#pragma once
 #include "FullGenLinSolver.h"
 
 class FullGenLinLapackSolver : public FullGenLinSolver
@@ -37,13 +35,14 @@ class FullGenLinLapackSolver : public FullGenLinSolver
     FullGenLinLapackSolver();    
     ~FullGenLinLapackSolver();
 
-    int solve();
+    int solve() override;
     int solve(const Vector& B, Vector& X) override;
-    int setSize();
+    int setSize() override;
     
     virtual int setLinearSOE(FullGenLinSOE &theSOE);
 
-    virtual double getDeterminant() override;
+    bool requireDeterminant() override { return true; }
+    double getDeterminant() override ;
 
   private:
     int *iPiv;
@@ -52,6 +51,3 @@ class FullGenLinLapackSolver : public FullGenLinSolver
     FullGenLinSOE *theSOE;
     void setDeterminant();
 };
-
-#endif
-

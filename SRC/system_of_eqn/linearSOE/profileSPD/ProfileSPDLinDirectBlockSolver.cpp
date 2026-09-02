@@ -190,9 +190,9 @@ ProfileSPDLinDirectBlockSolver::solve(const Vector& vecB, Vector& vecX)
 
           // check that the diag > the tolerance specified
           if (ajj <= 0.0) {
-          // opserr << "ProfileSPDLinDirectBlockSolver::solve() - ";
-          // opserr << " aii < 0 (i, aii): (" << currentRow << ", " << ajj << ")\n"; 
-          return(-2);
+            // opserr << "ProfileSPDLinDirectBlockSolver::solve() - ";
+            // opserr << " aii < 0 (i, aii): (" << currentRow << ", " << ajj << ")\n"; 
+            return(-2);
           }
           if (ajj <= minDiagTol) {
             // opserr << "ProfileSPDLinDirectBlockSolver::solve() - ";
@@ -328,20 +328,3 @@ ProfileSPDLinDirectBlockSolver::setProfileSOE(ProfileSPDLinSOE &theNewSOE)
   return 0;
 }
 #endif
-	
-int
-ProfileSPDLinDirectBlockSolver::sendSelf(int cTag, Channel &theChannel)
-{
-  return 0;
-}
-
-
-int 
-ProfileSPDLinDirectBlockSolver::recvSelf(int cTag,
-					 Channel &theChannel, 
-					 FEM_ObjectBroker &theBroker)
-{
-  return 0;
-}
-
-

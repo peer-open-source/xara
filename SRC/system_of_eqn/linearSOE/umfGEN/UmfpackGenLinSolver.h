@@ -25,9 +25,7 @@
 // Written: fmk 
 // Created: 11/98
 //
-#ifndef UmfpackGenLinSolver_h
-#define UmfpackGenLinSolver_h
-
+#pragma once
 #include <LinearSOESolver.h>
 #include "../../../../OTHER/UMFPACK/umfpack.h"
 
@@ -39,16 +37,14 @@ class UmfpackGenLinSolver : public LinearSOESolver
     UmfpackGenLinSolver(bool doDet = false);     
     ~UmfpackGenLinSolver();
 
-    int solve();
+    int solve() override;
     int solve(const Vector& B, Vector& X) override;
-    int setSize();
+    int setSize() override;
 
     int setLinearSOE(UmfpackGenLinSOE &theSOE);
 
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker);
-
-    virtual double getDeterminant() override;
+    double getDeterminant() override;
+    bool requireDeterminant() override { doDet = true; return true;}
     
   private:
     void *Symbolic;
@@ -57,6 +53,3 @@ class UmfpackGenLinSolver : public LinearSOESolver
     double det;
     bool doDet;
 };
-
-#endif
-

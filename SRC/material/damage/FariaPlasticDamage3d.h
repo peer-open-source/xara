@@ -63,8 +63,6 @@ class FariaPlasticDamage3d : public NDMaterial
   const char *getType() const override;
   int getOrder() const override;
 
-  int sendSelf(int commitTag, Channel &) override;  
-  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;    
   void Print(OPS_Stream &s, int flag) override;
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &) override;

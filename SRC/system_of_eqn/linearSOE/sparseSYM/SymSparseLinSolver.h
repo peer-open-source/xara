@@ -25,8 +25,9 @@ class SymSparseLinSolver : public LinearSOESolver
     SymSparseLinSolver();     
     ~SymSparseLinSolver();
 
-    int solve();
-    int setSize();
+    int solve() override;
+    int solve(const Vector& B, Vector& X) override;
+    int setSize() override;
 
     int setLinearSOE(SymSparseLinSOE &theSOE); 
 

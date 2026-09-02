@@ -157,20 +157,3 @@ UmfpackGenLinSolver::setLinearSOE(UmfpackGenLinSOE &theLinearSOE)
     theSOE = &theLinearSOE;
     return 0;
 }
-
-int
-UmfpackGenLinSolver::sendSelf(int cTag, Channel &theChannel)
-{
-    // nothing to do
-    return 0;
-}
-
-int
-UmfpackGenLinSolver::recvSelf(int ctag,
-			      Channel &theChannel, 
-			      FEM_ObjectBroker &theBroker)
-{
-    // nothing to do
-    return 0;
-}
-

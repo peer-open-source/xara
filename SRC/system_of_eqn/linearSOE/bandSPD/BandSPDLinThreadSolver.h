@@ -34,10 +34,8 @@
 // using solaris threads.
 //
 // What: "@(#) BandSPDLinThreadSolver.h, revA"
-
-#ifndef BandSPDLinThreadSolver_h
-#define BandSPDLinThreadSolver_h
-
+//
+#pragma once
 #include <BandSPDLinSolver.h>
 
 class BandSPDLinThreadSolver : public BandSPDLinSolver
@@ -48,16 +46,9 @@ class BandSPDLinThreadSolver : public BandSPDLinSolver
 
     int solve() override;
     int setSize();
-    
-    int sendSelf(Channel &theChannel, FEM_ObjectBroker &theBroker);
-    int recvSelf(Channel &theChannel, FEM_ObjectBroker &theBroker);    
-    
+
   private:
     int NP;
     int running;
     int blockSize;
 };
-
-#endif
-
-
