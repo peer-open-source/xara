@@ -126,7 +126,8 @@ ShellMITC4::~ShellMITC4()
 }
 
 
-void ShellMITC4::setDomain(Domain *theDomain)
+void
+ShellMITC4::setDomain(Domain *theDomain)
 {
   Matrix3D ddMembrane;
 
@@ -198,7 +199,8 @@ ShellMITC4::getNodePtrs()
 }
 
 // return number of dofs
-int ShellMITC4::getNumDOF() 
+int
+ShellMITC4::getNumDOF() 
 {
   int sum = 0;
 
@@ -209,7 +211,8 @@ int ShellMITC4::getNumDOF()
 }
 
 
-int ShellMITC4::commitState()
+int
+ShellMITC4::commitState()
 {
   int success = 0;
 
@@ -237,7 +240,8 @@ ShellMITC4::revertToLastCommit()
 }
 
 // revert to start
-int ShellMITC4::revertToStart()
+int
+ShellMITC4::revertToStart()
 {
   int success = 0;
 
@@ -248,7 +252,8 @@ int ShellMITC4::revertToStart()
 }
 
 // print out element data
-void ShellMITC4::Print(OPS_Stream &s, int flag)
+void
+ShellMITC4::Print(OPS_Stream &s, int flag)
 {
   const ID& node_tags = this->getExternalNodes();
 
@@ -298,20 +303,21 @@ void ShellMITC4::Print(OPS_Stream &s, int flag)
   }
 
   if (flag == OPS_PRINT_CURRENTSTATE) {
-    s << endln;
+    s << "\n";
     s << "MITC4 Non-Locking Four Node Shell \n";
-    s << "Element Number: " << this->getTag() << endln;
-    s << "Node 1 : " << connectedExternalNodes(0) << endln;
-    s << "Node 2 : " << connectedExternalNodes(1) << endln;
-    s << "Node 3 : " << connectedExternalNodes(2) << endln;
-    s << "Node 4 : " << connectedExternalNodes(3) << endln;
+    s << "Element Number: " << this->getTag() << "\n";
+    s << "Node 1 : " << connectedExternalNodes(0) << "\n";
+    s << "Node 2 : " << connectedExternalNodes(1) << "\n";
+    s << "Node 3 : " << connectedExternalNodes(2) << "\n";
+    s << "Node 4 : " << connectedExternalNodes(3) << "\n";
 
     s << "Material Information : \n ";
     materialPointers[0]->Print(s, flag);
 
-    s << endln;
+    s << "\n";
   }
 }
+
 
 Response *
 ShellMITC4::setResponse(const char **argv, int argc,
@@ -757,7 +763,8 @@ int ShellMITC4::addLoad(ElementalLoad *theLoad, double loadFactor)
   }
 }
 
-int ShellMITC4::addInertiaLoadToUnbalance(const Vector &accel)
+int
+ShellMITC4::addInertiaLoadToUnbalance(const Vector &accel)
 {
   int tangFlag = 1;
   static Vector r(24);
@@ -1223,6 +1230,7 @@ ShellMITC4::formResidAndTangent(int tang_flag)
   }
   return;
 }
+
 
 // ************************************************************************
 // compute local coordinates and basis
@@ -1746,7 +1754,7 @@ int ShellMITC4::recvSelf(int commitTag, Channel &theChannel,
       if (materialPointers[i] == 0) {
         opserr << "ShellMITC4::recvSelf() - Broker could not create NDMaterial "
                   "of class type"
-               << matClassTag << endln;
+               << matClassTag << "\n";
         ;
         return -1;
       }
@@ -1773,7 +1781,7 @@ int ShellMITC4::recvSelf(int commitTag, Channel &theChannel,
         if (materialPointers[i] == 0) {
           opserr << "ShellMITC4::recvSelf() - Broker could not create "
                     "NDMaterial of class type"
-                 << matClassTag << endln;
+                 << matClassTag << "\n";
           exit(-1);
         }
       }
@@ -1790,6 +1798,7 @@ int ShellMITC4::recvSelf(int commitTag, Channel &theChannel,
 
   return res;
 }
+
 
 int
 ShellMITC4::setParameter(const char **argv, int argc, Parameter &param)
