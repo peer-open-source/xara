@@ -28,6 +28,7 @@
 #include <AxisAngle.h>
 #include <GroupSO3.h>
 #include "EuclidFrameTransf.h"
+#include <utility/Unroll.h>
 
 namespace OpenSees {
 
@@ -101,6 +102,8 @@ EuclidFrameTransf<nn,ndf,IsoT>::initialize(std::array<Node*, nn>& new_nodes)
     }
     // ensure the node is initialized
     nodes[i]->getTrialRotation();
+
+    ur[i] = AxisAngle(Eye3);
   }
   
   const Vector &XI = nodes[   0]->getCrds();
@@ -129,6 +132,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::initialize(std::array<Node*, nn>& new_nodes)
   int error = basis.initialize(nodes);
 
   R0 = basis.getRotation();
+  // R0 = basis.getInitialRotation();
   return error;
 }
 
@@ -161,6 +165,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::getInitialLength()
   return L;
 }
 
+
 template <int nn, int ndf, typename IsoT>
 double
 EuclidFrameTransf<nn,ndf,IsoT>::getDeformedLength()
@@ -176,6 +181,10 @@ template <int nn, int ndf, typename IsoT>
 int
 EuclidFrameTransf<nn,ndf,IsoT>::update() noexcept
 {
+  if ((offset_flags & LogIter) && !getenv("XARA_LOG_ITER")) {
+    skip_log_iter = true;
+  }
+
   if (basis.update(nodes) < 0) 
     return -1;
 
@@ -183,7 +192,11 @@ EuclidFrameTransf<nn,ndf,IsoT>::update() noexcept
 
   for (int i=0; i<nn; i++) {
     Versor q = nodes[i]->getTrialRotation();
-    ur[i] = AxisAngle(R^(MatrixFromVersor(q)*R0));
+    const Matrix3D Ri = R^(MatrixFromVersor(q)*R0);
+    ddur[i] = AxisAngle(Ri*ur[i].matrix().transpose());
+    ur[i] = AxisAngle(Ri);
+    // if (offset_flags & LogIter) 
+    //   ur[i] = ddur[i];
   }
 
   return 0;
@@ -202,7 +215,10 @@ Vector3D
 EuclidFrameTransf<nn,ndf,IsoT>::getNodeLocation(int node)
 {
   const Vector &Xn = nodes[node]->getCrds();
-  const Vector3D X3 {Xn[0], Xn[1], Xn[2]};
+  Vector3D X3 {Xn[0], Xn[1], Xn[2]};
+  if (offsets != nullptr) {
+    X3.addVector(1.0, (*offsets)[node], 1.0);
+  }
   Vector3D xn = basis.getRotation()^X3;
 
   xn += this->pullPosition<&Node::getTrialDisp>(node);
@@ -218,7 +234,10 @@ EuclidFrameTransf<nn,ndf,IsoT>::getNodePosition(int node)
   Vector3D u = this->pullPosition<&Node::getTrialDisp>(node);
   u -= basis.getPosition();
   const Vector& Xn = nodes[node]->getCrds();
-  const Vector3D X3 {Xn[0], Xn[1], Xn[2]};
+  Vector3D X3 {Xn[0], Xn[1], Xn[2]};
+  if (offsets != nullptr) {
+    X3.addVector(1.0, (*offsets)[node], 1.0);
+  }
   u += basis.getRotationDelta()^X3;
   return u;
 }
@@ -245,24 +264,24 @@ EuclidFrameTransf<nn,ndf,IsoT>::getStateVariation()
     }
   }
 
-  const Matrix3D& R = basis.getRotation();
 
   // -) Global Offsets
   // Do ui -= ri x wi
   if constexpr (ndf >= 6)
     if (offsets && !(offset_flags&OffsetLocal)) [[unlikely]] {
-      const std::array<Vector3D, nn>& offset = *offsets;
+      const std::array<Vector3D, nn> roffsets = this->getCurrentOffsets();
       for (int i=0; i<nn; i++) {
 
         const int j = i * ndf;
         Vector3D w {ul[j+3],ul[j+4],ul[j+5]};
 
-        ul.assemble(j, (R*offset[i]).cross(w), -1.0);
+        ul.assemble(j, roffsets[i].cross(w), -1.0);
       }
     }
 
   // 2) Isometry
   // 2.1) Rotation
+  const Matrix3D& R = basis.getRotation();
   for (int i=0; i<nn; i++) {
     const int j = i * ndf;
     ul.insert(j  , R^Vector3D{ul[j+0], ul[j+1], ul[j+2]}, 1.0);
@@ -270,6 +289,71 @@ EuclidFrameTransf<nn,ndf,IsoT>::getStateVariation()
   }
 
   // 2.2) Projection
+  {
+    const Vector3D wr = basis.getRotationVariation(ndf, &ul[0]);
+    const Vector3D dc = basis.getPositionVariation(ndf, &ul[0]);
+
+    for (int i=0; i<nn; i++) {
+      Vector3D ui = this->getNodePosition(i);
+      ul.assemble(i*ndf+0, dc, -1.0);
+      ul.assemble(i*ndf+0, ui.cross(wr), 1.0);
+      ul.assemble(i*ndf+3, wr, -1.0);
+    }
+  }
+
+  // -) Offsets
+  if constexpr (ndf >= 6)
+    if (offsets && (offset_flags&OffsetLocal)) [[unlikely]] {
+      const std::array<Vector3D, nn>& offset = *offsets;
+      for (int i=0; i<nn; i++) {
+
+        const int j = i * ndf;
+        Vector3D w {ul[j+3],ul[j+4],ul[j+5]};
+
+        ul.assemble(j, offset[i].cross(w), -1.0);
+      }
+    }
+
+  // 3) Element parameters
+  if (!(offset_flags & LogIter)) {
+    for (int i=0; i<nn; i++) {
+      const int j = i * ndf+3;
+      Vector3D v {ul[j+0], ul[j+1], ul[j+2]};
+      ul.insert(i*ndf+3, ur[i].dLog(v), 1.0);
+    }
+  }
+
+  return ul;
+}
+
+
+template <int nn, int ndf, typename IsoT>
+// VectorND<nn*ndf>
+void
+EuclidFrameTransf<nn,ndf,IsoT>::pull(VectorND<nn*ndf>& ul, const Matrix3D& R, int op)
+{
+
+  // static VectorND<nn*ndf> ul;
+  // for (int i=0; i<nn; i++) {
+  //   const Vector &ddu = nodes[i]->getIncrDeltaDisp();
+  //   for (int j = 0; j < ndf; j++) {
+  //     ul[i*ndf+j] = ddu(j);
+  //   }
+  // }
+
+
+  // 2) Isometry
+  // 2.1) Rotation
+  if (op & Transform::Rotation) {
+    for (int i=0; i<nn; i++) {
+      const int j = i * ndf;
+      ul.insert(j  , R^Vector3D{ul[j+0], ul[j+1], ul[j+2]}, 1.0);
+      ul.insert(j+3, R^Vector3D{ul[j+3], ul[j+4], ul[j+5]}, 1.0);
+    }
+  }
+
+  // 2.2) Projection
+  if (op & Transform::Adjoint)
   {
     const Vector3D wr = basis.getRotationVariation(ndf, &ul[0]);
     const Vector3D dc = basis.getPositionVariation(ndf, &ul[0]);
@@ -304,21 +388,22 @@ EuclidFrameTransf<nn,ndf,IsoT>::getStateVariation()
     }
   }
 
-  return ul;
+  // return ul;
 }
 
 //
 // Push
 //
+
+
 template <int nn, int ndf, typename IsoT>
-// VectorND<nn*ndf>
 int
 EuclidFrameTransf<nn,ndf,IsoT>::push(VectorND<nn*ndf>&p, int op)
 {
   VectorND<nn*ndf>& pa = p;
 
   // 3) Element Parameters
-  if (op & Transform::Logarithm) {
+  if ((op & Transform::Logarithm) && !skip_log_iter ) { // (offset_flags & LogIter)) {
     for (int i=0; i<nn; i++) {
       Vector3D m {pa[i*ndf + 3], pa[i*ndf + 4], pa[i*ndf + 5]};
       pa.insert(i*ndf + 3, ur[i].dLog()^m, 1.0);
@@ -330,17 +415,22 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(VectorND<nn*ndf>&p, int op)
   if (op & Transform::Adjoint) {
 
     // a) Sum of moments: m = sum_i mi + sum_i (xi x ni)
-    Vector3D m{};
+    Vector3D M{}, N{};
     for (int i=0; i<nn; i++) {
+      const int l = i*ndf;
+      Vector3D ni {pa[l+0], pa[l+1], pa[l+2]};
       // m += mi
       for (int j=0; j<3; j++)
-        m[j] += pa[i*ndf+3+j];
+        M[j] += pa[i*ndf+3+j];
       // m += xi x ni
-      m += this->getNodeLocation(i).cross(Vector3D{pa[i*ndf+0], pa[i*ndf+1], pa[i*ndf+2]});
+      M += this->getNodeLocation(i).cross(ni);
+      N += ni;
     }
     // b) Adjust
-    for (int i=0; i<nn; i++)
-      pa.template assemble<6>(i*ndf, basis.getRotationGradient(i)^m, -1.0);
+    for (int i=0; i<nn; i++) {
+      pa.template assemble<6>(i*ndf, basis.getRotationGradient(i)^M, -1.0);
+      pa.template assemble<6>(i*ndf, basis.getTranslationGradient(i)^N, -1.0);
+    }
   }
 
   // if (op == Transform::Isometry)
@@ -356,24 +446,42 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(VectorND<nn*ndf>&p, int op)
     }
   }
 
-  // -) Offset
+  // 1) Offset
   if (offsets != nullptr) [[unlikely]] {
-    if (!(offset_flags&OffsetLocal))  {
-      for (int i=0; i<nn; i++) {
-        const int j = i * ndf;
-        Vector3D w {pa[j+3], pa[j+4], pa[j+5]};
-        pa.assemble(j, (R*offsets->at(i)).cross(w), -1.0);
-      }
-    }
-    else {
-      for (int i=0; i<nn; i++) {
-        const int j = i * ndf;
-        Vector3D w {pa[j+3], pa[j+4], pa[j+5]};
-        pa.assemble(j, offsets->at(i).cross(w), -1.0);
-      }
+    const std::array<Vector3D, nn> roffsets = this->getCurrentOffsets();
+    for (int i=0; i<nn; i++) {
+      const int j = i * ndf;
+      const Vector3D ni {pa[j+0], pa[j+1], pa[j+2]};
+      pa.assemble(j+3, roffsets[i].cross(ni), 1.0);
     }
   }
   return 0;
+}
+
+
+template <int nn, int ndf, typename IsoT>
+VectorND<6>
+EuclidFrameTransf<nn,ndf,IsoT>::getWrench(const VectorND<nn*ndf>& p)
+{
+  Vector3D M{}, N{};
+  for (int i=0; i<nn; i++) {
+    const int l = i*ndf;
+    Vector3D ni {p[l+0], p[l+1], p[l+2]};
+    Vector3D mi = //(offset_flags & LogIter) ?
+      Vector3D{p[l+3], p[l+4], p[l+5]} ;//:
+      // ur[i].dLog()^Vector3D{p[l+3], p[l+4], p[l+5]};
+    // m += mi
+    M += mi;
+    // m += xi x ni
+    M += this->getNodeLocation(i).cross(ni);
+    N += ni;
+  }
+  VectorND<6> w;
+  for (int i=0; i<3; i++) {
+    w[i]   = N[i];
+    w[i+3] = M[i];
+  }
+  return w;
 }
 
 
@@ -383,6 +491,9 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
                                      const VectorND<nn*ndf>& pb, 
                                      int op)
 {
+
+  const double flip = getenv("XARA_FLIP")? 1.0 : -1.0;
+
   VectorND<nn*ndf> p = pb;
   for (int i=0; i<nn; i++) {
     for (int j=0; j<ndf-6; j++) {
@@ -392,17 +503,19 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
 
   MatrixND<nn*ndf,nn*ndf> Kb = kb;
   // 1) Element parameters
-  if (op & Transform::Logarithm) {
+  if ((op & Transform::Logarithm)  && !skip_log_iter) { // (offset_flags & LogIter)) {
   // if (op != Transform::Rotation) {// && (op != Transform::Bubnov)) {//!(offset_flags & LogIter)) {
     for (int i=0; i<nn; i++) {
       Vector3D m{pb[i*ndf+3], pb[i*ndf+4], pb[i*ndf+5]};
-      const Matrix3D Ai = ur[i].dLog();
+      AxisAngle& ur_i = (offset_flags & LogIter) ? ddur[i] : ur[i];
+      const Matrix3D Ai = ur_i.dLog();
       p.insert(i*ndf+3, Ai^m, 1.0);
 
-      const Matrix3D kg = ur[i].ddLog(m);
+      const Matrix3D kg = ur_i.ddLog(m);
 
       for (int j=0; j<nn; j++) {
-        const Matrix3D Aj = ur[j].dLog();
+        AxisAngle& ur_j = (offset_flags & LogIter) ? ddur[j] : ur[j];
+        const Matrix3D Aj = ur_j.dLog();
         // loop over 3x3 blocks for n and m
         for (int k=0; k<2; k++) {
           for (int l=0; l<2; l++) {
@@ -432,7 +545,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
   // 2) Isometry
   //
   // 2.2) Projection
-  // 2.2.1) Kl = A ^ k * A
+  // 2.2.1) Kl = A ^ k * A ...
   // if ((op & Transform::Adjoint) || (op & Transform::Tangent))
   {
     MatrixND<nn*ndf,nn*ndf>& Kl = kb;
@@ -442,9 +555,8 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
     else
       Kl.addMatrixTripleProduct(0, A, Kb, 1);
 
-
     const VectorND<nn*ndf> Ap = A^p;
-
+#if 0
     // 2.2.2) Kl += Kw * A
     {
       VectorND<nn*6> qwx{};
@@ -469,7 +581,33 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
         }
       }
     }
+#else 
+    {
+      const VectorND<6> pw = this->getWrench(p);
+      // VectorND<nn*ndf> Ap = A^p;
+      if (op != Transform::Bubnov) [[likely]] {
 
+        if constexpr (ndf == 6) {
+          Kl -= basis.getHessian(pw);
+        }
+        else {
+          const MatrixND<6*nn,6*nn> Kw = basis.getHessian(pw);
+          Unroll<0,nn>([&](auto aa) {
+            constexpr int a = decltype(aa)::value;
+            Unroll<0,nn>([&](auto bb) {
+              constexpr int b = decltype(bb)::value;
+              Kl.assemble(
+                Kw.template extract<6*a, 6*(a+1), 6*b, 6*(b+1)>(),
+                a*ndf,
+                b*ndf,
+                -1.0
+              );
+            });
+          });
+        }
+      }
+    }
+#endif
     //
     // Kl += -W'*Pn'*A  - Pnm * W
     //
@@ -487,9 +625,9 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
         }
       }
       if (op != Transform::Bubnov)
-        Kl.addMatrixTransposeProduct(1.0, Kb, A,  -1.0);
+        Kl.addMatrixTransposeProduct(1.0, Kb, A,  -1.0*flip);
     }
-  }
+  } // Projection
 
 
   //
@@ -497,6 +635,24 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
   //
   // Kl = diag(R) * Kl * diag(R)^T
   FrameTransform<nn,ndf>::pushRotation(kb, basis.getRotation());
+
+  // 1) Offsets
+  if (op & Transform::Offset && offsets != nullptr) [[unlikely]] {
+    //
+    // a) a'*k*a
+    //
+    const std::array<Vector3D, nn> roffsets = this->getCurrentOffsets();
+    this->pushOffsets(kb, roffsets);
+    //
+    // b) += kg
+    //
+    p = pb;
+    this->push(p, Transform::Total);// Transform::Adjoint|Transform::Rotation|Transform::Offset);
+    for (int i=0; i<nn; i++) {
+      kb.assemble(Hat(&p[i*ndf])*Hat(roffsets[i]), i*ndf+3, i*ndf+3, 1.0);
+    }
+  }
+
   return 0;
 }
 
@@ -545,6 +701,133 @@ EuclidFrameTransf<nn,ndf,IsoT>::getd1overLdh()
 
 template <int nn, int ndf, typename IsoT>
 void
+EuclidFrameTransf<nn,ndf,IsoT>::pushGrad(VectorND<nn*ndf>& dp,
+                                    VectorND<nn*ndf>& pl)
+{  
+  //
+  // dp += T_{gl} dpl
+  //
+  double dL = this->getLengthGrad();
+  double doneOverL = -dL/(L*L);
+
+  constexpr Vector3D iv{1, 0, 0};
+#if 1
+  // 1.1) Sum of moments: m = sum_i mi + sum_i (xi x ni)
+  Vector3D m{};
+  for (int i=0; i<nn; i++) {
+    // m += mi
+    for (int j=0; j<3; j++)
+      m[j] += pl[i*ndf+3+j];
+
+    const Vector3D n = Vector3D{pl[i*ndf+0], pl[i*ndf+1], pl[i*ndf+2]};
+    m.addVector(1, iv.cross(n), double(i)/double(nn-1)*L);
+  }
+  const Vector3D ixm = iv.cross(m);
+
+  // 1.2) Adjust force part
+  for (int i=0; i<nn; i++)
+    dp.assemble(i*ndf,  ixm,  (i? 1.0:-1.0)*doneOverL);
+#else 
+#endif
+
+  // 2) Rotate and do joint offsets
+
+  //
+  // dp = T_{lg}' pl
+  //
+  // int dv = 0; // TODO
+  // int di = nodes[0]->getCrdsSensitivity();
+  // int dj = nodes[1]->getCrdsSensitivity();
+
+  Matrix3D R = basis.getRotation();
+  for (int i=0; i<nn; i++) {
+    const int base = i * ndf;
+    dp.assemble(base,    R*Vector3D{dp[base  ], dp[base+1], dp[base+2]}, 1.0);
+    dp.assemble(base+3,  R*Vector3D{dp[base+3], dp[base+4], dp[base+5]}, 1.0);
+  }
+
+  this->push(pl, Transform::Adjoint);
+  Matrix3D dR = basis.getRotationSensitivity(nodes);
+  
+  for (int i=0; i<nn; i++) {
+    const int base = i * ndf;
+    dp.assemble(base,   dR*Vector3D{pl[base  ], pl[base+1], pl[base+2]}, 1.0);
+    dp.assemble(base+3, dR*Vector3D{pl[base+3], pl[base+4], pl[base+5]}, 1.0);
+  }
+
+
+  return;
+}
+
+
+template <int nn, int ndf, typename IsoT>
+void
+EuclidFrameTransf<nn,ndf,IsoT>::pullFixedGrad(VectorND<nn*ndf>& du)
+{
+  //
+  // dub += (T_{bl}' T_{lg}  +   T_{bl} T_{lg}') * ug
+  //
+
+  //
+  // Form ug
+  //
+  VectorND<nn*ndf> ug;
+  for (int i = 0; i < nn; i++) {
+    const Vector& u = nodes[i]->getTrialDisp();
+    for (int j = 0; j < ndf; j++) {
+      ug[i*ndf+j] = u(j);
+    }
+  }
+
+
+  // TODO: Sensitivity
+
+  //
+  // du = Tbl dR^ug
+  {
+    Matrix3D dR = basis.getRotationSensitivity(nodes);
+  
+    VectorND<nn*ndf> u1 = ug;
+    EuclidFrameTransf<nn,ndf,IsoT>::pull(u1, dR, Transform::Total);
+    du += u1;
+  }
+
+  {
+    // double dL = this->getLengthGrad();
+    // double doneOverL = -dL/(L*L);
+    // double length = L;
+    // L = 1/doneOverL;
+    // VectorND<nn*ndf> u2 = ug;
+    // EuclidFrameTransf<nn,ndf,IsoT>::pull(u2, R, offsets, offset_flags);
+    // L = length; // restore
+    // du += u2;
+  }
+  return;
+}
+
+
+template <int nn, int ndf, typename IsoT>
+void
+EuclidFrameTransf<nn,ndf,IsoT>::pullTotalGrad(VectorND<nn*ndf>& du, int gradNumber)
+{
+  for (int n=0; n<nn; n++)
+    for (int i = 0; i < ndf; i++) {
+      du[i + n*ndf] = nodes[n]->getDispSensitivity((i + 1), gradNumber);
+    }
+
+  // dub = T_{bl} T_{lg} * ug'
+  const Matrix3D R = basis.getRotation();
+  this->pull(du, R, Transform::Total);
+
+  // dub += (T_{bl}' T_{lg}  +   T_{bl} T_{lg}') * ug
+  this->pullFixedGrad(du);
+
+  return;
+}
+
+
+template <int nn, int ndf, typename IsoT>
+void
 EuclidFrameTransf<nn,ndf,IsoT>::Print(OPS_Stream &s, int flag)
 {
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
@@ -555,7 +838,42 @@ EuclidFrameTransf<nn,ndf,IsoT>::Print(OPS_Stream &s, int flag)
       << vz[0] << ", " 
       << vz[1] << ", "
       << vz[2] << "]";
+
+    //
+    // Rotation parameters
+    //
+    s << ", \"internal_rotation\": ";
+    if (offset_flags & LogIter)
+      s << "\"Iter\"";
+    else if (offset_flags & LogIncr)
+      s << "\"Incr\"";
+    else
+      s << "\"Init\"";
+    
+    s << ", \"external_rotations\": [";
+    for (int i=0; i<nn; i++) {
+      switch (external_rotation_type[i]) {
+        case Rotations::Parameters::None:
+          s << "\"None\"";
+          break;
+        case Rotations::Parameters::Init:
+          s << "\"Init\"";
+          break;
+        case Rotations::Parameters::Incr:
+          s << "\"Incr\"";
+          break;
+        case Rotations::Parameters::Iter:
+          s << "\"Iter\"";
+          break;
+      }
+      if (i < nn-1)
+        s << ", ";
+    }
+    s << "]";
+
+    //
     if (offsets != nullptr) {
+      s << ", \"offset_basis\": " << (offset_flags & OffsetLocal ? "\"local\"" : "\"global\"");
       s << ", \"offsets\": [";
       for (int i=0; i<nn; i++) {
         s << "["
