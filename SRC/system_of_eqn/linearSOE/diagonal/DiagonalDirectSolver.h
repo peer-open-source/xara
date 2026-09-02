@@ -45,7 +45,8 @@ class DiagonalDirectSolver : public DiagonalSolver
     int solve() override;
     int solve(const Vector& B, Vector& X) override;
     int setSize() override;
-    double getDeterminant();
+    double getDeterminant() override;
+    bool requireDeterminant() override { return true; }
 #if 0 
     virtual int setDiagonalSOE(DiagonalSOE &theSOE);
 #endif
