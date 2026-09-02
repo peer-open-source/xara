@@ -71,8 +71,6 @@ class J2PlaneStrain : public J2Plasticity {
 		   double rho = 0) ;
 
 
-  //elastic constructor
-  J2PlaneStrain( int tag, double K, double G );
   ~J2PlaneStrain();
 
   NDMaterial* getCopy() final;
@@ -98,9 +96,6 @@ class J2PlaneStrain : public J2Plasticity {
   int revertToLastCommit( );
   int revertToStart();
 
-
-  int sendSelf(int commitTag, Channel &) ;  
-  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) ;
 
 protected:
   // matrix index to tensor index mapping
