@@ -57,7 +57,7 @@ Init_PartitionRuntime(Tcl_Interp* interp, MachineBroker* theMachineBroker, FEM_O
   PartitionRuntime *part = new PartitionRuntime{theMachineBroker, theBroker};
 
   //
-  // set some global parameters
+  // set global parameters
   //
   if (theMachineBroker->getPID() == 0) {
   
