@@ -115,7 +115,7 @@ class Brick02 : public Element {
                          NST = 6,  // number of stress components
                          NDOF = NEN*NDF;
 
-    ID connectedExternalNodes;       // node tags
+    ID conn;       // node tags
     std::array<Node *, NEN> theNodes; // pointers to nodes
 
     // material information
