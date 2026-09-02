@@ -82,9 +82,6 @@ class TransientDomainDecompositionAnalysis: public DomainDecompositionAnalysis
     int setEigenSOE(EigenSOE &theSOE);
     int setConvergenceTest(ConvergenceTest &theTest);
 
-    // methods to send/receive
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
   private:
     ConstraintHandler         *theConstraintHandler;
