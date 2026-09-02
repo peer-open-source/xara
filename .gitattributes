@@ -8,13 +8,13 @@
 SRC/reliability/** linguist-vendored
 SRC/tagged/** linguist-vendored
 SRC/threads/** linguist-vendored
-SRC/graph/** linguist-vendored
 SRC/actor/** linguist-vendored
 SRC/handler/**  linguist-vendored
 SRC/damping/**  linguist-vendored
 SRC/recorder/** linguist-vendored
 SRC/database/** linguist-vendored
 SRC/material/ucsd/** linguist-vendored
+SRC/material/uniaxial/** linguist-vendored
 SRC/material/Plane/** linguist-vendored
 SRC/material/Solid/** linguist-vendored
 SRC/mpm/linear_solvers/** linguist-vendored
