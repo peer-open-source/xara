@@ -51,7 +51,6 @@ public:
              Element::MassSource mass_source
             );
 
-  SixNodeTri();
   ~SixNodeTri();
 
   const char *getClassType() const { return "SixNodeTri"; }
