@@ -48,7 +48,7 @@ double Tri31::pts[1][2];
 double Tri31::wts[1];
 
 Tri31::Tri31(int tag, 
-             std::array<int,3> &nodes,
+             const std::array<int,3> &nodes,
              NDMaterial &m,
              double thickness,
              double p, double r, 
@@ -79,22 +79,7 @@ Tri31::Tri31(int tag,
     } 
 }
 
-Tri31::Tri31()
- : Element (0,ELE_TAG_Tri31),
-   connectedExternalNodes(NEN), 
-   Q(6), pressureLoad(6), 
-   thickness(0.0), 
-   pressure(0.0),
-   Ki(nullptr)
-{
-    pts[0][0] = 0.333333333333333;
-    pts[0][1] = 0.333333333333333;
 
-    wts[0] = 0.5;
-
-    for (int i=0; i<NEN; i++)
-      theNodes[i] = nullptr;
-}
 
 Tri31::~Tri31()
 {    
@@ -172,6 +157,7 @@ Tri31::setDomain(Domain *theDomain)
     // Compute consistent nodal loads due to pressure
     this->setPressureLoadAtNodes();
 }
+
 
 int
 Tri31::commitState()
@@ -253,6 +239,7 @@ Tri31::update()
 
     return ret;
 }
+
 
 const Matrix&
 Tri31::getTangentStiff()                                                                    
@@ -432,7 +419,7 @@ Tri31::addInertiaLoadToUnbalance(const Vector &accel)
     static double rhoi[NIP];
     double sum = 0.0;
     for (int i = 0; i < NIP; i++) {
-        if(rho == 0) {
+        if (rho == 0) {
             rhoi[i] = theMaterial[i]->getRho();
         } else {
             rhoi[i] = rho;
@@ -473,18 +460,17 @@ Tri31::addInertiaLoadToUnbalance(const Vector &accel)
     return 0;
 }
 
+
 const Vector&
 Tri31::getResistingForce()
 {
     P.Zero();
 
-    double dvol;
-
     // Loop over the integration points
     for (int i = 0; i < NIP; i++) {
 
         // Determine Jacobian for this integration point
-        dvol = this->shapeFunction(pts[i][0], pts[i][1]);
+        double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
         dvol *= (thickness*wts[i]);
 
         // Get material stress response
@@ -531,11 +517,11 @@ Tri31::getResistingForceIncInertia()
     double rhoi[1]; //NIP
     double sum = 0.0;
     for (int i = 0; i < NIP; i++) {
-            if(rho == 0) {
-        rhoi[i] = theMaterial[i]->getRho();
-            } else {
-                rhoi[i] = rho;
-            }
+        if (rho == 0) {
+            rhoi[i] = theMaterial[i]->getRho();
+        } else {
+            rhoi[i] = rho;
+        }
         sum += rhoi[i];
     }
 
@@ -544,7 +530,8 @@ Tri31::getResistingForceIncInertia()
         this->getResistingForce();
 
         // add the damping forces if rayleigh damping
-        if (betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0) P += this->getRayleighDampingForces();
+        if (betaK != 0.0 || betaK0 != 0.0 || betaKc != 0.0)
+          P += this->getRayleighDampingForces();
 
         return P;
     }
@@ -573,166 +560,6 @@ Tri31::getResistingForceIncInertia()
     return P;
 }
 
-int
-Tri31::sendSelf(int commitTag, Channel &theChannel)                                                           
-{
-    int res = 0;
-  
-    // note: we don't check for dataTag == 0 for Element
-    // objects as that is taken care of in a commit by the Domain
-    // object - don't want to have to do the check if sending data
-    int dataTag = this->getDbTag();
-  
-    // Tri31 packs its data into a Vector and sends this to theChannel
-    // along with its dbTag and the commitTag passed in the arguments
-    static Vector data(10);
-    data(0) = this->getTag();
-    data(1) = thickness;
-    data(3) = b[0];
-    data(4) = b[1];
-    data(5) = pressure;
-
-    data(6) = alphaM;
-    data(7) = betaK;
-    data(8) = betaK0;
-    data(9) = betaKc;
-  
-    res += theChannel.sendVector(dataTag, commitTag, data);
-    if (res < 0) {
-        opserr << "WARNING Tri31::sendSelf() - " << this->getTag() << " failed to send Vector\n";
-        return res;
-    }          
-  
-    // Now send the ids of our materials
-    int count=0;
-  
-    static ID idData(2*NIP+NEN+1);
-
-    for (int i = 0; i < NIP; i++) { 
-        idData(i) = theMaterial[i]->getClassTag();
-        int matDbTag = theMaterial[i]->getDbTag();
-        // NOTE: we do have to ensure that the material has a database
-        // tag if we are sending to a database channel.
-        if (matDbTag == 0) {
-            matDbTag = theChannel.getDbTag();
-            if (matDbTag != 0) 
-                theMaterial[i]->setDbTag(matDbTag);
-        }
-        idData(i+NIP) = matDbTag;
-    }
-    count += 2*NIP;
-    idData(count) = connectedExternalNodes(0); count += 1;
-    idData(count) = connectedExternalNodes(1); count += 1;
-    idData(count) = connectedExternalNodes(2);
-
-    res += theChannel.sendID(dataTag, commitTag, idData);
-    if (res < 0) {
-        opserr << "WARNING Tri31::sendSelf() - " << this->getTag() << " failed to send ID\n";
-        return res;
-    }
-
-    // Finally, Tri31 asks its material objects to send themselves
-    for (int i = 0; i < NIP; i++) {
-        res += theMaterial[i]->sendSelf(commitTag, theChannel);
-        if (res < 0) {
-            opserr << "WARNING Tri31::sendSelf() - " << this->getTag() << " failed to send its Material\n";
-            return res;
-        }
-    }
-  
-    return res;
-}
-
-int
-Tri31::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)                                 
-{
-    int res = 0;
-
-    int dataTag = this->getDbTag();
-
-    // Tri31 creates a Vector, receives the Vector and then sets the 
-    // internal data with the data in the Vector
-    static Vector data(10);
-    res += theChannel.recvVector(dataTag, commitTag, data);
-    if (res < 0) {
-        opserr << "WARNING Tri31::recvSelf() - failed to receive Vector\n";
-        return res;
-    }
-
-    this->setTag((int)data(0));
-    thickness = data(1);
-    b[0] = data(3);
-    b[1] = data(4);
-    pressure = data(5);
-
-    alphaM = data(6);
-    betaK  = data(7);
-    betaK0 = data(8);
-    betaKc = data(9);
-
-    static ID idData(2*NIP+NEN+1);
-    // Tri31 now receives the tags of its four external nodes
-    res += theChannel.recvID(dataTag, commitTag, idData);
-    if (res < 0) {
-        opserr << "WARNING Tri31::recvSelf() - " << this->getTag() << " failed to receive ID\n";
-        return res;
-    }
-
-    int count = 2*NIP;
-
-    connectedExternalNodes(0) = idData(count); count += 1;
-    connectedExternalNodes(1) = idData(count); count += 1;
-    connectedExternalNodes(2) = idData(count);
-
-    if (theMaterial[0] == nullptr) {
-        // Allocate new materials
-        for (int i = 0; i < NIP; i++) {
-            int matClassTag = idData(i);
-            int matDbTag = idData(i+NIP);
-            // Allocate new material with the sent class tag
-            theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-            if (theMaterial[i] == 0) {
-                opserr << "Tri31::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << "\n";
-                return -1;
-            }
-            // Now receive materials into the newly allocated space
-            theMaterial[i]->setDbTag(matDbTag);
-            res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
-            if (res < 0) {
-                opserr << "NLBeamColumn3d::recvSelf() - material " << i << "failed to recv itself\n";
-                return res;
-            }
-        }
-    }
-
-    // materials exist , ensure materials of correct type and recvSelf on them
-    else {
-        for (int i = 0; i < NIP; i++) {
-            int matClassTag = idData(i);
-            int matDbTag = idData(i+NIP);
-            // Check that material is of the right type; if not,
-            // delete it and create a new one of the right type
-            if (theMaterial[i]->getClassTag() != matClassTag) {
-                delete theMaterial[i];
-                theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-                if (theMaterial[i] == 0) {
-                    opserr << "NLBeamColumn3d::recvSelf() - material " << i << "failed to create\n";
-                    
-                    return -1;
-                }
-            }
-            // Receive the material
-            theMaterial[i]->setDbTag(matDbTag);
-            res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
-            if (res < 0) {
-                opserr << "NLBeamColumn3d::recvSelf() - material " << i << "failed to recv itself\n";
-                return res;
-            }
-        }
-    }
-
-    return res;
-}
 
 void
 Tri31::Print(OPS_Stream &s, int flag)                                                                 
