@@ -36,10 +36,7 @@
 // are used to solve a system of equations of type ProfileSPDLinSOE.
 //
 // What: "@(#) ProfileSPDLinSolver.h, revA"
-
-#ifndef ProfileSPDLinSolver_h
-#define ProfileSPDLinSolver_h
-
+#pragma once
 #include <LinearSOESolver.h>
 class ProfileSPDLinSOE;
 
@@ -49,7 +46,7 @@ class ProfileSPDLinSolver : public LinearSOESolver
     ProfileSPDLinSolver(int classTag);    
     virtual ~ProfileSPDLinSolver();
 
-    virtual int solve(void) = 0;
+    virtual int solve() = 0;
     virtual int setLinearSOE(ProfileSPDLinSOE &theSOE);
     
   protected:
@@ -58,6 +55,3 @@ class ProfileSPDLinSolver : public LinearSOESolver
   private:
 
 };
-
-#endif
-
