@@ -29,10 +29,8 @@
 //   http://www.nersc.gov/research/SCG/Osni/marques_software.html
 //
 // What: "@(#) ProfileSPDLinDirectSkypackSolver.h, revA"
-
-#ifndef ProfileSPDLinDirectSkypackSolver_h
-#define ProfileSPDLinDirectSkypackSolver_h
-
+//
+#pragma once
 #include <ProfileSPDLinSolver.h>
 class ProfileSPDLinSOE;
 
@@ -44,7 +42,8 @@ class ProfileSPDLinDirectSkypackSolver : public ProfileSPDLinSolver
     virtual ~ProfileSPDLinDirectSkypackSolver();
 
     virtual int solve();
-    virtual int setSize();    
+    virtual int setSize();
+    bool requireDeterminant() override { return false; }
 
     virtual int setProfileSOE(ProfileSPDLinSOE &theSOE);
 
@@ -59,7 +58,3 @@ class ProfileSPDLinDirectSkypackSolver : public ProfileSPDLinSolver
     int block[3];
 
 };
-
-
-#endif
-
