@@ -18,7 +18,7 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// Written: fmk 
+// Written: fmk
 // Created: 11/96
 // Revision: A
 //
@@ -32,7 +32,7 @@
 #include <Vector.h>
 
 Vertex::Vertex(int tag, int ref, double weight, int color)
-:TaggedObject(tag), myRef(ref), myWeight(weight), myColor(color), 
+:TaggedObject(tag), myRef(ref), myWeight(weight), myColor(color),
  myDegree(0), myTmp(0)
  , myAdjacency(0, 8)
 {
@@ -40,8 +40,8 @@ Vertex::Vertex(int tag, int ref, double weight, int color)
 }
 
 
-Vertex::Vertex(const Vertex &other) 
-:TaggedObject(other.getTag()), myRef(other.myRef), myWeight(other.myWeight), myColor(other.myColor), 
+Vertex::Vertex(const Vertex &other)
+:TaggedObject(other.getTag()), myRef(other.myRef), myWeight(other.myWeight), myColor(other.myColor),
  myDegree(other.myDegree), myTmp(0)
  , myAdjacency(other.myAdjacency)
 {
@@ -51,63 +51,63 @@ Vertex::Vertex(const Vertex &other)
 Vertex::~Vertex()
 {
 
-}    
+}
 
-void 
-Vertex::setWeight(double newWeight) 
-{ 
+void
+Vertex::setWeight(double newWeight)
+{
   myWeight = newWeight;
 }
 
-void 
-Vertex::setColor(int newColor) 
+void
+Vertex::setColor(int newColor)
 {
   myColor = newColor;
 }
 
-void 
-Vertex::setTmp(int newTmp) 
+void
+Vertex::setTmp(int newTmp)
 {
   myTmp = newTmp;
 }
 
-int 
-Vertex::getRef() const 
+int
+Vertex::getRef() const
 {
   return myRef;
 }
 
 double
-Vertex::getWeight() const 
+Vertex::getWeight() const
 {
   return myWeight;
 }
 
-int 
+int
 Vertex::getColor() const
 {
   return myColor;
 }
 
-int 
+int
 Vertex::getTmp() const
 {
   return myTmp;
 }
 
-int 
+int
 Vertex::addEdge(int otherTag)
 {
-  // don't allow itself to be added
+  // Self-loops are rejected; return 1 ("already present") so Graph::addEdge
+  // does not treat this as a newly inserted edge and inflate numEdge.
   if (otherTag == this->getTag())
-    return 0;
+    return 1;
 
-  // check the otherVertex has not already been added
   return myAdjacency.insert(otherTag);
 }
 
 
-int 
+int
 Vertex::getDegree() const
 {
   return myDegree;
@@ -124,20 +124,20 @@ Vertex::Print(OPS_Stream &s, int flag)
 {
     s << this->getTag() << " " ;
     s << myRef << " ";
-    if (flag == 1) 
-	s << myWeight << " " ;
+    if (flag == 1)
+  s << myWeight << " " ;
     else if (flag == 2)
-	s << myColor << " " ;
+  s << myColor << " " ;
     else if (flag == 3)
-        s << myWeight << " " << myColor << " " ;    
+        s << myWeight << " " << myColor << " " ;
     else if (flag == 4)
       s << " weight: " << myWeight << " color: " << myColor << " tmp: " << myTmp << " " ;
 
-    s << "ADJACENCY: " << myAdjacency;    	
+    s << "ADJACENCY: " << myAdjacency;
 }
 
 
-int 
+int
 Vertex::sendSelf(int commitTag, Channel &theChannel)
 {
   // send the tag/ref/color/degree/tmp, an indication if weighted & size of adjacency
@@ -166,19 +166,19 @@ Vertex::sendSelf(int commitTag, Channel &theChannel)
       opserr << "Graph::rendSelf() - failed to receive the weight\n";
       return -2;
     }
-  }    
+  }
 
   // finally send the adjacency
   if (theChannel.sendID(0, commitTag, myAdjacency) < 0) {
     opserr << "Graph::sendSelf() - failed to receive the adjacency data\n";
     return -1;
-  }  
+  }
 
   return 0;
 }
 
 
-int 
+int
 Vertex::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
 {
   // recv the tag/ref/color/degree/tmp, an indication if weighted & size of adjacency
@@ -201,7 +201,7 @@ Vertex::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker
       return -2;
     }
     myWeight = vectData(0);
-  }    
+  }
 
   // resize the adjacency & receive it
   //  myAdjacency[idData(6)-1] = 0;
