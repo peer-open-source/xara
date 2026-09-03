@@ -53,8 +53,7 @@ class ItpackLinSOE : public LinearSOE
     void zeroB();
     
     const Vector &getX();
-    const Vector &getB();    
-    double normRHS();
+    const Vector &getB();
 
     void setX(int loc, double value);
     void setX(const Vector &x);
