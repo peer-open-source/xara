@@ -27,7 +27,7 @@
 #include <ID.h>
 
 int
-TclCommand_addMeshRegion(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_region(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                  TCL_Char ** const argv)
 {
   Domain& theDomain = *static_cast<Domain*>(clientData);
