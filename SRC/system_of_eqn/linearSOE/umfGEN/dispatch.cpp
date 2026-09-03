@@ -29,7 +29,6 @@ TclDispatch_newUmfpackLinearSOE(ClientData clientData,
                                 const char** const argv)
 {
   int factLVALUE = 10;
-  int factorOnce = 0;
   bool doDet = false;
 
   int count = 2;
@@ -39,11 +38,6 @@ TclDispatch_newUmfpackLinearSOE(ClientData clientData,
         (strcmp(argv[count], "-LVALUE") == 0)) {
       if (count+1 < argc && Tcl_GetInt(interp, argv[count + 1], &factLVALUE) != TCL_OK)
         return nullptr;
-      count++;
-    }
-    else if ((strcmp(argv[count], "-factorOnce") == 0) ||
-               (strcmp(argv[count], "-FactorOnce") == 0)) {
-      factorOnce = 1;
       count++;
     }
     else if ((strcmp(argv[count], "-printTime") == 0) ||
