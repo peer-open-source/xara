@@ -40,7 +40,6 @@ public:
                double b2,
                Element::MassSource mass_source
   );
-  EightNodeQuad();
   ~EightNodeQuad();
 
   const char *getClassType() const { return "EightNodeQuad"; }
@@ -69,10 +68,6 @@ public:
 
   const Vector &getResistingForce();   
   const Vector &getResistingForceIncInertia();   
-
-  // Methods of MovableObject
-  int sendSelf(int commitTag, Channel &);
-  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
   // Methods of TaggedObject
   void Print(OPS_Stream &s, int flag);
