@@ -729,11 +729,10 @@ XaraCmd_printA(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char
   //
   // Form the tangent
   //
-  TransientIntegrator *oldint = nullptr;
-
   // construct integrator here so that it is not
   // destructed when the `if` scope ends
   GimmeMCK integrator(m, c, k, ki);
+  TransientIntegrator *oldint = nullptr;
   if (do_mck) {
     oldint = builder->getTransientIntegrator();
     builder->set(integrator, false);
@@ -803,7 +802,8 @@ XaraCmd_printA(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_Char
   if (oldSOE != nullptr)
     builder->set(oldSOE, true);
 
-  builder->unset(integrator);
+  if (do_mck)
+    builder->unset(integrator);
   if (oldint != nullptr)
     builder->set(*oldint, true);
 
