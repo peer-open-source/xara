@@ -54,7 +54,6 @@ class Matrix;
 class Element;
 class Node;
 class Response;
-class FE_Datastore;
 class Response;
 
 class RemoveRecorder: public Recorder
