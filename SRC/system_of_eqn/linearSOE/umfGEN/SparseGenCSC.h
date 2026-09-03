@@ -27,7 +27,7 @@ public:
 
     // LinearSOE takes ownership of the supplied solver.
     explicit SparseGenCSC(UmfpackSolver02 &,
-                             std::size_t maxScatterBytes = DefaultScatterCacheSize);
+                          std::size_t maxScatterBytes = DefaultScatterCacheSize);
     SparseGenCSC();
     ~SparseGenCSC() override;
 
@@ -47,7 +47,6 @@ public:
 
     const Vector &getX() override;
     const Vector &getB() override;
-    double normRHS() override;
 
     void setX(int loc, double value) override;
     void setX(const Vector &x) override;
@@ -63,9 +62,6 @@ public:
     int*    rawPointers()   { return Ap.data(); }
     int*    rawRowIndices() { return Ai.data(); }
     double* rawValues()  { return Ax.data(); }
-
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
     friend class UmfpackSolver02;
 
