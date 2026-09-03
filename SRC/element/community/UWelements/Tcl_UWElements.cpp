@@ -316,7 +316,7 @@ TclCommand_SSPquadUP(ClientData clientData, Tcl_Interp* interp,
 
 
   // LM change
-  if (argc < 13) {
+  if (argc < 15) {
     opserr << "Invalid #args, want: element SSPquadUP eleTag? iNode? jNode? "
               "kNode? lNode? matTag? t? fBulk? fDen? k1? k2? e? alpha? <b1? "
               "b2?> <Pup? Plow? Pleft? Pright?>?\n";
@@ -337,7 +337,7 @@ TclCommand_SSPquadUP(ClientData clientData, Tcl_Interp* interp,
   int tag;
   if (Tcl_GetInt(interp, argv[argi], &tag) != TCL_OK) {
     opserr << "WARNING invalid tag " << argv[argi]
-           << endln;
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
   argi++;
@@ -349,7 +349,7 @@ TclCommand_SSPquadUP(ClientData clientData, Tcl_Interp* interp,
     }
     if (Tcl_GetInt(interp, argv[argi], &nodes[i]) != TCL_OK) {
       opserr << "WARNING invalid node tag " << argv[argi]
-            << endln;
+            << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
     argi++;
