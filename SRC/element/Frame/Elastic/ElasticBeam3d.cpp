@@ -712,7 +712,8 @@ ElasticBeam3d::getResistingForceIncInertia()
     P(6) += m * accel2(0);
     P(7) += m * accel2(1);
     P(8) += m * accel2(2);
-  } else  {
+  }
+  else {
     // use matrix vector multip. for consistent mass matrix
     static Vector accel(12);
     for (int i=0; i<6; i++)  {
