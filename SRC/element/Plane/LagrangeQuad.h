@@ -77,11 +77,8 @@ public:
   int getResponse(int responseID, Information& eleInformation);
 
   // Inherited from TaggedObject
-  void Print(OPS_Stream& s, int flag = 0);
+  void Print(OPS_Stream& s, int flag);
 
-  // Inherited from MovableObject
-  int sendSelf(int tag, Channel&);
-  int recvSelf(int tag, Channel&, FEM_ObjectBroker&);
 
   // Sensitivity
 #if 0
