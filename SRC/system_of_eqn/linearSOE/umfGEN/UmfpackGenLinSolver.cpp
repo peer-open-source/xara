@@ -44,9 +44,9 @@ UmfpackGenLinSolver::UmfpackGenLinSolver(bool doDet_)
 
 UmfpackGenLinSolver::~UmfpackGenLinSolver()
 {
-    if (Symbolic != nullptr) {
-	umfpack_di_free_symbolic(&Symbolic);
-    }
+  if (Symbolic != nullptr) {
+    umfpack_di_free_symbolic(&Symbolic);
+  }
 }
 
 double
@@ -120,40 +120,40 @@ UmfpackGenLinSolver::solve(const Vector& Bv, Vector& Xv)
 int
 UmfpackGenLinSolver::setSize()
 {
-    // set default control parameters
-    umfpack_di_defaults(Control);
-    Control[UMFPACK_PIVOT_TOLERANCE] = 1.0;
-    Control[UMFPACK_STRATEGY] = UMFPACK_STRATEGY_SYMMETRIC;
+  // set default control parameters
+  umfpack_di_defaults(Control);
+  Control[UMFPACK_PIVOT_TOLERANCE] = 1.0;
+  Control[UMFPACK_STRATEGY] = UMFPACK_STRATEGY_SYMMETRIC;
 
-    int n = theSOE->X.Size();
-    int nnz = (int)theSOE->Ai.size();
-    if (n == 0 || nnz==0) return 0;
-    
-    int* Ap = &(theSOE->Ap[0]);
-    int* Ai = &(theSOE->Ai[0]);
-    double* Ax = &(theSOE->Ax[0]);
+  int n = theSOE->X.Size();
+  int nnz = (int)theSOE->Ai.size();
+  if (n == 0 || nnz==0) return 0;
+  
+  int* Ap = &(theSOE->Ap[0]);
+  int* Ai = &(theSOE->Ai[0]);
+  double* Ax = &(theSOE->Ax[0]);
 
-    // symbolic analysis
-    if (Symbolic != nullptr) {
-      umfpack_di_free_symbolic(&Symbolic);
-    }
+  // symbolic analysis
+  if (Symbolic != nullptr) {
+    umfpack_di_free_symbolic(&Symbolic);
+  }
 
-    //  perform a column pre-ordering to reduce fill-in
-    //  and a symbolic factorization.
-    int status = umfpack_di_symbolic(n,n,Ap,Ai,Ax,&Symbolic,Control,Info);
+  //  perform a column pre-ordering to reduce fill-in
+  //  and a symbolic factorization.
+  int status = umfpack_di_symbolic(n,n,Ap,Ai,Ax,&Symbolic,Control,Info);
 
-    // check error
-    if (status!=UMFPACK_OK) {
-      // opserr<<"WARNING: symbolic analysis returns "<<status<<" -- Umfpackgenlinsolver::setsize\n";
-      Symbolic = 0;
-      return -1;
-    }
-    return 0;
+  // check error
+  if (status!=UMFPACK_OK) {
+    // opserr<<"WARNING: symbolic analysis returns "<<status<<" -- Umfpackgenlinsolver::setsize\n";
+    Symbolic = 0;
+    return -1;
+  }
+  return 0;
 }
 
 int
 UmfpackGenLinSolver::setLinearSOE(UmfpackGenLinSOE &theLinearSOE)
 {
-    theSOE = &theLinearSOE;
-    return 0;
+  theSOE = &theLinearSOE;
+  return 0;
 }
