@@ -103,18 +103,6 @@ EightNodeQuad::EightNodeQuad(int tag,
   }
 }
 
-EightNodeQuad::EightNodeQuad()
-: Element(0,ELE_TAG_EightNodeQuad),
-  theMaterial{},
-  connectedExternalNodes(NEN),
-  Q(NEN*2), 
-  applyLoad(0), 
-  pressureLoad(NEN*2), thickness(0.0), pressure(0.0), Ki(0),
-  mass_source(Element::MassSource::Element)
-{
-  for (int i=0; i<NEN; i++)
-    theNodes[i] = nullptr;
-}
 
 EightNodeQuad::~EightNodeQuad()
 {
@@ -403,7 +391,7 @@ EightNodeQuad::getMass()
     for (int j=0; j<NEN; j++) {
       for (int k=0; k<NEN; k++) {
         double m = shp[2][j]*shp[2][k]*rhoi[i]*dvol;
-        K(j*2, k*2) += m;
+        K(j*2, k*2)     += m;
         K(j*2+1, k*2+1) += m;
       }
     }
@@ -448,79 +436,11 @@ EightNodeQuad::addLoad(ElementalLoad *theLoad, double loadFactor)
   return -1;
 }
 
-// int
-// EightNodeQuad::addInertiaLoadToUnbalance(const Vector &accel)
-// {
-//   static double rhoi[nip];
-//   double sum = 0.0;
-//   for (int i = 0; i < nip; i++) {
-//     switch (mass_source) {
-//       case Element::MassSource::Element:
-//         rhoi[i] = rho;
-//         break;
-//       case Element::MassSource::Material:
-//         rhoi[i] = theMaterial[i]->getRho();
-//         break;
-//     }
-//     sum += rhoi[i];
-//   }
-
-//   if (sum == 0.0)
-//     return 0;
-
-//   // Get R * accel from the nodes
-//   const Vector &Raccel1 = theNodes[0]->getRV(accel);
-//   const Vector &Raccel2 = theNodes[1]->getRV(accel);
-//   const Vector &Raccel3 = theNodes[2]->getRV(accel);
-//   const Vector &Raccel4 = theNodes[3]->getRV(accel);
-//   const Vector &Raccel5 = theNodes[4]->getRV(accel);
-//   const Vector &Raccel6 = theNodes[5]->getRV(accel);
-//   const Vector &Raccel7 = theNodes[6]->getRV(accel);
-//   const Vector &Raccel8 = theNodes[7]->getRV(accel);
-
-//   if (2 != Raccel1.Size() || 2 != Raccel2.Size() || 2 != Raccel3.Size() ||
-//       2 != Raccel4.Size() || 2 != Raccel5.Size() || 2 != Raccel6.Size() ||
-//       2 != Raccel7.Size() || 2 != Raccel8.Size()) {
-//     opserr << "EightNodeQuad::addInertiaLoadToUnbalance matrix and vector sizes are incompatible\n";
-//     return -1;
-//   }
-
-//   static double ra[NEN*2];
-
-//   ra[0] = Raccel1(0);
-//   ra[1] = Raccel1(1);
-//   ra[2] = Raccel2(0);
-//   ra[3] = Raccel2(1);
-//   ra[4] = Raccel3(0);
-//   ra[5] = Raccel3(1);
-//   ra[6] = Raccel4(0);
-//   ra[7] = Raccel4(1);
-//   ra[8] = Raccel5(0);
-//   ra[9] = Raccel5(1);
-//   ra[10] = Raccel6(0);
-//   ra[11] = Raccel6(1);
-//   ra[12] = Raccel7(0);
-//   ra[13] = Raccel7(1);
-//   ra[14] = Raccel8(0);
-//   ra[15] = Raccel8(1);
-
-//   // Compute mass matrix
-//   const Matrix& M = this->getMass();
-
-//   // Want to add ( - fact * M R * accel ) to unbalance
-//   // Take advantage of lumped mass matrix
-//   for (int i = 0; i < 2*NEN; i++)
-//     Q(i) += -M(i,i)*ra[i];
-
-//   return 0;
-// }
-
 
 const Vector&
 EightNodeQuad::getResistingForce()
 {
   P.Zero();
-
 
   // Loop over the integration points
   for (int i = 0; i < nip; i++) {
@@ -548,7 +468,7 @@ EightNodeQuad::getResistingForce()
             P(ia) -= dvol*(shp[2][alpha]*b[0]);
             P(ia+1) -= dvol*(shp[2][alpha]*b[1]);
         } else {
-            P(ia) -= dvol*(shp[2][alpha]*appliedB[0]);
+            P(ia)   -= dvol*(shp[2][alpha]*appliedB[0]);
             P(ia+1) -= dvol*(shp[2][alpha]*appliedB[1]);
         }
     }
@@ -571,7 +491,7 @@ EightNodeQuad::getResistingForce()
 const Vector&
 EightNodeQuad::getResistingForceIncInertia()
 {
-  static double rhoi[nip];
+  double rhoi[nip]{};
   double sum = 0.0;
   for (int i = 0; i < nip; i++) {
     switch (mass_source) {
@@ -626,166 +546,6 @@ EightNodeQuad::getResistingForceIncInertia()
   return P;
 }
 
-int
-EightNodeQuad::sendSelf(int commitTag, Channel &theChannel)
-{
-  int res = 0;
-
-  // note: we don't check for dataTag == 0 for Element
-  // objects as that is taken care of in a commit by the Domain
-  // object - don't want to have to do the check if sending data
-  int dataTag = this->getDbTag();
-
-  // Quad packs its data into a Vector and sends this to theChannel
-  // along with its dbTag and the commitTag passed in the arguments
-  static Vector data(9);
-  data(0) = this->getTag();
-  data(1) = thickness;
-  data(2) = b[0];
-  data(3) = b[1];
-  data(4) = pressure;
-
-  data(5) = alphaM;
-  data(6) = betaK;
-  data(7) = betaK0;
-  data(8) = betaKc;
-
-  res += theChannel.sendVector(dataTag, commitTag, data);
-  if (res < 0) {
-    opserr << "WARNING EightNodeQuad::sendSelf() - " << this->getTag() << " failed to send Vector\n";
-    return res;
-  }
-
-
-  // Now quad sends the ids of its materials
-  int matDbTag;
-
-  static ID idData(2*nip+NEN);
-
-  int i;
-  for (i = 0; i < nip; i++) {
-    idData(i) = theMaterial[i]->getClassTag();
-    matDbTag = theMaterial[i]->getDbTag();
-    // NOTE: we do have to ensure that the material has a database
-    // tag if we are sending to a database channel.
-    if (matDbTag == 0) {
-      matDbTag = theChannel.getDbTag();
-            if (matDbTag != 0)
-              theMaterial[i]->setDbTag(matDbTag);
-    }
-    idData(i+nip) = matDbTag;
-  }
-
-  for (int i = 0; i < NEN; i++)
-    idData(2*nip+i) = connectedExternalNodes(i);
-
-  res += theChannel.sendID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING EightNodeQuad::sendSelf() - " << this->getTag() << " failed to send ID\n";
-    return res;
-  }
-
-  // Finally, quad asks its material objects to send themselves
-  for (int i = 0; i < nip; i++) {
-    res += theMaterial[i]->sendSelf(commitTag, theChannel);
-    if (res < 0) {
-      opserr << "WARNING EightNodeQuad::sendSelf() - " << this->getTag() << " failed to send its Material\n";
-      return res;
-    }
-  }
-
-  return res;
-}
-
-int
-EightNodeQuad::recvSelf(int commitTag, Channel &theChannel,
-                       FEM_ObjectBroker &theBroker)
-{
-  int res = 0;
-
-  int dataTag = this->getDbTag();
-
-  // Quad creates a Vector, receives the Vector and then sets the
-  // internal data with the data in the Vector
-  static Vector data(9);
-  res += theChannel.recvVector(dataTag, commitTag, data);
-  if (res < 0) {
-    opserr << "WARNING EightNodeQuad::recvSelf() - failed to receive Vector\n";
-    return res;
-  }
-
-  this->setTag((int)data(0));
-  thickness = data(1);
-  b[0] = data(2);
-  b[1] = data(3);
-  pressure = data(4);
-
-  alphaM = data(5);
-  betaK = data(6);
-  betaK0 = data(7);
-  betaKc = data(8);
-
-  static ID idData(2*nip+NEN);
-  // Quad now receives the tags of its nine external nodes
-  res += theChannel.recvID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING EightNodeQuad::recvSelf() - " << this->getTag() << " failed to receive ID\n";
-    return res;
-  }
-
-  for (int i = 0; i < NEN; i++)
-    connectedExternalNodes(i) = idData(2*nip+i);
-
-  if (theMaterial[0] == nullptr) 
-  {
-    // Allocate new materials
-    // theMaterial = new NDMaterial *[nip];
-    for (int i = 0; i < nip; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+nip);
-      // Allocate new material with the sent class tag
-      theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-      if (theMaterial[i] == nullptr) {
-        opserr << "EightNodeQuad::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
-        return -1;
-      }
-      // Now receive materials into the newly allocated space
-      theMaterial[i]->setDbTag(matDbTag);
-      res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) {
-        opserr << "EightNodeQuad::recvSelf() - material " << i << "failed to recv itself\n";
-        return res;
-      }
-    }
-  }
-
-  // materials exist , ensure materials of correct type and recvSelf on them
-  else {
-    for (int i = 0; i < nip; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+nip);
-      // Check that material is of the right type; if not,
-      // delete it and create a new one of the right type
-      if (theMaterial[i]->getClassTag() != matClassTag) {
-        delete theMaterial[i];
-        theMaterial[i] = theBroker.getNewNDMaterial(matClassTag);
-        if (theMaterial[i] == 0) {
-          opserr << "EightNodeQuad::recvSelf() - material " << i << "failed to create\n";
-          return -1;
-        }
-      }
-      // Receive the material
-      theMaterial[i]->setDbTag(matDbTag);
-      res += theMaterial[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) {
-        opserr << "EightNodeQuad::recvSelf() - material " << i << "failed to recv itself\n";
-        return res;
-      }
-    }
-  }
-
-  return res;
-}
 
 void
 EightNodeQuad::Print(OPS_Stream &s, int flag)
@@ -1325,9 +1085,9 @@ EightNodeQuad::setPressureLoadAtNodes()
   pressureLoad(7) += pressure*fac1*-dx74;
 
   // Contribution from side 48
-  pressureLoad(6) += pressure*fac1*dy48;
+  pressureLoad( 6) += pressure*fac1*dy48;
   pressureLoad(14) += pressure*fac2*dy48;
-  pressureLoad(7) += pressure*fac1*-dx48;
+  pressureLoad( 7) += pressure*fac1*-dx48;
   pressureLoad(15) += pressure*fac2*-dx48;
 
   // Contribution from side 81
