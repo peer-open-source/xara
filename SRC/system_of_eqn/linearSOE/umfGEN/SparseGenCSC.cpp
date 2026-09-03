@@ -28,12 +28,7 @@ SparseGenCSC::SparseGenCSC(UmfpackSolver02 &theSolver,
 SparseGenCSC::SparseGenCSC()
   : LinearSOE(-1),
     X(), B(), Ap(), Ai(), Ax(),
-#if 1
     cache(DefaultScatterCacheSize)
-#else
-    scatterCache(), scatterCacheBytes(0),
-    maxScatterCacheBytes(DefaultScatterCacheSize)
-#endif
 {
 
 }
@@ -114,6 +109,10 @@ SparseGenCSC::addA(const Matrix &m, const ID &id, double fact)
   if (fact == 0.0) {
     return 0;
   }
+
+  // Reset the solver so that it will refactor the matrix on the next solve
+  if (this->getSolver())
+    this->getSolver()->reset();
 
   const int idSize = id.Size();
   if (idSize != m.noRows() || idSize != m.noCols()) {
@@ -230,13 +229,16 @@ SparseGenCSC::setB(const Vector &v, double fact)
 void
 SparseGenCSC::zeroA()
 {
-    std::fill(Ax.begin(), Ax.end(), 0.0);
+  if (this->getSolver())
+    this->getSolver()->reset();
+
+  std::fill(Ax.begin(), Ax.end(), 0.0);
 }
 
 void
 SparseGenCSC::zeroB()
 {
-    B.Zero();
+  B.Zero();
 }
 
 const Vector &
@@ -251,39 +253,23 @@ SparseGenCSC::getB()
     return B;
 }
 
-double
-SparseGenCSC::normRHS()
-{
-    return B.Norm();
-}
 
 void
 SparseGenCSC::setX(int loc, double value)
 {
-    if (loc >= 0 && loc < X.Size()) {
-        X(loc) = value;
-    }
+  if (loc >= 0 && loc < X.Size()) {
+      X(loc) = value;
+  }
 }
 
 void
 SparseGenCSC::setX(const Vector &x)
 {
-    if (x.Size() == X.Size()) {
-        X = x;
-    }
+  if (x.Size() == X.Size()) {
+      X = x;
+  }
 }
 
-int
-SparseGenCSC::sendSelf(int, Channel &)
-{
-    return 0;
-}
-
-int
-SparseGenCSC::recvSelf(int, Channel &, FEM_ObjectBroker &)
-{
-    return 0;
-}
 
 bool
 SparseGenCSC::CellCache::Scatter::matches(const ID &id) const
