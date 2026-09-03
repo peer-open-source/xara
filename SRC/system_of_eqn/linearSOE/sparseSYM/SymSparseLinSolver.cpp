@@ -122,8 +122,8 @@ SymSparseLinSolver::solve(const Vector& vecB, Vector& vecX)
 int
 SymSparseLinSolver::setSize()
 {
-    // nothing to do
-    return 0;
+  // nothing to do
+  return 0;
 }
 
 
