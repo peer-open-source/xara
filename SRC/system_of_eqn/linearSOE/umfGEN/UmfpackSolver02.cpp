@@ -24,7 +24,9 @@
 #include <Vector.h>
 
 UmfpackSolver02::UmfpackSolver02(bool doDet)
-  : LinearSOESolver(-1), symbolic(nullptr),
+  : LinearSOESolver(-1), 
+    symbolic(nullptr),
+    numeric(nullptr),
     control(), info(), theSOE(nullptr), determinant(0.0), doDeterminant(doDet)
 {
 }
@@ -32,6 +34,7 @@ UmfpackSolver02::UmfpackSolver02(bool doDet)
 UmfpackSolver02::~UmfpackSolver02()
 {
   this->clearSymbolic();
+  this->clearNumeric();
 }
 
 int
@@ -60,17 +63,18 @@ UmfpackSolver02::solve(const Vector &B, Vector &X)
   if (B.Size() != size || static_cast<int>(theSOE->getPointers().size()) != size + 1)
     return -1;
 
-  void *numeric = nullptr;
-  int status = umfpack_di_numeric(theSOE->getPointers().data(), 
-                                  theSOE->getRowIndices().data(),
-                                  theSOE->getValues().data(), 
-                                  symbolic, 
-                                  &numeric,
-                                  control.data(), info.data());
-  if (status != UMFPACK_OK) {
-    if (numeric != nullptr)
-      umfpack_di_free_numeric(&numeric);
-    return -1;
+  int status;
+  if (numeric == nullptr) {
+    status = umfpack_di_numeric(theSOE->getPointers().data(), 
+                                theSOE->getRowIndices().data(),
+                                theSOE->getValues().data(), 
+                                symbolic, 
+                                &numeric,
+                                control.data(), info.data());
+    if (status != UMFPACK_OK) {
+      this->clearNumeric();
+      return -1;
+    }
   }
 
   status = umfpack_di_solve(UMFPACK_A, 
@@ -85,13 +89,14 @@ UmfpackSolver02::solve(const Vector &B, Vector &X)
   if (doDeterminant)
     umfpack_di_get_determinant(&determinant, nullptr, numeric, info.data());
 
-  umfpack_di_free_numeric(&numeric);
+  // umfpack_di_free_numeric(&numeric);
   return status == UMFPACK_OK ? 0 : -1;
 }
 
 int
 UmfpackSolver02::setSize()
 {
+  this->clearNumeric();
   this->clearSymbolic();
   umfpack_di_defaults(control.data());
   control[UMFPACK_PIVOT_TOLERANCE] = 1.0;
@@ -144,4 +149,13 @@ UmfpackSolver02::clearSymbolic()
   if (symbolic != nullptr) {
     umfpack_di_free_symbolic(&symbolic);
   }
+}
+
+void
+UmfpackSolver02::clearNumeric()
+{
+  if (numeric != nullptr) {
+    umfpack_di_free_numeric(&numeric);
+  }
+  numeric = nullptr;
 }
