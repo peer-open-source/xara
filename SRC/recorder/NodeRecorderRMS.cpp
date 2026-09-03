@@ -43,7 +43,6 @@
 #include <DataFileStreamAdd.h>
 #include <XmlFileStream.h>
 #include <BinaryFileStream.h>
-#include <TCP_Stream.h>
 
 #include <string.h>
 #include <stdlib.h>

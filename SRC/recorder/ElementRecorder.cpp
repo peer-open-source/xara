@@ -34,7 +34,6 @@
 #include <Matrix.h>
 #include <Response.h>
 #include <Channel.h>
-// #include <FE_Datastore.h>
 #include <OPS_Globals.h>
 #include <Message.h>
 #include <Channel.h>
@@ -45,9 +44,6 @@
 #include <DataFileStream.h>
 #include <DataFileStreamAdd.h>
 #include <XmlFileStream.h>
-#include <BinaryFileStream.h>
-// #include <DatabaseStream.h>
-#include <TCP_Stream.h>
 
 
 ElementRecorder::ElementRecorder()
@@ -169,27 +165,27 @@ ElementRecorder::record(int commitTag, double timeStamp)
     //
     for (int i=0; i< numEle; i++) {
       if (theResponses[i] != 0) {
-	// ask the element for the response
-	int res;
-	if (( res = theResponses[i]->getResponse()) < 0)
-	  result += res;
-	else {
-	  Information &eleInfo = theResponses[i]->getInformation();
-	  const Vector &eleData = eleInfo.getData();
-	  if (numDOF == 0) {
-	    for (int j=0; j<eleData.Size(); j++)
-	      (*data)(loc++) = eleData(j);
-	  } else {
-	    int dataSize = data->Size();
-	    for (int j=0; j<numDOF; j++) {
-	      int index = (*dof)(j);
-	      if (index >= 0 && index < dataSize)
-		(*data)(loc++) = eleData(index);		
-	      else
-		(*data)(loc++) = 0.0;		
-	    }
-	  }
-	}
+        // ask the element for the response
+        int res;
+        if (( res = theResponses[i]->getResponse()) < 0)
+          result += res;
+        else {
+          Information &eleInfo = theResponses[i]->getInformation();
+          const Vector &eleData = eleInfo.getData();
+          if (numDOF == 0) {
+            for (int j=0; j<eleData.Size(); j++)
+              (*data)(loc++) = eleData(j);
+          } else {
+            int dataSize = data->Size();
+            for (int j=0; j<numDOF; j++) {
+              int index = (*dof)(j);
+              if (index >= 0 && index < dataSize)
+                (*data)(loc++) = eleData(index);		
+              else
+                (*data)(loc++) = 0.0;		
+            }
+          }
+        }
       }
     }
 
@@ -204,7 +200,7 @@ ElementRecorder::record(int commitTag, double timeStamp)
 }
 
 int
-ElementRecorder::restart(void)
+ElementRecorder::restart()
 {
   if (data != 0)
     data->Zero();
@@ -279,7 +275,6 @@ ElementRecorder::sendSelf(int commitTag, Channel &theChannel)
   //
   // send the eleID
   //
-
   if (eleID != 0)
     if (theChannel.sendID(0, commitTag, *eleID) < 0) {
       opserr << "ElementRecorder::sendSelf() - failed to send eleID\n";
@@ -485,7 +480,7 @@ ElementRecorder::recvSelf(int commitTag, Channel &theChannel,
 }
 
 int 
-ElementRecorder::initialize(void)
+ElementRecorder::initialize()
 {
   if (theDomain == 0)
     return 0;
@@ -527,8 +522,8 @@ ElementRecorder::initialize(void)
     for (i=0; i<numEle; i++) {
       Element *theEle = theDomain->getElement((*eleID)(i));
       if (theEle != 0) {
-	xmlOrder[eleCount] = i+1;
-	eleCount++;
+        xmlOrder[eleCount] = i+1;
+        eleCount++;
       }
     }
 
@@ -559,28 +554,28 @@ ElementRecorder::initialize(void)
     for (i=0; i<numEle; i++) {
       Element *theEle = theDomain->getElement((*eleID)(i));
       if (theEle == 0) {
-	theResponses[i] = 0;
+        theResponses[i] = 0;
       } else {
-	theResponses[i] = theEle->setResponse((const char **)responseArgs, numArgs, *theOutputHandler);
-	if (theResponses[i] != 0) {
-	  // from the response type determine no of cols for each
-	  Information &eleInfo = theResponses[i]->getInformation();
-	  const Vector &eleData = eleInfo.getData();
-	  int dataSize = eleData.Size();
-	  if (numDOF == 0)
-	    numDbColumns += dataSize;
-	  else
-	    numDbColumns += numDOF;
+        theResponses[i] = theEle->setResponse((const char **)responseArgs, numArgs, *theOutputHandler);
+        if (theResponses[i] != 0) {
+          // from the response type determine no of cols for each
+          Information &eleInfo = theResponses[i]->getInformation();
+          const Vector &eleData = eleInfo.getData();
+          int dataSize = eleData.Size();
+          if (numDOF == 0)
+            numDbColumns += dataSize;
+          else
+            numDbColumns += numDOF;
 
-	  if (addColumnInfo == 1) {
-	    if (numDOF == 0)
-	      for (int j=0; j<dataSize; j++)
-		responseOrder[responseCount++] = i+1;
-	    else
-	      for (int j=0; j<numDOF; j++)
-		responseOrder[responseCount++] = i+1;
-	  }
-	}
+          if (addColumnInfo == 1) {
+            if (numDOF == 0)
+              for (int j=0; j<dataSize; j++)
+                responseOrder[responseCount++] = i+1;
+            else
+              for (int j=0; j<numDOF; j++)
+                responseOrder[responseCount++] = i+1;
+          }
+        }
       }
     }
 
@@ -620,27 +615,26 @@ ElementRecorder::initialize(void)
     while ((theEle = theElements()) != 0) {
       Response *theResponse = theEle->setResponse((const char **)responseArgs, numArgs, *theOutputHandler);
       if (theResponse != 0) {
-	if (numResponse == numEle) {
-	  // Why is this created locally and not used? -- MHS
-	  Response **theNextResponses = new Response *[numEle*2];
-	  if (theNextResponses != 0) {
-	    for (int i=0; i<numEle; i++)
-	      theNextResponses[i] = theResponses[i];
-	    for (int j=numEle; j<2*numEle; j++)
-	      theNextResponses[j] = 0;
-	  }
-	  numEle = 2*numEle;
-	  delete [] theNextResponses;
-	}
-	theResponses[numResponse] = theResponse;
+        if (numResponse == numEle) {
+          // Why is this created locally and not used? -- MHS
+          Response **theNextResponses = new Response *[numEle*2];
+          if (theNextResponses != 0) {
+            for (int i=0; i<numEle; i++)
+              theNextResponses[i] = theResponses[i];
+            for (int j=numEle; j<2*numEle; j++)
+              theNextResponses[j] = 0;
+          }
+          numEle = 2*numEle;
+          delete [] theNextResponses;
+        }
+        theResponses[numResponse] = theResponse;
 
-	// from the response type determine no of cols for each
-	Information &eleInfo = theResponses[numResponse]->getInformation();
-	const Vector &eleData = eleInfo.getData();
-	numDbColumns += eleData.Size();
+        // from the response type determine no of cols for each
+        Information &eleInfo = theResponses[numResponse]->getInformation();
+        const Vector &eleData = eleInfo.getData();
+        numDbColumns += eleData.Size();
 
-	numResponse++;
-
+        numResponse++;
       }
     }
     numEle = numResponse;
@@ -659,8 +653,10 @@ ElementRecorder::initialize(void)
 
   return 0;
 }
+
 //by SAJalali
-double ElementRecorder::getRecordedValue(int clmnId, int rowOffset, bool reset)
+double 
+ElementRecorder::getRecordedValue(int clmnId, int rowOffset, bool reset)
 {
 	double res = 0;
 	if (!initializationDone)
@@ -671,7 +667,8 @@ double ElementRecorder::getRecordedValue(int clmnId, int rowOffset, bool reset)
 	return res;
 }
 
-int ElementRecorder::flush(void) {
+int ElementRecorder::flush() 
+{
   if (theOutputHandler != 0) {
     return theOutputHandler->flush();
   }
