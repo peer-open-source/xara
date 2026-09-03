@@ -83,7 +83,7 @@ static struct {
 } domainCommands[] = {
   {"loadConst",           &XaraCmd_setLoadConst},
   {"recorder",            &TclAddRecorder},
-  {"region",              &TclCommand_addMeshRegion},
+  {"region",              &XaraCmd_region},
 
   {"printGID",            &printModelGID},
 
