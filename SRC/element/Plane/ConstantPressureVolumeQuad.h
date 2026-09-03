@@ -39,7 +39,7 @@ class ConstantPressureVolumeQuad : public Element
     void setDomain( Domain *theDomain ) ;
 
     // public methods to set the state of the element    
-    int commitState( ) ;
+    int commitState( );
     int revertToLastCommit( ) ;
     int revertToStart( ) ;
     int update();   
@@ -66,7 +66,7 @@ class ConstantPressureVolumeQuad : public Element
 
     void Print( OPS_Stream &s, int flag ) ;
 
-  
+
   private : 
     static constexpr int NEN = 4; // number of element nodes
     static constexpr int NIP = 4; // number of dimensions in the problem
@@ -78,13 +78,13 @@ class ConstantPressureVolumeQuad : public Element
     static Matrix mass ;
     static Matrix damping ;
     
-    //volume-pressure constants
+    // volume-pressure constants
     static double one3 ;
     static double two3 ;
     static double four3 ;
     static double one9 ;
     
-    //quadrature data
+    // quadrature data
     static double root3 ;
     static double one_over_root3 ;    
     static double sg[4] ;
