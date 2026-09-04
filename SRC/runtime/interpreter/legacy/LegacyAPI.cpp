@@ -336,15 +336,7 @@ G3_getDomain(G3_Runtime *rt)
   return rt->m_domain;
 }
 
-#if 0
-int
-G3_addTimeSeries(G3_Runtime *rt, TimeSeries *series)
-{
-  assert(series != nullptr);
-  ModelRegistry *builder = G3_getSafeBuilder(rt);
-  return builder->addTaggedObject<TimeSeries>(*series);
-}
-#endif
+
 
 TimeSeries *
 G3_getTimeSeries(G3_Runtime *rt, int tag)
