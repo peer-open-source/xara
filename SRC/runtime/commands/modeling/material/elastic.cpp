@@ -96,11 +96,11 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
 
     else if (strcmp(argv[i], "-rho") == 0 || strcmp(argv[i], "-density") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &density) != TCL_OK) {
-          opserr << "Invalid density value for option " << argv[i-1] << "\n";
+          opserr << "Invalid density value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
     }
@@ -121,27 +121,24 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
         if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
             opserr << OpenSees::PromptParseError << "invalid section Elastic tag.\n";
             return TCL_ERROR;           
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Position::E:
         if (Tcl_GetDouble (interp, argv[i], &consts.E) != TCL_OK) {
             opserr << OpenSees::PromptParseError << "invalid E.\n";
             return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
 
       case Position::G:
         if (Tcl_GetDouble (interp, argv[i], &consts.G) != TCL_OK) {
             opserr << OpenSees::PromptParseError << "invalid G.\n";
             return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
 
       case Position::K:
         if (Tcl_GetDouble (interp, argv[i], &consts.K) != TCL_OK) {
@@ -230,7 +227,7 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
       tracker.consume(tracker.current());
     }
 
-    opserr << "\n";
+    opserr << OpenSees::SignalMessageEnd;  
 
     return TCL_ERROR;
   }
@@ -273,7 +270,7 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
 int
 TclCommand_newElasticMaterial(ClientData clientData, 
                               Tcl_Interp *interp,
-                              Tcl_Size argc, 
+                              ArgSize argc, 
                               TCL_Char ** const argv)
 {
   //
@@ -283,9 +280,12 @@ TclCommand_newElasticMaterial(ClientData clientData,
 
     // "ElasticIsotropic" tag?  E?  nu?  rho?
     enum class Position : int {
-      Tag, E, Nu,  EndRequired, 
-      Density, End,
-      G, K, Lambda, Eta
+      Tag, 
+        E, Nu,  
+      EndRequired, 
+        Density, 
+      End,
+        G, K, Lambda, Eta
     };
     return TclCommand_newElasticParser<Position>(clientData, interp, argc, argv);
   }
@@ -297,11 +297,15 @@ TclCommand_newElasticMaterial(ClientData clientData,
 int
 TclCommand_newElasticUniaxialMaterial(ClientData clientData, 
                                       Tcl_Interp *interp,
-                                      Tcl_Size argc, TCL_Char ** const argv)
+                                      ArgSize argc, 
+                                      TCL_Char ** const argv)
 {
   enum class Position : int {
-    Tag, Epos, EndRequired, 
-    Eta, Eneg, Density, End
+    Tag, 
+      Epos,
+    EndRequired,
+      Eta, Eneg, Density, 
+    End
   };
 
   ArgumentTracker<Position> tracker;
@@ -324,47 +328,49 @@ TclCommand_newElasticUniaxialMaterial(ClientData clientData,
   for (int i=3; i<argc; i++) {
     if (strcmp(argv[i], "-Epos") == 0 || strcmp(argv[i], "-E") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << OpenSees::PromptParseError
+               << "Missing value for option " << argv[i-1] 
+               << OpenSees::SignalMessageEnd;
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Epos) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
+        return TCL_ERROR;
       }
       tracker.consume(Position::Epos);
-      if (!tracker.contains(Position::Eneg)) {
+      if (!tracker.received(Position::Eneg)) {
         Eneg = Epos; // Default to Epos if Eneg is not specified
       }
     }
     else if (strcmp(argv[i], "-Eneg") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
+        return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &Eneg) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
-          return TCL_ERROR;
+        opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
+        return TCL_ERROR;
       }
       tracker.consume(Position::Eneg);
     }
     else if (strcmp(argv[i], "-rho") == 0 || strcmp(argv[i], "-density") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &density) != TCL_OK) {
-          opserr << "Invalid density value for option " << argv[i-1] << "\n";
+          opserr << "Invalid density value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::Density);
     }
     else if (strcmp(argv[i], "-eta") == 0 || strcmp(argv[i], "-viscosity") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &eta) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::Eta);
@@ -382,43 +388,38 @@ TclCommand_newElasticUniaxialMaterial(ClientData clientData,
         if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
             opserr << OpenSees::PromptParseError << "invalid tag.\n";
             return TCL_ERROR;           
-        } else {
-          tracker.increment();
-          break;
         }
+        tracker.increment();
+        break;
       case Position::Epos:
         if (Tcl_GetDouble (interp, argv[i], &Epos) != TCL_OK) {
             opserr << OpenSees::PromptParseError << "invalid Epos.\n";
             return TCL_ERROR;
-        } else {
-          Eneg = Epos;
-          tracker.increment();
-          break;
         }
+        Eneg = Epos;
+        tracker.increment();
+        break;
       case Position::Eneg:
         if (Tcl_GetDouble (interp, argv[i], &Eneg) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid Eneg.\n";
-            return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
+          opserr << OpenSees::PromptParseError << "invalid Eneg.\n";
+          return TCL_ERROR;
         }
+        tracker.increment();
+        break;
       case Position::Density:
         if (Tcl_GetDouble (interp, argv[i], &density) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid density.\n";
-            return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
+          opserr << OpenSees::PromptParseError << "invalid density.\n";
+          return TCL_ERROR;
         }
+        tracker.increment();
+        break;
       case Position::Eta:
         if (Tcl_GetDouble (interp, argv[i], &eta) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid eta.\n";
-            return TCL_ERROR;
-        } else {
-          tracker.increment();
-          break;
+          opserr << OpenSees::PromptParseError << "invalid eta.\n";
+          return TCL_ERROR;
         }
+        tracker.increment();
+        break;
       case Position::EndRequired:
       case Position::End:
         opserr << OpenSees::PromptParseError 
@@ -426,8 +427,8 @@ TclCommand_newElasticUniaxialMaterial(ClientData clientData,
         return TCL_ERROR;
     }
   }
-  
 
+  // Check that all required arguments have been provided;
   if (tracker.current() < Position::EndRequired) {
     opserr << OpenSees::PromptParseError
             << "missing required arguments: ";
@@ -438,18 +439,13 @@ TclCommand_newElasticUniaxialMaterial(ClientData clientData,
           opserr << "tag ";
           break;
         case Position::Epos:
-          opserr << "Epos ";
+          opserr << "E ";
           break;
+        // Optional arguments, included only to suppress compiler warning
         case Position::Eneg:
-          opserr << "Eneg ";
-          break;
         case Position::Density:
-          opserr << "density ";
-          break;
         case Position::Eta:
-          opserr << "eta ";
-          break;
-
+        //
         case Position::EndRequired:
         case Position::End:
         default:
@@ -462,11 +458,12 @@ TclCommand_newElasticUniaxialMaterial(ClientData clientData,
       tracker.consume(tracker.current());
     }
 
-    opserr << "\n";
+    opserr << OpenSees::SignalMessageEnd;  
 
     return TCL_ERROR;
   }
 
+  //
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
   if (strcmp(argv[1], "Elastic") == 0) {
     if (builder->addTaggedObject<UniaxialMaterial>(*new ElasticMaterial(tag, Epos, eta, Eneg, density)) != TCL_OK ) {
@@ -518,110 +515,110 @@ TclCommand_newElasticOrthotropic(ClientData clientData,
   for (int i=2; i<argc; i++) {
     if (strcmp(argv[i], "-rho") == 0 || strcmp(argv[i], "-density") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &data.density) != TCL_OK) {
-          opserr << "Invalid density value for option " << argv[i-1] << "\n";
+          opserr << "Invalid density value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::Density);
     }
     else if (strcmp(argv[i], "-Ex") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &data.Ex) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::Ex);
     }
     else if (strcmp(argv[i], "-Ey") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &data.Ey) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::Ey);
     }
     else if (strcmp(argv[i], "-Ez") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &data.Ez) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::Ez);
     }
     else if (strcmp(argv[i], "-vxy") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &data.vxy) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::vxy);
     }
     else if (strcmp(argv[i], "-vyz") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &data.vyz) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::vyz);
     }
     else if (strcmp(argv[i], "-vzx") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &data.vzx) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::vzx);
     }
     else if (strcmp(argv[i], "-Gxy") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &data.Gxy) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::Gxy);
     }
     else if (strcmp(argv[i], "-Gyz") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &data.Gyz) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::Gyz);
     }
     else if (strcmp(argv[i], "-Gzx") == 0) {
       if (++i >= argc) {
-          opserr << "Missing value for option " << argv[i-1] << "\n";
+          opserr << "Missing value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       if (Tcl_GetDouble(interp, argv[i], &data.Gzx) != TCL_OK) {
-          opserr << "Invalid value for option " << argv[i-1] << "\n";
+          opserr << "Invalid value for option " << argv[i-1] << OpenSees::SignalMessageEnd;  
           return TCL_ERROR;
       }
       tracker.consume(Position::Gzx);
@@ -771,7 +768,7 @@ TclCommand_newElasticOrthotropic(ClientData clientData,
       tracker.consume(tracker.current());
     }
 
-    opserr << "\n";
+    opserr << OpenSees::SignalMessageEnd;  
 
     return TCL_ERROR;
   }
@@ -788,6 +785,7 @@ TclCommand_newElasticOrthotropic(ClientData clientData,
   }
   return TCL_OK;
 }
+
 
 #if 0
 int
@@ -810,7 +808,7 @@ TclCommand_newElasticAnisotropic(ClientData clientData, Tcl_Interp* interp, int 
 
     int loc = 2;
     if (Tcl_GetInt(interp, argv[loc], &tag) != TCL_OK) {
-      opserr << "WARNING invalid ElasticIsotropic tag" << "\n";
+      opserr << "WARNING invalid ElasticIsotropic tag" << OpenSees::SignalMessageEnd;  
       return TCL_ERROR;
     }
     loc++;
@@ -852,7 +850,7 @@ TclCommand_newElasticAnisotropic(ClientData clientData, Tcl_Interp* interp, int 
     if (argc < 8) {
       opserr << "WARNING insufficient arguments\n";
       opserr << "Want: nDMaterial ElasticCrossAnisotropic tag? Ehh? Ehv? nuhv? nuvv? Ghv? <rho?>"
-             << "\n";
+             << OpenSees::SignalMessageEnd;  
       return TCL_ERROR;
     }
 
@@ -861,43 +859,43 @@ TclCommand_newElasticAnisotropic(ClientData clientData, Tcl_Interp* interp, int 
     double rho = 0.0;
 
     if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
-      opserr << "WARNING invalid ElasticCrossAnisotropic tag" << "\n";
+      opserr << "WARNING invalid ElasticCrossAnisotropic tag" << OpenSees::SignalMessageEnd;  
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[3], &Eh) != TCL_OK) {
       opserr << "WARNING invalid Eh\n";
-      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << "\n";
+      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << OpenSees::SignalMessageEnd;  
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[4], &Ev) != TCL_OK) {
       opserr << "WARNING invalid Ev\n";
-      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << "\n";
+      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << OpenSees::SignalMessageEnd;  
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[5], &nuhv) != TCL_OK) {
       opserr << "WARNING invalid nuhv\n";
-      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << "\n";
+      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << OpenSees::SignalMessageEnd;  
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[6], &nuhh) != TCL_OK) {
       opserr << "WARNING invalid nuhh\n";
-      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << "\n";
+      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << OpenSees::SignalMessageEnd;  
       return TCL_ERROR;
     }
 
     if (Tcl_GetDouble(interp, argv[7], &Ghv) != TCL_OK) {
       opserr << "WARNING invalid Ghv\n";
-      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << "\n";
+      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << OpenSees::SignalMessageEnd;  
       return TCL_ERROR;
     }
 
     if (argc > 8 && Tcl_GetDouble(interp, argv[8], &rho) != TCL_OK) {
       opserr << "WARNING invalid rho\n";
-      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << "\n";
+      opserr << "nDMaterial ElasticCrossAnisotropic: " << tag << OpenSees::SignalMessageEnd;  
       return TCL_ERROR;
     }
 

@@ -1328,10 +1328,12 @@ ParsePlasticity(ClientData clientData, Tcl_Interp *interp,
       Hiso = 0.0;
     if (tracker.contains(Position::Eta))
       eta = 0.0;
+    //
     if (!tracker.contains(Position::VoceModulus)) {
       if (isotropic.Q.size() != 1) {
         opserr << OpenSees::PromptParseError
-               << argv[1] << " accepts only one value for Q.\n";
+               << argv[1] << " accepts only one value for Q."
+               << OpenSees::SignalMessageEnd;
         return TCL_ERROR;
       }
       Fsat = Fy + isotropic.Q[0];
