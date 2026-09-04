@@ -64,12 +64,9 @@ class ArpackSOE : public EigenSOE
 
     double getShift();
 
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
-
     friend class ArpackSolver;
 
-	int checkSameInt(int);
+    int checkSameInt(int);
 
   private:
     double *M;
