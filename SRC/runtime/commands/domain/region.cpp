@@ -231,8 +231,8 @@ XaraCmd_region(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
         return TCL_ERROR;
       }
       loc += 5;
-
-    } else if (strcmp(argv[loc], "getNodeTags") == 0) {
+    }
+    else if (strcmp(argv[loc], "getNodeTags") == 0) {
 
       MeshRegion *region = theDomain.getRegion(tag);
       if (region == nullptr) {
@@ -266,8 +266,8 @@ XaraCmd_region(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
       }
 
       return TCL_OK;
-
-    } else if (strcmp(argv[loc], "getEleTags") == 0) {
+    }
+    else if (strcmp(argv[loc], "getEleTags") == 0) {
 
       MeshRegion *region = theDomain.getRegion(tag);
       if (region == nullptr) {
