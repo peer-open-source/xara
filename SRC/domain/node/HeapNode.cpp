@@ -873,20 +873,20 @@ HeapNode::setRayleighDampingFactor(double alpham) {
 const Matrix &
 HeapNode::getDamp()
 {
-    if (index == -1) {
-      setGlobalMatrices();
-    }
+  if (index == -1) {
+    setGlobalMatrices();
+  }
 
-    // make sure it was created before we return it
-    if (mass == 0 || alphaM == 0.0) {
-      theMatrices[index]->Zero();
-      return *theMatrices[index];
-    } else {
-      Matrix &result = *theMatrices[index];
-      result = *mass;
-      result *= alphaM;
-      return result;
-    }
+  // make sure it was created before we return it
+  if (mass == 0 || alphaM == 0.0) {
+    theMatrices[index]->Zero();
+    return *theMatrices[index];
+  } else {
+    Matrix &result = *theMatrices[index];
+    result = *mass;
+    result *= alphaM;
+    return result;
+  }
 }
 
 
