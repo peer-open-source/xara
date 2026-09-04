@@ -847,21 +847,7 @@ ShearFrame3d<nen,nwm>::getResponse(int responseID, Information &info)
   return -1;
 }
 
-template<std::size_t nen, int nwm>
-int
-ShearFrame3d<nen,nwm>::sendSelf(int commitTag, Channel& theChannel)
-{
-  // TODO
-  return -1;
-}
 
-template<std::size_t nen, int nwm>
-int
-ShearFrame3d<nen,nwm>::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
-{
-  // TODO
-  return -1;
-}
 
 template<std::size_t nen, int nwm>
 void

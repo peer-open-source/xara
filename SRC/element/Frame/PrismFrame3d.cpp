@@ -700,52 +700,53 @@ PrismFrame3d::Print(OPS_Stream &s, int flag)
 
       //
       s << "}";
+      return;
   }
-    
-    this->getResistingForce(); 
 
-    if (flag == -1) {
-        int eleTag = this->getTag();
-        s << "EL_BEAM\t" << eleTag << "\t";
-        s << "\t" << connectedExternalNodes(0) << "\t" << connectedExternalNodes(1);
-        s << "\t0\t0.0000000\n";
-    }
+  this->getResistingForce(); 
 
-    else if (flag == 2) {
-        static Vector xAxis(3);
-        static Vector yAxis(3);
-        static Vector zAxis(3);
+  if (flag == -1) {
+    int eleTag = this->getTag();
+    s << "EL_BEAM\t" << eleTag << "\t";
+    s << "\t" << node_tags(0) << "\t" << node_tags(1);
+    s << "\t0\t0.0000000\n";
+  }
 
-        basic_system->getLocalAxes(xAxis, yAxis, zAxis);
+  else if (flag == 2) {
+    static Vector xAxis(3);
+    static Vector yAxis(3);
+    static Vector zAxis(3);
 
-        s << "#PrismFrame3d\n";
-        s << "#LocalAxis " << xAxis(0) << " " << xAxis(1) << " " << xAxis(2);
-        s << " " << yAxis(0) << " " << yAxis(1) << " " << yAxis(2) << " ";
-        s << zAxis(0) << " " << zAxis(1) << " " << zAxis(2) << "\n";
+    basic_system->getLocalAxes(xAxis, yAxis, zAxis);
 
-        const Vector &xi = theNodes[0]->getCrds();
-        const Vector &node2Crd = theNodes[1]->getCrds();
-        const Vector &node1Disp = theNodes[0]->getDisp();
-        const Vector &node2Disp = theNodes[1]->getDisp();
+    s << "#PrismFrame3d\n";
+    s << "#LocalAxis " << xAxis(0) << " " << xAxis(1) << " " << xAxis(2);
+    s << " " << yAxis(0) << " " << yAxis(1) << " " << yAxis(2) << " ";
+    s << zAxis(0) << " " << zAxis(1) << " " << zAxis(2) << "\n";
 
-        s << "#NODE " << xi(0) << " " << xi(1) << " " << xi(2)
-                << " " << node1Disp(0) << " " << node1Disp(1) << " " << node1Disp(2)
-                << " " << node1Disp(3) << " " << node1Disp(4) << " " << node1Disp(5) << "\n";
+    const Vector &xi = theNodes[0]->getCrds();
+    const Vector &node2Crd = theNodes[1]->getCrds();
+    const Vector &node1Disp = theNodes[0]->getDisp();
+    const Vector &node2Disp = theNodes[1]->getDisp();
 
-        s << "#NODE " << node2Crd(0) << " " << node2Crd(1) << " " << node2Crd(2)
-                << " " << node2Disp(0) << " " << node2Disp(1) << " " << node2Disp(2)
-                << " " << node2Disp(3) << " " << node2Disp(4) << " " << node2Disp(5) << "\n";
-    }
-    
-    if (flag == OPS_PRINT_CURRENTSTATE) {
-        s << "\n  PrismFrame3d: " << this->getTag() << "\n";
-        s << "\tConnected Nodes: " << connectedExternalNodes;
-        s << "\tCoordTransf: " << basic_system->getTag() << "\n";
-        s << "\tmass density:  " << total_mass/L << ", mass_type: " << mass_flag << "\n";
-        s << "\trelease about z:  " << releasez << "\n";
-        s << "\trelease about y:  " << releasey << "\n";
-        return;
-    }
+    s << "#NODE " << xi(0) << " " << xi(1) << " " << xi(2)
+            << " " << node1Disp(0) << " " << node1Disp(1) << " " << node1Disp(2)
+            << " " << node1Disp(3) << " " << node1Disp(4) << " " << node1Disp(5) << "\n";
+
+    s << "#NODE " << node2Crd(0) << " " << node2Crd(1) << " " << node2Crd(2)
+            << " " << node2Disp(0) << " " << node2Disp(1) << " " << node2Disp(2)
+            << " " << node2Disp(3) << " " << node2Disp(4) << " " << node2Disp(5) << "\n";
+  }
+  
+  if (flag == OPS_PRINT_CURRENTSTATE) {
+    s << "\n  PrismFrame3d: " << this->getTag() << "\n";
+    s << "\tConnected Nodes: " << node_tags;
+    s << "\tCoordTransf: " << basic_system->getTag() << "\n";
+    s << "\tmass density:  " << total_mass/L << ", mass_type: " << mass_flag << "\n";
+    s << "\trelease about z:  " << releasez << "\n";
+    s << "\trelease about y:  " << releasey << "\n";
+    return;
+  }
 }
 
 

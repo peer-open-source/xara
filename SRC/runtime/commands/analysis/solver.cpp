@@ -213,7 +213,9 @@ specifySparseGen(G3_Runtime* rt, int argc, G3_Char ** const argv)
 
   SparseGenColLinSolver *theSolver = nullptr;
   int count = 2;
+#ifdef _THREADS
   double thresh = 0.0;
+#endif
   int npRow = 1;
   int npCol = 1;
   int np = 1;
@@ -233,7 +235,9 @@ specifySparseGen(G3_Runtime* rt, int argc, G3_Char ** const argv)
     if ((strcmp(argv[count], "p")    == 0) ||
         (strcmp(argv[count], "piv")  == 0) ||
         (strcmp(argv[count], "-piv") == 0)) {
+#ifdef _THREADS
       thresh = 1.0;
+#endif
       count++;
     }
     else if ((strcmp(argv[count], "-np") == 0) ||

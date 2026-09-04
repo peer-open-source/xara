@@ -89,10 +89,6 @@ public:
   Response *setResponse(const char **argv, int argc, OPS_Stream &s) final;
   virtual int getResponse(int responseID, Information &) final;
 
-  // MovableObject
-  int sendSelf(int cTag, Channel&) override;
-  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&) override;
-
   // TaggedObject
   void Print(OPS_Stream& s, int flag) override;
 

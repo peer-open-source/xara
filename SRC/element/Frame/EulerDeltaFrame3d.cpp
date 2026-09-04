@@ -471,12 +471,13 @@ EulerDeltaFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
 
   Response *theResponse = nullptr;
+  const ID& connectedExternalNodes = this->getExternalNodes();
 
   output.tag("ElementOutput");
   output.attr("eleType", "EulerDeltaFrame3d");
   output.attr("eleTag", this->getTag());
-  output.attr("node1", connectedExternalNodes[0]);
-  output.attr("node2", connectedExternalNodes[1]);
+  output.attr("node1", connectedExternalNodes(0));
+  output.attr("node2", connectedExternalNodes(1));
 
   //
   // Compare argv[0] for known response types

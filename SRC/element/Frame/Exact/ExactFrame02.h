@@ -1,4 +1,3 @@
-
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
@@ -6,11 +5,17 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2026, OpenSees/Xara Developers
+// Copyright (c) 2025, Claudio M. Perez
 // All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 // This source code is licensed under the BSD 2-Clause License.
 // See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+//        Please cite the following resources in any derivative works:
+//                 https://doi.org/10.5281/zenodo.10456866
+//                 https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
 //
@@ -91,9 +96,6 @@ public:
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s) final;
   int getResponse(int responseID, Information &) final;
-
-  int sendSelf(int cTag, Channel&) override;
-  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&) override;
 
   void Print(OPS_Stream& s, int flag) override;
 

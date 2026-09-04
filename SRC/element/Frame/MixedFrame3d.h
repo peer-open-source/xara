@@ -66,10 +66,6 @@ public:
   const Vector& getResistingForce();
   const Vector& getResistingForceIncInertia();
 
-  // MovableObject
-  int sendSelf(int cTag, Channel&);
-  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&);
-
   // TaggedObject
   void Print(OPS_Stream& s, int flag);
 

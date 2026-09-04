@@ -447,6 +447,7 @@ void
 EulerFrame3d::Print(OPS_Stream &s, int flag)
 {
   int numSections = points.size();
+  const ID& connectedExternalNodes = this->getExternalNodes();
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
       s << OPS_PRINT_JSON_ELEM_INDENT << "{";
@@ -590,16 +591,18 @@ Response*
 EulerFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
 
+  const ID& connectedExternalNodes = this->getExternalNodes();
+
   Response *theResponse = 0;
 
   output.tag("ElementOutput");
   output.attr("eleType","EulerFrame3d");
   output.attr("eleTag",this->getTag());
-  output.attr("node1",connectedExternalNodes[0]);
-  output.attr("node2",connectedExternalNodes[1]);
+  output.attr("node1",connectedExternalNodes(0));
+  output.attr("node2",connectedExternalNodes(1));
 
   //
-  // Compare argv[0] for known response types 
+  // Compare argv[0] for known response types
   //
 
   // Global force

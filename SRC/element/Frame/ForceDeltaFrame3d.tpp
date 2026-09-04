@@ -2177,12 +2177,13 @@ ForceDeltaFrame3d<NIP,nsr>::setResponse(const char** argv, int argc, OPS_Stream&
   // int numSections = points.size();
   constexpr static int numSections = NIP;
   Response* theResponse = nullptr;
+  const ID& connectedExternalNodes = this->getExternalNodes();
 
   output.tag("ElementOutput");
   output.attr("eleType", this->getClassType());
   output.attr("eleTag", this->getTag());
-  output.attr("node1", connectedExternalNodes[0]);
-  output.attr("node2", connectedExternalNodes[1]);
+  output.attr("node1", connectedExternalNodes(0));
+  output.attr("node2", connectedExternalNodes(1));
 
   // Global force
   if (strcmp(argv[0],"forces") == 0 || 
@@ -2397,6 +2398,7 @@ ForceDeltaFrame3d<NIP,nsr>::setResponse(const char** argv, int argc, OPS_Stream&
 
   return theResponse;
 }
+
 
 template<int NIP, int nsr>
 int
@@ -2674,6 +2676,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponse(int responseID, Information& info)
   return -1;
 }
 
+
 template<int NIP, int nsr>
 int
 ForceDeltaFrame3d<NIP,nsr>::getResponseSensitivity(int responseID, int igrad, Information& info)
@@ -2866,6 +2869,7 @@ ForceDeltaFrame3d<NIP,nsr>::getResponseSensitivity(int responseID, int igrad, In
     return -1;
 }
 
+
 template<int NIP, int nsr>
 int
 ForceDeltaFrame3d<NIP,nsr>::setParameter(const char** argv, int argc, Parameter& param)
@@ -2964,12 +2968,12 @@ ForceDeltaFrame3d<NIP,nsr>::updateParameter(int parameterID, Information& info)
     return -1;
 }
 
+
 template<int NIP, int nsr>
 int
 ForceDeltaFrame3d<NIP,nsr>::activateParameter(int passedParameterID)
 {
   parameterID = passedParameterID;
-
   return 0;
 }
 
@@ -3322,6 +3326,7 @@ ForceDeltaFrame3d<NIP,nsr>::getBasicForceGrad(int igrad)
   return dqdh;
 }
 
+
 template<int NIP, int nsr>
 const Matrix&
 ForceDeltaFrame3d<NIP,nsr>::computedfedh(int igrad)
@@ -3445,155 +3450,10 @@ ForceDeltaFrame3d<NIP,nsr>::computedfedh(int igrad)
 }
 
 
-template<int NIP, int nsr>
-int
-ForceDeltaFrame3d<NIP,nsr>::sendSelf(int commitTag, Channel& theChannel)
-{
-  int numSections = points.size();
-  // place the integer data into an ID
-  int dbTag = this->getDbTag();
-  int loc = 0;
 
-  static ID idData(11); // one bigger than needed so no clash later
-  idData(0) = this->getTag();
-  idData(1) = connectedExternalNodes(0);
-  idData(2) = connectedExternalNodes(1);
-  idData(3) = points.size();
-  idData(4) = max_iter;
-  idData(5) = state_flag;
-
-  idData(6)          = basic_system->getClassTag();
-  int crdTransfDbTag = basic_system->getDbTag();
-  if (crdTransfDbTag == 0) {
-    crdTransfDbTag = theChannel.getDbTag();
-    if (crdTransfDbTag != 0)
-      basic_system->setDbTag(crdTransfDbTag);
-  }
-  idData(7) = crdTransfDbTag;
-
-  idData(8)           = stencil->getClassTag();
-  int stencilDbTag = stencil->getDbTag();
-  if (stencilDbTag == 0) {
-    stencilDbTag = theChannel.getDbTag();
-    if (stencilDbTag != 0)
-      stencil->setDbTag(stencilDbTag);
-  }
-  idData(9) = stencilDbTag;
-
-  if (theChannel.sendID(dbTag, commitTag, idData) < 0) {
-    opserr << "ForceDeltaFrame3d::sendSelf() - failed to send ID data\n";
-    return -1;
-  }
-
-  // send the coordinate transformation
-  if (basic_system->sendSelf(commitTag, theChannel) < 0) {
-    opserr << "ForceDeltaFrame3d::sendSelf() - failed to send crdTrans\n";
-    return -1;
-  }
-
-  // send the beam integration
-  if (stencil->sendSelf(commitTag, theChannel) < 0) {
-    opserr << "ForceDeltaFrame3d::sendSelf() - failed to send stencil\n";
-    return -1;
-  }
-
-  //
-  // send an ID for the sections containing each sections dbTag and classTag
-  // if section ha no dbTag get one and assign it
-  //
-
-  ID idSections(2 * numSections);
-  loc = 0;
-  for (int i = 0; i < numSections; i++) {
-    int sectClassTag = points[i].material->getClassTag();
-    int sectDbTag    = points[i].material->getDbTag();
-    if (sectDbTag == 0) {
-      sectDbTag = theChannel.getDbTag();
-      points[i].material->setDbTag(sectDbTag);
-    }
-
-    idSections(loc)     = sectClassTag;
-    idSections(loc + 1) = sectDbTag;
-    loc += 2;
-  }
-
-  if (theChannel.sendID(dbTag, commitTag, idSections) < 0) {
-    opserr << "ForceDeltaFrame3d::sendSelf() - failed to send ID data\n";
-    return -1;
-  }
-
-  //
-  // send the sections
-  //
-
-  for (int j = 0; j < numSections; j++) {
-    if (points[j].material->sendSelf(commitTag, theChannel) < 0) {
-      opserr << "ForceDeltaFrame3d::sendSelf() - section " << j << "failed to send itself\n";
-      return -1;
-    }
-  }
-
-  // into a vector place distrLoadCommit, density, UeCommit, q_past and K_past
-  int secDefSize = numSections*nsr;
-
-  Vector dData(1 + 1 + nq + nq * nq + secDefSize + 4);
-  loc = 0;
-
-  // place double variables into Vector
-  dData(loc++) = density;
-  dData(loc++) = tol;
-
-  // put  distrLoadCommit into the Vector
-  //  for (int i=0; i<NL; i++)
-  //dData(loc++) = distrLoadcommit(i);
-
-  // place K_past into vector
-  for (int i = 0; i < nq; i++)
-    dData(loc++) = q_past(i);
-
-  // place K_past into vector
-  for (int i = 0; i < nq; i++)
-    for (int j = 0; j < nq; j++)
-      dData(loc++) = K_past(i, j);
-
-  // place e_past into vector
-  for (unsigned k = 0; k < points.size(); k++)
-    for (unsigned i = 0; i < nsr; i++)
-      dData(loc++) = points[k].es_save[i];
-
-  // send damping coefficients
-  dData(loc++) = alphaM;
-  dData(loc++) = betaK;
-  dData(loc++) = betaK0;
-  dData(loc++) = betaKc;
-
-  if (theChannel.sendVector(dbTag, commitTag, dData) < 0) {
-    opserr << "ForceDeltaFrame3d::sendSelf() - failed to send Vector data\n";
-    return -1;
-  }
-
-  return 0;
-}
-
-template<int NIP, int nsr>
-int
-ForceDeltaFrame3d<NIP,nsr>::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
-{
-  return -1;
-}
 
 
 #if 0
-template<int NIP, int nsr>
-void 
-ForceDeltaFrame3d<NIP,nsr>::zeroLoad()
-{
-  // This is a semi-hack -- MHS
-  numEleLoads = 0;
-
-  return;
-}
-
 
 template<int NIP, int nsr>
 int
@@ -3627,33 +3487,6 @@ ForceDeltaFrame3d<NIP,nsr>::addLoad(ElementalLoad *theLoad, double loadFactor)
   return 0;
 }
 
-template<int NIP, int nsr>
-int 
-ForceDeltaFrame3d<NIP,nsr>::addInertiaLoadToUnbalance(const Vector &accel)
-{
-  // Check for a quick return
-  if (density == 0.0)
-    return 0;
-
-  // get R * accel from the nodes
-  const Vector &Raccel1 = theNodes[0]->getRV(accel);
-  const Vector &Raccel2 = theNodes[1]->getRV(accel);    
-
-  double L = basic_system->getInitialLength();
-  double m = 0.5*density*L;
-
-  // Should be done through p0[0]
-  /*
-  load(0) -= m*Raccel1(0);
-  load(1) -= m*Raccel1(1);
-  load(2) -= m*Raccel1(2);
-  load(6) -= m*Raccel2(0);
-  load(7) -= m*Raccel2(1);
-  load(8) -= m*Raccel2(2);
-  */
-
-  return 0;
-}
 
 template<int NIP, int nsr>
 const Vector &
