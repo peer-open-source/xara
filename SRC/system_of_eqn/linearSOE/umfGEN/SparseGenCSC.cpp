@@ -5,7 +5,6 @@
 //#define UmfpackSolver02 UmfpackGenLinSolver
 
 #include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <Graph.h>
 #include <ID.h>
 #include <Matrix.h>
@@ -16,8 +15,7 @@
 #include <algorithm>
 #include <utility>
 
-SparseGenCSC::SparseGenCSC(UmfpackSolver02 &theSolver,
-                                 std::size_t maxScatter)
+SparseGenCSC::SparseGenCSC(UmfpackSolver02 &theSolver, std::size_t maxScatter)
   : LinearSOE(theSolver, -1),
     X(), B(), Ap(), Ai(), Ax(),
     cache(maxScatter)
@@ -250,7 +248,7 @@ SparseGenCSC::getX()
 const Vector &
 SparseGenCSC::getB()
 {
-    return B;
+  return B;
 }
 
 
