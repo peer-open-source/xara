@@ -38,14 +38,9 @@ class ExactFrame3d:
   public FiniteElement<nen, 3, 6+nwm>
 {
 public:
-  enum Logarithm {
-    None,
-    LogLeft,
-    LogRight
-  };
 
   ExactFrame3d(int tag,
-               std::array<int,nen>& nodes,
+               const std::array<int,nen>& nodes,
                FrameSection *section[nen-1], 
                CrdTransf& transf
   );
@@ -92,10 +87,6 @@ public:
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s) final;
   virtual int getResponse(int responseID, Information &) final;
-
-  // MovableObject
-  int sendSelf(int cTag, Channel&) override;
-  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&) override;
 
   // TaggedObject
   void Print(OPS_Stream& s, int flag) override;
@@ -153,7 +144,6 @@ public:
     std::array<GaussPoint,nip> pres;
     std::array<GaussPoint,nip> past;
     CrdTransf*       transform;
-    Logarithm               logarithm;
     BeamIntegration*        stencil;
 
     //
@@ -165,4 +155,5 @@ public:
 };
 
 } // namespace OpenSees
+
 #include "ExactFrame3d.tpp"
