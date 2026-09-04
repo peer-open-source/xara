@@ -720,8 +720,10 @@ ShellMITC4::getInitialStiff()
   return stiff;
 }
 
+
 // return mass matrix
-const Matrix &ShellMITC4::getMass()
+const Matrix &
+ShellMITC4::getMass()
 {
   int tangFlag = 1;
 
@@ -730,7 +732,9 @@ const Matrix &ShellMITC4::getMass()
   return mass;
 }
 
-void ShellMITC4::zeroLoad()
+
+void
+ShellMITC4::zeroLoad()
 {
   if (load != 0)
     load->Zero();
@@ -743,7 +747,8 @@ void ShellMITC4::zeroLoad()
   return;
 }
 
-int ShellMITC4::addLoad(ElementalLoad *theLoad, double loadFactor)
+int
+ShellMITC4::addLoad(ElementalLoad *theLoad, double loadFactor)
 {
 
   int type;
