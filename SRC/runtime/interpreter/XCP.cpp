@@ -18,6 +18,17 @@
 
 namespace Xara {
 
+#if 0
+struct {
+  XCP policy;
+  const char* key;
+  const char* name;
+} PolicyNames[] = {
+  {XCP::XCP0001,    "XCP0001",   "OverrideZeroMassWithMaterial"},
+  {XCP::XCP0002,    "XCP0002",   "SwitchPositionsOfSSP"},
+};
+#endif
+
 bool
 CheckPolicy(Tcl_Interp* interp, XCP policy)
 {
