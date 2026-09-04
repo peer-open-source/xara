@@ -38,16 +38,11 @@ class CosseratFrame3d01:
   public FiniteElement<nen, 3, 6+nwm>
 {
 public:
-  // enum Logarithm {
-  //   None,
-  //   LogLeft,
-  //   LogRight
-  // };
 
   CosseratFrame3d01(int tag,
-               std::array<int,nen>& nodes,
-               FrameSection *section[nen-1], 
-               FrameTransformBuilder& tb
+                    const std::array<int,nen>& nodes,
+                    FrameSection *section[nen-1], 
+                    FrameTransformBuilder& tb
   );
 
   ~CosseratFrame3d01();
@@ -93,16 +88,12 @@ public:
   Response *setResponse(const char **argv, int argc, OPS_Stream &s) final;
   virtual int getResponse(int responseID, Information &) final;
 
-  // MovableObject
-  int sendSelf(int cTag, Channel&) override;
-  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&) override;
-
   // TaggedObject
   void Print(OPS_Stream& s, int flag) override;
 
   private:
     //
-    // Constexpr
+    // Compile-time constants
     //
     constexpr static int 
           nsr = 6+2*nwm,        // Number of section resultants
@@ -131,7 +122,7 @@ public:
     };
 
     //
-    //
+    // Data at Gauss points
     //
     struct GaussPoint {
       double point,
@@ -153,7 +144,6 @@ public:
     std::array<GaussPoint,nip> pres;
     std::array<GaussPoint,nip> past;
     FrameTransform<nen,ndf>* transform;
-    // Logarithm               logarithm;
     BeamIntegration*        stencil;
 
     //
@@ -165,4 +155,5 @@ public:
 };
 
 } // namespace OpenSees
+
 #include "CosseratFrame3d01.tpp"
