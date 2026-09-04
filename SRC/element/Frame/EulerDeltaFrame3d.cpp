@@ -81,8 +81,9 @@ getStrainMatrix(double xi, double L, const Vector& v, MatrixND<8,12>&B, MatrixND
   return 0;
 }
 
-EulerDeltaFrame3d::EulerDeltaFrame3d(int tag, std::array<int,2>& nodes,
-                                     std::vector<FrameSection*> &secs,
+EulerDeltaFrame3d::EulerDeltaFrame3d(int tag, 
+                                     const std::array<int,2>& nodes,
+                                     const std::vector<FrameSection*> &secs,
                                      BeamIntegration &bi,
                                      CrdTransf &coordTransf,
                                      double r, int cm, bool use_mass_)
