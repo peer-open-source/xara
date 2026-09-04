@@ -71,6 +71,8 @@
 
 namespace OpenSees {
 
+using namespace Xara;
+
 #if 0
 template<std::size_t nen, int nwm> static inline void
 G_matrix(MatrixND<6+nwm,6+nwm> &G, 
@@ -128,7 +130,7 @@ B_nat(MatrixND<6+2*nwm,6+nwm> &B, double shape[2][nen], const Vector3D& dx, int 
 
 template<std::size_t nen, int nwm>
 CosseratFrame3d01<nen, nwm>::CosseratFrame3d01(int tag,
-                                     std::array<int, nen>& nodes,
+                                     const std::array<int, nen>& nodes,
                                      FrameSection* section[nen - 1],
                                      FrameTransformBuilder& tb
 )
@@ -858,21 +860,7 @@ CosseratFrame3d01<nen,nwm>::getResponse(int responseID, Information &info)
   return -1;
 }
 
-template<std::size_t nen, int nwm>
-int
-CosseratFrame3d01<nen,nwm>::sendSelf(int commitTag, Channel& theChannel)
-{
-  // TODO
-  return -1;
-}
 
-template<std::size_t nen, int nwm>
-int
-CosseratFrame3d01<nen,nwm>::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
-{
-  // TODO
-  return -1;
-}
 
 template<std::size_t nen, int nwm>
 void
