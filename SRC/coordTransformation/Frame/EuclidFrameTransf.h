@@ -30,9 +30,7 @@
 // Written: Claudio M. Perez
 // Created: 04/2025
 //
-#ifndef EuclidFrameTransf_hpp
-#define EuclidFrameTransf_hpp
-
+#pragma once
 #include <array>
 #include <AxisAngle.h>
 #include <FrameTransform.h>
@@ -138,7 +136,7 @@ private:
     return A;
   }
 
-  VectorND<6> getWrench(const VectorND<nn*ndf>& p);
+
 
   template<const Vector& (Node::*Getter)()>
   const Vector3D
@@ -152,9 +150,7 @@ private:
 
     // 1) Offsets
     if (offsets) [[unlikely]] {
-      if (!(offset_flags&OffsetLocal))  {
-        // Vector3D w {u[3], u[4], u[5]};
-        // v -= offsets->at(node).cross(w);
+      if (!(offset_flags&OffsetLocal)) {
         v -= offsets->at(node);
         v += nodes[node]->getTrialRotation().rotate(offsets->at(node));
       }
@@ -174,6 +170,11 @@ private:
     return current_offsets;
   }
 
+  VectorND<6> getWrench(const VectorND<nn*ndf>& p);
+
+  //
+  // Data
+  //
   std::array<Node*, nn> nodes;
   std::array<AxisAngle, nn> ur;   // total rotation vector
   std::array<AxisAngle, nn> ddur; // iterative rotation vector
@@ -182,7 +183,7 @@ private:
   int offset_flags;
   Matrix3D R0;
   Vector3D xi, xj, vz;
-  double L;           // undeformed element length
+  double L;            // undeformed element length
 
   bool skip_log_iter = false;
 
@@ -196,5 +197,3 @@ private:
 } // namespace OpenSees
 
 #include "EuclidFrameTransf.tpp"
-
-#endif

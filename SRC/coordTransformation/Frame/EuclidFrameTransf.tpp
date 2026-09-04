@@ -12,12 +12,10 @@
 //     https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
-
 //
 // Written: Claudio M. Perez
 // Created: 04/2025
 //
-
 #pragma once
 #include <Vector.h>
 #include <Matrix.h>
