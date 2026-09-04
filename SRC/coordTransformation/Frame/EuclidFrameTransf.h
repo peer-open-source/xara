@@ -117,7 +117,7 @@ private:
 
   void 
   pull(VectorND<nn*ndf>& du, const Matrix3D& R, int op);
-#if 1
+
   inline MatrixND<nn*ndf,nn*ndf> 
   getProjection() {
 
@@ -137,32 +137,6 @@ private:
 
     return A;
   }
-#else
-  inline MatrixND<nn*ndf,nn*ndf>
-  getProjection()
-  {
-    MatrixND<nn*ndf,nn*ndf> A{};
-    A.addDiagonal(1.0);
-
-    for (int a = 0; a < nn; ++a) {
-      const Matrix3D Xa = Hat(this->getNodeLocation(a));
-
-      for (int b = 0; b < nn; ++b) {
-        MatrixND<3,ndf> Gv{};
-        MatrixND<3,ndf> Gw{};
-
-        Gv.template insert<0,0>(basis.getTranslationGradient(b), 1.0);
-        Gw.template insert<0,0>(basis.getRotationGradient(b),    1.0);
-
-        A.assemble(Gv,    a*ndf,   b*ndf, -1.0);
-        A.assemble(Xa*Gw, a*ndf,   b*ndf,  1.0);
-        A.assemble(Gw,    a*ndf+3, b*ndf, -1.0);
-      }
-    }
-
-    return A;
-  }
-#endif
 
   VectorND<6> getWrench(const VectorND<nn*ndf>& p);
 
