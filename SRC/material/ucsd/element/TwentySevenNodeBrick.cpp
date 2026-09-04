@@ -62,113 +62,111 @@ TwentySevenNodeBrick::TwentySevenNodeBrick(int element_number,
                                NDMaterial * Globalmmodel, double b1, double b2,double b3,
              double r, double p)
 
-  :Element(element_number, ELE_TAG_TwentySevenNodeBrick ),
-  connectedExternalNodes(27), Ki(0), Q(81), bf(3),
-  rho(r), pressure(p)
-  {
-    //elem_numb = element_number;
-    bf(0) = b1;
-    bf(1) = b2;
-    bf(2) = b3;
+:Element(element_number, ELE_TAG_TwentySevenNodeBrick ),
+connectedExternalNodes(27), Ki(0), Q(81), bf(3),
+rho(r), pressure(p)
+{
+  //elem_numb = element_number;
+  bf(0) = b1;
+  bf(1) = b2;
+  bf(2) = b3;
 
-    determinant_of_Jacobian = 0.0;
+  determinant_of_Jacobian = 0.0;
 
-    //r_integration_order = r_int_order;
-    //s_integration_order = s_int_order;
-    //t_integration_order = t_int_order;
-    r_integration_order = FixedOrder; // Gauss-Legendre integration order in r direction
-    s_integration_order = FixedOrder; // Gauss-Legendre integration order in s direction
-    t_integration_order = FixedOrder; // Gauss-Legendre integration order in t direction
+  //r_integration_order = r_int_order;
+  //s_integration_order = s_int_order;
+  //t_integration_order = t_int_order;
+  r_integration_order = FixedOrder; // Gauss-Legendre integration order in r direction
+  s_integration_order = FixedOrder; // Gauss-Legendre integration order in s direction
+  t_integration_order = FixedOrder; // Gauss-Legendre integration order in t direction
 
-    //Not needed. Right now we have one NDMaterial for each material point
-    //mmodel = Globalmmodel->getCopy( type ); // One global mat model
+  //Not needed. Right now we have one NDMaterial for each material point
+  //mmodel = Globalmmodel->getCopy( type ); // One global mat model
 
-    int total_number_of_Gauss_points = r_integration_order*s_integration_order*t_integration_order;
+  int total_number_of_Gauss_points = r_integration_order*s_integration_order*t_integration_order;
 
 
-    if ( total_number_of_Gauss_points != 0 )
-      {
-         matpoint  = new MatPoint3D * [total_number_of_Gauss_points];
-      }
-    else
-      {
-        matpoint  = 0;
-      }
-    ////////////////////////////////////////////////////////////////////
-    short where = 0;
+  if ( total_number_of_Gauss_points != 0 ) {
+    matpoint  = new MatPoint3D * [total_number_of_Gauss_points];
+  }
+  else {
+    matpoint  = 0;
+  }
+  ////////////////////////////////////////////////////////////////////
+  short where = 0;
 
-    for( short GP_c_r = 1 ; GP_c_r <= r_integration_order ; GP_c_r++ )
-      {
-        double r = get_Gauss_p_c( r_integration_order, GP_c_r );
-        double rw = get_Gauss_p_w( r_integration_order, GP_c_r );
+  for( short GP_c_r = 1 ; GP_c_r <= r_integration_order ; GP_c_r++ )
+    {
+      double r = get_Gauss_p_c( r_integration_order, GP_c_r );
+      double rw = get_Gauss_p_w( r_integration_order, GP_c_r );
 
-        for( short GP_c_s = 1 ; GP_c_s <= s_integration_order ; GP_c_s++ )
-          {
-            double s = get_Gauss_p_c( s_integration_order, GP_c_s );
-            double sw = get_Gauss_p_w( s_integration_order, GP_c_s );
+      for( short GP_c_s = 1 ; GP_c_s <= s_integration_order ; GP_c_s++ )
+        {
+          double s = get_Gauss_p_c( s_integration_order, GP_c_s );
+          double sw = get_Gauss_p_w( s_integration_order, GP_c_s );
 
-            for( short GP_c_t = 1 ; GP_c_t <= t_integration_order ; GP_c_t++ )
-              {
-                double t = get_Gauss_p_c( t_integration_order, GP_c_t );
-                double tw = get_Gauss_p_w( t_integration_order, GP_c_t );
+          for( short GP_c_t = 1 ; GP_c_t <= t_integration_order ; GP_c_t++ )
+            {
+              double t = get_Gauss_p_c( t_integration_order, GP_c_t );
+              double tw = get_Gauss_p_w( t_integration_order, GP_c_t );
 
-                // this short routine is supposed to calculate position of
-                // Gauss point from 3D array of short's
-                where =
-                ((GP_c_r-1)*s_integration_order+GP_c_s-1)*t_integration_order+GP_c_t-1;
+              // this short routine is supposed to calculate position of
+              // Gauss point from 3D array of short's
+              where =
+              ((GP_c_r-1)*s_integration_order+GP_c_s-1)*t_integration_order+GP_c_t-1;
 
-                  matpoint[where] = new MatPoint3D(GP_c_r,
-                                                 GP_c_s,
-                                                 GP_c_t,
-                                                 r, s, t,
-                                                 rw, sw, tw,
-                                               //InitEPS,
-                                                      Globalmmodel);
-           //NMD);
-           //&( GPstress[where] ), //&( GPiterative_stress[where] ), //IN_q_ast_iterative[where] ,//&( GPstrain[where] ),  //&( GPtangent_E[where] ),
-                                         //&( (matpoint)->operator[](where) )
-                                         // ugly syntax but it works! Still don't know what's wrong   // with the old style matpoint[where]
-              }
-          }
-      }
+                matpoint[where] = new MatPoint3D(GP_c_r,
+                                                GP_c_s,
+                                                GP_c_t,
+                                                r, s, t,
+                                                rw, sw, tw,
+                                              //InitEPS,
+                                                    Globalmmodel);
+          //NMD);
+          //&( GPstress[where] ), //&( GPiterative_stress[where] ), //IN_q_ast_iterative[where] ,//&( GPstrain[where] ),  //&( GPtangent_E[where] ),
+                                        //&( (matpoint)->operator[](where) )
+                                        // ugly syntax but it works! Still don't know what's wrong   // with the old style matpoint[where]
+            }
+        }
+    }
 
-      // Set connected external node IDs
-      connectedExternalNodes( 0) = node_numb_1;
-      connectedExternalNodes( 1) = node_numb_2;
-      connectedExternalNodes( 2) = node_numb_3;
-      connectedExternalNodes( 3) = node_numb_4;
-      connectedExternalNodes( 4) = node_numb_5;
-      connectedExternalNodes( 5) = node_numb_6;
-      connectedExternalNodes( 6) = node_numb_7;
-      connectedExternalNodes( 7) = node_numb_8;
+    // Set connected external node IDs
+    connectedExternalNodes( 0) = node_numb_1;
+    connectedExternalNodes( 1) = node_numb_2;
+    connectedExternalNodes( 2) = node_numb_3;
+    connectedExternalNodes( 3) = node_numb_4;
+    connectedExternalNodes( 4) = node_numb_5;
+    connectedExternalNodes( 5) = node_numb_6;
+    connectedExternalNodes( 6) = node_numb_7;
+    connectedExternalNodes( 7) = node_numb_8;
 
-      connectedExternalNodes( 8) = node_numb_9;
-      connectedExternalNodes( 9) = node_numb_10;
-      connectedExternalNodes(10) = node_numb_11;
-      connectedExternalNodes(11) = node_numb_12;
+    connectedExternalNodes( 8) = node_numb_9;
+    connectedExternalNodes( 9) = node_numb_10;
+    connectedExternalNodes(10) = node_numb_11;
+    connectedExternalNodes(11) = node_numb_12;
 
-      connectedExternalNodes(12) = node_numb_13;
-      connectedExternalNodes(13) = node_numb_14;
-      connectedExternalNodes(14) = node_numb_15;
-      connectedExternalNodes(15) = node_numb_16;
+    connectedExternalNodes(12) = node_numb_13;
+    connectedExternalNodes(13) = node_numb_14;
+    connectedExternalNodes(14) = node_numb_15;
+    connectedExternalNodes(15) = node_numb_16;
 
-      connectedExternalNodes(16) = node_numb_17;
-      connectedExternalNodes(17) = node_numb_18;
-      connectedExternalNodes(18) = node_numb_19;
-      connectedExternalNodes(19) = node_numb_20;
+    connectedExternalNodes(16) = node_numb_17;
+    connectedExternalNodes(17) = node_numb_18;
+    connectedExternalNodes(18) = node_numb_19;
+    connectedExternalNodes(19) = node_numb_20;
 
-      connectedExternalNodes(20) = node_numb_21;
-      connectedExternalNodes(21) = node_numb_22;
-      connectedExternalNodes(22) = node_numb_23;
-      connectedExternalNodes(23) = node_numb_24;
-      connectedExternalNodes(24) = node_numb_25;
-      connectedExternalNodes(25) = node_numb_26;
-      connectedExternalNodes(26) = node_numb_27;
+    connectedExternalNodes(20) = node_numb_21;
+    connectedExternalNodes(21) = node_numb_22;
+    connectedExternalNodes(22) = node_numb_23;
+    connectedExternalNodes(23) = node_numb_24;
+    connectedExternalNodes(24) = node_numb_25;
+    connectedExternalNodes(25) = node_numb_26;
+    connectedExternalNodes(26) = node_numb_27;
 
-      for (int i=0; i<27; i++)
-        theNodes[i] = nullptr;
+    for (int i=0; i<27; i++)
+      theNodes[i] = nullptr;
 
-      nodes_in_brick = 27;
+    nodes_in_brick = 27;
 
 }
 
@@ -183,7 +181,7 @@ connectedExternalNodes(27), Ki(0), Q(81), bf(3), rho(0.0), pressure(0.0), mmodel
 }
 
 
-TwentySevenNodeBrick::~TwentySevenNodeBrick ()
+TwentySevenNodeBrick::~TwentySevenNodeBrick()
 {
   int total_number_of_Gauss_points = r_integration_order*s_integration_order*t_integration_order;
 
@@ -255,8 +253,6 @@ void TwentySevenNodeBrick::incremental_Update()
           JacobianINV = Jacobian_3Dinv(dh);
           //....                JacobianINV.print("JINV");
           // determinant of Jacobian tensor ( matrix )
-          //--                det_of_Jacobian  = Jacobian.determinant();
-          //....  ::printf("determinant of Jacobian is %f\n",Jacobian_determinant );
           // Derivatives of local coordinates multiplied with inverse of Jacobian (see Bathe p-202)
           //dhGlobal = dh("ij") * JacobianINV("jk"); // Zhaohui 09-02-2001
           dhGlobal = dh("ij") * JacobianINV("kj");
@@ -286,7 +282,8 @@ void TwentySevenNodeBrick::incremental_Update()
 
 
 
-tensor TwentySevenNodeBrick::H_3D(double r1, double r2, double r3)
+tensor 
+TwentySevenNodeBrick::H_3D(double r1, double r2, double r3)
 {
 
   int dimension[] = {81,3};
@@ -1322,7 +1319,7 @@ tensor TwentySevenNodeBrick::Jacobian_3Dinv(tensor dh)
 
 
 ////#############################################################################
-tensor TwentySevenNodeBrick::Nodal_Coordinates(void)
+tensor TwentySevenNodeBrick::Nodal_Coordinates()
   {
     const int dimensions[] = {27,3};
     tensor N_coord(2, dimensions, 0.0);
