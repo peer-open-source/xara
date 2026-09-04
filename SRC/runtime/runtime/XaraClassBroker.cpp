@@ -212,11 +212,6 @@ using namespace OpenSees::Hash::literals;
 #include "quadrature/Frame/MidDistanceBeamIntegration.h"
 #include "quadrature/Frame/CompositeSimpsonBeamIntegration.h"
 
-// Node header files
-#include "Node.h"
-#ifdef HEAP_NODE
-#include "HeapNode.h"
-#endif
 
 #include "FileStream.h"
 #include "StandardStream.h"
@@ -437,19 +432,7 @@ XaraClassBroker::getNewNode(int classTag)
 MP_Constraint *
 XaraClassBroker::getNewMP(int classTag)
 {
-  switch (classTag) {
-  case CNSTRNT_TAG_MP_Constraint:
-    return new MP_Constraint(classTag);
-
-  case CNSTRNT_TAG_MP_Joint2D:
-    return new MP_Joint2D();
-
-  default:
-    opserr << "XaraClassBroker::getNewMP - ";
-    opserr << " - no MP_Constraint type exists for class tag ";
-    opserr << classTag << "\n";
-    return 0;
-  }
+  return nullptr;
 }
 
 SP_Constraint *
