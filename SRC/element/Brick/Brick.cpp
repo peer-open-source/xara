@@ -52,22 +52,6 @@ Matrix  Brick::mass(24,24) ;
 
 
 
-Brick::Brick() 
-: Element( 0, ELE_TAG_Brick),
- conn(8), applyLoad(0), load(0), Ki(0)
-{
-
-  for (int i=0; i<8; i++ ) {
-    materialPointers[i] = nullptr;
-    theNodes[i] = nullptr;
-  }
-
-  b[0] = 0.0;
-  b[1] = 0.0;
-  b[2] = 0.0;
-}
-
-
 Brick::Brick(int tag, 
              const std::array<int, 8>& nodes,
              NDMaterial &theMaterial,
@@ -209,6 +193,7 @@ Brick::getTangentStiff()
 
   return stiff;
 }
+
 
 const Matrix&
 Brick::getInitialStiff() 

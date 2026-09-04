@@ -466,8 +466,7 @@ XaraCmd_modalDamping(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
     //  read in one & set all factors to that value
     if (Tcl_GetDouble(interp, argv[1], &factor) != TCL_OK) {
       opserr << OpenSees::PromptValueError 
-             << "rayleigh alphaM? betaK? betaK0? betaKc? - could not "
-                "read betaK? \n";
+             << "Failed to read damping factor\n";
       return TCL_ERROR;
     }
 
@@ -489,6 +488,9 @@ XaraCmd_damping(ClientData clientData,
                 Tcl_Interp *interp, ArgSize argc,
                 TCL_Char ** const argv)
 {
+  // damping Modal {factors}
+  // damping Rayleigh alphaM? betaK? betaK0? betaKc?
+
   assert(clientData != nullptr);
   BasicAnalysisBuilder *builder = (BasicAnalysisBuilder*)clientData;
   if (argc < 2) {
@@ -502,8 +504,9 @@ XaraCmd_damping(ClientData clientData,
 
     if (argc < 3) {
       opserr
-          << OpenSees::PromptValueError 
-          << argv[0] << " ?factor - not enough arguments to command\n";
+            << OpenSees::PromptValueError 
+            << argv[0] << " ?factor - not enough arguments to command"
+            << OpenSees::SignalMessageEnd;
       return TCL_ERROR;
     }
 
@@ -518,16 +521,6 @@ XaraCmd_damping(ClientData clientData,
       builder->eigen(numModes, true, true);
       // return TCL_ERROR;
     }
-
-    /* 
-     * "quick" modal damping adds modal damping forces to the right-hand side,
-     * but does not add modal damping terms to the dynamic tangent.
-     *
-     * see https://portwooddigital.com/2022/11/08/quick-and-dirty-modal-damping/
-     */
-    bool do_tangent = true;
-    if (strcmp(argv[0], "modalDampingQ") == 0)
-      do_tangent = false;
 
     double factor = 0;
     Vector modalDampingValues(numEigen);
@@ -545,7 +538,6 @@ XaraCmd_damping(ClientData clientData,
     // read in values and set factors
     //
     if (numModes == numEigen) {
-
       // read in all factors one at a time
       for (int i = 0; i < numEigen; ++i) {
         if (Tcl_GetDouble(interp, argv[1 + i], &factor) != TCL_OK) {
@@ -560,8 +552,7 @@ XaraCmd_damping(ClientData clientData,
       //  read in one & set all factors to that value
       if (Tcl_GetDouble(interp, argv[1], &factor) != TCL_OK) {
         opserr << OpenSees::PromptValueError 
-              << "rayleigh alphaM? betaK? betaK0? betaKc? - could not "
-                  "read betaK? \n";
+              << "Failed to read damping factor\n";
         return TCL_ERROR;
       }
 
@@ -573,7 +564,7 @@ XaraCmd_damping(ClientData clientData,
     Domain *theDomain = builder->getDomain();
     assert(theDomain != nullptr);
 
-    theDomain->setModalDampingFactors(&modalDampingValues, do_tangent);
+    theDomain->setModalDampingFactors(&modalDampingValues, true);
     return TCL_OK;
   }
   else {

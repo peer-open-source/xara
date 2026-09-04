@@ -35,8 +35,7 @@
 
 class Brick : public Element {
 
-  public :
-    Brick();
+public:
     Brick(int tag, 
           const std::array<int, 8>& node_tags,
           NDMaterial &theMaterial,
