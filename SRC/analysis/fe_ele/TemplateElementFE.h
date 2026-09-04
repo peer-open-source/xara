@@ -95,15 +95,16 @@ protected:
   void addLocalD_ForceSensitivity(int gradNumber, const Vector &vel,
                                   double fact = 1.0);
 
-  ID myID;
 
 private:
   static Matrix &tangentView();
   static Vector &residualView();
   static Vector &scratchView();
+
   void gatherResponse(OpenSees::VectorND<N> &target,
                       const Vector &response) const;
 
+  ID myID;
   Element &myEle;
   Integrator *theIntegrator;
 
