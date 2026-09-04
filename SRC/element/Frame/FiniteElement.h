@@ -22,6 +22,7 @@
 #include <MatrixND.h>
 #include <ID.h>
 #include <State.h>
+#include <analysis/fe_ele/TemplateElementFE.h>
 
 class Node;
 class Domain;
@@ -36,7 +37,7 @@ class FiniteElement : public Element {
 public:
     FiniteElement(int tag, int classtag)
       : Element(tag, classtag),
-        connectedExternalNodes(nen),
+        m_conn(nen),
         parameterID(0),
         e_state(State::None)
     {
@@ -45,15 +46,15 @@ public:
     }
 
     FiniteElement(int tag, int classtag, 
-                  std::array<int, nen>& nodes, 
+                  const std::array<int, nen>& nodes, 
                   int mass_flag=0)
       : Element(tag, classtag),
-        connectedExternalNodes(nen),
+        m_conn(nen),
         parameterID(0),
         e_state(State::None)
     {
       for (int i=0; i<nen; i++) {
-        connectedExternalNodes(i) = nodes[i];
+        m_conn(i) = nodes[i];
         theNodes[i] = nullptr;
       }
     }
@@ -61,7 +62,11 @@ public:
 
     // For Element
     const ID& getExternalNodes() final {
-      return connectedExternalNodes;
+      return m_conn;
+    }
+
+    FE_Element* createFE_Element(int tag) final {
+      return new TemplateElementFE<nen*ndf>(tag, *this);
     }
 
     Node **getNodePtrs() final {return theNodes.data();}
@@ -177,7 +182,7 @@ protected:
   //
   std::array<Node*, nen> theNodes;
 
-  ID  connectedExternalNodes;
+  ID  m_conn;
 
   int  parameterID;
 
