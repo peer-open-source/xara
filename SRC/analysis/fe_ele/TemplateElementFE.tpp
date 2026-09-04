@@ -219,6 +219,7 @@ TemplateElementFE<N>::addRIncInertiaToResidual(double fact)
     residualStorage.addVector(1.0, myEle.getResistingForceIncInertia(), -fact);
 }
 
+
 template <int N>
 void
 TemplateElementFE<N>::gatherResponse(OpenSees::VectorND<N> &target,
@@ -277,6 +278,7 @@ TemplateElementFE<N>::getKi_Force(const Vector &disp, double fact)
 
   return residualView();
 }
+
 
 template <int N>
 const Vector &
