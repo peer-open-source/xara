@@ -79,35 +79,15 @@ MatPoint3D::MatPoint3D(short int INr_direction_point_number,
 ////=============================================================================
 MatPoint3D::~MatPoint3D() 
 {
-    if ( matmodel )
-      //delete [] matmodel; //bug found: Inconsistent delete
-      delete matmodel;
+  if ( matmodel )
+    //delete [] matmodel; //bug found: Inconsistent delete
+    delete matmodel;
 
-    //if ( GP )
-    //  delete [] GP;
+  //if ( GP )
+  //  delete [] GP;
 
 }
 
-////=============================================================================
-//MatPoint3D::MatPoint3D(EPState *eps) {
-//
-//    this->r_direction_point_number = 0;
-//    this->s_direction_point_number = 0;
-//    this->t_direction_point_number = 0;
-//    this->r = 0;
-//    this->s = 0;
-//    this->t = 0;
-//    this->rw = 0;
-//    this->sw = 0;
-//    this->tw = 0;
-//	     
-//    if ( eps ) 
-//        gpEPS = eps->newObj();      
-//    else
-//        //gpEPS = new EPState();  //otherwise use default EPState __Zhaohui 09-30-2000
-//        gpEPS = 0;  //otherwise use default EPState __Zhaohui 09-30-2000
-//    
-//}
 
 //=============================================================================
 void MatPoint3D::Initialize( short int INr_direction_point_number,
@@ -159,14 +139,15 @@ void MatPoint3D::Initialize( short int INr_direction_point_number,
 
 //=============================================================================
 //return MatPoint
-MatPoint3D * MatPoint3D::GP(void) 
-     {
-       return this;
-     }
+MatPoint3D * MatPoint3D::GP() 
+{
+  return this;
+}
 
 //=============================================================================
-short int MatPoint3D::GP_number_r(void) const {
-    return r_direction_point_number; 
+short int MatPoint3D::GP_number_r() const 
+{
+  return r_direction_point_number;
 }
 
 
