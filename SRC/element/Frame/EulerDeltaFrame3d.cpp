@@ -25,7 +25,6 @@
 #include <Channel.h>
 #include <Parameter.h>
 #include <Information.h>
-#include <FEM_ObjectBroker.h>
 #include <ElementResponse.h>
 #include <CompositeResponse.h>
 #include <ElementalLoad.h>
@@ -110,14 +109,6 @@ EulerDeltaFrame3d::EulerDeltaFrame3d(int tag, std::array<int,2>& nodes,
   q0.zero();
 }
 
-EulerDeltaFrame3d::EulerDeltaFrame3d()
-    : FiniteElement(0, ELE_TAG_EulerDeltaFrame3d),
-      numSections(0), sections(nullptr),
-      beamInt(nullptr),
-      density(0.0), mass_flag(0), parameterID(0)
-{
-  q0.zero();
-}
 
 EulerDeltaFrame3d::~EulerDeltaFrame3d()
 {
@@ -484,10 +475,10 @@ EulerDeltaFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
   //
 
   // global force
-    if (strcmp(argv[0],"forces") == 0 || 
-        strcmp(argv[0],"force") == 0  ||
-        strcmp(argv[0],"globalForce") == 0 ||
-        strcmp(argv[0],"globalForces") == 0) {
+  if (strcmp(argv[0],"forces") == 0 || 
+      strcmp(argv[0],"force") == 0  ||
+      strcmp(argv[0],"globalForce") == 0 ||
+      strcmp(argv[0],"globalForces") == 0) {
 
     output.tag("ResponseType", "Px_1");
     output.tag("ResponseType", "Py_1");
@@ -505,9 +496,9 @@ EulerDeltaFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
 // TODO(cmp)
 //  theResponse = new ElementResponse(this, 1, P);
 
-    // Local force
-    }  else if (strcmp(argv[0],"localForce") == 0 || 
-                strcmp(argv[0],"localForces") == 0) {
+  // Local force
+  }  else if (strcmp(argv[0],"localForce") == 0 || 
+              strcmp(argv[0],"localForces") == 0) {
 
     output.tag("ResponseType", "N_1");
     output.tag("ResponseType", "Vy_1");
@@ -524,7 +515,7 @@ EulerDeltaFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
 
     theResponse = new ElementResponse(this, 2, Vector(12));
 
-    // chord rotation -
+  // chord rotation -
   } else if (strcmp(argv[0], "chordRotation") == 0 ||
              strcmp(argv[0], "chordDeformation") == 0 ||
              strcmp(argv[0], "basicDeformation") == 0) {
@@ -648,6 +639,7 @@ EulerDeltaFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
   output.endTag();
   return theResponse;
 }
+
 
 int
 EulerDeltaFrame3d::getResponse(int responseID, Information &info)
@@ -802,15 +794,3 @@ EulerDeltaFrame3d::activateParameter(int passedParameterID)
   return 0;
 }
 
-
-int
-EulerDeltaFrame3d::sendSelf(int commitTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int
-EulerDeltaFrame3d::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  return -1;
-}

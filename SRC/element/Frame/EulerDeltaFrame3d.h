@@ -30,13 +30,11 @@ class EulerDeltaFrame3d : public FiniteElement<2, 3, 6>
                       CrdTransf &,
                       double rho, int mass_flag, bool use_mass);
 
-    EulerDeltaFrame3d();
     ~EulerDeltaFrame3d();
 
     const char *getClassType() const {
       return "EulerDeltaFrame3d";
     }
-    static constexpr const char* class_name = "EulerDeltaFrame3d";
 
 
     // public methods to set the state of the element    
@@ -53,12 +51,7 @@ class EulerDeltaFrame3d : public FiniteElement<2, 3, 6>
     void zeroLoad();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
 
-
-    // public methods for element output
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-
-    void Print(OPS_Stream &s, int flag =0);
+    void Print(OPS_Stream &s, int flag);
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &info);
