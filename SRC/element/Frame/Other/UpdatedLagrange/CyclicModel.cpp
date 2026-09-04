@@ -37,10 +37,10 @@ CyclicModel::~CyclicModel()
 
 double CyclicModel::getFactor()
 {
-  if(cycFactor < 0.05)
+  if (cycFactor < 0.05)
   	cycFactor = 0.05;
   
-  if(state_curr == Unloading && state_hist == Loading)
+  if (state_curr == Unloading && state_hist == Loading)
   	cycFactor = resFactor;
   	
   return cycFactor;
@@ -48,12 +48,12 @@ double CyclicModel::getFactor()
 
 void CyclicModel::update(double f, double d, bool yield)
 {
-	if( yield && (!initYieldPos &&  !initYieldNeg))
+	if ( yield && (!initYieldPos &&  !initYieldNeg))
 	{
 		initDMag = d;
 		initFMag = f;
 	}
-	if( !yield && (!initYieldPos &&  !initYieldNeg))
+	if ( !yield && (!initYieldPos &&  !initYieldNeg))
 	{
 		initDMag = d;
 		initFMag = f;
@@ -66,7 +66,7 @@ void CyclicModel::update(double f, double d, bool yield)
 	yielding = yield;
 
 // check state
-	if(fabs(f_curr) < fabs(f_hist) &&
+	if (fabs(f_curr) < fabs(f_hist) &&
 	   fabs(d_curr) < fabs(d_hist) &&
 	   dir(f_curr)== dir(f_hist)
 	  )
@@ -74,7 +74,7 @@ void CyclicModel::update(double f, double d, bool yield)
 	else
 		state_curr = Loading;
 
-	if(f_curr*f_hist < 0)
+	if (f_curr*f_hist < 0)
 		state_curr = Crossover;
 }
 
@@ -88,32 +88,32 @@ int CyclicModel::commitState(double newRes)
 		k_curr = fabs((f_curr - f_hist)/(d_curr - d_hist));
 
 	// check if the yield-point has been found
-	if(!initYieldPos && yielding && d_curr > 0.0)
+	if (!initYieldPos && yielding && d_curr > 0.0)
 	{
 		initDpos = d_curr;
 		initFpos = f_curr;
 		initYieldPos = true;
-		if(!initYieldNeg)
+		if (!initYieldNeg)
 			k_init = f_curr/d_curr;
 	}
 
-	if(!initYieldNeg && yielding && d_curr < 0.0)
+	if (!initYieldNeg && yielding && d_curr < 0.0)
 	{
 		initDneg = d_curr;
 		initFneg = f_curr;
 		initYieldNeg = true;
-		if(!initYieldPos)
+		if (!initYieldPos)
 			k_init = f_curr/d_curr;
 	}
 
 
 // Temp approx. init values
-	if(initYieldPos && !initYieldNeg)
+	if (initYieldPos && !initYieldNeg)
 	{
 		initDneg = -1*initDpos;
 		initFneg = -1*initFpos;
 	}
-	if(initYieldNeg && !initYieldPos)
+	if (initYieldNeg && !initYieldPos)
 	{
 		initDpos = -1*initDneg;
 		initFpos = -1*initFneg;
@@ -121,13 +121,13 @@ int CyclicModel::commitState(double newRes)
 
 // now update the commit values
 
-	if(d_curr > dpeakPos)
+	if (d_curr > dpeakPos)
 	{
 		dpeakPos = d_curr;
 		fpeakPos = f_curr;
 	}
 
-	if(d_curr < 0 && fabs(d_curr) > fabs(dpeakNeg))
+	if (d_curr < 0 && fabs(d_curr) > fabs(dpeakNeg))
 	{
 		dpeakNeg = d_curr;
 		fpeakNeg = f_curr;
@@ -155,7 +155,7 @@ int CyclicModel::commitState(double newRes)
 int CyclicModel::setCurrent(double f, double d)
 {
 	// check if initially yielded
-	if(d_curr > 0 && !initYieldPos ||
+	if (d_curr > 0 && !initYieldPos ||
        d_curr < 0 && !initYieldNeg
 	  )
 	{
@@ -173,7 +173,7 @@ int CyclicModel::setCurrent(double f, double d)
 	}
 
 	// check if new full-cycle task needs to be created
-	if(state_curr == Unloading && state_hist == Loading && f_curr*f_hist > 0)
+	if (state_curr == Unloading && state_hist == Loading && f_curr*f_hist > 0)
 	{
 		if (createFullCycleTask() < 0)
 		{
@@ -190,10 +190,9 @@ int CyclicModel::setCurrent(double f, double d)
 
 	// else check the status of the current task
 	int res = taskStatus();
-	if(res < 0) // task aborted, create new (half-cycle)
+	if (res < 0) // task aborted, create new (half-cycle)
 	{
 		opserr << "Task aborted, creating new half-cycle task\n";
-		//cout <<"BEFORE\n" << *this;
 
 		if (createHalfCycleTask() < 0)
 		{
@@ -202,13 +201,9 @@ int CyclicModel::setCurrent(double f, double d)
 		}
 		else
 			cycFactor = getTaskFactor();
-		// opserr <<"AFTER\n" << *this;
-		// opserr << "\a";
-
 	}
 	else if (res > 0) // existing task continuing
 	{
-		// opserr << "Task continuing\n";
 		cycFactor = getTaskFactor();
 	}
 	else if (res == 0)
@@ -226,10 +221,6 @@ int CyclicModel::setCurrent(double f, double d)
 
 	if(cycFactor > (1.001))
 	{
-		// opserr << "WARNING - cyc > Ko\n";
-		// opserr << *this;
-		// opserr << "\a";
-		// opserr << "CYC4 \n";
 		cycFactor = 1.0;
 	}
 
