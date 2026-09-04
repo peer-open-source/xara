@@ -337,7 +337,8 @@ int GeneralizedAlpha::update(const Vector &deltaU)
 }
 
 
-int GeneralizedAlpha::commit()
+int
+GeneralizedAlpha::commit()
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel == 0)  {
@@ -366,43 +367,9 @@ GeneralizedAlpha::getVel()
   return *Udot;
 }
 
-int GeneralizedAlpha::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(4);
-    data(0) = alphaF;
-    data(1) = alphaM;
-    data(2) = beta;
-    data(3) = gamma;
 
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING GeneralizedAlpha::sendSelf() - could not send data\n";
-        return -1;
-    }
-
-    return 0;
-}
-
-
-int GeneralizedAlpha::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(4);
-
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING GeneralizedAlpha::recvSelf() - could not receive data\n";
-        return -1;
-    }
-
-    alphaF  = data(0);
-    alphaM  = data(1);
-    beta   = data(2);
-    gamma  = data(3);
-
-    return 0;
-}
-
-
-void GeneralizedAlpha::Print(OPS_Stream &s, int flag)
+void
+GeneralizedAlpha::Print(OPS_Stream &s, int flag)
 {
   AnalysisModel *theModel = this->getAnalysisModel();
   if (theModel != 0)  {
