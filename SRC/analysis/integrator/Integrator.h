@@ -25,8 +25,7 @@
 // Created: 11/96
 // Revision: A
 //
-#ifndef Integrator_h
-#define Integrator_h
+#pragma once
 
 class FE_Element;
 class DOF_Group;
@@ -49,11 +48,3 @@ public:
     // part of the Integrator interface for FE_Elements
     virtual int getLastResponse(Vector &result, const ID &id) =0;
 };
-
-#endif
-
-
-
-
-
-
