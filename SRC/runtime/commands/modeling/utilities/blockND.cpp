@@ -161,7 +161,6 @@ XaraCmd_block2D(ClientData clientData,
       Node *theNode = nullptr;
 
       if (ndm == 2) {
-//      theNode = new HeapNode(nodeID, ndf, nodeCoords(0), nodeCoords(1));
         theNode = new Node(nodeID, ndf, nodeCoords(0), nodeCoords(1));
 
       } else if (ndm == 3) {
@@ -358,7 +357,6 @@ XaraCmd_block3D(ClientData clientData,
           }
         } else
 #endif
-//        theNode = new HeapNode(nodeID, ndf, nodeCoords(0), nodeCoords(1), nodeCoords(2));
           theNode = new Node(nodeID,ndf,nodeCoords(0),nodeCoords(1),nodeCoords(2));
 
         if (theTclDomain->addNode(theNode) == false) {
