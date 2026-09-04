@@ -297,111 +297,6 @@ ArpackSOE::getShift()
 }
 
 
-int 
-ArpackSOE::sendSelf(int commitTag, Channel &theChannel)
-{
-  int sendID =0;
-  
-  if (processID == -1)
-    processID = 0;
-  
-  // if P0 check if already sent. If already sent use old processID; if not allocate a new process 
-  // id for remote part of object, enlarge channel * to hold a channel * for this remote object.
-  // if not P0, send current processID
-
-  if (processID == 0) {
-    
-    // check if already using this object
-    bool found = false;
-    for (int i=0; i<numChannels; i++)
-      if (theChannels[i] == &theChannel) {
-        sendID = i+1;
-        found = true;
-      }
-    
-    // if new object, enlarge Channel pointers to hold new channel * & allocate new ID
-    if (found == false) {
-      int nextNumChannels = numChannels + 1;
-      Channel **nextChannels = new Channel *[nextNumChannels];
-      if (nextNumChannels == 0) {
-        opserr << "ArpackSOE::sendSelf() - failed to allocate channel array of size: " << 
-          nextNumChannels << endln;
-        return -1;
-      }
-      for (int i=0; i<numChannels; i++)
-        nextChannels[i] = theChannels[i];
-      nextChannels[numChannels] = &theChannel;
-      
-      numChannels = nextNumChannels;
-      
-      if (theChannels != 0)
-        delete [] theChannels;
-      
-      theChannels = nextChannels;
-      
-      if (localCol != 0)
-        delete [] localCol;
-      localCol = new ID *[numChannels];
-      if (localCol == 0) {
-        opserr << "ArpackSOE::sendSelf() - failed to allocate id array of size: " << 
-          nextNumChannels << endln;
-        return -1;
-      }
-      for (int i=0; i<numChannels; i++)
-        localCol[i] = 0;    
-      
-      if (sizeLocal != 0)
-        delete sizeLocal;
-      
-      sizeLocal = new ID(numChannels);
-      
-      // allocate new processID for remote object
-      sendID = numChannels;
-    }
-  } else 
-    sendID = processID;
-  
-  // send remotes processID
-  ID idData(1);
-  idData(0) = sendID;
-
-  int res = theChannel.sendID(0, commitTag, idData);
-  if (res < 0) {
-    opserr <<"WARNING ArpackSOE::sendSelf() - failed to send data\n";
-    return -1;
-  }
-
-  return 0;  
-}
-
-    
-int 
-ArpackSOE::recvSelf(int commitTag, Channel &theChannel, 
-                 FEM_ObjectBroker &theBroker)
-{
-  ID idData(1);
-  int res = theChannel.recvID(0, commitTag, idData);
-  if (res < 0) {
-    opserr <<"WARNING ArpackSOE::recvSelf() - failed to send data\n";
-    return -1;
-  }              
-  processID = idData(0);
-
-  numChannels = 1;
-  theChannels = new Channel *[1];
-  theChannels[0] = &theChannel;
-
-  localCol = new ID *[numChannels];
-  for (int i=0; i<numChannels; i++)
-    localCol[i] = 0;
-
-  if (sizeLocal != 0)
-    delete sizeLocal;
-
-  sizeLocal = new ID(numChannels);
-
-  return 0;
-}
 
 int 
 ArpackSOE::setLinks(AnalysisModel &theAnalysisModel)
@@ -427,15 +322,14 @@ ArpackSOE::checkSameInt(int value)
   static ID idData(1);
 
   if (processID != 0) {
-
-      Channel *theChannel = theChannels[0];
-      idData(0) = value;
-      theChannel->sendID(0, 0, idData);
-      theChannel->recvID(0, 0, idData);
-      if (idData(0) == 1)
-        return 1;
-      else
-        return 0;
+    Channel *theChannel = theChannels[0];
+    idData(0) = value;
+    theChannel->sendID(0, 0, idData);
+    theChannel->recvID(0, 0, idData);
+    if (idData(0) == 1)
+      return 1;
+    else
+      return 0;
   } 
   else {
     int ok = 1;
