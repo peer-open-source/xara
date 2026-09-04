@@ -24,8 +24,8 @@ class EulerDeltaFrame3d : public FiniteElement<2, 3, 6>
 {
   public:
     EulerDeltaFrame3d(int tag, 
-                      std::array<int,2>& nodes,
-                      std::vector<FrameSection*> &,
+                      const std::array<int,2>& nodes,
+                      const std::vector<FrameSection*> &,
                       BeamIntegration  &, 
                       CrdTransf &,
                       double rho, int mass_flag, bool use_mass);
