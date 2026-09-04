@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.10 $
-// $Date: 2008-08-26 16:30:55 $
-// $Source: /usr/local/cvs/OpenSees/SRC/material/uniaxial/ElasticMaterial.cpp,v $
-                                                                        
-                                                                        
+//
 // Written: fmk 
 // Created: 07/98
 // Revision: A
@@ -30,8 +25,6 @@
 // Description: This file contains the class implementation for 
 // ElasticMaterial. 
 //
-// What: "@(#) ElasticMaterial.C, revA"
-
 #include <ElasticMaterial.h>
 #include <Vector.h>
 #include <Channel.h>
@@ -41,31 +34,26 @@
 
 
 ElasticMaterial::ElasticMaterial(int tag, double E)
-:UniaxialMaterial(tag,MAT_TAG_ElasticMaterial),
- trialStrain(0.0),  trialStrainRate(0.0),
- committedStrain(0.0),  committedStrainRate(0.0),
- Epos(E), Eneg(E), eta(0.0), density(0.0),
- parameterID(0)
+: UniaxialMaterial(tag,MAT_TAG_ElasticMaterial),
+  trialStrain(0.0),  
+  trialStrainRate(0.0),
+  committedStrain(0.0), 
+  committedStrainRate(0.0),
+  Epos(E), Eneg(E), eta(0.0), density(0.0),
+  parameterID(0)
 {
 
 }
+
 
 ElasticMaterial::ElasticMaterial(int tag, double Epos, double eta, double Eneg, double density)
-:UniaxialMaterial(tag,MAT_TAG_ElasticMaterial),
- trialStrain(0.0),  trialStrainRate(0.0),
- committedStrain(0.0),  committedStrainRate(0.0),
- Epos(Epos), Eneg(Eneg), eta(eta), density(density),
- parameterID(0)
-{
-
-}
-
-
-ElasticMaterial::ElasticMaterial()
-:UniaxialMaterial(0,MAT_TAG_ElasticMaterial),
- trialStrain(0.0),  trialStrainRate(0.0),
- committedStrain(0.0),  committedStrainRate(0.0),
- Epos(0.0), Eneg(0.0), eta(0.0), parameterID(0)
+: UniaxialMaterial(tag,MAT_TAG_ElasticMaterial),
+  trialStrain(0.0),  trialStrainRate(0.0),
+  committedStrain(0.0),  committedStrainRate(0.0),
+  Epos(Epos), Eneg(Eneg), 
+  eta(eta), 
+  density(density),
+  parameterID(0)
 {
 
 }
@@ -115,7 +103,7 @@ ElasticMaterial::getStress(void)
 
 
 double 
-ElasticMaterial::getTangent(void)
+ElasticMaterial::getTangent()
 {
     if (trialStrain > 0.0)
         return Epos;
@@ -127,7 +115,7 @@ ElasticMaterial::getTangent(void)
 
 
 double 
-ElasticMaterial::getInitialTangent(void)
+ElasticMaterial::getInitialTangent()
 {
     return (Epos > Eneg) ? Epos : Eneg;
 }
@@ -140,7 +128,7 @@ ElasticMaterial::getRho()
 }
 
 int 
-ElasticMaterial::commitState(void)
+ElasticMaterial::commitState()
 {
   committedStrain = trialStrain;
   committedStrainRate = trialStrainRate;
@@ -149,7 +137,7 @@ ElasticMaterial::commitState(void)
 
 
 int 
-ElasticMaterial::revertToLastCommit(void)
+ElasticMaterial::revertToLastCommit()
 {
   trialStrain = committedStrain;
   trialStrainRate = committedStrainRate;
@@ -178,67 +166,24 @@ ElasticMaterial::getCopy()
 }
 
 
-int 
-ElasticMaterial::sendSelf(int cTag, Channel &theChannel)
-{
-  int res = 0;
-  static Vector data(6);
-  data(0) = this->getTag();
-  data(1) = Epos;
-  data(2) = Eneg;
-  data(3) = eta;
-  data(4) = committedStrain;
-  data(5) = committedStrainRate;
-  res = theChannel.sendVector(this->getDbTag(), cTag, data);
-  if (res < 0) 
-    opserr << "ElasticMaterial::sendSelf() - failed to send data\n";
-
-  return res;
-}
-
-
-int 
-ElasticMaterial::recvSelf(int cTag, Channel &theChannel, 
-			  FEM_ObjectBroker &theBroker)
-{
-  int res = 0;
-  static Vector data(6);
-  res = theChannel.recvVector(this->getDbTag(), cTag, data);
-  
-  if (res < 0) {
-      opserr << "ElasticMaterial::recvSelf() - failed to receive data\n";
-      Epos = Eneg = 0; 
-      this->setTag(0);      
-  }
-  else {
-    this->setTag(int(data(0)));
-    Epos = data(1);
-    Eneg = data(2);
-    eta  = data(3);
-    committedStrain = data(4);
-    committedStrainRate = data(5);
-    this->revertToLastCommit();
-  }
-    
-  return res;
-}
 
 
 void 
 ElasticMaterial::Print(OPS_Stream &s, int flag)
 {
-    if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
-        s << "ElasticMaterial tag: " << this->getTag() << endln;
-        s << "  Epos: " << Epos << " Eneg: " << Eneg << " eta: " << eta << endln;
-    } 
-    if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-        s << OPS_PRINT_JSON_MATE_INDENT << "{";
-        s << "\"name\": " << this->getTag() << ", ";
-        s << "\"type\": \"ElasticMaterial\", ";
-        s << "\"Epos\": " << Epos << ", ";
-        s << "\"Eneg\": " << Eneg << ", ";
-        s << "\"eta\": " << eta << "}";
-    }
+  if (flag == OPS_PRINT_PRINTMODEL_MATERIAL) {
+    s << "ElasticMaterial tag: " << this->getTag() << "\n";
+    s << "  Epos: " << Epos << " Eneg: " << Eneg << " eta: " << eta << "\n";
+  } 
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"ElasticMaterial\", ";
+    s << "\"Epos\": " << Epos << ", ";
+    s << "\"Eneg\": " << Eneg << ", ";
+    s << "\"density\": " << density << ", ";
+    s << "\"eta\": " << eta << "}";
+  }
 }
 
 
@@ -293,7 +238,6 @@ int
 ElasticMaterial::activateParameter(int paramID)
 {
   parameterID = paramID;
-
   return 0;
 }
 

@@ -1,4 +1,3 @@
-
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
@@ -19,8 +18,9 @@
 // Geometrically exact 3D frame element using the logarithmic rotation
 // parameterizations.
 //
-// Copied from ExactFrame02, changed to support new FrameTransformBuilder 
+// Same as ExactFrame02, except supports new FrameTransformBuilder 
 // interface.
+//
 //===----------------------------------------------------------------------===//
 #pragma once
 #include <set>
@@ -45,7 +45,6 @@ class CosseratFrame3d02:
   public FiniteElement<nen, 3, 6+nwm>
 {
 public:
-
   CosseratFrame3d02(int tag,
                std::array<int,nen>& nodes,
                FrameSection *section[nen-1],
@@ -92,9 +91,6 @@ public:
 
   Response *setResponse(const char **argv, int argc, OPS_Stream &s) final;
   int getResponse(int responseID, Information &) final;
-
-  int sendSelf(int cTag, Channel&) override;
-  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&) override;
 
   void Print(OPS_Stream& s, int flag) override;
 

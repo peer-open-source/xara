@@ -35,6 +35,7 @@
 
 namespace OpenSees {
 
+using namespace Xara;
 
 template<std::size_t nen, int nwm>
 CosseratFrame3d02<nen, nwm>::CosseratFrame3d02(int tag,
@@ -688,20 +689,7 @@ CosseratFrame3d02<nen,nwm>::getResponse(int responseID, Information &info)
   return -1;
 }
 
-template<std::size_t nen, int nwm>
-int
-CosseratFrame3d02<nen,nwm>::sendSelf(int commitTag, Channel& theChannel)
-{
-  return -1;
-}
 
-template<std::size_t nen, int nwm>
-int
-CosseratFrame3d02<nen,nwm>::recvSelf(int commitTag, Channel& theChannel,
-                                FEM_ObjectBroker& theBroker)
-{
-  return -1;
-}
 
 template<std::size_t nen, int nwm>
 void

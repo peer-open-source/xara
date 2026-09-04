@@ -1,3 +1,17 @@
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
 //
 // Calculate Shape functions and parametric derivatives for a
 //   3-D finite element with varied nen between 8 and 27.
@@ -8,7 +22,8 @@
 #include <stdio.h>
 #include <math.h>
 
-void shap3dv(double *R, int *NP, double Q[27][4]){
+void shap3dv(double *R, int *NP, double Q[27][4])
+{
 //
 // Local shape functions for 8-27 node brick
 //
@@ -38,46 +53,48 @@ void shap3dv(double *R, int *NP, double Q[27][4]){
 // * Nodes 21 - 26 Mid-face nodes on +r, +s, +t, -r, -s, -t
 // * Node       27 Centroid node
 //
-    double G[3][3], D[3][3], C;
 
     const static int L[27] = {3,1,1,3,3,1,1,3,2,1,2,3,2,1,2,3,3,1,1,3,1,2,2,3,2,2,2},
                      M[27] = {3,3,1,1,3,3,1,1,3,2,1,2,3,2,1,2,3,3,1,1,2,1,2,2,3,2,2},
                      N[27] = {3,3,3,3,1,1,1,1,3,3,3,3,1,1,1,1,2,2,2,2,2,2,1,2,2,3,2};
 
 
-    int LR, LS, LT;
+    double G[3][3], D[3][3], C;
+
 
     for (int i = 0; i < 3; i++ ) {
-         G[0][i] =  0.5 + 0.5*R[i];
-         G[1][i] =  1.0 - R[i]*R[i];
-         G[2][i] =  0.5 - 0.5*R[i];
-         D[0][i] =  0.5;
-         D[1][i] = -2.0*R[i];
-         D[2][i] = -0.5;
+        G[0][i] =  0.5 + 0.5*R[i];
+        G[1][i] =  1.0 - R[i]*R[i];
+        G[2][i] =  0.5 - 0.5*R[i];
+        D[0][i] =  0.5;
+        D[1][i] = -2.0*R[i];
+        D[2][i] = -0.5;
     }
 
     // Construct basic three-dimensional quadratic shape functions 
     for (int i = 0; i < 27; i++ ) {
-         LR = L[i]-1; 
-         LS = M[i]-1;
-         LT = N[i]-1;
-         Q[i][0] = D[LR][0] * G[LS][1] * G[LT][2]; 
-         Q[i][1] = G[LR][0] * D[LS][1] * G[LT][2];
-         Q[i][2] = G[LR][0] * G[LS][1] * D[LT][2]; 
-         Q[i][3] = G[LR][0] * G[LS][1] * G[LT][2];
+        int LR = L[i]-1; 
+        int LS = M[i]-1;
+        int LT = N[i]-1;
+        Q[i][0] = D[LR][0] * G[LS][1] * G[LT][2]; 
+        Q[i][1] = G[LR][0] * D[LS][1] * G[LT][2];
+        Q[i][2] = G[LR][0] * G[LS][1] * D[LT][2]; 
+        Q[i][3] = G[LR][0] * G[LS][1] * G[LT][2];
     }
 
     //   Modify basic shape functions to account for omitted nodes 
 
     for (int j = 0; j < 4; j++ ) {
 
-        if ( NP[26] == 0 ) Q[26][j] = 0.;    
+        if ( NP[26] == 0 )
+            Q[26][j] = 0.;    
 
         C = -0.5*Q[26][j]; 
 
         for (int i = 20; i < 26; i++ ) {
             Q[i][j] +=  C ;
-            if ( NP[i] == 0 ) Q[i][j] = 0.;
+            if ( NP[i] == 0 )
+                Q[i][j] = 0.;
         }
 
         C = 0.5*C; 
@@ -104,20 +121,22 @@ void shap3dv(double *R, int *NP, double Q[27][4]){
             Q[i][j] += C;
         }
 
-         Q[0][j] +=  - 0.50*(Q[16][j] + Q[11][j] + Q[ 8][j]) - 0.25*(Q[23][j] + Q[24][j] + Q[25][j]); 
-         Q[1][j] +=  - 0.50*(Q[17][j] + Q[ 9][j] + Q[ 8][j]) - 0.25*(Q[20][j] + Q[24][j] + Q[25][j]); 
-         Q[2][j] +=  - 0.50*(Q[10][j] + Q[ 9][j] + Q[18][j]) - 0.25*(Q[25][j] + Q[20][j] + Q[21][j]); 
-         Q[3][j] +=  - 0.50*(Q[19][j] + Q[11][j] + Q[10][j]) - 0.25*(Q[25][j] + Q[21][j] + Q[23][j]); 
-         Q[4][j] +=  - 0.50*(Q[16][j] + Q[15][j] + Q[12][j]) - 0.25*(Q[22][j] + Q[23][j] + Q[24][j]); 
-         Q[5][j] +=  - 0.50*(Q[17][j] + Q[12][j] + Q[13][j]) - 0.25*(Q[24][j] + Q[20][j] + Q[22][j]); 
-         Q[6][j] +=  - 0.50*(Q[18][j] + Q[13][j] + Q[14][j]) - 0.25*(Q[20][j] + Q[21][j] + Q[22][j]); 
-         Q[7][j] +=  - 0.50*(Q[19][j] + Q[15][j] + Q[14][j]) - 0.25*(Q[21][j] + Q[22][j] + Q[23][j]); 
+        Q[0][j] +=  - 0.50*(Q[16][j] + Q[11][j] + Q[ 8][j]) - 0.25*(Q[23][j] + Q[24][j] + Q[25][j]);
+        Q[1][j] +=  - 0.50*(Q[17][j] + Q[ 9][j] + Q[ 8][j]) - 0.25*(Q[20][j] + Q[24][j] + Q[25][j]);
+        Q[2][j] +=  - 0.50*(Q[10][j] + Q[ 9][j] + Q[18][j]) - 0.25*(Q[25][j] + Q[20][j] + Q[21][j]);
+        Q[3][j] +=  - 0.50*(Q[19][j] + Q[11][j] + Q[10][j]) - 0.25*(Q[25][j] + Q[21][j] + Q[23][j]);
+        Q[4][j] +=  - 0.50*(Q[16][j] + Q[15][j] + Q[12][j]) - 0.25*(Q[22][j] + Q[23][j] + Q[24][j]);
+        Q[5][j] +=  - 0.50*(Q[17][j] + Q[12][j] + Q[13][j]) - 0.25*(Q[24][j] + Q[20][j] + Q[22][j]); 
+        Q[6][j] +=  - 0.50*(Q[18][j] + Q[13][j] + Q[14][j]) - 0.25*(Q[20][j] + Q[21][j] + Q[22][j]);
+        Q[7][j] +=  - 0.50*(Q[19][j] + Q[15][j] + Q[14][j]) - 0.25*(Q[21][j] + Q[22][j] + Q[23][j]);
     }
 }
 
 
 
-int brcshl(double shl[4][20][27], double w[27], int nint, int nen) {
+int
+brcshl(double shl[4][20][27], double w[27], int nint, int nen) 
+{
 /*
 
      PROGRAM TO CALCULATE INTEGRATION-RULE WEIGHTS, SHAPE FUNCTIONS
@@ -141,18 +160,19 @@ int brcshl(double shl[4][20][27], double w[27], int nint, int nen) {
 
 */
 
-
-
+    static constexpr
     double RA[27] = {-0.50, 0.50, 0.50,-0.50,-0.50, 0.50, 0.50,-0.50,
                       0.00, 0.50, 0.00,-0.50, 0.00, 0.50, 0.00,-0.50,
                      -0.50, 0.50, 0.50,-0.50, 0.50, 0.00, 0.00,-0.50,
                       0.00, 0.00, 0.00};
 
+    static constexpr 
     double SA[27] = {-0.50,-0.50, 0.50, 0.50,-0.50,-0.50, 0.50, 0.50,
                      -0.50, 0.00, 0.50, 0.00,-0.50, 0.00, 0.50, 0.00,
                      -0.50,-0.50, 0.50, 0.50, 0.00, 0.50, 0.00, 0.00,
                      -0.50, 0.00, 0.00};     
 
+    static constexpr
     double TA[27] = {-0.50,-0.50,-0.50,-0.50, 0.50, 0.50, 0.50, 0.50,
                      -0.50,-0.50,-0.50,-0.50, 0.50, 0.50, 0.50, 0.50,
                       0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.50, 0.00,

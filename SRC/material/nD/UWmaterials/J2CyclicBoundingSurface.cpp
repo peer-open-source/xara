@@ -570,20 +570,6 @@ J2CyclicBoundingSurface::activateParameter(int paramID)
     return -1;
 }
 
-int
-J2CyclicBoundingSurface::sendSelf(int commitTag, Channel &theChannel)
-{
-    // TODO : implement this
-    return 0;
-}
-
-int
-J2CyclicBoundingSurface::recvSelf(int commitTag, Channel &,
-    FEM_ObjectBroker &)
-{
-    // TODO : implement this
-    return -1;
-}
 
 
 // send back the tangent 

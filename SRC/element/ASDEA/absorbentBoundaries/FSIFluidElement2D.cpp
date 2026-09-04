@@ -347,7 +347,8 @@ const Vector& FSIFluidElement2D::getResistingForce()
     return R;
 }
 
-const Vector& FSIFluidElement2D::getResistingForceIncInertia()
+const Vector& 
+FSIFluidElement2D::getResistingForceIncInertia()
 {
     // initialize vector
     static Vector R(4);

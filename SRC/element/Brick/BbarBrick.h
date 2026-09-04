@@ -41,10 +41,7 @@
 
 class BbarBrick : public Element {
 
-  public :
-    
-    // null constructor
-    BbarBrick();
+  public:
   
     // full constructor
     BbarBrick(int tag, 
@@ -66,27 +63,22 @@ class BbarBrick : public Element {
     Node **getNodePtrs();
     int getNumDOF( );
 
-    
+
+    int update();
     int commitState( );
     int revertToLastCommit( );
     int revertToStart( );
 
 	
-    const Matrix &getTangentStiff( ) ;
-    const Matrix &getInitialStiff( ) ;
-    const Matrix &getMass( ) ;
+    const Matrix &getTangentStiff( );
+    const Matrix &getInitialStiff( );
+    const Matrix &getMass( );
 
-    void zeroLoad( ) ;
+    void zeroLoad( );
     int addLoad(ElementalLoad *theLoad, double loadFactor);
-    int addInertiaLoadToUnbalance(const Vector &accel);
-    
-    int update();
+
     const Vector &getResistingForce() override;
     const Vector &getResistingForceIncInertia() override;
-
-    // public methods for element output
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
       
     Response *setResponse(const char **argv, int argc, OPS_Stream &);
     int getResponse(int responseID, Information &);

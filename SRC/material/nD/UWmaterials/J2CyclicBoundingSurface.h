@@ -91,9 +91,6 @@ public:
 	// print out material data
 	void Print(OPS_Stream &s, int flag) final;
 
-	// sending and receiving
-	virtual int sendSelf(int commitTag, Channel &);
-	virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
 protected:
 	static char unsigned m_ElastFlag;	// 1: enforce elastic response
