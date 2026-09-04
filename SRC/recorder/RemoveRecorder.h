@@ -17,16 +17,9 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.3 $
-// $Date: 2009-12-23 22:56:04 $
-// $Source: /usr/local/cvs/OpenSees/SRC/recorder/RemoveRecorder.h,v $
-                                                                        
-#ifndef RemoveRecorder_h
-#define RemoveRecorder_h
+#pragma once
 #define RECORDER_TAGS_RemoveRecorder 15
-
-
+//
 // Written: M Talaat, 06/07
 // Created: 06/07
 // Revision: M Talaat
@@ -84,8 +77,9 @@ class RemoveRecorder: public Recorder
    int record(int commitTag, double timeStamp);
    int playback(int commitTag);
    
-   int restart(void);    
-   int flush(void);    
+   int restart();    
+   int flush();
+
    // changed
    int checkEleRemoval(Element* theEle, Response *eleResponse, int &theComponent,const Vector &Criteria);
    //	int checkNodeRemoval(Element* theEle, int &theComponent,const Vector Criteria);
@@ -137,6 +131,3 @@ class RemoveRecorder: public Recorder
 
    Response **eleResponses;
 };
-
-
-#endif
