@@ -50,19 +50,11 @@
 //
 #include <Logging.h>
 #include <J2PlaneStress.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 
 Vector J2PlaneStress::strain_vec(3) ;
 Vector J2PlaneStress::stress_vec(3) ;
 Matrix J2PlaneStress::tangent_matrix(3,3) ;
 
-//null constructor
-J2PlaneStress::J2PlaneStress( ) : 
-J2Plasticity( ) 
-{
-
-}
 
 
 // full constructor
@@ -84,33 +76,22 @@ J2Plasticity(tag, ND_TAG_J2PlaneStress,
 }
 
 
-//elastic constructor
-J2PlaneStress::
-J2PlaneStress(   int    tag, 
-                 double K, 
-                 double G ) :
-J2Plasticity(tag, ND_TAG_J2PlaneStress, K, G )
-{ 
-
-}
-
-
 //destructor
-J2PlaneStress::~J2PlaneStress( ) 
-{  } 
+J2PlaneStress::~J2PlaneStress() 
+{
 
-
-NDMaterial* J2PlaneStress::getCopy( ) 
-{ 
-  J2PlaneStress  *clone;
-  clone = new J2PlaneStress( ) ;   //new instance of this class
-  *clone = *this ;                 //asignment to make copy
-  return clone ;
 }
 
 
-//send back type of material
-const char* J2PlaneStress::getType( ) const 
+NDMaterial* 
+J2PlaneStress::getCopy( ) 
+{
+  return this->J2Plasticity::getCopy(this->getType());
+}
+
+
+const char* 
+J2PlaneStress::getType( ) const 
 {
   return "PlaneStress" ;
 }
@@ -122,15 +103,15 @@ J2PlaneStress::getOrder() const
   return 3 ; 
 } 
 
-//get the strain and integrate plasticity equations
-int J2PlaneStress::setTrialStrain( const Vector &strain_from_element ) 
+// get the strain and integrate plasticity equations
+int 
+J2PlaneStress::setTrialStrain( const Vector &strain_from_element ) 
 {
   const double tolerance = (1.0e-8)*sigma_0 ;
 
   const int max_iterations = 25 ;
   int iteration_counter  = 0 ;
 
-  int ii, jj ;
 
   double eps22  =  strain(2,2) ;
   strain.Zero( ) ;
@@ -156,11 +137,12 @@ int J2PlaneStress::setTrialStrain( const Vector &strain_from_element )
        opserr << "More than " << max_iterations ;
        opserr << " iterations in setTrialStrain of J2PlaneStress \n" ;
        break ;
-     }// end if 
+     }
 
   } while ( fabs(stress(2,2)) > tolerance ) ;
 
   // modify tangent for plane stress 
+  int ii, jj ;
   for ( ii = 0; ii < 3; ii++ ) {
     for ( jj = 0; jj < 3; jj++ )  {
 
@@ -317,76 +299,6 @@ J2PlaneStress::revertToStart( )
   return 0;
 }
 
-int
-J2PlaneStress::sendSelf(int commitTag, Channel &theChannel)
-{
-  // we place all the data needed to define material and it's state
-  // int a vector object
-  static Vector data(11+9);
-  int cnt = 0;
-  data(cnt++) = this->getTag();
-  data(cnt++) = bulk;
-  data(cnt++) = shear;
-  data(cnt++) = sigma_0;
-  data(cnt++) = sigma_infty;
-  data(cnt++) = delta;
-  data(cnt++) = Hard;
-  data(cnt++) = eta;
-  data(cnt++) = rho;
-
-  data(cnt++) = xi_n;
-  data(cnt++) = commitEps22;
-
-  for (int i=0; i<3; i++) 
-    for (int j=0; j<3; j++) 
-      data(cnt++) = epsilon_p_n(i,j);
-
-  // send the vector object to the channel
-  if (theChannel.sendVector(this->getDbTag(), commitTag, data) < 0) {
-    opserr << "J2PlaneStress::sendSelf - failed to send vector to channel\n";
-    return -1;
-  }
-
-  return 0;
-}
-
-int
-J2PlaneStress::recvSelf (int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker)
-{
-
-  // recv the vector object from the channel which defines material param and state
-  static Vector data(11+9);
-  if (theChannel.recvVector(this->getDbTag(), commitTag, data) < 0) {
-    opserr << "J2PlaneStress::recvSelf - failed to recv vector from channel\n";
-    return -1;
-  }
-
-  // set the material parameters and state variables
-  int cnt = 0;
-  this->setTag(data(cnt++));
-  bulk = data(cnt++);
-  shear = data(cnt++);
-  sigma_0 = data(cnt++);
-  sigma_infty = data(cnt++);
-  delta = data(cnt++);
-  Hard = data(cnt++);
-  eta = data(cnt++);
-  rho = data(cnt++);
-
-  xi_n = data(cnt++);
-  commitEps22 = data(cnt++);
-
-  for (int i=0; i<3; i++)
-    for (int j=0; j<3; j++) 
-      epsilon_p_n(i,j) = data(cnt++);
-
-  epsilon_p_nplus1 = epsilon_p_n;
-  xi_nplus1        = xi_n;
-  strain(2,2) = commitEps22;
-
-  return 0;
-}
 
 
 //matrix_index ---> tensor indices i,j

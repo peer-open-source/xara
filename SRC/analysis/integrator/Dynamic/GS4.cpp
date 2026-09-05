@@ -864,20 +864,6 @@ GS4::computeSensitivities()
 
 
 
-int
-GS4::sendSelf(int cTag, Channel &)
-{
-  return -1;
-}
-
-
-int
-GS4::recvSelf(int cTag, Channel &, FEM_ObjectBroker &)
-{
-  return -1;
-}
-
-
 void
 GS4::Print(OPS_Stream &s, int flag)
 {

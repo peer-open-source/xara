@@ -15,6 +15,7 @@
 #include <set>
 #include <assert.h>
 #include <unordered_map>
+
 #include <Logging.h>
 #include <Parsing.h>
 #include <ArgumentTracker.h>
@@ -29,13 +30,15 @@
 #include <element/Shell/ShellMITC4Thermal.h>
 #include <element/Shell/ShellNLDKGQThermal.h>
 #include <element/Shell/ShellNLDKGT.h>
+// #define XARA_HAVE_THICK_SHELLS
 #ifdef XARA_HAVE_THICK_SHELLS
 #include <element/Shell/ThickShell01.h>
 #include <element/Shell/GeomExactShell4.h>
 #include <element/Shell/ThickShell03.h>
 #include <element/Shell/ThickShell04.h>
 #include <element/Shell/ThickShell05.h>
-#include <element/Shell/ShellQ4.hpp>
+#include <element/Shell/experimental/ShellQ4.hpp>
+#include "plate.h"
 #endif
 #include <element/Plate/HeterosisPlate.h>
 
@@ -43,12 +46,12 @@ using namespace OpenSees;
 
 #include <algorithm>
 #include <string>
-  #ifdef _MSC_VER 
-  #  include <string.h>
-  #  define strcasecmp _stricmp
-  #else
-  #  include <strings.h>
-  #endif
+#ifdef _MSC_VER 
+#  include <string.h>
+#  define strcasecmp _stricmp
+#else
+#  include <strings.h>
+#endif
 
 static
 std::string
@@ -87,6 +90,7 @@ static std::unordered_map<std::string, int, CaseInsensitive, CaseInsensitive>
 NodeCounts = {
   {"ASDShellQ4",         4},
   {"ShellMITC4",         4},
+  // {"shell",              4},
   {"ShellMITC9",         9},
   {"ShellDKGQ",          4},
   {"ShellNLDKGQ",        4},
@@ -101,18 +105,29 @@ NodeCounts = {
   {"ThickShell03",       4},
   {"ThickShell04",       4},
   {"ThickShell05",       4},
+
+  {"PlateQ4/F",          4},
+  {"PlateQ4/U",          4},
+  {"PlateQ4/S",          4},
+  {"PlateQ4/L01",        4},
+  {"PlateQ4/L02",        4},
+  {"PlateQ4/E5",         4},
+  {"PlateQ4/P0",         4},
+
   {"ShellQ4/F",          4},
-  {"ShellQ4/U",          4},
-  {"ShellQ4/S",          4},
-  {"ShellQ4/L01",        4},
-  {"ShellQ4/L02",        4},
+  {"ShellQ4/T01",        4},
+  {"ShellQ4/T02",        4},
+  {"ShellQ4/ASD",        4},
   {"ShellQ4/E5",         4},
-  {"ShellQ4/P0",         4},
+  // {"ShellQ4/U",          4},
+  // {"ShellQ4/S",          4},
+  // {"ShellQ4/P0",         4},
+
   {"HeterosisPlate",     9}
 };
 
 int
-TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
+TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                                 TCL_Char ** const argv)
 {
   assert(clientData != nullptr);
@@ -357,27 +372,49 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
 
     } else if (strcasecmp(argv[1], "ShellDKGQ") == 0) {
       theElement = new ShellDKGQ(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
-
     }
 #ifdef XARA_HAVE_THICK_SHELLS
+    else if (strstr(argv[1], "PlateQ4") == argv[1]) {
+      theElement = CreatePlateQ4(argv[1], tag, nodes, *section);
+    }
     else if (strcasecmp(argv[1], "ShellQ4/F") == 0) {
-      theElement = new ShellQ4_Uniform(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
+
+      ShellSection *ss = new ShellSection(*section->getCopy());
+      theElement = new ShellQ4_Direct(tag, nodes[0], nodes[1], nodes[2], nodes[3],*ss);
+      delete ss;
     }
-    else if (strcasecmp(argv[1], "ShellQ4/U") == 0) {
-      // Uniformly reduced integration (URI)
-      theElement = new ShellQ4_T<Membrane::Reduced,PlateReduced,DrillShellMITC4Penalty>(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
+    else if (strcasecmp(argv[1], "ShellQ4/T02") == 0) {
+
+      ShellSection *ss = new ShellSection(*section->getCopy());
+      theElement = new ShellQ4_MITC02(tag, nodes[0], nodes[1], nodes[2], nodes[3],*ss);
+      delete ss;
     }
-    else if (strcasecmp(argv[1], "ShellQ4/S") == 0) {
-      theElement = new ShellQ4_SRI(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
+    else if (strcasecmp(argv[1], "ShellQ4/T01") == 0) {
+      using ShellType = ShellQ4_T<Membrane::Full, 
+                                  Plate::Full<Shear::MITC4>, 
+                                  DrillShellMITC4Penalty>;
+
+      ShellSection *ss = new ShellSection(*section->getCopy());
+      theElement = new ShellType(tag, nodes[0], nodes[1], nodes[2], nodes[3],*ss);
+      delete ss;
     }
-    else if (strcasecmp(argv[1], "ShellQ4/L01") == 0) {
-      theElement = new ShellQ4_MITC4(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
-    }
-    else if (strcasecmp(argv[1], "ShellQ4/L02") == 0) {
-      theElement = new ShellQ4_AGQI_MITC4(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
+    else if (strcasecmp(argv[1], "ShellQ4/ASD") == 0) {
+      using ShellType = ShellQ4_T<Membrane::AGQI, 
+                                  Plate::Full<Shear::MITC4>, 
+                                  DrillHughesBrezzi>;
+
+      ShellSection *ss = new ShellSection(*section->getCopy());
+      theElement = new ShellType(tag, nodes[0], nodes[1], nodes[2], nodes[3],*ss);
+      delete ss;
     }
     else if (strcasecmp(argv[1], "ShellQ4/E5") == 0) {
-      theElement = new ShellQ4_T<Membrane::EAS<Membrane::EnhancedQuadMembraneInterpolation>,PlateMITC4,DrillShellMITC4Penalty>(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
+      using ShellType = ShellQ4_T<Membrane::EAS<Membrane::EnhancedQuadMembraneInterpolation>, 
+                                  Plate::Full<Shear::MITC4>, 
+                                  DrillHughesBrezzi>;
+
+      ShellSection *ss = new ShellSection(*section->getCopy());
+      theElement = new ShellType(tag, nodes[0], nodes[1], nodes[2], nodes[3],*ss);
+      delete ss;
     }
     else if (strcasecmp(argv[1], "ThickShell01") == 0) {
       theElement = new ThickShell01(tag, nodes[0], nodes[1], nodes[2], nodes[3], *section);
@@ -427,7 +464,6 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
         nodes[4], nodes[5], nodes[6], nodes[7], nodes[8], *section);
     }
     else if (strcasecmp(argv[1], "HeterosisPlate") == 0) {
-
       ShellSection *ss = new ShellSection(*section->getCopy());
       theElement = new HeterosisPlate(tag, nodes, *ss, 1.0);
       delete ss;
@@ -441,7 +477,9 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
   }
 
   if (theElement == nullptr) {
-    opserr << OpenSees::PromptValueError << "failed to create element\n";
+    opserr << OpenSees::PromptValueError 
+           << "failed to create element"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -460,7 +498,7 @@ TclBasicBuilder_addShell(ClientData clientData, Tcl_Interp *interp, int argc,
 
 #include <elementAPI.h>
 int
-TclDispatch_newShellANDeS(ClientData clientData, Tcl_Interp* interp, Tcl_Size argc, TCL_Char** const argv)
+TclDispatch_newShellANDeS(ClientData clientData, Tcl_Interp* interp, ArgSize argc, TCL_Char** const argv)
 {
 
   if (argc < 6) {
@@ -507,30 +545,6 @@ TclDispatch_newShellANDeS(ClientData clientData, Tcl_Interp* interp, Tcl_Size ar
 }
 
 #if 0
-Element*
-TclDispatch_newShellDKGQ(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
-{
-  assert(clientData != nullptr);
-  ModelRegistry* builder = (ModelRegistry*)clientData;
-
-  if (argc < 6) {
-    opserr << "Want: element ShellDKGQ $tag $iNode $jNoe $kNode $lNode $secTag";
-    return nullptr;
-  }
-
-  int iData[6];
-  int numData = 6;
-  if (OPS_GetInt(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer tag\n";
-    return nullptr;
-  }
-
-  SectionForceDeformation *theSection = builder->getTypedObject<SectionForceDeformation>(iData[5]);
-  if (theSection == nullptr)
-    return nullptr;
-
-  return new ShellDKGQ(iData[0], iData[1], iData[2], iData[3], iData[4], *theSection);
-}
 
 int
 TclDispatch_newShellMITC4(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)

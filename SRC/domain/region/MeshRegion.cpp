@@ -50,7 +50,7 @@ MeshRegion::MeshRegion(int tag)
    theNodes(0), theElements(0), xEles(),
   currentGeoTag(0), lastGeoSendTag(-1), dbNod(0), dbEle(0)
 {
-    // does nothing
+  // does nothing
 }
 
 MeshRegion::MeshRegion(int tag, int cTag) 
@@ -58,7 +58,7 @@ MeshRegion::MeshRegion(int tag, int cTag)
   theNodes(0), theElements(0), xEles(),
   currentGeoTag(0), lastGeoSendTag(-1), dbNod(0), dbEle(0)
 {
-    // does nothing
+  // does nothing
 }
 
 MeshRegion::~MeshRegion() 
@@ -136,36 +136,36 @@ MeshRegion::setNodes(const ID &theNods)
 int
 MeshRegion::setNodesOnly(const ID &theNods)
 {
-    // destroy the old node list
-    if (theNodes != 0)
-        delete theNodes;
-    
-    // create new node list
-    Domain *theDomain = this->getDomain();
-    if (theDomain == 0) {
-        opserr << "MeshRegion::setNodesOnly() - no domain yet set\n";
-        return -1;
-    }
-    
-    int numNodes = theNods.Size();
-    theNodes = new ID(0, numNodes);
-    if (theNodes == 0) {
-        opserr << "MeshRegion::setNodesOnly() - ran out of memory\n";
-        return -1;
-    }
-    
-    // add nodes to the node list if in the domain
-    int loc = 0;
-    for (int i = 0; i<numNodes; i++) {
-        int nodeTag = theNods(i);
-        Node *theNode = theDomain->getNode(nodeTag);
-        if (theNode != 0) {
-            if (theNodes->getLocation(nodeTag) < 0)
-                (*theNodes)[loc++] = nodeTag;
-        }
-    }
-    
-    return 0;
+  // destroy the old node list
+  if (theNodes != 0)
+      delete theNodes;
+  
+  // create new node list
+  Domain *theDomain = this->getDomain();
+  if (theDomain == 0) {
+      opserr << "MeshRegion::setNodesOnly() - no domain yet set\n";
+      return -1;
+  }
+  
+  int numNodes = theNods.Size();
+  theNodes = new ID(0, numNodes);
+  if (theNodes == 0) {
+      opserr << "MeshRegion::setNodesOnly() - ran out of memory\n";
+      return -1;
+  }
+  
+  // add nodes to the node list if in the domain
+  int loc = 0;
+  for (int i = 0; i<numNodes; i++) {
+      int nodeTag = theNods(i);
+      Node *theNode = theDomain->getNode(nodeTag);
+      if (theNode != 0) {
+          if (theNodes->getLocation(nodeTag) < 0)
+              (*theNodes)[loc++] = nodeTag;
+      }
+  }
+  
+  return 0;
 }
 
 int 
@@ -308,7 +308,7 @@ MeshRegion::setElementsOnly(const ID &theEles)
 }
 
 const ID &
-MeshRegion::getNodes(void)
+MeshRegion::getNodes()
 {
   if (theNodes == 0)
     opserr << "FATAL::MeshRegion::getNodes(void) - no nodes yet set\n";
@@ -317,7 +317,7 @@ MeshRegion::getNodes(void)
 }
 
 const ID &
-MeshRegion::getElements(void)
+MeshRegion::getElements()
 {
   if (theElements == 0)
     opserr << "FATAL::MeshRegion::getElements(void) - no elements yet set\n";

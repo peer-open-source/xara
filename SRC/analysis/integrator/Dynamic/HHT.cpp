@@ -31,8 +31,6 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <elementAPI.h>
 
 
@@ -346,36 +344,6 @@ HHT::getVel()
   return *Udot;
 }
 
-int HHT::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(3);
-    data(0) = alpha;
-    data(1) = beta;
-    data(2) = gamma;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHT::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int HHT::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(3);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHT::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    alpha  = data(0);
-    beta   = data(1);
-    gamma  = data(2);
-    
-    return 0;
-}
 
 
 void HHT::Print(OPS_Stream &s, int flag)

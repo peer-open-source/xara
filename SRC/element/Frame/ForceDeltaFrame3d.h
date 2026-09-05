@@ -86,10 +86,6 @@ public:
   const Matrix& getMassSensitivity(int gradNumber);
   int commitSensitivity(int gradNumber, int numGrads);
 
-  // MovableObject
-  int sendSelf(int cTag, Channel&) final;
-  int recvSelf(int cTag, Channel&, FEM_ObjectBroker&) final;
-
 protected:
   virtual VectorND<6>&   getBasicForce();
   virtual MatrixND<6,6>& getBasicTangent(State state, int rate);

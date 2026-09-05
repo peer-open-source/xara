@@ -61,19 +61,19 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ComponentElement2d)
   double dData[3];  
   int numData = 3;
   if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING componentElement - invalid ints" << endln;
+    opserr << "invalid ints" << endln;
     return 0;
   }
 
   numData = 3;
   if (OPS_GetDoubleInput(&numData, dData) != 0) {
-    opserr << "WARNING componentElement - invalid doubles" << endln;
+    opserr << "invalid doubles" << endln;
     return 0;
   }
 
   numData = 1;
   if (OPS_GetIntInput(&numData, &iData[3]) != 0) {
-    opserr << "WARNING componentElement - invalid second transformation tag" << endln;
+    opserr << "invalid second transformation tag" << endln;
     return 0;
   }
 
@@ -84,7 +84,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ComponentElement2d)
   if (flag == "-stiffness" || flag == "-k") {
     numData = 2;
     if (OPS_GetDoubleInput(&numData, k) != 0) {
-      opserr << "WARNING componentElement - invalid stiffness values" << endln;
+      opserr << "invalid stiffness values" << endln;
       return 0;
     }
     useK = true;
@@ -93,7 +93,7 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ComponentElement2d)
     OPS_ResetCurrentInputArg(-1);
     numData = 2;
     if (OPS_GetIntInput(&numData, &iData[4]) != 0) {
-      opserr << "WARNING componentElement - invalid material tags" << endln;
+      opserr << "invalid material tags" << endln;
       return 0;
     }    
   }
@@ -102,12 +102,12 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ComponentElement2d)
   int cMass = 0;
   while(OPS_GetNumRemainingInputArgs() > 0) {
     std::string type = OPS_GetString();
-    if(type == "-rho") {
+    if (type == "-rho") {
       int numData = 1;
-      if(OPS_GetNumRemainingInputArgs() > 0) {
-	if(OPS_GetDoubleInput(&numData,&mass) < 0) return 0;
+      if (OPS_GetNumRemainingInputArgs() > 0) {
+        if (OPS_GetDoubleInput(&numData,&mass) < 0) return 0;
       }
-    } else if(type == "-cMass") {
+    } else if (type == "-cMass") {
       cMass = 1;
     }
   }
@@ -129,11 +129,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ComponentElement2d)
 					iData[1], iData[2], 
 					*theTrans, end1, end2,
 					mass,cMass);
-  }  
-
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type componentElement\n";
-    return 0;
   }
   
   return theElement;
@@ -256,7 +251,7 @@ ComponentElement2d::~ComponentElement2d()
 int
 ComponentElement2d::getNumExternalNodes() const
 {
-    return 2;
+  return 2;
 }
 
 const ID &

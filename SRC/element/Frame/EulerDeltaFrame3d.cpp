@@ -25,7 +25,6 @@
 #include <Channel.h>
 #include <Parameter.h>
 #include <Information.h>
-#include <FEM_ObjectBroker.h>
 #include <ElementResponse.h>
 #include <CompositeResponse.h>
 #include <ElementalLoad.h>
@@ -82,8 +81,9 @@ getStrainMatrix(double xi, double L, const Vector& v, MatrixND<8,12>&B, MatrixND
   return 0;
 }
 
-EulerDeltaFrame3d::EulerDeltaFrame3d(int tag, std::array<int,2>& nodes,
-                                     std::vector<FrameSection*> &secs,
+EulerDeltaFrame3d::EulerDeltaFrame3d(int tag, 
+                                     const std::array<int,2>& nodes,
+                                     const std::vector<FrameSection*> &secs,
                                      BeamIntegration &bi,
                                      CrdTransf &coordTransf,
                                      double r, int cm, bool use_mass_)
@@ -110,14 +110,6 @@ EulerDeltaFrame3d::EulerDeltaFrame3d(int tag, std::array<int,2>& nodes,
   q0.zero();
 }
 
-EulerDeltaFrame3d::EulerDeltaFrame3d()
-    : FiniteElement(0, ELE_TAG_EulerDeltaFrame3d),
-      numSections(0), sections(nullptr),
-      beamInt(nullptr),
-      density(0.0), mass_flag(0), parameterID(0)
-{
-  q0.zero();
-}
 
 EulerDeltaFrame3d::~EulerDeltaFrame3d()
 {
@@ -471,22 +463,23 @@ EulerDeltaFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
 
   Response *theResponse = nullptr;
+  const ID& connectedExternalNodes = this->getExternalNodes();
 
   output.tag("ElementOutput");
   output.attr("eleType", "EulerDeltaFrame3d");
   output.attr("eleTag", this->getTag());
-  output.attr("node1", connectedExternalNodes[0]);
-  output.attr("node2", connectedExternalNodes[1]);
+  output.attr("node1", connectedExternalNodes(0));
+  output.attr("node2", connectedExternalNodes(1));
 
   //
   // Compare argv[0] for known response types
   //
 
   // global force
-    if (strcmp(argv[0],"forces") == 0 || 
-        strcmp(argv[0],"force") == 0  ||
-        strcmp(argv[0],"globalForce") == 0 ||
-        strcmp(argv[0],"globalForces") == 0) {
+  if (strcmp(argv[0],"forces") == 0 || 
+      strcmp(argv[0],"force") == 0  ||
+      strcmp(argv[0],"globalForce") == 0 ||
+      strcmp(argv[0],"globalForces") == 0) {
 
     output.tag("ResponseType", "Px_1");
     output.tag("ResponseType", "Py_1");
@@ -504,9 +497,9 @@ EulerDeltaFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
 // TODO(cmp)
 //  theResponse = new ElementResponse(this, 1, P);
 
-    // Local force
-    }  else if (strcmp(argv[0],"localForce") == 0 || 
-                strcmp(argv[0],"localForces") == 0) {
+  // Local force
+  }  else if (strcmp(argv[0],"localForce") == 0 || 
+              strcmp(argv[0],"localForces") == 0) {
 
     output.tag("ResponseType", "N_1");
     output.tag("ResponseType", "Vy_1");
@@ -523,7 +516,7 @@ EulerDeltaFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
 
     theResponse = new ElementResponse(this, 2, Vector(12));
 
-    // chord rotation -
+  // chord rotation -
   } else if (strcmp(argv[0], "chordRotation") == 0 ||
              strcmp(argv[0], "chordDeformation") == 0 ||
              strcmp(argv[0], "basicDeformation") == 0) {
@@ -647,6 +640,7 @@ EulerDeltaFrame3d::setResponse(const char **argv, int argc, OPS_Stream &output)
   output.endTag();
   return theResponse;
 }
+
 
 int
 EulerDeltaFrame3d::getResponse(int responseID, Information &info)
@@ -801,15 +795,3 @@ EulerDeltaFrame3d::activateParameter(int passedParameterID)
   return 0;
 }
 
-
-int
-EulerDeltaFrame3d::sendSelf(int commitTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int
-EulerDeltaFrame3d::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  return -1;
-}

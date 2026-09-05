@@ -66,16 +66,6 @@ LinearSOE::solve()
     return -1;
 }
 
-#if 0
-int
-LinearSOE::reset()
-{
-  m_inv_update = 0;
-  m_fwd_update = 0;
-  return 0;
-}
-#endif
-
 
 int
 LinearSOE::setInverseUpdate(LinearAction * update)

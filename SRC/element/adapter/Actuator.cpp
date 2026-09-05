@@ -449,7 +449,8 @@ const Matrix& Actuator::getInitialStiff()
 }
 
 
-const Matrix& Actuator::getDamp()
+const Matrix& 
+Actuator::getDamp()
 {
     // zero the matrix
     theMatrix->Zero();

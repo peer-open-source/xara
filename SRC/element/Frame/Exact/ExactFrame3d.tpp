@@ -72,6 +72,9 @@
 
 namespace OpenSees {
 
+using namespace Xara;
+
+
 template<std::size_t nen, int nwm> static inline void
 G_matrix(MatrixND<6+nwm,6+nwm> &G, 
          const VectorND<6+2*nwm>& s, const Vector3D& dx, 
@@ -128,7 +131,7 @@ B_nat(MatrixND<6+2*nwm,6+nwm> &B, double shape[2][nen], const Vector3D& dx, int 
 
 template<std::size_t nen, int nwm>
 ExactFrame3d<nen, nwm>::ExactFrame3d(int tag,
-                                     std::array<int, nen>& nodes,
+                                     const std::array<int, nen>& nodes,
                                      FrameSection* section[nen - 1],
                                      CrdTransf& transform)
  : FiniteElement<nen, ndm, ndf>(tag, 0, nodes, 1),
@@ -136,7 +139,6 @@ ExactFrame3d<nen, nwm>::ExactFrame3d(int tag,
    jxs(0),
    R0(),
    transform(&transform),
-   logarithm(Logarithm::None),
    stencil(nullptr),
    parameterID(0)
 {
@@ -343,7 +345,6 @@ ExactFrame3d<nen,nwm>::update()
 #endif
     const Vector3D gamma = (R^dx) - D;
 
-  
 
     VectorND<nsr> e {
       gamma[0], gamma[1], gamma[2],
@@ -565,6 +566,7 @@ ExactFrame3d<nen,nwm>::getResistingForceSensitivity(int grad)
   return wrapper;
 }
 
+
 template<std::size_t nen, int nwm>
 int
 ExactFrame3d<nen,nwm>::addLoad(ElementalLoad* theLoad, double loadFactor)
@@ -766,6 +768,7 @@ ExactFrame3d<nen,nwm>::setResponse(const char** argv, int argc, OPS_Stream& outp
   return theResponse;
 }
 
+
 template<std::size_t nen, int nwm>
 int
 ExactFrame3d<nen,nwm>::getResponse(int responseID, Information &info)
@@ -845,21 +848,6 @@ ExactFrame3d<nen,nwm>::getResponse(int responseID, Information &info)
   return -1;
 }
 
-template<std::size_t nen, int nwm>
-int
-ExactFrame3d<nen,nwm>::sendSelf(int commitTag, Channel& theChannel)
-{
-  // TODO
-  return -1;
-}
-
-template<std::size_t nen, int nwm>
-int
-ExactFrame3d<nen,nwm>::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
-{
-  // TODO
-  return -1;
-}
 
 template<std::size_t nen, int nwm>
 void

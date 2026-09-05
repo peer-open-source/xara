@@ -11,6 +11,7 @@ OpenSeesVersion
 GetCompatibilityVersion(Tcl_Interp *interp)
 {
   OpenSeesVersion version = OpenSeesVersion::XaraLatest;
+
   const char *version_str = nullptr;
   if (getenv("XARA_COMPATIBILITY_VERSION") != nullptr) {
     version_str = getenv("XARA_COMPATIBILITY_VERSION");
@@ -22,7 +23,6 @@ GetCompatibilityVersion(Tcl_Interp *interp)
     return version;
   }
 
-  
   // 
   return version;
 }

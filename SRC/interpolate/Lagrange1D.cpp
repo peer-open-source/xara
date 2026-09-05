@@ -15,7 +15,8 @@
 //
 #pragma once
 
-namespace OpenSees {
+namespace Xara {
+
 template <int nn> void 
 constexpr 
 lagrange(const double xi, const double xn[nn], double shp[2][nn])

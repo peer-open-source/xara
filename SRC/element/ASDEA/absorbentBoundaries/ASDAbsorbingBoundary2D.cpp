@@ -457,12 +457,14 @@ const Matrix& ASDAbsorbingBoundary2D::getTangentStiff(void)
     return K;
 }
 
-const Matrix& ASDAbsorbingBoundary2D::getInitialStiff(void)
+const Matrix& 
+ASDAbsorbingBoundary2D::getInitialStiff()
 {
-    return getTangentStiff();
+  return getTangentStiff();
 }
 
-const Matrix& ASDAbsorbingBoundary2D::getDamp(void)
+const Matrix& 
+ASDAbsorbingBoundary2D::getDamp()
 {
     // initialize matrix
     static Matrix C;
@@ -479,7 +481,8 @@ const Matrix& ASDAbsorbingBoundary2D::getDamp(void)
     return C;
 }
 
-const Matrix& ASDAbsorbingBoundary2D::getMass(void)
+const Matrix&
+ASDAbsorbingBoundary2D::getMass()
 {
     // initialize matrix
     static Matrix M;

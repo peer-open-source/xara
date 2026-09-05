@@ -17,15 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1.1.1 $
-// $Date: 2000-09-15 08:23:16 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/analysis/Analysis.h,v $
-                                                                        
-                                                                        
-#ifndef Analysis_h
-#define Analysis_h
-
+//
 // File: ~/analysis/analysis/Analysis.h
 // 
 // Written: fmk 
@@ -36,13 +28,14 @@
 // Analysis is an abstract class, i.e. no objects of it's type can be created. 
 //
 // What: "@(#) Analysis.h, revA"
+#pragma once
 
 class Domain;
 
 class Analysis
 {
   public:
-    Analysis(Domain &theDomain);
+    Analysis(Domain &);
     virtual ~Analysis();
 
     // pure virtual functions
@@ -54,6 +47,4 @@ class Analysis
   private:
     Domain *theDomain;
 };
-
-#endif
 

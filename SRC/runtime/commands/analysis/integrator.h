@@ -100,6 +100,7 @@ StaticIntegratorLibrary = {
   {"DisplacementControl", dispatch<StaticIntegrator, G3Parse_newDisplacementControlIntegrator>},
 
   {"ArcLength",           dispatch<StaticIntegrator, G3Parse_newArcLengthIntegrator>},
+  {"ArcLength1",          dispatch<StaticIntegrator, G3Parse_newArcLengthIntegrator>},
 };
 
 std::unordered_map<std::string, Tcl_CmdProc*> 

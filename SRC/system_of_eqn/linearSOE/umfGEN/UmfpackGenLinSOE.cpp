@@ -123,15 +123,14 @@ UmfpackGenLinSOE::setSize(Graph &theGraph)
     // diagonal
     col.insert(theVertex->getTag());
 
-    // now we have to place the entries in the ID into order in Ai
+
     for (int i=0; i<idSize; i++) {
-        int row = theAdjacency(i);
-        col.insert(row);
+      col.insert(theAdjacency(i));
     }
 
     // copy to Ai
     for (int i=0; i<col.Size(); i++) {
-        Ai.push_back(col(i));
+      Ai.push_back(col(i));
     }
 
     // set Ap

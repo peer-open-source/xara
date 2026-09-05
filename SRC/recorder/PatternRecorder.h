@@ -40,7 +40,6 @@
 #include <fstream>
 using std::ofstream;
 class Domain;
-class FE_Datastore;
 
 class PatternRecorder: public Recorder
 {
@@ -55,8 +54,8 @@ class PatternRecorder: public Recorder
     ~PatternRecorder();
     int record(int commitTag, double timeStamp);
     int playback(int commitTag);
-    int restart(void);    
-    int flush(void);    
+    int restart();    
+    int flush();
     
   private:	
 	int thePattern;

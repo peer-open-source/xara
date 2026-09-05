@@ -70,7 +70,6 @@ Journal of Structural Engineering, Approved for publication, February 2007.
 #include <Domain.h>
 #include <Channel.h>
 #include <FEM_ObjectBroker.h>
-#include <Renderer.h>
 #include <math.h>
 #include <elementAPI.h>
 #include <string>

@@ -26,9 +26,7 @@
 // scheme to store the components of the A matrix.
 //
 // What: "@(#) ProfileSPDLinSOE.h, revA"
-
-#ifndef SProfileSPDLinSOE_h
-#define SProfileSPDLinSOE_h
+#pragma once
 
 #include <LinearSOE.h>
 #include <Vector.h>
@@ -58,11 +56,8 @@ class SProfileSPDLinSOE : public LinearSOE
     
     virtual const Vector &getX();
     virtual const Vector &getB();
-    virtual double normRHS();
 
-    virtual int setProfileSPDSolver(SProfileSPDLinSolver &newSolver);    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    virtual int setProfileSPDSolver(SProfileSPDLinSolver &newSolver);
 
     friend class SProfileSPDLinSolver;
     
@@ -79,9 +74,3 @@ class SProfileSPDLinSOE : public LinearSOE
     
   private:
 };
-
-
-#endif
-
-
-

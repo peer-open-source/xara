@@ -4,7 +4,7 @@ name: CMake Build
 env:
   CMAKE_VERSION: 3.20.1
   BUILD_TYPE: Release
-  OPENSEESRT_BUILD: local
+  XARA_BUILD: local
 
 on:
   push:
@@ -41,7 +41,7 @@ jobs:
         echo "XARA_SRC_WARN_COUNT=$XARA_SRC_WARN_COUNT" >> $GITHUB_ENV
         echo "warnings=$XARA_SRC_WARN_COUNT" >> $GITHUB_OUTPUT 
         echo "::warning::We found $XARA_SRC_WARN_COUNT warnings"
-        cmake --build . --target XaraRT -j3 2>&1
+        # cmake --build . --target XaraRT -j3 2>&1
 
 
     - name: Post warning count
@@ -89,16 +89,7 @@ jobs:
       working-directory: benchmarks/benchmarks
       run: |
         export OPENSEESRT_LIB=${GITHUB_WORKSPACE}/build/SRC/runtime/libOpenSeesRT.so
-        pytest -x -k test_x
-
-#   - name: Verification
-#     run: |
-#       cd build
-#       make trussExample
-#       make planeFrame
-
-        #ctest
-        #cd ./EXAMPLES/verification/ && ../../build/OpenSeesTcl runVerificationSuite.tcl
+        pytest -x -k 'not test_frame_0011 and not test_solve_0004 and not test_o_sdof and not test_sdof and not test_solve_1001 and not test_solve_0000 and not test_frame_1010 and not test_solve_0001 and not test_solve_0010'
 
   build-mac:
     name: Mac Build

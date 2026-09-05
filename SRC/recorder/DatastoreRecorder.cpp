@@ -17,12 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.5 $
-// $Date: 2004-11-25 00:53:12 $
-// $Source: /usr/local/cvs/OpenSees/SRC/recorder/DatastoreRecorder.cpp,v $
-                                                                        
-                                                                        
+//
 // File: ~/DatastoreRecorder/DatastoreRecorder.h
 //
 // Written: fmk 
@@ -66,17 +61,8 @@ DatastoreRecorder::playback(int commitTag)
 }
 
 int
-DatastoreRecorder::restart(void)
+DatastoreRecorder::restart()
 {
 	return 0;
 }
-
-
-
-
-
-
-
-
-
 

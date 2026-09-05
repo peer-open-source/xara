@@ -53,7 +53,7 @@ public:
   
   virtual ~CreepMaterial();
   
-  const char *getClassType(void) const {return "CreepMaterial";};    
+  const char *getClassType(void) const {return "CreepMaterial";}
   double getInitialTangent(void);
   UniaxialMaterial *getCopy(void);
   
@@ -64,7 +64,7 @@ public:
   double getPHI_i(void); //Added by AMK      
   double getStress(void);
   double getTangent(void);
-  double getCreep(void); //Added by AMK
+  double getCreep(); //Added by AMK
   double getMech(void); //Added by AMK
   double setPhi(double time, double tp); //Added by AMK
   double setShrink(double time); //Added by AMK
@@ -83,7 +83,7 @@ public:
   int getVariable(const char *variable, Information &);
   
   
-  //Added by AMK for recording Creep and Mechanical Strain:
+  // Added by AMK for recording Creep and Mechanical Strain:
   Response *setResponse(const char **argv, int argc,OPS_Stream &theOutput);
   int getResponse(int responseID, Information &matInfo);
   

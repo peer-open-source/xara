@@ -70,10 +70,6 @@ class BBarFourNodeQuadUP : public Element,
     const Vector &getResistingForce() final;
     const Vector &getResistingForceIncInertia() final;
 
-    // public methods for element output
-    int sendSelf(int commitTag, Channel &) final;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
-
     void Print(OPS_Stream &s, int flag =0) final;
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);

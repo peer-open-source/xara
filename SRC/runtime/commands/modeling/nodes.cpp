@@ -32,8 +32,6 @@
 #include <Parameter.h>
 #include <ModelRegistry.h>
 
-#define HeapNode Node
-
 #define G3_NUM_DOF_BUFFER 20
 
 using namespace Xara;
@@ -136,10 +134,10 @@ XaraCmd_node(ClientData context,
   //
   switch (ndm) {
   case 1:
-    theNode = new HeapNode(tag, ndf, xLoc);
+    theNode = new Node(tag, ndf, xLoc);
     break;
   case 2:
-    theNode = new HeapNode(tag, ndf, xLoc, yLoc);
+    theNode = new Node(tag, ndf, xLoc, yLoc);
     break;
   case 3:
 #if 0
@@ -157,7 +155,7 @@ XaraCmd_node(ClientData context,
       }
     } else
 #endif
-      theNode = new HeapNode(tag, ndf, xLoc, yLoc, zLoc, builder->getRotationType());
+      theNode = new Node(tag, ndf, xLoc, yLoc, zLoc, builder->getRotationType());
     break;
   }
 

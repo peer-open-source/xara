@@ -48,8 +48,13 @@ public:
     return Enum::End;
   }
 
+  // Returns true if the argument is still unspecified (not consumed)
   bool contains(Enum arg) const {
     return consumed.find(arg) == consumed.end();
+  }
+  // Returns true if the argument has been consumed
+  bool received(Enum arg) const {
+    return consumed.find(arg) != consumed.end();
   }
 
   void consume(Enum argument) {

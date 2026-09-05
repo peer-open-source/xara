@@ -7,9 +7,7 @@
 // This file contains the definition for NURBS derivatives
 // Written originally by Vinh Phu Nguyen, nvinhphu@gmail.com
 //
-#ifndef NurbsDers_h
-#define NurbsDers_h
-
+#pragma once
 class Vector;
 class Matrix;
 
@@ -18,5 +16,3 @@ void     BasisFuns( int i, double u, int p, Vector& U, Vector& N);
 void     dersBasisFuns(int i, double u, int p, int order, Vector& knot, Matrix& ders);
 double   OneBasisFun(int p, int m, Vector U, int i, double u);
 void     dersOneBasisFuns(int p, int m, Vector U, int i, double u, int n, double* ders);
-
-#endif

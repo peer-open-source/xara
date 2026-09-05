@@ -27,7 +27,7 @@
 #include <ID.h>
 
 int
-TclCommand_addMeshRegion(ClientData clientData, Tcl_Interp *interp, Tcl_Size argc,
+XaraCmd_region(ClientData clientData, Tcl_Interp *interp, ArgSize argc,
                  TCL_Char ** const argv)
 {
   Domain& theDomain = *static_cast<Domain*>(clientData);
@@ -231,8 +231,8 @@ TclCommand_addMeshRegion(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
         return TCL_ERROR;
       }
       loc += 5;
-
-    } else if (strcmp(argv[loc], "getNodeTags") == 0) {
+    }
+    else if (strcmp(argv[loc], "getNodeTags") == 0) {
 
       MeshRegion *region = theDomain.getRegion(tag);
       if (region == nullptr) {
@@ -266,8 +266,8 @@ TclCommand_addMeshRegion(ClientData clientData, Tcl_Interp *interp, Tcl_Size arg
       }
 
       return TCL_OK;
-
-    } else if (strcmp(argv[loc], "getEleTags") == 0) {
+    }
+    else if (strcmp(argv[loc], "getEleTags") == 0) {
 
       MeshRegion *region = theDomain.getRegion(tag);
       if (region == nullptr) {

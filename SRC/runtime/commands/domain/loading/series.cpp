@@ -250,10 +250,9 @@ TclDispatch_newTimeSeries(ClientData clientData, Tcl_Interp *interp, int argc, T
     }
   
     int missing = 0;
-    missing += tracker.contains(Args::TStart);
-    missing += tracker.contains(Args::TFinish);
-    missing += tracker.contains(Args::Period);
-
+    missing += !tracker.received(Args::TStart);
+    missing += !tracker.received(Args::TFinish);
+    missing += !tracker.received(Args::Period);
 
     if (tracker.contains(Args::Tag)) {
       if ((int)positions.size() == missing + 1) {

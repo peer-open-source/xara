@@ -21,7 +21,8 @@
 
 
 static double** 
-init2DArray(int x, int y) {
+init2DArray(int x, int y) 
+{
   double **array = (double **)malloc(x * sizeof(double *));
 
   for (int c = 0; c < x; c++)
@@ -31,12 +32,14 @@ init2DArray(int x, int y) {
 }
 
 static void
-free2Darray(double **array, int x) {
+free2Darray(double **array, int x) 
+{
   for (int c = 0; c < x; c++)
     free(array[c]);
 
   free(array);
 }
+
 
 int FindSpan(int n, int p, double u, Vector& U)
 {
@@ -106,14 +109,15 @@ BasisFuns( int i, double u, int p, Vector& U, Vector& N)
 }
 
 // void dersBasisFuns(int i, double u, int p, int order, Vector knot, double **ders)
-void dersBasisFuns(int i, double u, int p, int order, Vector& knot, Matrix& ders)
+void 
+dersBasisFuns(int i, double u, int p, int order, Vector& knot, Matrix& ders)
 {
   /*
    * Calculate the non-zero derivatives of the b-spline functions
    */
 
   double saved, temp;
-  int j, j1, j2, r;
+  int j1, j2, r;
 
   // double *left  = (double *)malloc(sizeof(double) * (p + 1));
   // double *right = (double *)malloc(sizeof(double) * (p + 1));
@@ -132,7 +136,7 @@ void dersBasisFuns(int i, double u, int p, int order, Vector& knot, Matrix& ders
   a.resize(p+1,p+1);
 
   ndu(0,0) = 1.0;
-  for ( j = 1; j <= p; j++ ) {
+  for (int j = 1; j <= p; j++ ) {
     left[j] = u - knot[i + 1 - j];
     right[j] = knot[i + j] - u;
 
@@ -172,7 +176,7 @@ void dersBasisFuns(int i, double u, int p, int order, Vector& knot, Matrix& ders
       j1 = rk >= -1 ? 1 : -rk;
       j2 = (r - 1 <= pk) ? k - 1 : p - r;
 
-      for ( j = j1; j <= j2; j++ ) {
+      for (int j = j1; j <= j2; j++ ) {
         a(s2,j) = (a(s1,j) - a(s1,j - 1)) / ndu(pk + 1,rk + j);
         d += a(s2,j) * ndu(rk + j,pk);
       }
@@ -181,9 +185,9 @@ void dersBasisFuns(int i, double u, int p, int order, Vector& knot, Matrix& ders
         d += a(s2,k) * ndu(r,pk);
       }
       ders(k,r) = d;
-      j  = s1; 
-      s1 = s2; 
-      s2 = j;
+      int temp = s1;
+      s1 = s2;
+      s2 = temp;
     }
   }
 

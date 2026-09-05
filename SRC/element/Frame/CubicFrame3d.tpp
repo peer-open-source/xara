@@ -243,6 +243,7 @@ CubicFrame3d<shear,nwm>::setDomain(Domain* theDomain)
   this->update();
 }
 
+
 template <bool shear, int nwm>
 int
 CubicFrame3d<shear,nwm>::commitState()
@@ -263,6 +264,7 @@ CubicFrame3d<shear,nwm>::commitState()
   return status;
 }
 
+
 template <bool shear, int nwm>
 int
 CubicFrame3d<shear,nwm>::revertToLastCommit()
@@ -277,6 +279,7 @@ CubicFrame3d<shear,nwm>::revertToLastCommit()
 
   return status;
 }
+
 
 template <bool shear, int nwm>
 int

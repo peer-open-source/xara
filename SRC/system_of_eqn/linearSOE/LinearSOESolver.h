@@ -68,6 +68,9 @@ class LinearSOESolver : public MovableObject
     virtual int setSize() = 0;
     virtual double getDeterminant() {return 1.0;}
 
+    // Force refactorization of the matrix on the next solve;
+    virtual int reset() {return 0;}
+
     virtual bool requireDeterminant() {return false;};
     virtual bool requireFormAp() {return false;};
     virtual bool requireAsymmetric() {return false;};

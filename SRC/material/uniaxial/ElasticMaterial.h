@@ -43,7 +43,6 @@ class ElasticMaterial : public UniaxialMaterial
   public:
     ElasticMaterial(int tag, double E);
     ElasticMaterial(int tag, double Epos, double eta, double Eneg, double density);
-    ElasticMaterial();
     ~ElasticMaterial();
 
     const char *getClassType() const {return "ElasticMaterial";}
@@ -63,10 +62,7 @@ class ElasticMaterial : public UniaxialMaterial
     int revertToStart();        
 
     UniaxialMaterial *getCopy();
-    
-    int sendSelf(int commitTag, Channel &) final;  
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
-    
+
     void Print(OPS_Stream &s, int flag) final;
     
     int setParameter(const char **argv, int argc, Parameter &param);

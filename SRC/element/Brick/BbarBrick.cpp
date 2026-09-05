@@ -31,7 +31,7 @@
 #include <Element.h>
 #include <Node.h>
 #include <Domain.h>
-#include <ErrorHandler.h>
+#include <Logging.h>
 #include <BbarBrick.h>
 #include <shp3d.h>
 #include <ElementResponse.h>
@@ -40,31 +40,11 @@
 #include <isoparametric.tpp>
 
 
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 
 using namespace OpenSees;
 
 
 Matrix  BbarBrick::mass(24,24) ;
-
-
-
-BbarBrick::BbarBrick()
- : Element( 0, ELE_TAG_BbarBrick )
- , connectedExternalNodes(8)
- , applyLoad(0)
- , load(0)
- , Ki(0)
-{
-  for (int i=0; i<8; i++ ) {
-    materialPointers[i] = nullptr;
-    nodePointers[i] = nullptr;
-  }
-  b[0] = 0.0;
-  b[1] = 0.0;
-  b[2] = 0.0;
-}
 
 
 
@@ -116,7 +96,7 @@ BbarBrick::~BbarBrick()
 
 
 void
-BbarBrick::setDomain( Domain *theDomain )
+BbarBrick::setDomain(Domain *theDomain)
 {
   // node pointers
   for (int i=0; i<8; i++ )
@@ -203,12 +183,12 @@ BbarBrick::revertToStart()
 
 
 const Matrix&
-BbarBrick::getTangentStiff( )
+BbarBrick::getTangentStiff()
 {
   static Matrix K;
   int tang_flag = 1 ; //get the tangent
 
-  // formResidAndTangent( tang_flag, State::Pres );
+  formResidAndTangent( tang_flag, State::Pres );
   K.setData(stiff);
   return K ;
 }
@@ -229,7 +209,6 @@ BbarBrick::getInitialStiff()
   static constexpr int numberNodes = 8 ;
   static constexpr int numberGauss = 8 ;
   static constexpr int nShape = 4 ;
-  static double volume ;
 
   static double dvol[numberGauss] ; //volume element
   static double gaussPoint[ndm] ;
@@ -262,7 +241,7 @@ BbarBrick::getInitialStiff()
   }
 
   // zero volume
-  volume = 0.0 ;
+  double volume = 0.0 ;
 
 
   // gauss loop to compute and save shape functions
@@ -421,54 +400,14 @@ BbarBrick::addLoad(ElementalLoad *theLoad, double loadFactor)
   return -1;
 }
 
-int
-BbarBrick::addInertiaLoadToUnbalance(const Vector &accel)
-{
-  static const int numberNodes = 8 ;
-  static const int numberGauss = 8 ;
-  static const int ndf = 3 ;
-
-  // check to see if have mass
-  int haveRho = 0;
-  for (int i = 0; i < numberGauss; i++) {
-    if (materialPointers[i]->getRho() != 0.0)
-      haveRho = 1;
-  }
-
-  if (haveRho == 0)
-    return 0;
-
-  // Compute mass matrix
-  int tangFlag = 1 ;
-  formInertiaTerms( tangFlag ) ;
-
-  // store computed RV for nodes in resid vector
-  int count = 0;
-  for (int i=0; i<numberNodes; i++) {
-    const Vector &Raccel = nodePointers[i]->getRV(accel);
-    for (int j=0; j<ndf; j++)
-      resid(count++) = Raccel(j);
-  }
-
-  // create the load vector if one does not exist
-  if (load == 0)
-    load = new Vector(numberNodes*ndf);
-
-  // add -M * RV(accel) to the load vector
-  load->addMatrixVector(1.0, mass, resid, -1.0);
-
-  return 0;
-}
-
-
 
 const Vector&  
 BbarBrick::getResistingForce()
 {
   static Vector res;
-  int tang_flag = 0 ; //don't get the tangent
+  int tang_flag = 0 ; // don't get the tangent
 
-  // formResidAndTangent( tang_flag, State::Pres );
+  formResidAndTangent( tang_flag, State::Pres );
 
   // if (load != 0)
   //   resid -= *load;
@@ -487,7 +426,7 @@ BbarBrick::getResistingForceIncInertia()
   int tang_flag = 0 ; //don't get the tangent
 
   // do tangent and residual here
-  // formResidAndTangent( tang_flag, State::Pres ) ;
+  formResidAndTangent( tang_flag, State::Pres ) ;
 
   formInertiaTerms( tang_flag ) ;
 
@@ -504,7 +443,7 @@ BbarBrick::getResistingForceIncInertia()
 
 
 //*********************************************************************
-//form inertia terms
+// form inertia terms
 
 void
 BbarBrick::formInertiaTerms( int tangFlag )
@@ -521,13 +460,13 @@ BbarBrick::formInertiaTerms( int tangFlag )
   double Shape[nShape][NEN][numberGauss] ; //all the shape functions
 
 
-  static Vector momentum(ndf) ;
+  static Vector momentum(ndf);
 
-  double temp, rho, massJK ;
+  double massJK;
 
 
   // zero mass
-  mass.Zero( );
+  mass.Zero();
 
   // gauss loop to compute and save shape functions
 
@@ -586,17 +525,17 @@ BbarBrick::formInertiaTerms( int tangFlag )
 
 
     // density
-    rho = materialPointers[i]->getRho();
+    double rho = materialPointers[i]->getRho();
 
-    //multiply acceleration by density to form momentum
+    // multiply acceleration by density to form momentum
     momentum *= rho ;
 
 
-    //residual and tangent calculations node loops
+    // residual and tangent calculations node loops
     int jj = 0 ;
     for (int j = 0; j < NEN; j++ ) {
 
-      temp = shp[massIndex][j] * dvol[i] ;
+      double temp = shp[massIndex][j] * dvol[i] ;
 
       for (int p = 0; p < ndf; p++ )
         resid( jj+p ) += ( temp * momentum(p) )  ;
@@ -625,7 +564,7 @@ BbarBrick::formInertiaTerms( int tangFlag )
     } // end for j loop
 
 
-  } //end for i gauss loop
+  } // end for i gauss loop
 
 }
 
@@ -666,7 +605,7 @@ BbarBrick::formResidAndTangent(int tang_flag, State state_flag)
 
   //---------B-matrices------------------------------------
 
-    static Matrix BJtranD(ndf,nstress) ;
+  static Matrix BJtranD(ndf,nstress) ;
 
   //-------------------------------------------------------
 
@@ -674,10 +613,6 @@ BbarBrick::formResidAndTangent(int tang_flag, State state_flag)
   // zero stiffness and residual
   stiff.zero();
   resid.zero();
-
-
-  int i, j, k, p, q ;
-  int jj, kk ;
 
 
   // zero mean shape functions
@@ -787,7 +722,7 @@ BbarBrick::formResidAndTangent(int tang_flag, State state_flag)
 
     // residual and tangent calculations node loops
 
-    jj = 0 ;
+    int jj = 0 ;
     for (int j = 0; j < numberNodes; j++ ) {
 
       const MatrixND<6,3> BJ = computeBbar( j, shp, shpBar ) ;
@@ -812,7 +747,7 @@ BbarBrick::formResidAndTangent(int tang_flag, State state_flag)
         const MatrixND<ndf,nstress> BJtranD = BJ^dd ;
         // BJtranD.addMatrixTransposeProduct(0.0,  BJ,dd,1.0);
 
-         kk = 0 ;
+         int kk = 0 ;
          for (int k = 0; k < numberNodes; k++ ) {
 
             const MatrixND<6,3> BK = computeBbar( k, shp, shpBar ) ;
@@ -837,6 +772,7 @@ BbarBrick::formResidAndTangent(int tang_flag, State state_flag)
 
   if (load != nullptr)
     resid -= *load;
+
   return ;
 }
 
@@ -865,8 +801,8 @@ BbarBrick::computeBasis()
 
 MatrixND<6,3>
 BbarBrick::computeBbar( int node,
-                           const double shp[4][8],
-                           const double shpBar[4][8] )
+                        const double shp[4][8],
+                        const double shpBar[4][8] )
 {
 //---B Matrices in standard {1,2,3} mechanics notation---------
 //
@@ -928,7 +864,6 @@ BbarBrick::computeBbar( int node,
   BbarVol[2][2] = shpBar[2][node] ;
 
 
-
   // extensional terms
   for ( int i=0; i<3; i++ ){
     for ( int j=0; j<3; j++ )
@@ -952,183 +887,6 @@ BbarBrick::computeBbar( int node,
 
 
 
-int
-BbarBrick::sendSelf(int commitTag, Channel &theChannel)
-{
-
-  int res = 0;
-
-  // note: we don't check for dataTag == 0 for Element
-  // objects as that is taken care of in a commit by the Domain
-  // object - don't want to have to do the check if sending data
-  int dataTag = this->getDbTag();
-
-  // Quad packs its data into a Vector and sends this to theChannel
-  // along with its dbTag and the commitTag passed in the arguments
-
-  // Now quad sends the ids of its materials
-  int matDbTag;
-
-  static ID idData(25);
-
-  idData(24) = this->getTag();
-
-  //if (alphaM != 0 || betaK != 0 || betaK0 != 0 || betaKc != 0)
-  //  idData(25) = 1;
-  //else
-  //  idData(25) = 0;
-
-
-  for (int i = 0; i < 8; i++) {
-    idData(i) = materialPointers[i]->getClassTag();
-    matDbTag = materialPointers[i]->getDbTag();
-    // NOTE: we do have to ensure that the material has a database
-    // tag if we are sending to a database channel.
-    if (matDbTag == 0) {
-      matDbTag = theChannel.getDbTag();
-			if (matDbTag != 0)
-			  materialPointers[i]->setDbTag(matDbTag);
-    }
-    idData(i+8) = matDbTag;
-  }
-
-  idData(16) = connectedExternalNodes(0);
-  idData(17) = connectedExternalNodes(1);
-  idData(18) = connectedExternalNodes(2);
-  idData(19) = connectedExternalNodes(3);
-  idData(20) = connectedExternalNodes(4);
-  idData(21) = connectedExternalNodes(5);
-  idData(22) = connectedExternalNodes(6);
-  idData(23) = connectedExternalNodes(7);
-
-  res += theChannel.sendID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING BbarBrick::sendSelf() - " << this->getTag() << "failed to send ID\n";
-    return res;
-  }
-
-  // send damping coefficients & body forces
-  static Vector dData(7);
-  dData(0) = alphaM;
-  dData(1) = betaK;
-  dData(2) = betaK0;
-  dData(3) = betaKc;
-  dData(4) = b[0];
-  dData(5) = b[1];
-  dData(6) = b[2];
-  
-  if (theChannel.sendVector(dataTag, commitTag, dData) < 0) {
-    opserr << "BbarBrick::sendSelf() - failed to send double data\n";
-    return -1;
-  }
-
-  // Finally, quad asks its material objects to send themselves
-  for (int i = 0; i < 8; i++) {
-    res += materialPointers[i]->sendSelf(commitTag, theChannel);
-    if (res < 0) {
-      opserr << "WARNING BbarBrick::sendSelf() - " << this->getTag() << " failed to send its Material\n";
-      return res;
-    }
-  }
-
-  return res;
-}
-
-int
-BbarBrick::recvSelf (int commitTag,
-		       Channel &theChannel,
-		       FEM_ObjectBroker &theBroker)
-{
-  int res = 0;
-
-  int dataTag = this->getDbTag();
-
-  static ID idData(25);
-  // Quad now receives the tags of its four external nodes
-  res += theChannel.recvID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING BbarBrick::recvSelf() - " << this->getTag() << " failed to receive ID\n";
-    return res;
-  }
-
-  this->setTag(idData(24));
-
-  // recv damping & body forces coefficients
-  static Vector dData(7);
-  if (theChannel.recvVector(dataTag, commitTag, dData) < 0) {
-    opserr << "DispBeamColumn2d::sendSelf() - failed to recv double data\n";
-    return -1;
-  }
-  alphaM = dData(0);
-  betaK = dData(1);
-  betaK0 = dData(2);
-  betaKc = dData(3);
-  b[0] = dData(4);
-  b[1] = dData(5);
-  b[2] = dData(6);
-
-  connectedExternalNodes(0) = idData(16);
-  connectedExternalNodes(1) = idData(17);
-  connectedExternalNodes(2) = idData(18);
-  connectedExternalNodes(3) = idData(19);
-  connectedExternalNodes(4) = idData(20);
-  connectedExternalNodes(5) = idData(21);
-  connectedExternalNodes(6) = idData(22);
-  connectedExternalNodes(7) = idData(23);
-
-
-  if (materialPointers[0] == 0) {
-    for (int i = 0; i < 8; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+8);
-      // Allocate new material with the sent class tag
-      materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-      if (materialPointers[i] == 0) {
-	  opserr << "BbarBrick::recvSelf() - Broker could not create NDMaterial of class type" <<
-	            matClassTag << "\n";
-	  exit(-1);
-      }
-      // Now receive materials into the newly allocated space
-      materialPointers[i]->setDbTag(matDbTag);
-      res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) {
-        opserr << "NLBeamColumn3d::recvSelf() - material " <<
-              i << "failed to recv itself\n";
-        return res;
-      }
-    }
-  }
-  // materials exist , ensure materials of correct type and recvSelf on them
-  else {
-    for (int i = 0; i < 8; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+8);
-      // Check that material is of the right type; if not,
-      // delete it and create a new one of the right type
-      if (materialPointers[i]->getClassTag() != matClassTag) {
-        delete materialPointers[i];
-        materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-        if (materialPointers[i] == nullptr) {
-          opserr << "BbarBrick::recvSelf() - Broker could not create NDMaterial of class type" <<
-            matClassTag << "\n";
-          exit(-1);
-        }
-        materialPointers[i]->setDbTag(matDbTag);
-      }
-      // Receive the material
-
-      res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) {
-        opserr << "NLBeamColumn3d::recvSelf() - material " <<
-          i << "failed to recv itself\n";
-        return res;
-      }
-    }
-  }
-
-  return res;
-}
-//**************************************************************************
 
 
 Response*
@@ -1304,7 +1062,7 @@ BbarBrick::getResponse(int responseID, Information &eleInfo)
     static Vector output(stressAtNodes);
 
     stressAtNodes.zero();
-    OpenSees::StressExtrapolation<NEN,NIP,NST>(&materialPointers[0], We, stressAtNodes);
+    Xara::StressExtrapolation<NEN,NIP,NST>(&materialPointers[0], We, stressAtNodes);
     return eleInfo.setVector(output);
   }
 

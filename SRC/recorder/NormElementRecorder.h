@@ -46,7 +46,6 @@ class Vector;
 class Matrix;
 class Element;
 class Response;
-class FE_Datastore;
 
 class NormElementRecorder: public Recorder
 {

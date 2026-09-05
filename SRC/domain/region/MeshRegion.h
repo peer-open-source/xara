@@ -67,7 +67,7 @@ class MeshRegion : public DomainComponent
     virtual int sendSelf(int commitTag, Channel &theChannel);
     virtual int recvSelf(int commitTag, Channel &theChannel, 
                          FEM_ObjectBroker &theBroker);
-    virtual void Print(OPS_Stream &s, int flag =0);       
+    virtual void Print(OPS_Stream &s, int flag);
 
   private:
     double alphaM, betaK, betaK0, betaKc;

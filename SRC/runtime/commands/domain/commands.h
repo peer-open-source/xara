@@ -43,7 +43,7 @@ Tcl_CmdProc XaraCmd_getNodeTags;
 
 
 // domain/region.cpp
-Tcl_CmdProc TclCommand_addMeshRegion;
+Tcl_CmdProc XaraCmd_region;
 
 // domain/recorder.cpp
 Tcl_CmdProc OPS_recorderValue;

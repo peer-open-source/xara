@@ -21,11 +21,9 @@ class EnhancedQuad : public Element,
   public:
 
     EnhancedQuad(int tag, 
-                  std::array<int,4>& nodes,
+                  const std::array<int,4>& nodes,
                   NDMaterial &theMaterial, 
                   double thickness);
-
-    EnhancedQuad();
 
     ~EnhancedQuad();
 
@@ -45,7 +43,7 @@ class EnhancedQuad : public Element,
     int revertToStart( ) ;
     int update();
 
-    //return stiffness matrix 
+    // return stiffness matrix 
     const Matrix &getTangentStiff();
     const Matrix &getInitialStiff();
     const Matrix &getMass();
@@ -63,8 +61,6 @@ class EnhancedQuad : public Element,
     Response *setResponse(const char **argv, int argc, OPS_Stream &);
 
     int getResponse(int responseID, Information &);
-    int sendSelf (int commitTag, Channel &);
-    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &);
 
     void Print( OPS_Stream &s, int flag );
 
@@ -87,11 +83,6 @@ class EnhancedQuad : public Element,
     static Matrix mass ;
     static Matrix damping ;
 
-    // //stress data
-    // static double stressData[][4] ;
-
-    // //tangent data 
-    // static double tangentData[][3][4] ;
 
     ID connectedExternalNodes ;  // node tags
     Node *theNodes[NEN] ;        // pointers to nodes
@@ -103,7 +94,7 @@ class EnhancedQuad : public Element,
     //material information
     NDMaterial *materialPointers[4] ; //pointers to materials
 
-    //local nodal coordinates, two coordinates for each node
+    // local nodal coordinates, two coordinates for each node
     //    static double xl[2][4] ; 
     static double xl[][4] ; 
 

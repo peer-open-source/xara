@@ -27,16 +27,16 @@ FiniteElement<nen,ndm,ndf>::setDomain(Domain *theDomain)
   }
 
   for (int i=0; i<nen; i++) {
-    theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
+    theNodes[i] = theDomain->getNode(m_conn(i));
     if (theNodes[i] == nullptr) {
       opserr << "FiniteElement::setDomain  tag: " 
               << this->getTag() << " -- Node " 
-              << connectedExternalNodes(i) << " does not exist\n";
+              << m_conn(i) << " does not exist\n";
       return;
     }
 
     if (theNodes[i]->getNumberDOF() != ndf) {
-      opserr << "FiniteElement::setDomain  tag: " << this->getTag() << " -- Node " << connectedExternalNodes(i) 
+      opserr << "FiniteElement::setDomain  tag: " << this->getTag() << " -- Node " << m_conn(i) 
               << " has incorrect number of DOF\n";
       opserr << " " << theNodes[i]->getNumberDOF() << " should be " << ndf << endln;
       return;

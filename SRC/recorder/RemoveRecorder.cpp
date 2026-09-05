@@ -36,7 +36,6 @@
 #include <ID.h>
 #include <string.h>
 #include <Response.h>
-#include <FE_Datastore.h>
 #include <ElementIter.h>
 #include <NodeIter.h>
 #include <LoadPattern.h>
@@ -57,8 +56,7 @@
 #include <iomanip>
 using std::ios;
 
-//#define MMTDEBUG
-//#define MMTDEBUGIO
+
 
 // initiate class-wide static members to keep track of removed components
 int RemoveRecorder::numRecs = 0;

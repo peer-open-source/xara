@@ -801,71 +801,79 @@ XaraCmd_nodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char 
   bool explicitPatternPassed = false;
   int  loadPatternTag = 0;
 
-  if (true) {
-    if (argc < (2 + ndf)) {
-      opserr << OpenSees::PromptValueError 
-             << "expected " << ndf << " forces"
-             << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
-    }
 
-    // get the id of the node
-    int nodeId;
-    if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
-      opserr << OpenSees::PromptValueError 
-             << "invalid nodeId: " << argv[1]
-             << OpenSees::SignalMessageEnd;
-      return TCL_ERROR;
-    }
-
-    // get the load vector
-    Vector forces(ndf);
-    for (int i = 0; i < ndf; ++i) {
-      double theForce;
-      if (Tcl_GetDouble(interp, argv[2 + i], &theForce) != TCL_OK) {
-        opserr << OpenSees::PromptValueError 
-               << "invalid force " << i + 1 << " in load " << nodeId;
-        opserr << ", got " << ndf << " forces\n";
-        return TCL_ERROR;
-      } else
-        forces(i) = theForce;
-    }
-
-    // allow some additional options at end of command
-    int endMarker = 2 + ndf;
-    while (endMarker != argc) {
-      if (strcmp(argv[endMarker], "-const") == 0) {
-        // allow user to specify const load
-        isLoadConst = true;
-      } else if (strcmp(argv[endMarker], "-pattern") == 0) {
-        // allow user to specify load pattern other than current
-        endMarker++;
-        explicitPatternPassed = true;
-        if (endMarker == argc ||
-            Tcl_GetInt(interp, argv[endMarker], &loadPatternTag) != TCL_OK) {
-
-          opserr << OpenSees::PromptValueError 
-                 << "invalid patternTag " << argv[endMarker] 
-                 << "\n";
-          return TCL_ERROR;
-        }
-      }
-      endMarker++;
-    }
-
-    // get the current pattern tag if no tag given in i/p
-    if (explicitPatternPassed == false) {
-      if (theTclLoadPattern == nullptr) {
-        opserr << OpenSees::PromptParseError 
-               << "no current load pattern\n";
-        return TCL_ERROR;
-      } else
-        loadPatternTag = theTclLoadPattern->getTag();
-    }
-
-    // create the load
-    theLoad = new NodalLoad(nodeLoadTag, nodeId, forces, isLoadConst);
+  // get the id of the node
+  int nodeId;
+  if (Tcl_GetInt(interp, argv[1], &nodeId) != TCL_OK) {
+    opserr << OpenSees::PromptValueError 
+            << "invalid nodeId: " << argv[1]
+            << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
   }
+
+  Node *theNode = builder->getDomain()->getNode(nodeId);
+  if (theNode == nullptr) {
+    opserr << OpenSees::PromptValueError 
+            << "node " << nodeId << " does not exist in the domain"
+            << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+  ndf = theNode->getNumberDOF();
+  if (argc < (2 + ndf)) {
+    opserr << OpenSees::PromptValueError 
+            << "expected " << ndf << " forces"
+            << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
+
+  // get the load vector
+  Vector forces(ndf);
+  for (int i = 0; i < ndf; ++i) {
+    double theForce;
+    if (Tcl_GetDouble(interp, argv[2 + i], &theForce) != TCL_OK) {
+      opserr << OpenSees::PromptValueError 
+              << "invalid force " << i + 1 << " in load " << nodeId;
+      opserr << ", got " << ndf << " forces\n";
+      return TCL_ERROR;
+    } else
+      forces(i) = theForce;
+  }
+
+  // allow some additional options at end of command
+  int endMarker = 2 + ndf;
+  while (endMarker != argc) {
+    if (strcmp(argv[endMarker], "-const") == 0) {
+      // allow user to specify const load
+      isLoadConst = true;
+    } else if (strcmp(argv[endMarker], "-pattern") == 0) {
+      // allow user to specify load pattern other than current
+      endMarker++;
+      explicitPatternPassed = true;
+      if (endMarker == argc ||
+          Tcl_GetInt(interp, argv[endMarker], &loadPatternTag) != TCL_OK) {
+
+        opserr << OpenSees::PromptValueError 
+                << "invalid patternTag " << argv[endMarker] 
+                << "\n";
+        return TCL_ERROR;
+      }
+    }
+    endMarker++;
+  }
+
+  // get the current pattern tag if no tag given in i/p
+  if (explicitPatternPassed == false) {
+    if (theTclLoadPattern == nullptr) {
+      opserr << OpenSees::PromptParseError 
+              << "no current load pattern\n";
+      return TCL_ERROR;
+    } else
+      loadPatternTag = theTclLoadPattern->getTag();
+  }
+
+  // create the load
+  theLoad = new NodalLoad(nodeLoadTag, nodeId, forces, isLoadConst);
+
 
   // add the load to the domain
   if (builder->getDomain()->addNodalLoad(theLoad, loadPatternTag) == false) {
@@ -877,7 +885,6 @@ XaraCmd_nodalLoad(ClientData clientData, Tcl_Interp *interp, int argc, TCL_Char 
   }
   builder->incrNodalLoadTag();
 
-  // if get here we have sucessfully created the load and added it to the domain
   return TCL_OK;
 }
 

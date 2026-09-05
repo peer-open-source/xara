@@ -30,16 +30,6 @@
 
 class MatPoint3D
 {
-  private:
-    short int  r_direction_point_number;
-    short int  s_direction_point_number;
-    short int  t_direction_point_number;
-    double r;
-    double s;
-    double t;
-    double rw;
-    double sw;
-    double tw;
 
   public: // dobro ovo su samo ustvari pointeri pa nema ekstra kopiranja !
 
@@ -55,7 +45,7 @@ class MatPoint3D
     //straintensor * p_strain;
     //tensor  * TangentE;
     
-    //Might be ElasticIsotropic3D or Template3Dep
+    // Might be ElasticIsotropic3D or Template3Dep
     NDMaterial * matmodel;
 
   public:  
@@ -101,11 +91,11 @@ class MatPoint3D
 
 
   public:
-    short int GP_number_r(void) const;
-    short int GP_number_s(void) const;
-    short int GP_number_t(void) const;
+    short int GP_number_r() const;
+    short int GP_number_s() const;
+    short int GP_number_t() const;
    
-    MatPoint3D * GP(void);
+    MatPoint3D * GP();
 
     double r_coordinate() const;
     double s_coordinate() const;
@@ -118,8 +108,8 @@ class MatPoint3D
     //void setEPS(EPState *eps);
     //EPState *getEPS() const;
     NDMaterial* getNDMat() const;
-    const char* getType (void) const;
-    int getTag (void) const;
+    const char* getType() const;
+    int getTag() const;
     double getrho() const;
     const stresstensor getStressTensor() const;
     const straintensor getStrainTensor() const;
@@ -135,7 +125,18 @@ class MatPoint3D
     void report(char * msg) const;
     void reportpqtheta(char * msg) const;
     void reportTensor(char *msg) const;
+
+  private:
+    short int  r_direction_point_number;
+    short int  s_direction_point_number;
+    short int  t_direction_point_number;
+    double r;
+    double s;
+    double t;
+    double rw;
+    double sw;
+    double tw;
 };
 
-#endif 
+#endif
 //

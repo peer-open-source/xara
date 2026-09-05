@@ -18,11 +18,11 @@
 //     https://doi.org/10.1002/nme.7506
 //
 //===----------------------------------------------------------------------===//
-
 //
 // Description: This file contains the implementation for the 
 // EuclidFrameTransf class. EuclidFrameTransf is a euclidean transformation 
-// of 3D space.
+// of 3D space. 
+//
 // When used with the RankinIsometry, it furnishes an improved corotational
 // transformation for 3D frames.
 //
@@ -30,9 +30,7 @@
 // Written: Claudio M. Perez
 // Created: 04/2025
 //
-#ifndef EuclidFrameTransf_hpp
-#define EuclidFrameTransf_hpp
-
+#pragma once
 #include <array>
 #include <AxisAngle.h>
 #include <FrameTransform.h>
@@ -55,7 +53,7 @@ public:
   ~EuclidFrameTransf();
 
 
-  const char *getClassType() const {return "EuclidFrameTransf";}
+  const char *getClassType() const override {return "EuclidFrameTransf";}
   
   virtual int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const;
   
@@ -73,8 +71,12 @@ public:
 
   VectorND<nn*ndf> getStateVariation() final;
   Vector3D getNodePosition(int tag) final;
+  Vector3D getNodeLocation(int tag) final;
   Versor   getNodeRotation(int tag) /* final */;
   Vector3D getNodeRotationLogarithm(int tag) final;
+  Vector3D getNodeRotationUpdateLogarithm(int tag) final {
+    return ddur[tag].vector;
+  }
 
   Matrix3D getRotation() const noexcept final {
     return basis.getRotation();
@@ -83,7 +85,8 @@ public:
   int push(VectorND<nn*ndf>&pl, int op) final;
   int push(MatrixND<nn*ndf,nn*ndf>& kl, const VectorND<nn*ndf>& pl, int op) final;
 
-  MatrixND<3,ndf*nn> getRotationTangent() final {
+  MatrixND<3,ndf*nn>
+  getRotationTangent() final {
     MatrixND<3,ndf*nn> dR{};
     for (int i=0; i<nn; i++)
       dR.assemble(basis.getRotationGradient(i), 0, i*ndf, 1.0);
@@ -96,7 +99,13 @@ public:
   bool isShapeSensitivity() final;
   double getLengthGrad() final;
   double getd1overLdh() final;
-  // void   pushGrad(VectorND<nn*ndf>& dp, VectorND<nn*ndf>& pl) final;
+  void   pushGrad(VectorND<nn*ndf>& dp, VectorND<nn*ndf>& pl) final;
+  void   pullFixedGrad(VectorND<nn*ndf>&) final;
+  void   pullTotalGrad(VectorND<nn*ndf>&, int) final;
+
+  Matrix3D getRotationSensitivity() final {
+    return basis.getRotationSensitivity(nodes);
+  }
 
   // TaggedObject
   void Print(OPS_Stream &s, int flag) final;
@@ -104,7 +113,8 @@ public:
 
 private:
 
-  Vector3D getNodeLocation(int tag);
+  void 
+  pull(VectorND<nn*ndf>& du, const Matrix3D& R, int op);
 
   inline MatrixND<nn*ndf,nn*ndf> 
   getProjection() {
@@ -126,6 +136,8 @@ private:
     return A;
   }
 
+
+
   template<const Vector& (Node::*Getter)()>
   const Vector3D
   pullPosition(int node)
@@ -138,9 +150,9 @@ private:
 
     // 1) Offsets
     if (offsets) [[unlikely]] {
-      if (!(offset_flags&OffsetLocal))  {
-        Vector3D w {u[3], u[4], u[5]};
-        v -= offsets->at(node).cross(w);
+      if (!(offset_flags&OffsetLocal)) {
+        v -= offsets->at(node);
+        v += nodes[node]->getTrialRotation().rotate(offsets->at(node));
       }
     }
 
@@ -149,14 +161,35 @@ private:
     return R^v;
   }
 
+  std::array<Vector3D, nn> getCurrentOffsets() const {
+    std::array<Vector3D, nn> current_offsets{};
+    if (offsets != nullptr)
+      for (int i = 0; i < nn; i++) {
+        current_offsets[i] = nodes[i]->getTrialRotation().rotate(offsets->at(i));
+      }
+    return current_offsets;
+  }
+
+  VectorND<6> getWrench(const VectorND<nn*ndf>& p);
+
+  //
+  // Data
+  //
   std::array<Node*, nn> nodes;
-  std::array<AxisAngle, nn> ur; // rotation vector
+  std::array<AxisAngle, nn> ur;   // total rotation vector
+  std::array<AxisAngle, nn> ddur; // iterative rotation vector
 
   std::array<Vector3D, nn> *offsets;
   int offset_flags;
   Matrix3D R0;
   Vector3D xi, xj, vz;
-  double L;           // undeformed element length
+  double L;            // undeformed element length
+
+  bool skip_log_iter = false;
+
+  // Rotation parameterizations
+  Rotations::Parameters internal_rotation_type,
+                        external_rotation_type[nn] = {Rotations::Parameters::None};
 
   IsoT basis;
 };
@@ -164,5 +197,3 @@ private:
 } // namespace OpenSees
 
 #include "EuclidFrameTransf.tpp"
-
-#endif

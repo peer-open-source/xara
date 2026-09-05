@@ -17,7 +17,7 @@
 #include "frames.hpp"
 #include <utility/Unroll.h>
 #include <Exact/ExactFrame3d.h>
-// #define XARA_HAVE_CosseratFrame
+#define XARA_HAVE_CosseratFrame
 
 #ifdef XARA_HAVE_CosseratFrame
 #include <Exact/ExactFrame02.h>
@@ -68,9 +68,6 @@ CreateExactFrame(int tag,
     IbraNoTransformation,
   } exact_version = ExactFrameElement::Unknown;
 
-  // if (getenv("ExactFrame")) {
-  //   exact_version = atoi(getenv("ExactFrame"));
-  // }
   if (strcmp(name, "ExactFrame") == 0) {
     if ((options.rotation_type != Rotations::Parameters::Iter) && 
         (options.rotation_type != Rotations::Parameters::None) &&
@@ -92,12 +89,19 @@ CreateExactFrame(int tag,
   }
 
   // Check rotations
-  if (exact_version == ExactFrameElement::SimoNoTransformation) {
+  if (exact_version == ExactFrameElement::Unknown) {
+    opserr << OpenSees::PromptValueError 
+            << "Unknown ExactFrame element"
+            << OpenSees::SignalMessageEnd;
+    return nullptr;
+  }
+  else if (exact_version == ExactFrameElement::SimoNoTransformation) {
     if ((options.rotation_type != Rotations::Parameters::Iter) &&
         (options.rotation_type != Rotations::Parameters::None)) {
       opserr << OpenSees::PromptValueError 
               << "ExactFrame3d with Simo rotation requires Iter or None rotation type"
               << OpenSees::SignalMessageEnd;
+      return nullptr;
     }
   }
   else if (exact_version == ExactFrameElement::IbraNoTransformation) {
@@ -120,6 +124,7 @@ CreateExactFrame(int tag,
           opserr << "Init\n";
           break;
       }
+      return nullptr;
     }
   }
   // if (offsets != nullptr &&

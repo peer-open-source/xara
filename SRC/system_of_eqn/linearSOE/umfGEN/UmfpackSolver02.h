@@ -49,10 +49,18 @@ public:
     double getDeterminant() override;
     bool requireDeterminant() override { doDeterminant = true; return true; }
 
+
+    int reset() override {
+      this->clearNumeric();
+      return 0;
+    }
+
 private:
     void clearSymbolic();
+    void clearNumeric();
 
     void *symbolic;
+    void *numeric;
     std::array<double, UMFPACK_CONTROL> control;
     std::array<double, UMFPACK_INFO> info;
     SparseGenCSC *theSOE;

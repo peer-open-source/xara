@@ -122,7 +122,7 @@ ProfileSPDLinDirectSolver::solve(const Vector& vecB, Vector& vecX)
   int theSize = theSOE->size;
   // copy B into X
   for (int ii=0; ii<theSize; ii++)
-  X[ii] = B[ii];
+    X[ii] = B[ii];
 
   
   if (theSOE->isAfactored == false)  {
@@ -229,7 +229,6 @@ ProfileSPDLinDirectSolver::solve(const Vector& vecB, Vector& vecX)
 
   else {
     // JUST DO SOLVE
-
     // do forward substitution 
     for (int i=1; i<theSize; i++) {
       

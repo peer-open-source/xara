@@ -1237,6 +1237,7 @@ MixedFrame3d::setSectionDeformation(int sec, Vector& defSection, double& twist)
 void
 MixedFrame3d::Print(OPS_Stream& s, int flag)
 {
+  const ID& connectedExternalNodes = this->getExternalNodes();
 
   if (flag == 1) {
     s << "\nElement: " << this->getTag() << " Type: MixedFrame3d ";
@@ -1255,8 +1256,8 @@ MixedFrame3d::Print(OPS_Stream& s, int flag)
     s << "\n section xi wt";
     for (int i = 0; i < numSections; i++)
       s << "\n" << i << " " << xi[i] << " " << wt[i];
-
-  } else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+  }
+  else if (flag == OPS_PRINT_PRINTMODEL_JSON) {
     s << OPS_PRINT_JSON_ELEM_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"mixedFrame2d\", ";
@@ -1278,8 +1279,9 @@ MixedFrame3d::Print(OPS_Stream& s, int flag)
     if (geom_flag == Geometry::Linear)
       s << ", \"geom_flag\": true";
     s << "}";
-
-  } else {
+    return;
+  }
+  else {
     s << "\nElement: " << this->getTag() << " Type: MixedFrame3d ";
     s << "\tConnected Nodes: " << connectedExternalNodes;
     s << "\tNumber of Sections: " << numSections;
@@ -1292,13 +1294,14 @@ Response*
 MixedFrame3d::setResponse(const char** argv, int argc, OPS_Stream& output)
 {
 
-  Response* theResponse = 0;
+  Response* theResponse = nullptr;
+  const ID& connectedExternalNodes = this->getExternalNodes();
 
   output.tag("ElementOutput");
   output.attr("eleType", "MixedFrame3d");
   output.attr("eleTag", this->getTag());
-  output.attr("node1", connectedExternalNodes[0]);
-  output.attr("node2", connectedExternalNodes[1]);
+  output.attr("node1", connectedExternalNodes(0));
+  output.attr("node2", connectedExternalNodes(1));
 
   //
   // we compare argv[0] for known response types
@@ -1547,6 +1550,7 @@ MixedFrame3d::getResponse(int responseID, Information& info)
 
   } else if (responseID == 102) { // connected nodes
     Vector tempVector(2);
+    const ID& connectedExternalNodes = this->getExternalNodes();
     tempVector(0) = connectedExternalNodes(0);
     tempVector(1) = connectedExternalNodes(1);
     return info.setVector(tempVector);
@@ -1555,7 +1559,6 @@ MixedFrame3d::getResponse(int responseID, Information& info)
     Vector tempVector(1);
     tempVector(0) = numSections;
     return info.setVector(tempVector);
-
   }
 
   else if (responseID == 111 || responseID == 1111) {
@@ -1608,18 +1611,3 @@ MixedFrame3d::getResponse(int responseID, Information& info)
   return -1;
 }
 
-int
-MixedFrame3d::sendSelf(int commitTag, Channel& theChannel)
-{
-  // TODO(sendSelf)
-  opserr << "Error: MixedFrame3d::sendSelf -- not yet implemented for MixedFrame3d element";
-  return -1;
-}
-
-int
-MixedFrame3d::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
-{
-  // TODO(recvSelf)
-  opserr << "Error: MixedFrame3d::sendSelf -- not yet implemented for MixedFrame3d element";
-  return -1;
-}

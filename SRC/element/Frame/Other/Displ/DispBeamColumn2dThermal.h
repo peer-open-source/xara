@@ -80,10 +80,6 @@ class DispBeamColumn2dThermal : public Element
     const Vector &getResistingForce(void);
     const Vector &getResistingForceIncInertia(void);            
 
-    // public methods for element output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker 
-		  &theBroker);
 
     void Print(OPS_Stream &s, int flag);
 

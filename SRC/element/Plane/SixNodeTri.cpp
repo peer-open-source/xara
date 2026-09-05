@@ -97,25 +97,6 @@ SixNodeTri::SixNodeTri(int tag,
   }
 }
 
-SixNodeTri::SixNodeTri()
-:Element (0,ELE_TAG_SixNodeTri),
-  connectedExternalNodes(NEN),
- Q(2*NEN), applyLoad(0), pressureLoad(2*NEN), thickness(0.0), pressure(0.0), Ki(0)
-{
-  pts[0][0] = 0.666666666666666667;
-  pts[0][1] = 0.166666666666666667;
-  pts[1][0] = 0.166666666666666667;
-  pts[1][1] = 0.666666666666666667;
-  pts[2][0] = 0.166666666666666667;
-  pts[2][1] = 0.166666666666666667;
-
-  wts[0] = 0.166666666666666667;
-  wts[1] = 0.166666666666666667;
-  wts[2] = 0.166666666666666667;
-
-  for (int i=0; i<NEN; i++)
-    theNodes[i] = nullptr;
-}
 
 
 SixNodeTri::~SixNodeTri()
@@ -162,36 +143,36 @@ SixNodeTri::getNumDOF()
 void
 SixNodeTri::setDomain(Domain *theDomain)
 {
-    // Check Domain is not null - invoked when object removed from a domain
-    if (theDomain == nullptr) {
-      for (int i=0; i<NEN; i++)
-        theNodes[i] = nullptr;
+  // Check Domain is not null - invoked when object removed from a domain
+  if (theDomain == nullptr) {
+    for (int i=0; i<NEN; i++)
+      theNodes[i] = nullptr;
+    return;
+  }
+
+  for (int i=0; i<NEN; i++) {
+    // Retrieve the node from the domain using its tag.
+    // If no node is found, then return
+    theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
+    if (theNodes[i] == nullptr)
+      return;
+
+    // If node is found, ensure node has the proper number of DOFs
+    int dofs = theNodes[i]->getNumberDOF();
+    if (dofs != 2 && dofs != 3) {
+      opserr << "WARNING " << this->getClassType() 
+              << " element with tag " << this->getTag() 
+              << " does not have 2 or 3 DOFs at node " 
+              << theNodes[i]->getTag() << "\n";
       return;
     }
+  }
 
-    for (int i=0; i<NEN; i++) {
-      // Retrieve the node from the domain using its tag.
-      // If no node is found, then return
-      theNodes[i] = theDomain->getNode(connectedExternalNodes(i));
-      if (theNodes[i] == nullptr)
-        return;
+  if (theDomain != nullptr)
+    this->Element::link(*theDomain);
 
-      // If node is found, ensure node has the proper number of DOFs
-      int dofs = theNodes[i]->getNumberDOF();
-      if (dofs != 2 && dofs != 3) {
-        opserr << "WARNING " << this->getClassType() 
-               << " element with tag " << this->getTag() 
-               << " does not have 2 or 3 DOFs at node " 
-               << theNodes[i]->getTag() << "\n";
-        return;
-      }
-    }
-  
-    if (theDomain != nullptr)
-      this->Element::link(*theDomain);
-
-    // Compute consistent nodal loads due to pressure
-    this->setPressureLoadAtNodes();
+  // Compute consistent nodal loads due to pressure
+  this->setPressureLoadAtNodes();
 }
 
 int
@@ -226,49 +207,49 @@ SixNodeTri::revertToLastCommit()
 int
 SixNodeTri::revertToStart()
 {
-    int retVal = 0;
+  int retVal = 0;
 
-    // Loop over the integration points and revert states to start
-    for (int i = 0; i < nip; i++)
-        retVal += theMaterial[i]->revertToStart();
+  // Loop over the integration points and revert states to start
+  for (int i = 0; i < nip; i++)
+    retVal += theMaterial[i]->revertToStart();
 
-    return retVal;
+  return retVal;
 }
 
 
 int
 SixNodeTri::update()
 {
-    // Collect displacements at each node into a local array
-    double u[NDM][NEN];
+  // Collect displacements at each node into a local array
+  double u[NDM][NEN];
 
-    for (int i=0; i<NEN; i++) {
-        const Vector &displ = theNodes[i]->getTrialDisp();
-        for (int j=0; j<NDM; j++)
-           u[j][i] = displ[j];
+  for (int i=0; i<NEN; i++) {
+    const Vector &displ = theNodes[i]->getTrialDisp();
+    for (int j=0; j<NDM; j++)
+      u[j][i] = displ[j];
+  }
+
+  int ret = 0;
+
+  // Loop over the integration points
+  for (int i = 0; i < nip; i++) {
+    // Determine Jacobian for this integration point
+    this->shapeFunction(pts[i][0], pts[i][1]);
+
+    // Interpolate strains
+    // eps = B*u;
+    VectorND<3> eps{};
+    for (int beta = 0; beta < NEN; beta++) {
+      eps[0] += shp[0][beta]*u[0][beta];
+      eps[1] += shp[1][beta]*u[1][beta];
+      eps[2] += shp[0][beta]*u[1][beta] + shp[1][beta]*u[0][beta];
     }
 
-    int ret = 0;
+    // Set the material strain
+    ret += theMaterial[i]->setTrialStrain(eps);
+  }
 
-    // Loop over the integration points
-    for (int i = 0; i < nip; i++) {
-        // Determine Jacobian for this integration point
-        this->shapeFunction(pts[i][0], pts[i][1]);
-
-        // Interpolate strains
-        // eps = B*u;
-        VectorND<3> eps{};
-        for (int beta = 0; beta < NEN; beta++) {
-            eps[0] += shp[0][beta]*u[0][beta];
-            eps[1] += shp[1][beta]*u[1][beta];
-            eps[2] += shp[0][beta]*u[1][beta] + shp[1][beta]*u[0][beta];
-        }
-
-        // Set the material strain
-        ret += theMaterial[i]->setTrialStrain(eps);
-    }
-
-    return ret;
+  return ret;
 }
 
 
@@ -276,56 +257,56 @@ const Matrix&
 SixNodeTri::getTangentStiff()
 {
 
-    K.Zero();
+  K.Zero();
 
-    double DB[3][2];
+  double DB[3][2];
 
-    // Loop over the integration points
-    for (int i = 0; i < nip; i++) {
+  // Loop over the integration points
+  for (int i = 0; i < nip; i++) {
 
-      // Determine Jacobian for this integration point
-      double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
-      dvol *= (thickness*wts[i]);
+    // Determine Jacobian for this integration point
+    double dvol = this->shapeFunction(pts[i][0], pts[i][1]);
+    dvol *= (thickness*wts[i]);
 
-      // Get the material tangent
-      const Matrix &D = theMaterial[i]->getTangent();
+    // Get the material tangent
+    const Matrix &D = theMaterial[i]->getTangent();
 
-      // Perform numerical integration
-      //K = K + (B^ D * B) * intWt(i)*intWt(j) * detJ;
-      //K.addMatrixTripleProduct(1.0, B, D, intWt(i)*intWt(j)*detJ);
+    // Perform numerical integration
+    //K = K + (B^ D * B) * intWt(i)*intWt(j) * detJ;
+    //K.addMatrixTripleProduct(1.0, B, D, intWt(i)*intWt(j)*detJ);
 
-      double D00 = D(0,0); double D01 = D(0,1); double D02 = D(0,2);
-      double D10 = D(1,0); double D11 = D(1,1); double D12 = D(1,2);
-      double D20 = D(2,0); double D21 = D(2,1); double D22 = D(2,2);
+    double D00 = D(0,0); double D01 = D(0,1); double D02 = D(0,2);
+    double D10 = D(1,0); double D11 = D(1,1); double D12 = D(1,2);
+    double D20 = D(2,0); double D21 = D(2,1); double D22 = D(2,2);
 
-      //          for (int beta = 0, ib = 0, colIb =0, colIbP1 = 8;
-      //   beta < 4;
-      //   beta++, ib += 2, colIb += 16, colIbP1 += 16) {
+    //          for (int beta = 0, ib = 0, colIb =0, colIbP1 = 8;
+    //   beta < 4;
+    //   beta++, ib += 2, colIb += 16, colIbP1 += 16) {
 
-      for (int alpha = 0, ia = 0; alpha < NEN; alpha++, ia += 2) {
-        for (int beta = 0, ib = 0; beta < NEN; beta++, ib += 2) {
+    for (int alpha = 0, ia = 0; alpha < NEN; alpha++, ia += 2) {
+      for (int beta = 0, ib = 0; beta < NEN; beta++, ib += 2) {
 
-          DB[0][0] = dvol * (D00 * shp[0][beta] + D02 * shp[1][beta]);
-          DB[1][0] = dvol * (D10 * shp[0][beta] + D12 * shp[1][beta]);
-          DB[2][0] = dvol * (D20 * shp[0][beta] + D22 * shp[1][beta]);
-          DB[0][1] = dvol * (D01 * shp[1][beta] + D02 * shp[0][beta]);
-          DB[1][1] = dvol * (D11 * shp[1][beta] + D12 * shp[0][beta]);
-          DB[2][1] = dvol * (D21 * shp[1][beta] + D22 * shp[0][beta]);
+        DB[0][0] = dvol * (D00 * shp[0][beta] + D02 * shp[1][beta]);
+        DB[1][0] = dvol * (D10 * shp[0][beta] + D12 * shp[1][beta]);
+        DB[2][0] = dvol * (D20 * shp[0][beta] + D22 * shp[1][beta]);
+        DB[0][1] = dvol * (D01 * shp[1][beta] + D02 * shp[0][beta]);
+        DB[1][1] = dvol * (D11 * shp[1][beta] + D12 * shp[0][beta]);
+        DB[2][1] = dvol * (D21 * shp[1][beta] + D22 * shp[0][beta]);
 
-          K(ia,  ib)   += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
-          K(ia,  ib+1) += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
-          K(ia+1,ib)   += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
-          K(ia+1,ib+1) += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
-          //              matrixData[colIb   +   ia] += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
-          //matrixData[colIbP1 +   ia] += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
-          //matrixData[colIb   + ia+1] += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
-          //matrixData[colIbP1 + ia+1] += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
+        K(ia,  ib)   += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
+        K(ia,  ib+1) += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
+        K(ia+1,ib)   += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
+        K(ia+1,ib+1) += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
+        //              matrixData[colIb   +   ia] += shp[0][alpha]*DB[0][0] + shp[1][alpha]*DB[2][0];
+        //matrixData[colIbP1 +   ia] += shp[0][alpha]*DB[0][1] + shp[1][alpha]*DB[2][1];
+        //matrixData[colIb   + ia+1] += shp[1][alpha]*DB[1][0] + shp[0][alpha]*DB[2][0];
+        //matrixData[colIbP1 + ia+1] += shp[1][alpha]*DB[1][1] + shp[0][alpha]*DB[2][1];
 
-        }
       }
     }
+  }
 
-    return K;
+  return K;
 }
 
 

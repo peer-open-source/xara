@@ -81,14 +81,11 @@ public:
     
     void zeroLoad();
     int addLoad(ElementalLoad *theLoad, double loadFactor);
-    int addInertiaLoadToUnbalance(const Vector &accel);
     
     const Vector &getResistingForce();
     const Vector &getResistingForceIncInertia();
     
     // public methods for element output
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
     void Print(OPS_Stream &s, int flag);
     
     // public methods for element recorder

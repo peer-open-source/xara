@@ -451,16 +451,6 @@ SProfileSPDLinSOE::getB()
   return *vectB;
 }
 
-double 
-SProfileSPDLinSOE::normRHS()
-{
-    double norm =0.0;
-    for (int i=0; i<size; i++) {
-        double Yi = B[i];
-        norm += Yi*Yi;
-    }
-    return sqrt(norm);
-}
 
 
 int
@@ -480,16 +470,3 @@ SProfileSPDLinSOE::setProfileSPDSolver(SProfileSPDLinSolver &newSolver)
     return this->setSolver(newSolver);
 }
 
-
-int 
-SProfileSPDLinSOE::sendSelf(int cTag, Channel &theChannel)
-{
-    return 0;
-}
-
-
-int 
-SProfileSPDLinSOE::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}

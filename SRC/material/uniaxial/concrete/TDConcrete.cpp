@@ -266,8 +266,7 @@ TDConcrete::setTrialStrain(double trialStrain, double strainRate)
     double test = 10.0; // 9/13
     double sigI = 0.0;  // 9/13
     int niter = 500;  // 9/13
-	
-    //opserr<<"\n trialStrain = "<<trialStrain;
+
     
 	// Need to initialize count and initial stress/strain:
     /*
@@ -328,12 +327,7 @@ TDConcrete::setTrialStrain(double trialStrain, double strainRate)
             	eps_sh = epsP_sh;
             	eps_m = eps_total-eps_cr-eps_sh;
     	        sig = setStress(eps_m, e);
-    	} 
-		//
-		//opserr<<"\n   eps_cr = "<<eps_cr;
-		//opserr<<"\n   eps_sh = "<<eps_sh;
-		//opserr<<"\n   eps_m = "<<eps_m;
-		//opserr<<"\n   sig = "<<sig;
+    	}
 	}
     iter ++;
 	return 0;
@@ -395,37 +389,37 @@ TDConcrete::getPHI_i(void)
 }
 
 double 
-TDConcrete::getStress(void)
+TDConcrete::getStress()
 {
 	return sig;
 }
 
 double 
-TDConcrete::getTangent(void)
+TDConcrete::getTangent()
 {
 	return e;
 }
 
 double
-TDConcrete::getCreep(void)
+TDConcrete::getCreep()
 {
 	return eps_cr;
 }
 
 double
-TDConcrete::getShrink(void)
+TDConcrete::getShrink()
 {
 	return eps_sh;
 }
 
 double
-TDConcrete::getMech(void)
+TDConcrete::getMech()
 {
 	return eps_m;
 }
 
 int 
-TDConcrete::commitState(void)
+TDConcrete::commitState()
 {
   iter = 0;
   ecminP = ecmin;

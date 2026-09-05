@@ -643,36 +643,10 @@ int ElastomericBearingPlasticity3d::addLoad(ElementalLoad *theLoad, double loadF
 }
 
 
-int ElastomericBearingPlasticity3d::addInertiaLoadToUnbalance(const Vector &accel)
-{
-    // check for quick return
-    if (mass == 0.0)  {
-        return 0;
-    }
-    
-    // get R * accel from the nodes
-    const Vector &Raccel1 = theNodes[0]->getRV(accel);
-    const Vector &Raccel2 = theNodes[1]->getRV(accel);
-    
-    if (6 != Raccel1.Size() || 6 != Raccel2.Size())  {
-        opserr << "ElastomericBearingPlasticity3d::addInertiaLoadToUnbalance() - "
-            << "matrix and vector sizes are incompatible.\n";
-        return -1;
-    }
-    
-    // want to add ( - fact * M R * accel ) to unbalance
-    // take advantage of lumped mass matrix
-    double m = 0.5*mass;
-    for (int i=0; i<3; i++)  {
-        theLoad(i)   -= m * Raccel1(i);
-        theLoad(i+6) -= m * Raccel2(i);
-    }
-    
-    return 0;
-}
 
 
-const Vector& ElastomericBearingPlasticity3d::getResistingForce()
+const Vector&
+ElastomericBearingPlasticity3d::getResistingForce()
 {
     // zero the residual
     theVector.Zero();
@@ -736,119 +710,6 @@ const Vector& ElastomericBearingPlasticity3d::getResistingForceIncInertia()
     }
     
     return theVector;
-}
-
-
-int ElastomericBearingPlasticity3d::sendSelf(int commitTag, Channel &sChannel)
-{
-    // send element parameters
-    static Vector data(15);
-    data(0) = this->getTag();
-    data(1) = k0;
-    data(2) = qYield;
-    data(3) = k2;
-    data(4) = k3;
-    data(5) = mu;
-    data(6) = shearDistI;
-    data(7) = addRayleigh;
-    data(8) = mass;
-    data(9) = x.Size();
-    data(10) = y.Size();
-    data(11) = alphaM;
-    data(12) = betaK;
-    data(13) = betaK0;
-    data(14) = betaKc;
-    sChannel.sendVector(0, commitTag, data);
-    
-    // send the two end nodes
-    sChannel.sendID(0, commitTag, connectedExternalNodes);
-    
-    // send the material class tags
-    ID matClassTags(4);
-    for (int i=0; i<4; i++)
-        matClassTags(i) = theMaterials[i]->getClassTag();
-    sChannel.sendID(0, commitTag, matClassTags);
-    
-    // send the material models
-    for (int i=0; i<4; i++)
-        theMaterials[i]->sendSelf(commitTag, sChannel);
-    
-    // send remaining data
-    if (x.Size() == 3)
-        sChannel.sendVector(0, commitTag, x);
-    if (y.Size() == 3)
-        sChannel.sendVector(0, commitTag, y);
-    
-    return 0;
-}
-
-
-int ElastomericBearingPlasticity3d::recvSelf(int commitTag, Channel &rChannel,
-    FEM_ObjectBroker &theBroker)
-{
-    // delete material memory
-    for (int i=0; i<4; i++)
-        if (theMaterials[i] != 0)
-            delete theMaterials[i];
-    
-    // receive element parameters
-    static Vector data(15);
-    rChannel.recvVector(0, commitTag, data);
-    this->setTag((int)data(0));
-    k0 = data(1);
-    qYield = data(2);
-    k2 = data(3);
-    k3 = data(4);
-    mu = data(5);
-    shearDistI = data(6);
-    addRayleigh = (int)data(7);
-    mass = data(8);
-    alphaM = data(11);
-    betaK = data(12);
-    betaK0 = data(13);
-    betaKc = data(14);
-    
-    // receive the two end nodes
-    rChannel.recvID(0, commitTag, connectedExternalNodes);
-    
-    // receive the material class tags
-    ID matClassTags(4);
-    rChannel.recvID(0, commitTag, matClassTags);
-    
-    // receive the material models
-    for (int i=0; i<4; i++)  {
-        theMaterials[i] = theBroker.getNewUniaxialMaterial(matClassTags(i));
-        if (theMaterials[i] == 0) {
-            opserr << "ElastomericBearing2d::recvSelf() - "
-                << "failed to get blank uniaxial material.\n";
-            return -2;
-        }
-        theMaterials[i]->recvSelf(commitTag, rChannel, theBroker);
-    }
-    
-    // receive remaining data
-    if ((int)data(9) == 3)  {
-        x.resize(3);
-        rChannel.recvVector(0, commitTag, x);
-    }
-    if ((int)data(10) == 3)  {
-        y.resize(3);
-        rChannel.recvVector(0, commitTag, y);
-    }
-    onP0 = false;
-    
-    // initialize initial stiffness matrix
-    kbInit.Zero();
-    kbInit(0,0) = theMaterials[0]->getInitialTangent();
-    kbInit(1,1) = kbInit(2,2) = k0 + k2;
-    kbInit(3,3) = theMaterials[1]->getInitialTangent();
-    kbInit(4,4) = theMaterials[2]->getInitialTangent();
-    kbInit(5,5) = theMaterials[3]->getInitialTangent();
-    
-    // initialize variables
-    this->revertToStart();
-    
-    return 0;
 }
 
 

@@ -249,7 +249,6 @@ ElementLibrary = {
   // T6
   {"T6",                        TclBasicBuilder_addFourNodeQuad},
   {"tri6n",                     TclBasicBuilder_addFourNodeQuad},
-  // {"tri6n",                     TclBasicBuilder_addSixNodeTri},
 
 
   {"quadWithSensitivity",       TclBasicBuilder_addFourNodeQuadWithSensitivity},
@@ -346,6 +345,7 @@ ElementLibrary = {
 // Brick
 //
   {"stdBrick",                  XaraElemCmd_H8},
+  {"Brick02",                   XaraElemCmd_H8},
   {"H8E12",                     XaraElemCmd_H8},
   {"bbarBrick",                 XaraElemCmd_H8},
   {"bbarBrickWithSensitivity",  XaraElemCmd_H8},

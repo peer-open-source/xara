@@ -35,17 +35,17 @@
 
 class Brick : public Element {
 
-  public :
-    Brick();
+public:
     Brick(int tag, 
           const std::array<int, 8>& node_tags,
           NDMaterial &theMaterial,
           double b1 = 0.0, double b2 = 0.0, double b3 = 0.0);
-    
-    // destructor 
+
     virtual ~Brick();
 
     const char *getClassType() const final {return "Brick";}
+
+    FE_Element* createFE_Element(int tag) final;
 
     void setDomain( Domain *) final;
     int getNumExternalNodes( ) const final;
@@ -80,9 +80,6 @@ class Brick : public Element {
     int setParameter(const char **argv, int argc, Parameter &);
     int updateParameter(int parameterID, Information &);
 
-    int sendSelf (int commitTag, Channel &);
-    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker  &);
-
     void Print( OPS_Stream &s, int flag);
 
   private :
@@ -112,8 +109,8 @@ class Brick : public Element {
                          NIP = 8,  // number of integration points
                          NST = 6;  // number of stress components
 
-    ID connectedExternalNodes ;  // node tags
-    std::array<Node *, 8> theNodes;      // pointers to nodes
+    ID conn ;  // node tags
+    std::array<Node *, NEN> theNodes;      // pointers to nodes
 
     // material information
     NDMaterial *materialPointers[NIP]; // pointers to materials
@@ -128,7 +125,6 @@ class Brick : public Element {
     //
     // static attributes
     //
-
     static Matrix stiff;
     static Vector resid;
     static Matrix mass;

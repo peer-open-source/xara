@@ -1,4 +1,3 @@
-
 //===----------------------------------------------------------------------===//
 //
 //                                   xara
@@ -6,8 +5,21 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// ExactFrame02 implementation.
-// See ExactFrame02.h for a summary.
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+//        Please cite the following resources in any derivative works:
+//                 https://doi.org/10.5281/zenodo.10456866
+//                 https://doi.org/10.1002/nme.7506
+//
+//===----------------------------------------------------------------------===//
+//
+// Description: ExactFrame02 implementation. See ExactFrame02.h for a summary.
 //
 //===----------------------------------------------------------------------===//
 #include <cstddef>
@@ -34,6 +46,7 @@
 
 namespace OpenSees {
 
+using namespace Xara;
 
 template<std::size_t nen, int nwm>
 ExactFrame02<nen, nwm>::ExactFrame02(int tag,
@@ -684,20 +697,7 @@ ExactFrame02<nen,nwm>::getResponse(int responseID, Information &info)
   return -1;
 }
 
-template<std::size_t nen, int nwm>
-int
-ExactFrame02<nen,nwm>::sendSelf(int commitTag, Channel& theChannel)
-{
-  return -1;
-}
 
-template<std::size_t nen, int nwm>
-int
-ExactFrame02<nen,nwm>::recvSelf(int commitTag, Channel& theChannel,
-                                FEM_ObjectBroker& theBroker)
-{
-  return -1;
-}
 
 template<std::size_t nen, int nwm>
 void

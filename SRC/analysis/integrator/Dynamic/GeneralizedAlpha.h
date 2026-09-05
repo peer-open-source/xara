@@ -17,14 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
-#ifndef GeneralizedAlpha_h
-#define GeneralizedAlpha_h
-
+//
 // Written: fmk
 // Created: 11/98
 // Revision: A
@@ -36,7 +29,7 @@
 // J.Chung, G.M.Hulbert "A Time Integration Algorithm for Structural Dynamics With
 // Improved Numerical Dissipation: The Generalized-alpha Method" ASME Journal of Applied
 // Mechanics, Vol 60, 371-375, 1993.
-
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -59,18 +52,15 @@ public:
     int formEleTangent(FE_Element *theEle);
     int formNodTangent(DOF_Group *theDof);        
     
-    int domainChanged(void);    
+    int domainChanged();    
     int newStep(double deltaT);    
-    int revertToLastStep(void);        
+    int revertToLastStep();        
     int update(const Vector &deltaU);
-    int commit(void);
+    int commit();
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
-    void Print(OPS_Stream &s, int flag = 0);        
+    const Vector &getVel();
+
+    void Print(OPS_Stream &s, int flag);
     
 private:
     double alphaM;
@@ -85,5 +75,3 @@ private:
     Vector *U, *Udot, *Udotdot;     // response quantities at time t + deltaT
     Vector *Ualpha, *Ualphadot, *Ualphadotdot;   // response quantities at time t+alpha*deltaT
 };
-
-#endif

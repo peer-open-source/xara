@@ -1,3 +1,24 @@
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, Claudio M. Perez
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+//        Please cite the following resources in any derivative works:
+//                 https://doi.org/10.5281/zenodo.10456866
+//                 https://doi.org/10.1002/nme.7506
+//
+//===----------------------------------------------------------------------===//
+//
 #pragma once
 #include <cstddef>
 #include <MatrixND.h>
@@ -5,7 +26,7 @@
 #include <Vector3D.h>
 #include <Matrix3D.h>
 
-namespace OpenSees {
+namespace Xara {
 
 
 static inline Matrix3D
@@ -124,6 +145,8 @@ B_log(MatrixND<6+2*nwm,6+nwm>& B,
   B.assemble(dR*Xi,     3, 3, shape[0][n]);
 }
 
+
+
 template<std::size_t nen, int nwm>
 static void
 G_log(MatrixND<6+nwm,6+nwm>& G,
@@ -150,7 +173,7 @@ G_log(MatrixND<6+nwm,6+nwm>& G,
   const Matrix3D snT = sn*T;
   const Matrix3D smT = sm*T;
 
-  G.assemble(snT,   0, 3, -shape[1][i]*shape[0][j]);
+  G.assemble(snT,  0, 3, -shape[1][i]*shape[0][j]);
   G.assemble(T^sn, 3, 0,  shape[1][j]*shape[0][i]);
 
   G.assemble(TT*Hat(dx)*sn*T,            3, 3,  shape[0][i]*shape[0][j]);
