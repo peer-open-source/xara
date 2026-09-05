@@ -36,7 +36,6 @@ class CTestRelativeEnergyIncr: public ConvergenceTest
 {
 public:
     // constructors
-    CTestRelativeEnergyIncr();
     CTestRelativeEnergyIncr(double tol, int maxNumIter, int printFlag, int normType=2);
 
     ~CTestRelativeEnergyIncr();
@@ -47,7 +46,7 @@ public:
 
     void setTolerance(double newTol);
 
-    int test(LinearSOE& theSOE) override;
+    int test(const Vector& b, const Vector& x) override;
     int start(LinearSOE&) override;
 
     int getNumTests();

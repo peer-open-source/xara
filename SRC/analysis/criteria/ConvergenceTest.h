@@ -25,21 +25,34 @@
 // Written: fmk
 // Date: 09/98
 //
-#ifndef ConvergenceTest_h
-#define ConvergenceTest_h
+#pragma once
 
 #define OPS_MAXTOL 1.7e307
 
 #include <MovableObject.h>
 #include <StandardStream.h>
 #include <Vector.h>
-#include <stdbool.h>
 #include <string>
+#include <vector>
+#include <LinearSOE.h>
 
 class LinearSOE;
 
+enum {
+  CONVERGENCE_TEST_CTestNormUnbalance             =    1<<0,
+  CONVERGENCE_TEST_CTestNormDispIncr              =    1<<1,
+  CONVERGENCE_TEST_CTestEnergyIncr                =    1<<2,
+  CONVERGENCE_TEST_CTestRelativeNormUnbalance     =      40,
+  CONVERGENCE_TEST_CTestRelativeNormDispIncr      =      50,
+  CONVERGENCE_TEST_CTestRelativeEnergyIncr        =      60,
+  CONVERGENCE_TEST_CTestRelativeTotalNormDispIncr =      70,
+  CONVERGENCE_TEST_CTestFixedNumIter              =      80,
+  CONVERGENCE_TEST_NormDispAndUnbalance           =      90,
+  CONVERGENCE_TEST_NormDispOrUnbalance            =     100,
+  CONVERGENCE_TEST_CTestPFEM                      =     110,
+};
 
-class ConvergenceTest: public MovableObject
+class ConvergenceTest : public MovableObject
 {
   public:
     enum Status {
@@ -61,15 +74,23 @@ class ConvergenceTest: public MovableObject
     ConvergenceTest(int classTag);
     virtual ~ConvergenceTest();
 
-    virtual ConvergenceTest *getCopy( int iterations ) = 0 ;
+    virtual ConvergenceTest *getCopy( int iterations ) = 0;
 
     virtual int start(LinearSOE&) =0;
-    virtual int test(LinearSOE&) =0;
+    virtual int test(const Vector& g, const Vector& dx) =0;
+    int test(LinearSOE& soe) {
+      return this->test(soe.getB(), soe.getX());
+    }
 
     virtual int getNumTests() =0;
     virtual int getMaxNumTests() =0;
     virtual double getRatioNumToMax() =0;
     virtual const Vector &getNorms() =0;
+    // cmp
+    virtual const Vector* getNorms(int type) { return nullptr; }
+
+    //
+    // int getNumNorms();
 
 
   protected:
@@ -77,6 +98,3 @@ class ConvergenceTest: public MovableObject
     std::string pad(int i);
     StandardStream pstream;
 };
-
-#endif
-

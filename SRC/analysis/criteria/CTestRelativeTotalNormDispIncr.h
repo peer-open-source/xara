@@ -39,7 +39,6 @@ class CTestRelativeTotalNormDispIncr: public ConvergenceTest
 {
 public:
     // constructors
-    CTestRelativeTotalNormDispIncr();
     CTestRelativeTotalNormDispIncr(double tol, int maxNumIter, int printFlag, int normType =2);
 
     ~CTestRelativeTotalNormDispIncr();
@@ -48,16 +47,13 @@ public:
 
     void setTolerance(double newTol);
 
-    int test(LinearSOE&) override;
+    int test(const Vector& b, const Vector& x) override;
     int start(LinearSOE&) override;
 
     int getNumTests() override;
     int getMaxNumTests() override;
     double getRatioNumToMax() override;
     const Vector &getNorms() override;
-
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
 private:
     double tol;         // the tol on the norm used to test for convergence

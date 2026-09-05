@@ -26,14 +26,6 @@
 #include <LinearSOE.h>
 #include <Logging.h>
 
-CTestRelativeNormDispIncr::CTestRelativeNormDispIncr()
-    : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeNormDispIncr),
-    tol(0), maxNumIter(0), currentIter(0), printFlag(0),
-    norms(1), norm0(0.0), nType(2)
-{
-
-}
-
 
 CTestRelativeNormDispIncr::CTestRelativeNormDispIncr(double theTol, int maxIter, int printIt, int normType)
     : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeNormDispIncr),
@@ -56,13 +48,26 @@ ConvergenceTest* CTestRelativeNormDispIncr::getCopy(int iterations)
 }
 
 
-void CTestRelativeNormDispIncr::setTolerance(double newTol)
+void
+CTestRelativeNormDispIncr::setTolerance(double newTol)
 {
     tol = newTol;
 }
 
 
-int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
+int 
+CTestRelativeNormDispIncr::start(LinearSOE& theSOE)
+{
+    // set iteration count = 1
+    norms.Zero();
+    currentIter = 1;
+    norm0 = 0.0;
+
+    return 0;
+}
+
+int 
+CTestRelativeNormDispIncr::test(const Vector& b, const Vector& x)
 {
     // check to ensure the algo does invoke start() - this is needed otherwise
     // may never get convergence later on in analysis!
@@ -72,7 +77,8 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
     }
 
     // get the X vector & determine it's norm & save the value in norms vector
-    const Vector &x = theSOE.getX();
+    // const Vector &x = theSOE.getX();
+
     double norm = x.pNorm(nType);
     if (currentIter <= maxNumIter)
         norms(currentIter-1) = norm;
@@ -99,10 +105,10 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
                << " |dR|/|dR1|: "   << pad(norm)
                << "\n";
         pstream << "\tNorm dX: " << pad(norm)
-               << ", Norm dR: " << pad(theSOE.getB().pNorm(nType))
+               << ", Norm dR: " << pad(b.pNorm(nType))
                << "\n";
         pstream << "\tdeltaX: " << x
-               << "\tdeltaR: " << theSOE.getB();
+               << "\tdeltaR: " << b;
     }
 
     //
@@ -132,7 +138,7 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
             pstream << LOG_FAILURE
                    << "Iter: "        << pad(currentIter)
                    << " |dR|/|dR1|: "   << pad(norm)
-                   << ", Norm deltaR: " << pad(theSOE.getB().pNorm(nType))
+                   << ", Norm deltaR: " << pad(b.pNorm(nType))
                    //<< "criteria CTestRelativeNormDispIncr but going on -"
                    << "\n";
         }
@@ -160,82 +166,33 @@ int CTestRelativeNormDispIncr::test(LinearSOE& theSOE)
 }
 
 
-int CTestRelativeNormDispIncr::start(LinearSOE& theSOE)
-{
-    // set iteration count = 1
-    norms.Zero();
-    currentIter = 1;
-    norm0 = 0.0;
-
-    return 0;
-}
 
 
-int CTestRelativeNormDispIncr::getNumTests()
+int 
+CTestRelativeNormDispIncr::getNumTests()
 {
     return currentIter;
 }
 
 
-int CTestRelativeNormDispIncr::getMaxNumTests()
+int 
+CTestRelativeNormDispIncr::getMaxNumTests()
 {
     return maxNumIter;
 }
 
 
-double CTestRelativeNormDispIncr::getRatioNumToMax()
+double 
+CTestRelativeNormDispIncr::getRatioNumToMax()
 {
     double div = maxNumIter;
     return currentIter/div;
 }
 
 
-const Vector& CTestRelativeNormDispIncr::getNorms()
+const Vector& 
+CTestRelativeNormDispIncr::getNorms()
 {
     return norms;
 }
 
-
-int CTestRelativeNormDispIncr::sendSelf(int cTag, Channel &theChannel)
-{
-    int res = 0;
-    Vector x(4);
-    x(0) = tol;
-    x(1) = maxNumIter;
-    x(2) = printFlag;
-    x(3) = nType;
-    res = theChannel.sendVector(this->getDbTag(), cTag, x);
-    if (res < 0)
-        opserr << "CTestRelativeNormDispIncr::sendSelf() - failed to send data\n";
-
-    return res;
-}
-
-
-int
-CTestRelativeNormDispIncr::recvSelf(int cTag, Channel &theChannel,
-    FEM_ObjectBroker &theBroker)
-{
-    int res = 0;
-    Vector x(4);
-    res = theChannel.recvVector(this->getDbTag(), cTag, x);
-
-    if (res < 0) {
-        opserr << "CTestRelativeNormDispIncr::sendSelf() - failed to send data\n";
-        tol = 1.0e-8;
-        maxNumIter = 25;
-        printFlag = 0;
-        nType = 2;
-    }
-    else {
-        tol = x(0);
-        maxNumIter = (int) x(1);
-        printFlag = (int) x(2);
-        nType = (int) x(3);
-        norms.resize(maxNumIter);
-    }
-
-    printFlag = 0;
-
-    return res;
-}
