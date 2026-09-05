@@ -37,20 +37,20 @@
 #include <LinearSOE.h>
 
 class LinearSOE;
-
-enum {
-  CONVERGENCE_TEST_CTestNormUnbalance             =    1<<0,
-  CONVERGENCE_TEST_CTestNormDispIncr              =    1<<1,
-  CONVERGENCE_TEST_CTestEnergyIncr                =    1<<2,
-  CONVERGENCE_TEST_CTestRelativeNormUnbalance     =      40,
-  CONVERGENCE_TEST_CTestRelativeNormDispIncr      =      50,
-  CONVERGENCE_TEST_CTestRelativeEnergyIncr        =      60,
-  CONVERGENCE_TEST_CTestRelativeTotalNormDispIncr =      70,
-  CONVERGENCE_TEST_CTestFixedNumIter              =      80,
-  CONVERGENCE_TEST_NormDispAndUnbalance           =      90,
-  CONVERGENCE_TEST_NormDispOrUnbalance            =     100,
-  CONVERGENCE_TEST_CTestPFEM                      =     110,
-};
+#include <classTags.h>
+// enum {
+//   CONVERGENCE_TEST_CTestNormUnbalance             =    1<<0,
+//   CONVERGENCE_TEST_CTestNormDispIncr              =    1<<1,
+//   CONVERGENCE_TEST_CTestEnergyIncr                =    1<<2,
+//   CONVERGENCE_TEST_CTestRelativeNormUnbalance     =      40,
+//   CONVERGENCE_TEST_CTestRelativeNormDispIncr      =      50,
+//   CONVERGENCE_TEST_CTestRelativeEnergyIncr        =      60,
+//   CONVERGENCE_TEST_CTestRelativeTotalNormDispIncr =      70,
+//   CONVERGENCE_TEST_CTestFixedNumIter              =      80,
+//   CONVERGENCE_TEST_NormDispAndUnbalance           =      90,
+//   CONVERGENCE_TEST_NormDispOrUnbalance            =     100,
+//   CONVERGENCE_TEST_CTestPFEM                      =     110,
+// };
 
 class ConvergenceTest : public MovableObject
 {
