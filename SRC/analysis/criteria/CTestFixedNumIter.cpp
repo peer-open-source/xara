@@ -74,7 +74,7 @@ CTestFixedNumIter::start(LinearSOE&)
 
 
 int
-CTestFixedNumIter::test(LinearSOE& theSOE)
+CTestFixedNumIter::test(const Vector& b, const Vector& x)
 {
 
   // check to ensure the algo does invoke start()
@@ -84,8 +84,8 @@ CTestFixedNumIter::test(LinearSOE& theSOE)
   }
 
   // determine the energy & save value in norms vector
-  const Vector &b = theSOE.getB();
-  const Vector &x = theSOE.getX();
+  // const Vector &b = theSOE.getB();
+  // const Vector &x = theSOE.getX();
   double product = x ^ b;
   if (product < 0.0)
     product *= -0.5;

@@ -47,7 +47,7 @@ public:
     void setTolerance(double newTol);
 
     int start(LinearSOE&) override;
-    int test(LinearSOE&) override;
+    int test(const Vector& g, const Vector& dx) override;
 
     int getNumTests() override;
     int getMaxNumTests() override;

@@ -82,12 +82,19 @@ CTestEnergyIncr::start(LinearSOE& theSOE)
   // set iteration count = 1
   currentIter = 1;
   norms.Zero();
+
+
+  if (printFlag & ConvergenceTest::PrintTest) {
+    pstream << LOG_ITERATE << "Iter: " << pad(0)
+            << ", R : " << pad(theSOE.getB().pNorm(nType)) 
+            << "\n";
+  }
   return 0;
 }
 
 
 int
-CTestEnergyIncr::test(LinearSOE& theSOE)
+CTestEnergyIncr::test(const Vector& b, const Vector& x)
 {
 
     // check to ensure the algo does invoke start() - this is needed otherwise
@@ -98,14 +105,14 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
     }
 
     // determine the energy & save value in norms vector
-    const Vector &b = theSOE.getB();
+    // const Vector &b = theSOE.getB();
 #if 0
     if (currentIter > 1) {
         theSOE.setB(b);
         theSOE.solve();
     }
 #endif
-    const Vector &x = theSOE.getX();
+    // const Vector &x = theSOE.getX();
     double product = x ^ b;
     if (product < 0.0)
         product *= -0.5;
@@ -119,9 +126,9 @@ CTestEnergyIncr::test(LinearSOE& theSOE)
     if (printFlag & ConvergenceTest::PrintTest) {
         pstream << LOG_ITERATE
                << "Iter: "         << pad(currentIter)
-               << ", EnergyIncr: " << pad(product) 
-               << ", Residual: "   << pad(b.pNorm(nType))
-               << ", Increment: "  << pad(x.pNorm(nType))
+               << ", R : "         << pad(b.pNorm(nType))
+               << ", dX: "         << pad(x.pNorm(nType))
+               << ", dW: "         << pad(product) 
                << "\n";
     }
     if (printFlag & ConvergenceTest::PrintTest02) {

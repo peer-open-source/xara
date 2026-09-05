@@ -28,19 +28,11 @@
 #include <LinearSOE.h>
 #include <Logging.h>
 
-CTestRelativeEnergyIncr::CTestRelativeEnergyIncr()
-    : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeEnergyIncr),
-    tol(0), maxNumIter(0), currentIter(0), printFlag(0),
-    norms(1), norm0(0.0), nType(2)
-{
-
-}
-
 
 CTestRelativeEnergyIncr::CTestRelativeEnergyIncr(double theTol, int maxIter, int printIt, int normType)
-    : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeEnergyIncr),
-    tol(theTol), maxNumIter(maxIter), currentIter(0),printFlag(printIt),
-    norms(maxNumIter), norm0(0.0), nType(normType)
+  : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeEnergyIncr),
+  tol(theTol), maxNumIter(maxIter), currentIter(0),printFlag(printIt),
+  norms(maxNumIter), norm0(0.0), nType(normType)
 {
 
 }
@@ -67,7 +59,7 @@ CTestRelativeEnergyIncr::setTolerance(double newTol)
 
 
 int
-CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
+CTestRelativeEnergyIncr::test(const Vector& b, const Vector& x)
 {
     // check to ensure the algo does invoke start() - this is needed otherwise
     // may never get convergence later on in analysis!
@@ -78,8 +70,8 @@ CTestRelativeEnergyIncr::test(LinearSOE& theSOE)
 
 
     // determine the energy & save value in norms vector
-    const Vector &b = theSOE.getB();
-    const Vector &x = theSOE.getX();
+    // const Vector &b = theSOE.getB();
+    // const Vector &x = theSOE.getX();
     double product = x ^ b;
     if (product < 0.0)
         product *= -0.5;
