@@ -17,7 +17,7 @@
 #include "frames.hpp"
 #include <utility/Unroll.h>
 #include <Exact/ExactFrame3d.h>
-// #define XARA_HAVE_CosseratFrame
+#define XARA_HAVE_CosseratFrame
 
 #ifdef XARA_HAVE_CosseratFrame
 #include <Exact/ExactFrame02.h>
