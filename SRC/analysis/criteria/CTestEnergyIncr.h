@@ -35,7 +35,6 @@ class LinearSOE;
 class CTestEnergyIncr: public ConvergenceTest
 {
 public:
-    CTestEnergyIncr();
     CTestEnergyIncr(double tol, int maxNumIter, int printFlag, int normType =2, double maxTol = OPS_MAXTOL);
 
     ~CTestEnergyIncr();
@@ -64,5 +63,6 @@ private:
     int nType;          // type of norm to use (1-norm, 2-norm, p-norm, max-norm)
 
     Vector norms;       // vector to hold the norms
+
 };
 
