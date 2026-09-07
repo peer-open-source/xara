@@ -27,9 +27,7 @@
 // Date: 09/98
 // Modified: 05/05 ahs
 //
-#ifndef NormDispOrUnbalance_h
-#define NormDispOrUnbalance_h
-
+#pragma once
 #include <ConvergenceTest.h>
 class LinearSOE;
 
@@ -72,5 +70,3 @@ private:
     int maxIncr;         // max number of norm increasing
     int numIncr;         // number of norm increasing
 };
-
-#endif
