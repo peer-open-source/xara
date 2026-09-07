@@ -28,19 +28,9 @@
 //
 #include <CTestEnergyIncr.h>
 #include <Vector.h>
-#include <Channel.h>
 #include <EquiSolnAlgo.h>
 #include <LinearSOE.h>
 #include <Logging.h>
-
-
-CTestEnergyIncr::CTestEnergyIncr()
-    : ConvergenceTest(CONVERGENCE_TEST_CTestEnergyIncr),
-      tol(0), maxTol(OPS_MAXTOL), maxNumIter(0), currentIter(0), printFlag(0),
-      nType(2), norms(20)
-{
-
-}
 
 
 CTestEnergyIncr::CTestEnergyIncr(double theTol, int maxIter, int printIt, int normType, double max)
