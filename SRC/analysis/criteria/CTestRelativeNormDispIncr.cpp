@@ -21,7 +21,6 @@
 //
 #include <CTestRelativeNormDispIncr.h>
 #include <Vector.h>
-#include <Channel.h>
 #include <EquiSolnAlgo.h>
 #include <LinearSOE.h>
 #include <Logging.h>
@@ -51,7 +50,7 @@ ConvergenceTest* CTestRelativeNormDispIncr::getCopy(int iterations)
 void
 CTestRelativeNormDispIncr::setTolerance(double newTol)
 {
-    tol = newTol;
+  tol = newTol;
 }
 
 
@@ -85,7 +84,7 @@ CTestRelativeNormDispIncr::test(const Vector& b, const Vector& x)
 
     // if first pass through .. set norm0
     if (currentIter == 1) {
-        norm0 = norm;
+      norm0 = norm;
     }
 
     // get ratio
@@ -171,14 +170,14 @@ CTestRelativeNormDispIncr::test(const Vector& b, const Vector& x)
 int 
 CTestRelativeNormDispIncr::getNumTests()
 {
-    return currentIter;
+  return currentIter;
 }
 
 
 int 
 CTestRelativeNormDispIncr::getMaxNumTests()
 {
-    return maxNumIter;
+  return maxNumIter;
 }
 
 
