@@ -28,9 +28,7 @@
 // Date: 02/02
 // Modified: 05/05 ahs
 //
-#ifndef CTestRelativeNormUnbalance_h
-#define CTestRelativeNormUnbalance_h
-
+#pragma once
 #include <ConvergenceTest.h>
 
 class LinearSOE;
@@ -69,5 +67,3 @@ private:
     double norm0;       // norm at first iteration of each step
     bool first_step;
 };
-
-#endif
