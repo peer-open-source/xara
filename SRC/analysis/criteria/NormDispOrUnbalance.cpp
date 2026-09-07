@@ -83,9 +83,7 @@ NormDispOrUnbalance::test(const Vector& b, const Vector& x)
   }
 
   // get the X vector & determine it's norm & save the value in norms vector
-  // const Vector &x = theSOE.getX();
   double normX = x.pNorm(nType);
-  // const Vector &b = theSOE.getB();
   double normB = b.pNorm(nType);
 
   if ((currentIter>1 && norms(currentIter-2)<normX) && (currentIter>1 && norms(maxNumIter+currentIter-2)<normB)) {
@@ -99,15 +97,15 @@ NormDispOrUnbalance::test(const Vector& b, const Vector& x)
 
   // print the data if required
   if (printFlag == ConvergenceTest::PrintTest) {
-      pstream << "NormDispOrUnbalance::test() - iteration: " << pad(currentIter);
-      pstream << ", NormX: " << normX;
-      pstream << ", NormB: " << normB << ", NormIncr: " << numIncr << "\n";
+    pstream << "NormDispOrUnbalance::test() - iteration: " << pad(currentIter);
+    pstream << ", NormX: " << normX;
+    pstream << ", NormB: " << normB << ", NormIncr: " << numIncr << "\n";
   }
   if (printFlag == ConvergenceTest::PrintTest02) {
-      pstream << "NormDispOrUnbalance::test() - iteration: " << pad(currentIter);
-      pstream << ", NormX: " << normX;
-      pstream << ", NormB: " << normB << ", NormIncr: " << numIncr << "\n";
-      pstream << "\tdeltaX: " << x << "\tdeltaR: " << b;
+    pstream << "NormDispOrUnbalance::test() - iteration: " << pad(currentIter);
+    pstream << ", NormX: " << normX;
+    pstream << ", NormB: " << normB << ", NormIncr: " << numIncr << "\n";
+    pstream << "\tdeltaX: " << x << "\tdeltaR: " << b;
   }
 
   //
@@ -118,11 +116,11 @@ NormDispOrUnbalance::test(const Vector& b, const Vector& x)
   if (normX <= tolDisp || normB <= tolUnbalance) {
     // do some printing first
     if (printFlag == ConvergenceTest::PrintTest || printFlag == ConvergenceTest::PrintTest02)
-        pstream << "\n";
+      pstream << "\n";
     if (printFlag == ConvergenceTest::PrintSuccess) {
-        pstream << "NormDispOrUnbalance::test() - iteration: " << pad(currentIter);
-        pstream << ", NormX: " << normX;
-        pstream << ", NormB: " << normB << ", NormIncr: " << numIncr << "\n";
+      pstream << "NormDispOrUnbalance::test() - iteration: " << pad(currentIter);
+      pstream << ", NormX: " << normX;
+      pstream << ", NormB: " << normB << ", NormIncr: " << numIncr << "\n";
     }
 
     // return the number of times test has been called
@@ -132,9 +130,9 @@ NormDispOrUnbalance::test(const Vector& b, const Vector& x)
   // algo failed to converged after specified number of iterations - but RETURN OK
   else if ((printFlag == ConvergenceTest::AlwaysSucceed) && (currentIter >= maxNumIter || numIncr > maxIncr)) {
     if (printFlag & ConvergenceTest::PrintFailure) {
-        pstream << "WARNING Failed to converge with criteria NormDispOrUnbalance but going on - ";
-        pstream << ", NormX: " << normX;
-        pstream << ", NormB: " << normB  << ", NormIncr: " << numIncr << "\n";
+      pstream << "WARNING Failed to converge with criteria NormDispOrUnbalance but going on - ";
+      pstream << ", NormX: " << normX;
+      pstream << ", NormB: " << normB  << ", NormIncr: " << numIncr << "\n";
     }
     return currentIter;
   }
