@@ -21,7 +21,6 @@
 //
 #include <CTestRelativeNormUnbalance.h>
 #include <Vector.h>
-#include <Channel.h>
 #include <EquiSolnAlgo.h>
 #include <LinearSOE.h>
 #include <Logging.h>
@@ -29,10 +28,10 @@
 
 
 CTestRelativeNormUnbalance::CTestRelativeNormUnbalance(double theTol, int maxIter, int printIt, int normType)
-    : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeNormUnbalance),
-    tol(theTol), maxNumIter(maxIter), currentIter(0), printFlag(printIt),
-    norms(maxNumIter+1), norm0(0.0), nType(normType),
-    first_step(true)
+  : ConvergenceTest(CONVERGENCE_TEST_CTestRelativeNormUnbalance),
+  tol(theTol), maxNumIter(maxIter), currentIter(0), printFlag(printIt),
+  norms(maxNumIter+1), norm0(0.0), nType(normType),
+  first_step(true)
 {
 
 }
@@ -61,9 +60,9 @@ CTestRelativeNormUnbalance::setTolerance(double newTol)
 int
 CTestRelativeNormUnbalance::start(LinearSOE& theSOE)
 {
-  double norm_last = 0.0;
-  if (currentIter != 0)
-      norm_last = norms(currentIter-1)*norm0;
+  // double norm_last = 0.0;
+  // if (currentIter != 0)
+  //     norm_last = norms(currentIter-1)*norm0;
 
   norms.Zero();
   currentIter = 1;
@@ -79,7 +78,7 @@ CTestRelativeNormUnbalance::start(LinearSOE& theSOE)
 
   if (printFlag & ConvergenceTest::PrintTest) {
     pstream << LOG_ITERATE << "Iter: " << pad(0)
-            << ", R : " << pad(b.pNorm(nType)) 
+            << ", R : " << pad(b.pNorm(nType))
             << ", R0: " << pad(norm0) 
             << "\n";
   }
@@ -94,12 +93,13 @@ CTestRelativeNormUnbalance::test(const Vector& b, const Vector& x)
   // check to ensure the algo does invoke start() - this is needed otherwise
   // may never get convergence later on in analysis!
   if (currentIter == 0) {
-      opserr << "WARNING: CTestRelativeNormUnbalance::test - start() was never invoked.\n";
-      return -2;
+    opserr << "WARNING: CTestRelativeNormUnbalance::test - start() was never invoked.\n";
+    return -2;
   }
 
   // get the B vector & determine it's norm & save the value in norms vector
   // const Vector &x = theSOE.getB();
+  const int idx = currentIter-1;
   double norm = b.pNorm(nType);
 
   // determine the ratio
@@ -107,7 +107,7 @@ CTestRelativeNormUnbalance::test(const Vector& b, const Vector& x)
     norm /= norm0;
 
   if (currentIter <= maxNumIter)
-    norms(currentIter-1) = norm;
+    norms(idx) = norm;
 
   // print the data if required
   if (printFlag & ConvergenceTest::PrintTest) {
@@ -164,8 +164,6 @@ CTestRelativeNormUnbalance::test(const Vector& b, const Vector& x)
   else if (currentIter >= maxNumIter) { // the algorithm failed to converge
     if (printFlag & ConvergenceTest::PrintFailure) {
         pstream << LOG_FAILURE
-                //<< "criteria CTestRelativeNormUnbalance"
-                // << LOG_CONTINUE
                 << "Iter: "         << pad(currentIter)
                 << ", |dR|/|dR0|: " << pad(norm) 
                 << "\n";
