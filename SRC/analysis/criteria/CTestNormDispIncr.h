@@ -50,13 +50,10 @@ public:
     int test(const Vector&, const Vector&) override;
     int start(LinearSOE&) override;
 
-    int getNumTests(void);
-    int getMaxNumTests(void);
-    double getRatioNumToMax(void);
-    const Vector &getNorms(void);
-
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int getNumTests();
+    int getMaxNumTests();
+    double getRatioNumToMax();
+    const Vector &getNorms();
 
 private:
     double tol;         // the tol on the norm used to test for convergence
