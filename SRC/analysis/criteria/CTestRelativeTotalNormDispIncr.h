@@ -28,9 +28,7 @@
 // Created: 05/05
 // Revision: A
 //
-#ifndef CTestRelativeTotalNormDispIncr_h
-#define CTestRelativeTotalNormDispIncr_h
-
+#pragma once
 #include <ConvergenceTest.h>
 class LinearSOE;
 
@@ -66,5 +64,3 @@ private:
     Vector norms;       // vector to hold the norms
     double totNorm;     // norm at first iteration of each step
 };
-
-#endif
