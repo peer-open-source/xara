@@ -21,7 +21,6 @@
 //
 #include <CTestNormDispIncr.h>
 #include <Vector.h>
-#include <Channel.h>
 #include <EquiSolnAlgo.h>
 #include <LinearSOE.h>
 #include <Logging.h>
@@ -188,49 +187,4 @@ CTestNormDispIncr::getNorms()
 {
   return norms;
 }
-
-
-int CTestNormDispIncr::sendSelf(int cTag, Channel &theChannel)
-{
-  int res = 0;
-  Vector x(5);
-  x(0) = tol;
-  x(1) = maxNumIter;
-  x(2) = printFlag;
-  x(3) = nType;
-  x(4) = maxTol;
-  res = theChannel.sendVector(this->getDbTag(), cTag, x);
-  if (res < 0)
-    opserr << "CTestNormDispIncr::sendSelf() - failed to send data\n";
-
-  return res;
-}
-
-int
-CTestNormDispIncr::recvSelf(int cTag, Channel &theChannel,
-                          FEM_ObjectBroker &theBroker)
-{
-  int res = 0;
-  Vector x(5);
-  res = theChannel.recvVector(this->getDbTag(), cTag, x);
-
-
-  if (res < 0) {
-    opserr << "CTestNormDispIncr::sendSelf() - failed to send data\n";
-    tol = 1.0e-8;
-    maxNumIter = 25;
-    printFlag = 0;
-    nType = 2;
-    norms.resize(maxNumIter);
-  } else {
-    tol = x(0);
-    maxNumIter = (int)x(1);
-    printFlag = (int)x(2);
-    nType = (int)x(3);
-    norms.resize(maxNumIter);
-    maxTol = x(4);
-  }
-  return res;
-}
-
 
