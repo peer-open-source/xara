@@ -38,7 +38,6 @@ class CTestFixedNumIter: public ConvergenceTest
 {
 public:
     // constructors
-    CTestFixedNumIter();
     CTestFixedNumIter(int maxNumIter, int printFlag, int normType=2);
 
     ~CTestFixedNumIter();
