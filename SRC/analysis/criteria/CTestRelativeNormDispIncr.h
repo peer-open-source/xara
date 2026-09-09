@@ -28,8 +28,7 @@
 // Date: 02/02
 // Modified: 05/05 ahs
 //
-#ifndef CTestRelativeNormDispIncr_h
-#define CTestRelativeNormDispIncr_h
+#pragma once
 
 #include <ConvergenceTest.h>
 class LinearSOE;
@@ -39,7 +38,6 @@ class CTestRelativeNormDispIncr: public ConvergenceTest
 {
 public:
     // constructors
-    CTestRelativeNormDispIncr();
     CTestRelativeNormDispIncr(double tol, int maxNumIter, int printFlag, int normType=2);
 
     ~CTestRelativeNormDispIncr();
@@ -50,16 +48,13 @@ public:
 
     void setTolerance(double newTol);
 
-    int test(LinearSOE& theSOE) override;
     int start(LinearSOE&) override;
+    int test(const Vector& b, const Vector& x) override;
 
     int getNumTests() override;
     int getMaxNumTests() override;
     double getRatioNumToMax() override;
     const Vector &getNorms() override;
-
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
 private:
     double tol;         // the tol on the norm used to test for convergence
@@ -72,5 +67,3 @@ private:
     Vector norms;       // vector to hold the norms
     double norm0;       // norm at first iteration of each step
 };
-
-#endif

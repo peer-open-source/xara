@@ -38,7 +38,6 @@ class CTestFixedNumIter: public ConvergenceTest
 {
 public:
     // constructors
-    CTestFixedNumIter();
     CTestFixedNumIter(int maxNumIter, int printFlag, int normType=2);
 
     ~CTestFixedNumIter();
@@ -47,7 +46,7 @@ public:
 
     ConvergenceTest *getCopy(int iterations);
 
-    int test(LinearSOE&) override;
+    int test(const Vector& g, const Vector& dx) override;
     int start(LinearSOE&) override;
 
     int getNumTests() override;

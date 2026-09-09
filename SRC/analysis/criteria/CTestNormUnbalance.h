@@ -27,11 +27,8 @@
 // Date: 09/98
 // Modified: 05/05 ahs
 //
-#ifndef CTestNormUnbalance_h
-#define CTestNormUnbalance_h
-
+#pragma once
 #include <ConvergenceTest.h>
-#include <stdbool.h>
 class EquiSolnAlgo;
 class LinearSOE;
 
@@ -40,8 +37,10 @@ class CTestNormUnbalance: public ConvergenceTest
 {
 public:
     // constructors
-    CTestNormUnbalance();
-    CTestNormUnbalance(double tol, int maxNumIter, int printFlag, int normType=2, int maxincr=-1, double maxTol = OPS_MAXTOL);
+    CTestNormUnbalance(double tol, int maxNumIter, int printFlag, 
+                       int normType=2, 
+                       int maxincr=-1, 
+                       double maxTol = OPS_MAXTOL);
 
     ~CTestNormUnbalance();
 
@@ -51,16 +50,13 @@ public:
 
     void setTolerance(double newTol);
 
-    int test(LinearSOE& theSOE) override;
+    int test(const Vector&, const Vector&) override;
     int start(LinearSOE&) override;
 
     int getNumTests() override;
     int getMaxNumTests() override;
     double getRatioNumToMax() override;
     const Vector &getNorms() override;
-
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
 private:
     double tol;         // the tol on the norm used to test for convergence
@@ -77,4 +73,3 @@ private:
     int numIncr;        // number of norm increasing
 };
 
-#endif

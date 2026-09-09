@@ -27,9 +27,7 @@
 // Date: 09/98
 // Modified: 05/05 ahs
 //
-#ifndef NormDispOrUnbalance_h
-#define NormDispOrUnbalance_h
-
+#pragma once
 #include <ConvergenceTest.h>
 class LinearSOE;
 
@@ -37,7 +35,6 @@ class NormDispOrUnbalance: public ConvergenceTest
 {
 public:
     // constructors
-    NormDispOrUnbalance();
     NormDispOrUnbalance(double tolDisp,
                         double tolUnbalance,
                         int maxNumIter,
@@ -50,16 +47,13 @@ public:
 
     void setTolerance(double newTol);
 
-    int test(LinearSOE&) override;
+    int test(const Vector& b, const Vector& x) override;
     int start(LinearSOE&) override;
 
     int getNumTests() override;
     int getMaxNumTests() override;
     double getRatioNumToMax() override;
     const Vector &getNorms() override;
-
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
 private:
     double tolDisp;      // the tol on the norm used to test for convergence
@@ -76,5 +70,3 @@ private:
     int maxIncr;         // max number of norm increasing
     int numIncr;         // number of norm increasing
 };
-
-#endif

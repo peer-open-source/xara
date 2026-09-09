@@ -38,7 +38,6 @@ class NormDispAndUnbalance: public ConvergenceTest
 {
 public:
     // constructors
-    NormDispAndUnbalance();
     NormDispAndUnbalance(double tolDisp,
                          double tolUnbalance,
                          int maxNumIter,
@@ -51,16 +50,13 @@ public:
 
     void setTolerance(double newTol);
 
-    int test(LinearSOE&) override;
+    int test(const Vector& b, const Vector& x) override;
     int start(LinearSOE&) override;
 
     int getNumTests() override;
     int getMaxNumTests() override;
     double getRatioNumToMax() override;
     const Vector &getNorms() override;
-
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
 private:
     double tolDisp;      // the tol on the norm used to test for convergence

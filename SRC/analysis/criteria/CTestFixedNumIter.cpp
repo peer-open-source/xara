@@ -32,14 +32,6 @@
 #include <Logging.h>
 
 
-CTestFixedNumIter::CTestFixedNumIter()
-  : ConvergenceTest(CONVERGENCE_TEST_CTestFixedNumIter),
-  maxNumIter(0), currentIter(0), printFlag(0),
-  norms(1), nType(2)
-{
-
-}
-
 
 CTestFixedNumIter::CTestFixedNumIter(int maxIter, int printIt, int normType)
   : ConvergenceTest(CONVERGENCE_TEST_CTestFixedNumIter),
@@ -74,9 +66,8 @@ CTestFixedNumIter::start(LinearSOE&)
 
 
 int
-CTestFixedNumIter::test(LinearSOE& theSOE)
+CTestFixedNumIter::test(const Vector& b, const Vector& x)
 {
-
   // check to ensure the algo does invoke start()
   if (currentIter == 0)  {
     opserr << "WARNING: CTestFixedNumIter::test() - start() was never invoked.\n";
@@ -84,8 +75,6 @@ CTestFixedNumIter::test(LinearSOE& theSOE)
   }
 
   // determine the energy & save value in norms vector
-  const Vector &b = theSOE.getB();
-  const Vector &x = theSOE.getX();
   double product = x ^ b;
   if (product < 0.0)
     product *= -0.5;
@@ -93,13 +82,13 @@ CTestFixedNumIter::test(LinearSOE& theSOE)
     product *= 0.5;
 
   if (currentIter <= maxNumIter)
-      norms(currentIter-1) = product;
+    norms(currentIter-1) = product;
 
   // print the data if required
   if (printFlag & ConvergenceTest::PrintTest)  {
-      pstream << LOG_ITERATE << "Iter: " << pad(currentIter);
-      pstream << ", EnergyIncr: " << product;
-      pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm dR: " << b.pNorm(nType) << ")\n";
+    pstream << LOG_ITERATE << "Iter: " << pad(currentIter);
+    pstream << ", EnergyIncr: " << product;
+    pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm dR: " << b.pNorm(nType) << ")\n";
   }
 
   if (printFlag & ConvergenceTest::PrintTest02)  {
@@ -116,12 +105,12 @@ CTestFixedNumIter::test(LinearSOE& theSOE)
   // if converged - print & return ok
   if (currentIter == maxNumIter)  {
     if (printFlag & ConvergenceTest::PrintTest || printFlag & ConvergenceTest::PrintTest02)
-        pstream << "\n";
+      pstream << "\n";
 
     if (printFlag & ConvergenceTest::PrintSuccess)  {
-        pstream << LOG_SUCCESS << "Iter: " << pad(currentIter);
-        pstream << " last EnergyIncr: " << product;
-        pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm dR: " << b.pNorm(nType) << ")\n";
+      pstream << LOG_SUCCESS << "Iter: " << pad(currentIter);
+      pstream << " last EnergyIncr: " << product;
+      pstream << " (Norm deltaX: " << x.pNorm(nType) << ", Norm dR: " << b.pNorm(nType) << ")\n";
     }
 
     // return the number of times test has been called
@@ -130,8 +119,8 @@ CTestFixedNumIter::test(LinearSOE& theSOE)
 
   // algorithm not yet converged - increment counter and return -1
   else {
-      currentIter++;
-      return ConvergenceTest::Continue;
+    currentIter++;
+    return ConvergenceTest::Continue;
   }
 }
 
@@ -153,14 +142,14 @@ CTestFixedNumIter::getMaxNumTests()
 double
 CTestFixedNumIter::getRatioNumToMax()
 {
-    double div = maxNumIter;
-    return currentIter/div;
+  double div = maxNumIter;
+  return currentIter/div;
 }
 
 
 const Vector&
 CTestFixedNumIter::getNorms()
 {
-    return norms;
+  return norms;
 }
 
