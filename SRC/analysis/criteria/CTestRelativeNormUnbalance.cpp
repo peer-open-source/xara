@@ -74,7 +74,11 @@ CTestRelativeNormUnbalance::start(LinearSOE& theSOE)
   // if (currentIter <= maxNumIter)
   //     norms(0) = norm;
   // if (first_step)
+#if 0
   norm0 += norm;// - norm_last;
+#else
+  norm0 = norm;
+#endif
 
   if (printFlag & ConvergenceTest::PrintTest) {
     pstream << LOG_ITERATE << "Iter: " << pad(0)
