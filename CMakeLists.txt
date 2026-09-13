@@ -430,6 +430,7 @@ target_include_directories(OPS_Damage PRIVATE
 
 # Add sources to targets
 add_subdirectory(${OPS_SRC_DIR})
+add_subdirectory(DEVELOPER)
 
 #==============================================================================
 #                            Configure targets
@@ -540,6 +541,7 @@ if ("${CMAKE_Fortran_COMPILER_ID}" MATCHES "GNU")
   target_compile_options(OPS_ElementFortran PRIVATE "-w")
 endif()
 
+
 #
 # Install
 #
@@ -559,3 +561,4 @@ install(
     TARGETS ${install_targets} 
     LIBRARY DESTINATION .
 )
+
