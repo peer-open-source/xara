@@ -26,7 +26,7 @@
 //
 // What: "@(#) PenaltySP_FE.h, revA"
 //
-// Written: fmk 
+// Written: fmk
 // Created: 11/96
 // Revision: A
 //
@@ -43,24 +43,34 @@ class Domain;
 class SP_Constraint;
 class Node;
 
-class PenaltySP_FE: public FE_Element
+class PenaltySP_FE final : public FE_Element
 {
   public:
-    PenaltySP_FE(int tag, Domain &, SP_Constraint &, double alpha=1.0e8);    
-    virtual ~PenaltySP_FE();    
+    PenaltySP_FE(int tag, Domain &, SP_Constraint &, double alpha=1.0e8);
+    ~PenaltySP_FE() override;
 
-    // public methods
-    int  setID(AnalysisModel& ) final;
-    const ID &getID() const final {return myID;}
-    virtual const Matrix &getTangent(Integrator *theIntegrator);
-    virtual const Vector &getResidual(Integrator *theIntegrator);
-    virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
+    int  setID(AnalysisModel &) final;
+    const ID &getID() const final { return myID; }
 
-    virtual const Vector &getK_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getKi_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
-    void zeroTangent() final {tang.Zero();}
+    const Matrix &getTangent(Integrator *) override;
+    const Vector &getResidual(Integrator *) override;
+    const Vector &getTangForce(const Vector &x, double fact = 1.0) override;
+    const Vector &getK_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getKi_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getC_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getM_Force(const Vector &x, double fact = 1.0) override;
+
+    void zeroTangent() override;
+    void addKtToTang(double fact = 1.0) override;
+    void addKiToTang(double fact = 1.0) override;
+    void addCtoTang(double fact = 1.0) override;
+    void addMtoTang(double fact = 1.0) override;
+
+    void zeroResidual() override;
+    void addRtoResidual(double fact = 1.0) override;
+    void addRIncInertiaToResidual(double fact = 1.0) override;
+    void addM_Force(const Vector &accel, double fact = 1.0) override;
+    void addD_Force(const Vector &vel, double fact = 1.0) override;
 
   private:
     ID myID;
@@ -72,5 +82,3 @@ class PenaltySP_FE: public FE_Element
 };
 
 #endif
-
-

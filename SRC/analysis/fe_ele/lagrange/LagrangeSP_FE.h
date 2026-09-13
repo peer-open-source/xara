@@ -17,16 +17,16 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
+
 // $Revision: 1.4 $
 // $Date: 2006-02-08 20:20:00 $
 // $Source: /usr/local/cvs/OpenSees/SRC/analysis/fe_ele/lagrange/LagrangeSP_FE.h,v $
-                                                                        
-                                                                        
+
+
 #ifndef LagrangeSP_FE_h
 #define LagrangeSP_FE_h
 
-// Written: fmk 
+// Written: fmk
 // Created: 02/99
 // Revision: A
 //
@@ -49,37 +49,49 @@ class SP_Constraint;
 class Node;
 class DOF_Group;
 
-class LagrangeSP_FE: public FE_Element
+class LagrangeSP_FE final : public FE_Element
 {
   public:
-    LagrangeSP_FE(int tag, Domain &theDomain, SP_Constraint &theSP, 
-		  DOF_Group &theDofGrp, double alpha = 1.0);
-    virtual ~LagrangeSP_FE();    
+    LagrangeSP_FE(int tag, Domain &theDomain, SP_Constraint &theSP,
+                  DOF_Group &theDofGrp, double alpha = 1.0);
+    ~LagrangeSP_FE() override;
 
-    // public methods
-    int  setID(AnalysisModel& ) final;
-    const ID &getID() const final {return myID;};
-    virtual const Matrix &getTangent(Integrator *);    
-    virtual const Vector &getResidual(Integrator *) final;
-    virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
+    int  setID(AnalysisModel &) final;
+    const ID &getID() const final { return myID; }
 
-    virtual const Vector &getK_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getKi_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
-    virtual const Vector &getM_Force(const Vector &x, double fact = 1.0); 
-    void zeroTangent() final {tang? tang->Zero() : void();}
+    const Matrix &getTangent(Integrator *) override;
+    const Vector &getResidual(Integrator *) override;
+    const Vector &getTangForce(const Vector &x, double fact = 1.0) override;
+    const Vector &getK_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getKi_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getC_Force(const Vector &x, double fact = 1.0) override;
+    const Vector &getM_Force(const Vector &x, double fact = 1.0) override;
+
+    void zeroTangent() override;
+    void addKtToTang(double fact = 1.0) override;
+    void addKiToTang(double fact = 1.0) override;
+    void addCtoTang(double fact = 1.0) override;
+    void addMtoTang(double fact = 1.0) override;
+
+    void zeroResidual() override;
+    void addRtoResidual(double fact = 1.0) override;
+    void addRIncInertiaToResidual(double fact = 1.0) override;
+    void addM_Force(const Vector &accel, double fact = 1.0) override;
+    void addD_Force(const Vector &vel, double fact = 1.0) override;
+
   private:
+    const Matrix &getStaticTangent() { return *tang; }
+
     ID myID;
     double alpha;
-    Matrix *tang;
+    Matrix *tang;     // unscaled static coupling [0, C^T; C, 0]
+    Matrix *sysTang;  // integrator-assembled system tangent
     Vector *resid;
-    
-    SP_Constraint *theSP;
-    Node *theNode;    
+    bool urLoaded;  // true once upper-right C^T has been copied into sysTang
 
+    SP_Constraint *theSP;
+    Node *theNode;
     DOF_Group *theDofGroup;
 };
 
 #endif
-
-
