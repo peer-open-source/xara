@@ -827,10 +827,6 @@ MatrixOperations::setSizeOfEigenVector(int newSize)
       delete eigenV;
     
     eigenV = new Vector(newSize);
-    if (eigenV == 0 || eigenV->Size() != newSize) {
-      opserr << "Hessian::ssetSize() -- ran out of memory for eigenvector of size " << newSize << endln;
-      return -2;	    
-    }
   }
   
   return 0;
