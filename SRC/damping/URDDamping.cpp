@@ -597,12 +597,12 @@ URDDamping::update(Vector q)
 }
 
 const Vector &
-URDDamping::getDampingForce(void)
+URDDamping::getDampingForce()
 {
   return (*qd);
 }
 
-double URDDamping::getStiffnessMultiplier(void)
+double URDDamping::getStiffnessMultiplier()
 {
   double t = theDomain->getCurrentTime();
   double dT = theDomain->getDT();
