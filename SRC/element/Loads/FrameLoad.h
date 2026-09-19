@@ -13,6 +13,22 @@
 //
 //===----------------------------------------------------------------------===//
 //
+// Type I elements (ExactFrame, CosseratFrame, etc):
+//
+//   These elements are displacement-interpolated and do not assume a 
+//   "basic" system. The interface consists of:
+//   - addLoadAtPoint: evaluates the load at a point x along the element
+//   - addTangAtPoint
+//
+// Type II elements (ForceFrame, MixedFrame, etc):
+//   These elements are force-interpolated and assume a "basic" system. 
+//   They require knowledge of a "particular solution" to the linear BVP.
+//   The interface consists of:
+//   - addParticularSolution: evaluates the particular solution at a point x along the element
+//   - addParticularGradient: evaluates the derivative of the particular solution with respect to nodal variables
+//   - addParticularBoundary: evaluates the particular solution at the boundaries of the element
+//
+//
 // Claudio M. Perez
 //
 #pragma once
@@ -56,9 +72,9 @@ public:
   FrameLoad(int tag,
             int basis, 
             int shape, 
-            std::vector<Vector3D>& p,
-            std::vector<Vector3D>& m,
-            std::vector<Vector3D>& r,
+            const std::vector<Vector3D>& p,
+            const std::vector<Vector3D>& m,
+            const std::vector<Vector3D>& r,
             StaticPattern& pattern)
   : ElementalLoad(tag,classTag),
     basis(basis),
@@ -125,18 +141,6 @@ public:
     return 0;
   }
 
-  int
-  recvSelf(int commitTag, Channel& , FEM_ObjectBroker&) final
-  {
-    return -1;
-  }
-
-  int
-  sendSelf(int commitTag, Channel& ) final
-  {
-    return -1;
-  }
-
   const std::vector<std::array<double,2>>& 
   quadrature () {
     return gauss;
@@ -160,7 +164,11 @@ public:
   }
 
   bool conservative() const {
-    return false;
+    return false; //(basis != Director) && (r[0][1] == 0.0) && (r[0][2] == 0.0);
+  }
+
+  bool proportional() const {
+    return (basis != Director); // && (r[0][1] == 0.0) && (r[0][2] == 0.0);
   }
 
 
@@ -170,7 +178,9 @@ public:
                       double x, double w, double jxs,
                       const Matrix3D& R0,
                       const Matrix3D& R) const
-  {   
+  {
+    // NOTE: Here R is the pure global rotation field taken directly from the nodes;
+    // it does not include the element orientation.
     if (w == 0.0)
       return;
 
@@ -191,8 +201,8 @@ public:
             mx = R0 * m[q] + rx.cross(px);
             break;
         case Director:
-            px = R * p[q];
-            mx = R * m[q] + rx.cross(px);
+            px = R * R0*p[q];
+            mx = R * R0*m[q] + rx.cross(px);
             break;
       }
 
@@ -248,8 +258,8 @@ public:
           mx = R0 * m[q] + rx.cross(px);
           break;
         case Director:
-          px = R * p[q];
-          mx = R * m[q] + rx.cross(px);
+          px = R * R0*p[q];
+          mx = R * R0*m[q] + rx.cross(px);
           break;
       }
       // const Matrix3D dT = dTanSO3(theta, mx);
@@ -283,251 +293,52 @@ public:
     }
   }
 
+  //
+  // Interface for corotational elements
+  //
   template <int nsr, const FrameStressLayout& scheme>
-  void addBasicSolution(VectorND<nsr>&   s, double x, double L, 
-                        const Matrix3D& R0, const Matrix3D& R) const
-  // add particular solution for basic equations
+  void addParticularSolution(VectorND<nsr>& s, double x, double L,
+                             const Matrix3D& R0, const Matrix3D& R) const
   {
-
-    VectorND<3> nm{}, M{};
-    {
-      Vector3D rx = r[0];
-      rx[0] = 0.0;
-      // rx = R*(R0*rx);
-      // rx = R0*rx;
-      switch (basis) {
-        case Embedding:
-          nm = R^p[0]; // + rx.cross(m[0]);
-          break;
-        case Reference:
-          nm = R^(R0*p[0]);
-          // nm =  R^p[0];
-          M  = (R^m[0]) + (R^(rx.cross(p[0])));
-          break;
-        case Director:
-          nm = p[0];
-          M  = m[0] + rx.cross(nm);
-          break;
-      }
-    }
-
-
-    double scale = pattern.getLoadFactor();
-
-    switch (shape) {
-      case Heaviside: {
-        // M is moment/length, nm is force/length
-        double wa = nm[0]*scale; // Axial
-        double wy = nm[1]*scale; // Transverse
-        double wz = nm[2]*scale; // Transverse
-
-        for (int i = 0; i < nsr; i++) {
-          switch (scheme[i]) {
-          case FrameStress::N:  s[i] +=  wa * (L - x); break;
-          case FrameStress::Vy: s[i] +=  M[2]*scale + wy*(x - 0.5*L); break;
-          case FrameStress::Vz: s[i] += -M[1]*scale + wz*(x - 0.5*L); break;
-
-          case FrameStress::T : s[i] +=  M[0]*(L-x)*scale; break;
-          case FrameStress::My: s[i] += -wz*0.5*x*(x - L); break;
-          case FrameStress::Mz: s[i] +=  wy*0.5*x*(x - L); break;
-          default:
-            break;
-          }
-        }
-        break;
-      }
-      case Dirac: {
-        double N      = nm[0]*scale;
-        double Py     = nm[1]*scale;
-        double Pz     = nm[2]*scale;
-        double T      = M[0]*scale;
-        double My     = M[1]*scale;
-        double Mz     = M[2]*scale;
-        double aOverL = r[0][0];
-
-        if (aOverL < 0.0 || aOverL > 1.0)
-          break;
-
-        double a = aOverL * L;
-
-        if (x <= a) {
-          double Vyi = -Py*(1.0 - a/L) + Mz/L;
-          double Vzi = -Pz*(1.0 - a/L) - My/L;
-          for (int i = 0; i < nsr; i++) {
-            switch (scheme[i]) {
-            case FrameStress::N:  s[i] +=       N; break;
-            case FrameStress::Vy: s[i] +=     Vyi; break;
-            case FrameStress::Vz: s[i] +=     Vzi; break;
-            case FrameStress::T : s[i] +=       T; break;
-            case FrameStress::My: s[i] -= x * Vzi; break;
-            case FrameStress::Mz: s[i] += x * Vyi; break;
-            default:                  break;
-            }
-          }
-        } else {
-          // x > a
-          double Vyj = Py * aOverL + Mz/L;
-          double Vzj = Pz * aOverL - My/L;
-          for (int i = 0; i < nsr; i++) {
-            switch (scheme[i]) {
-            case FrameStress::Vy: s[i] +=           Vyj; break;
-            case FrameStress::Vz: s[i] +=           Vzj; break;
-            case FrameStress::My: s[i] += (L - x) * Vzj; break;
-            case FrameStress::Mz: s[i] -= (L - x) * Vyj; break;
-            default:                  break;
-            }
-          }
-        }
-        break;
-      }
-    }
+    Vector3D wn{}, wm{};
+    this->localWrench(R0, R, wn, wm);
+    this->template particularSolution<nsr,scheme>(s, x, L, wn, wm);
   }
 
-
-  template <int nsr, const FrameStressLayout& scheme>
-  void addBasicTangent(MatrixND<nsr,3>& Ks,
-                       VectorND<nsr>& s) const
-  {
-
-    VectorND<3> nm{}, M{};
-    for (int i=0; i<nsr; i++) {
-      switch (scheme[i]) {
-      case FrameStress::N:  nm[0] += s[i]; break;
-      case FrameStress::Vy: nm[1] += s[i]; break;
-      case FrameStress::Vz: nm[2] += s[i]; break;
-      case FrameStress::T:  M[0]  += s[i]; break;
-      case FrameStress::My: M[1]  += s[i]; break;
-      case FrameStress::Mz: M[2]  += s[i]; break;
-      default:
-        break;
-      }
-    }
-
-    double scale = pattern.getLoadFactor();
-
-    Matrix3D Px = Hat(nm);
-    if (basis == Director) {
-      MatrixND<6,3> K{};
-      K.assemble(        Px,   0, 0, -scale);
-      K.assemble(    Hat(M),   3, 0, -scale);
-
-      for (int i = 0; i < nsr; i++) {
-        MatrixND<1,3> ki = K.template extract<1,3>(i, 0);
-        switch (scheme[i]) {
-        case FrameStress::N:  Ks.assemble(ki, i, 0, 1.0); break;
-        case FrameStress::Vy: Ks.assemble(ki, i, 0, 1.0); break;
-        case FrameStress::Vz: Ks.assemble(ki, i, 0, 1.0); break;
-        case FrameStress::My: Ks.assemble(ki, i, 0, 1.0); break;
-        case FrameStress::Mz: Ks.assemble(ki, i, 0, 1.0); break;
-        default:
-          break;
-        }
-      }
-    }
-  }
 
   template <int NDF>
   void
-  addLinearSolution(VectorND<NDF*2>& p0, double L, const Matrix3D& R0, const Matrix3D& R)
+  addParticularBoundary(VectorND<NDF*2>& p0, double L, const Matrix3D& R0, const Matrix3D& R)
+  const
   {
-    double scale = pattern.getLoadFactor();
-    Vector3D n{}, M{};
-    {
-      Vector3D rx = r[0];
-      rx[0] = 0.0;
-      rx = R*(R0*rx);
-      // rx = R0*rx;
-      switch (basis) {
-        case Embedding:
-          n =  R^p[0];
-          M = (R^m[0]) + rx.cross(n);
-          break;
-        case Reference:
-          n = R^(R0*p[0]);
-          // n =  R^p[0];
-          M = (R^m[0]) + (R^(rx.cross(p[0])));
-          break;
-        case Director:
-          n = p[0];
-          break;
-      }
+    // assemble 
+    VectorND<6> sx{};
+    static constexpr FrameStressLayout scheme = {
+      FrameStress::N,
+      FrameStress::Vy,
+      FrameStress::Vz,
+      FrameStress::T,
+      FrameStress::My,
+      FrameStress::Mz,
+    };
+    for (int i=0; i<2; i++) {
+      sx.zero();
+      double sn = i==0 ? 1.0 : -1.0;
+      addParticularSolution<6, scheme>(sx, double(i)*L, L, R0, R);
+      p0[i*NDF + 0] -= sx[0]*sn; // N
+      p0[i*NDF + 1] -= sx[1]*sn; // Vy %%
+      p0[i*NDF + 2] -= sx[2]*sn; // Vz %%
+      p0[i*NDF + 3] -= sx[3]*sn; // T
     }
-
-    if (shape == Heaviside) {
-      double wa = n[0] * scale; // Axial
-      double wy = n[1] * scale; // Transverse
-      double wz = n[2] * scale; // Transverse
-
-      double P  =     wa*L;
-      double T  = M[0]*scale*L;
-      double Vy = -0.5*wy*L;
-      double Vz = -0.5*wz*L;
-      double my = M[1]*scale;
-      double mz = M[2]*scale;
-
-      // Reactions in basic system (projections on linear shape functions)
-      p0[0*NDF + 0] -=  P;
-      p0[0*NDF + 1] +=  mz + Vy; // Vyi
-      p0[0*NDF + 2] +=  my + Vz; // Vzi
-      p0[0*NDF + 3] -=  T;
-      p0[1*NDF + 1] += -mz + Vy; // Vyj
-      p0[1*NDF + 2] += -my + Vz;
-    }
-
-    #if 0
-    else if (shape == LOAD_TAG_Beam3dPartialUniformLoad) {
-      double wy  = p[0](1) * scale;  // Transverse Y at start
-      double wz  = p[0](2) * scale;  // Transverse Z at start
-      double wa  = p[0](0) * scale;  // Axial at start
-      double a   = data(3) * L;
-      double b   = data(4) * L;
-      double wyb = data(5) * scale;  // Transverse Y at end
-      double wzb = data(6) * scale;  // Transverse Z at end
-      double wab = data(7) * scale;  // Axial at end
-      p0[0] -= wa * (b - a) + 0.5 * (wab - wa) * (b - a);
-      double c = a + 0.5 * (b - a);
-      double Fy = wy * (b - a); // resultant transverse load Y (uniform part)
-      p0[1] -= Fy * (1 - c / L);
-      p0[2] -= Fy * c / L;
-      double Fz = wz * (b - a); // resultant transverse load Z (uniform part)
-      p0[3] -= Fz * (1 - c / L);
-      p0[4] -= Fz * c / L;
-      c = a + 2.0 / 3.0 * (b - a);
-      Fy = 0.5 * (wyb - wy) * (b - a); // resultant transverse load Y (triang. part)
-      p0[1] -= Fy * (1 - c / L);
-      p0[2] -= Fy * c / L;
-      Fz = 0.5 * (wzb - wz) * (b - a); // resultant transverse load Z (triang. part)
-      p0[3] -= Fz * (1 - c / L);
-      p0[4] -= Fz * c / L;
-    }
-    #endif
-
-    else if (shape == Dirac) {
-      double N      = p[0](0) * scale;
-      double Py     = p[0](1) * scale;
-      double Pz     = p[0](2) * scale;
-      double T      = M[0] * scale;
-      double my     = M[1] * scale/L;
-      double mz     = M[2] * scale/L;
-      double aOverL = r[0][0];
-      double bOverL = 1.0 - aOverL;
-
-      if (aOverL < 0.0 || aOverL > 1.0)
-        return;
-
-      p0[0*NDF + 0] += -N;
-      p0[0*NDF + 1] += -Py*bOverL + mz; // Vyi
-      p0[0*NDF + 2] += -Pz*bOverL - my; // Vzi
-      p0[0*NDF + 3] += -T;
-      p0[1*NDF + 1] += -Py*aOverL - mz; // Vyj
-      p0[1*NDF + 2] += -Pz*aOverL + my; // Vzj
-    }
+    return;
   }
 
+
   int 
-  addBasicIntegral(VectorND<6>& q0, double L, 
+  addBasicIntegral(VectorND<6>& q0, double L,
                    Frame::Release release,
-                   const Matrix3D& R0, const Matrix3D& R) const
+                   const Matrix3D& R0, 
+                   const Matrix3D& R) const
   {
     switch (shape) {
       case Heaviside: {
@@ -570,27 +381,154 @@ public:
     return 0;
   }
 
-private:
-  Vector3D getForce(double x,
-                    const Matrix3D& R0,
-                    const Matrix3D& R) const
+
+  template <int nsr, const FrameStressLayout& scheme>
+  void addParticularGradient(MatrixND<nsr,3>& ds, 
+                             double x, double L,
+                             const Matrix3D& R0, const Matrix3D& R) const
   {
-    Vector3D n{};
-    return n;
+
   }
 
-  Vector3D getCouple(double x,
-                     const Matrix3D& R0,
-                     const Matrix3D& R) const
-  { 
-    Vector3D m{};
-    return m;
+  template <int NDF>
+  void addBoundaryGradient(MatrixND<NDF*2,3>& dpf, double L,
+                           const Matrix3D& R0, const Matrix3D& R) const
+  {
+
   }
+
+
+private:
+
+  template <int NDF>
+  void addBoundarySpin(MatrixND<NDF*2,3>& dpf, double L,
+                       const Matrix3D& R0, const Matrix3D& R) const
+  {
+  }
+
+  void localWrench(const Matrix3D& R0, const Matrix3D& R,
+                   Vector3D& wn, 
+                   Vector3D& wm,
+                   MatrixND<6,3>* Omega = nullptr) const
+  {
+    //
+    // Local load parameters in the corotated basic frame.
+    //
+    // On return wn holds the force (per length for Heaviside, total for Dirac)
+    // and wm the moment including the eccentricity couple rx x wn, both with
+    // components in the basic frame. If Omega is given it receives the
+    // derivative of [wn; wm] with respect to the spin dw of the basic frame,
+    //
+    //     dR = R*Hat(dw)   =>   d[wn; wm] = Omega*dw
+    //
+    // Only Embedding and Reference loads change when the frame spins; a
+    // Director load is constant in the basic frame and Omega is zero.
+    //
+    const Vector3D rx {0.0, r[0][1], r[0][2]};
+    Vector3D ml{};
+    switch (basis) {
+      case Embedding:
+        wn = R^p[0];
+        ml = R^m[0];
+        break;
+      case Reference:
+        wn = R^(R0*p[0]);
+        ml = R^(R0*m[0]);
+        break;
+      case Director:
+        wn = p[0];
+        ml = m[0];
+        break;
+    }
+    wm = ml + rx.cross(wn);
+  }
+
+  template <int nsr, const FrameStressLayout& scheme>
+  void particularSolution(VectorND<nsr>& s, double x, double L,
+                          const Vector3D& wn, 
+                          const Vector3D& wm) const
+  {
+    //
+    // Particular solution for load in the basic frame.
+    // Linear in (wn, wm); the load factor is applied here.
+    //
+    const double scale = pattern.getLoadFactor();
+
+    switch (shape) {
+      case Heaviside: {
+        // wm is moment/length, wn is force/length
+        double wa = wn[0]*scale; // Axial
+        double wy = wn[1]*scale; // Transverse
+        double wz = wn[2]*scale; // Transverse
+
+        for (int i = 0; i < nsr; i++) {
+          switch (scheme[i]) {
+          case FrameStress::N:  s[i] +=  wa * (L - x); break;
+          case FrameStress::Vy: s[i] -=  wm[2]*scale + wy*(x - 0.5*L); break;
+          case FrameStress::Vz: s[i] -= -wm[1]*scale + wz*(x - 0.5*L); break;
+          case FrameStress::T : s[i] +=  wm[0]*(L-x)*scale; break;
+          case FrameStress::My: s[i] += -wz*0.5*x*(x - L); break;
+          case FrameStress::Mz: s[i] +=  wy*0.5*x*(x - L); break;
+          default:
+            break;
+          }
+        }
+        break;
+      }
+
+      case Dirac: {
+        double N      = wn[0]*scale;
+        double Py     = wn[1]*scale;
+        double Pz     = wn[2]*scale;
+        double T      = wm[0]*scale;
+        double My     = wm[1]*scale;
+        double Mz     = wm[2]*scale;
+        double aOverL = r[0][0];
+
+        if (aOverL < 0.0 || aOverL > 1.0)
+          break;
+
+        double a = aOverL * L;
+
+        if (x <= a && x < L) {
+          double Vyi = -Py*(1.0 - a/L) + Mz/L;
+          double Vzi = -Pz*(1.0 - a/L) - My/L;
+          for (int i = 0; i < nsr; i++) {
+            switch (scheme[i]) {
+            case FrameStress::N:  s[i] +=       N; break;
+            case FrameStress::Vy: s[i] -=     Vyi; break;
+            case FrameStress::Vz: s[i] -=     Vzi; break;
+            case FrameStress::T : s[i] +=       T; break;
+            case FrameStress::My: s[i] -= x * Vzi; break;
+            case FrameStress::Mz: s[i] += x * Vyi; break;
+            default:                  break;
+            }
+          }
+        } else {
+          // x > a
+          double Vyj = Py * aOverL + Mz/L;
+          double Vzj = Pz * aOverL - My/L;
+          for (int i = 0; i < nsr; i++) {
+            switch (scheme[i]) {
+            case FrameStress::Vy: s[i] -=           Vyj; break;
+            case FrameStress::Vz: s[i] -=           Vzj; break;
+            case FrameStress::My: s[i] += (L - x) * Vzj; break;
+            case FrameStress::Mz: s[i] -= (L - x) * Vyj; break;
+            default:                  break;
+            }
+          }
+        }
+        break;
+      }
+    }
+  }
+
 
 private:
   const int basis;
   const int shape;
   StaticPattern& pattern;
+
   std::vector<Vector3D> p;
   std::vector<Vector3D> m;
   std::vector<Vector3D> r;
