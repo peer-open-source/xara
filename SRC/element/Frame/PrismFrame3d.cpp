@@ -497,7 +497,7 @@ PrismFrame3d::getResistingForce()
 
   // 2.2 Frame load classes
   for (auto load : frame_loads) {
-    load->template addLinearSolution<NDF>(pf, L, 
+    load->template addParticularBoundary<NDF>(pf, L, 
         basic_system->t.getInitialRotation(),
         basic_system->t.getRotation());
   }
