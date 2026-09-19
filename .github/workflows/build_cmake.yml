@@ -90,7 +90,7 @@ jobs:
       working-directory: benchmarks/benchmarks
       run: |
         export OPENSEESRT_LIB=${GITHUB_WORKSPACE}/build/SRC/runtime/libOpenSeesRT.so
-        pytest -x -k 'not test_o_sdof and not test_sdof and not test_solve_1001 and not test_solve_0000 and not test_frame_1010 and not test_solve_0001 and not test_frame_1020 and not test_frame_1022 and not test_frame_1020_vertical'
+        pytest -x -k 'not test_o_sdof and not test_sdof and not test_solve_1001 and not test_frame_1010 and not test_solve_0001 and not test_frame_1020 and not test_frame_1022 and not test_frame_1020_vertical'
 
   build-mac:
     name: Mac Build
