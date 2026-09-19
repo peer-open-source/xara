@@ -442,10 +442,8 @@ XaraCmd_algorithm_NewtonLineSearch(ClientData clientData,
         flag = CURRENT_TANGENT;
       else if (strcmp(argv[i],"initial")==0)
         flag = INITIAL_TANGENT;
-#ifdef ARMIJO_SEARCH
       else if (strcmp(argv[i-1],"-correction-tangent")==0 && strcmp(argv[i], "predictor")==0)
         flag = PREDICTOR_TANGENT;
-#endif
       else {
         opserr << OpenSees::PromptValueError 
                << "Invalid value for " << argv[i-1] << ": " << argv[i] << "\n";
@@ -546,10 +544,8 @@ XaraCmd_algorithm_NewtonLineSearch(ClientData clientData,
         typeSearch = LineSearchType::RegulaFalsi;
       } else if (strcmp(argv[i], "InitialInterpolated") == 0) {
         typeSearch = LineSearchType::InitialInterpolated;
-#ifdef ARMIJO_SEARCH
       } else if (strcmp(argv[i], "Armijo") == 0) {
         typeSearch = LineSearchType::Armijo;
-#endif
       } else {
         opserr << OpenSees::PromptValueError 
                << "Unknown line search type: " << argv[i] << "\n";
@@ -626,15 +622,15 @@ XaraCmd_algorithm_NewtonLineSearch(ClientData clientData,
 #ifdef ARMIJO_SEARCH
   else if (typeSearch == LineSearchType::Armijo)
     theLineSearch = new ArmijoLineSearch(tol, maxIter, minEta, maxEta, pFlag);
+#else 
+  else {
+    return TCL_ERROR;
+  }
 #endif
 
-#ifdef ARMIJO_SEARCH
   builder->set(new NewtonLineSearch(theLineSearch,
                                     prediction_tangent,
                                     correction_tangent));
-#else
-  builder->set(new NewtonLineSearch(theLineSearch));
-#endif
   return TCL_OK;
 }
 
