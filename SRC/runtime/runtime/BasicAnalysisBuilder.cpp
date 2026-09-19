@@ -1121,21 +1121,11 @@ BasicAnalysisBuilder::getConvergenceTest()
 int
 BasicAnalysisBuilder::formUnbalance(Vector& b)
 {
-#if 1
   if (theStaticIntegrator != nullptr)
     return theStaticIntegrator->formUnbalance(b);
 
   else if (theTransientIntegrator != nullptr)
     return theTransientIntegrator->formUnbalance(b);
-#else
-  if (theStaticIntegrator != nullptr)
-    return theStaticIntegrator->formUnbalance();
-
-  else if (theTransientIntegrator != nullptr)
-    return theTransientIntegrator->formUnbalance();
-  
-  b = theSOE->getB();
-#endif
   return -1;
 }
 
