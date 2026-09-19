@@ -107,10 +107,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_DruckerPragerMaterialThermal)
 			dData[6], dData[7], dData[8], dData[9], dData[10], dData[11], dData[12]);
 	}
 
-	if (theMaterial == 0) {
-		opserr << "WARNING ran out of memory for nDMaterial DruckerPragerThermal material  with tag: " << tag << endln;
-	}
-
 	return theMaterial;
 }
 
