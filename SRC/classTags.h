@@ -26,14 +26,6 @@
 #ifndef classTags_h
 #define classTags_h
 
-#define svnTest  0
-
-#define intType    1
-#define doubleType 2
-#define idType     3
-#define vectorType 4
-#define matrixType 5
-
 
 
 #define ACTOR_TAGS_SUBDOMAIN 1
@@ -46,18 +38,6 @@
 
 
 #define EigenINTEGRATOR_TAGS_Eigen 1
-
-#define CONVERGENCE_TEST_CTestNormUnbalance                 1
-#define CONVERGENCE_TEST_CTestNormDispIncr                  2
-#define CONVERGENCE_TEST_CTestEnergyIncr                    3
-#define CONVERGENCE_TEST_CTestRelativeNormUnbalance         4
-#define CONVERGENCE_TEST_CTestRelativeNormDispIncr          5
-#define CONVERGENCE_TEST_CTestRelativeEnergyIncr            6
-#define CONVERGENCE_TEST_CTestRelativeTotalNormDispIncr     7
-#define CONVERGENCE_TEST_CTestFixedNumIter                  8
-#define CONVERGENCE_TEST_NormDispAndUnbalance               9
-#define CONVERGENCE_TEST_NormDispOrUnbalance               10
-#define CONVERGENCE_TEST_CTestPFEM                         11
 
 
 #define GRND_TAG_ElCentroGroundMotion                 1
@@ -1029,7 +1009,6 @@ enum {
 #define INTEGRATOR_TAGS_HHT                              2
 #define INTEGRATOR_TAGS_HHT_TP                           3
 #define INTEGRATOR_TAGS_WilsonTheta                      4
-#define INTEGRATOR_TAGS_CentralDifference                5
 #define INTEGRATOR_TAGS_LoadControl                      6
 #define INTEGRATOR_TAGS_DisplacementControl              7
 #define INTEGRATOR_TAGS_ArcLength                        8
@@ -1041,8 +1020,6 @@ enum {
 #define INTEGRATOR_TAGS_StaticSensitivity               14
 #define INTEGRATOR_TAGS_HSConstraint                    15
 #define INTEGRATOR_TAGS_DistributedDisplacementControl  16
-#define INTEGRATOR_TAGS_CentralDifferenceAlternative    17
-#define INTEGRATOR_TAGS_CentralDifferenceNoDamping      18
 #define INTEGRATOR_TAGS_NewmarkExplicit                 19
 #define INTEGRATOR_TAGS_NewmarkHSIncrReduct             20
 #define INTEGRATOR_TAGS_NewmarkHSIncrLimit              21
@@ -1117,6 +1094,7 @@ enum {
 #define LinSOE_TAGS_PFEMCompressibleLinSOE 28
 #define LinSOE_TAGS_PFEMQuasiLinSOE 29
 #define LinSOE_TAGS_PFEMDiaLinSOE 30
+#define LinSOE_TAGS_UmfpackLinSOE02 31
 #define LinSOE_TAGS_PARDISOGenLinSOE 99990
 
 
@@ -1153,6 +1131,7 @@ enum {
 #define SOLVER_TAGS_CuSP                                31
 #define SOLVER_TAGS_PFEMQuasiSolver                     32
 #define SOLVER_TAGS_PFEMDiaSolver                       33
+#define SOLVER_TAGS_UmfpackSolver02                     34
 
 #define RECORDER_TAGS_ElementRecorder		1
 #define RECORDER_TAGS_NodeRecorder		2
