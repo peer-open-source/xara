@@ -39,9 +39,9 @@ class WoodburyUpdate;
 
 #include <OPS_Stream.h>
 #include <LinearSOE.h>
+#include <LinearAction.h>
 
-
-class ModalDamping
+class ModalDamping : public LinearAction
 {
   public:
     typedef int TangentFlagType; 
@@ -52,17 +52,15 @@ class ModalDamping
 
     virtual ~ModalDamping();
 
-    int update(TransientIntegrator &, LinearSOE&);
-    int applyTangent(Vector& dX);
-    int applyResidual(TransientIntegrator &, LinearSOE &);
+    int solve(const Vector& b, Vector& x) final;
+    int apply(const Vector& x, Vector& b) final;
 
-    const Vector& updateX(const Vector& dX, LinearSOE& system);
-    
-    void Print(OPS_Stream& s, int flag) const {
-      s << "ModalDamping(" << numDOF << ", " << numModes << ")\n";
-    }
+    // Update damping matrix
+    int update(TransientIntegrator &, LinearSOE&);
 
   private:
+
+    int applyTangent(Vector& dX);
 
     // Setup Q and V
     int setupModal(const Vector &modalDampingValues);
@@ -77,6 +75,8 @@ class ModalDamping
 
 
     AnalysisModel *theAnalysisModel;
+
+    bool pass_solve;
 
     const int numDOF;
     const int numModes;
