@@ -7,7 +7,7 @@
 target_sources(OPS_Algorithm
     PRIVATE
       LineSearch.cpp 
-      ArmijoLineSearch.cpp
+      # ArmijoLineSearch.cpp
       SecantLineSearch.cpp 
       RegulaFalsiLineSearch.cpp 
       BisectionLineSearch.cpp
@@ -19,4 +19,5 @@ target_sources(OPS_Algorithm
       RegulaFalsiLineSearch.h 
       BisectionLineSearch.h
 )
+
 target_include_directories(OPS_Algorithm PUBLIC ${CMAKE_CURRENT_LIST_DIR})
