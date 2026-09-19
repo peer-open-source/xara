@@ -215,12 +215,12 @@ Subdomain::removeNode(int tag)
 NodeIter &
 Subdomain::getNodes()
 {
-    theNodIter->reset();
-    return *theNodIter;
+  theNodIter->reset();
+  return *theNodIter;
 }
 
 Node **
-Subdomain::getNodePtrs(void)
+Subdomain::getNodePtrs()
 {
   opserr << "Subdomain::getNodePtrs() - should not be called\n";
   return 0;
@@ -477,46 +477,36 @@ Subdomain::getNumExternalNodes(void) const
 const ID &
 Subdomain::getExternalNodes()
 {
-    // first we check that extNodes exists and is of correct size
-    int numExt = externalNodes->getNumComponents();
-    if (extNodes == 0) {
-	extNodes = new ID(numExt);
-	if (extNodes == 0 || extNodes->Size() != numExt) {
-	    opserr << "Subdomain::getExternalNodes(): ";
-	    opserr << " - ran out of memory for size " << numExt <<endln;
-	    exit(-1);
-	}
-    }
-    
-    if (extNodes->Size() != numExt) {
-	delete extNodes;
-	extNodes = new ID(numExt);
-	if (extNodes == 0 || extNodes->Size() != numExt) {
-	    opserr << "Subdomain::getExternalNodes(): ";
-	    opserr << " - ran out of memory for size " << numExt <<endln;
-	    exit(-1);
-	}
-    }
+  // first we check that extNodes exists and is of correct size
+  int numExt = externalNodes->getNumComponents();
+  if (extNodes == 0) {
+    extNodes = new ID(numExt);
+  }
+  
+  if (extNodes->Size() != numExt) {
+    delete extNodes;
+    extNodes = new ID(numExt);
+  }
 
-    // we now set the values of extNodes to be the node tags of the 
-    // external nodes
+  // we now set the values of extNodes to be the node tags of the 
+  // external nodes
 
-    NodeIter &theExtNodes = this->getExternalNodeIter();
-    Node *nodPtr;
-    int cnt = 0;
-    
-    while ((nodPtr = theExtNodes()) != 0) 
-	(*extNodes)(cnt++) = nodPtr->getTag();
+  NodeIter &theExtNodes = this->getExternalNodeIter();
+  Node *nodPtr;
+  int cnt = 0;
+  
+  while ((nodPtr = theExtNodes()) != nullptr)
+    (*extNodes)(cnt++) = nodPtr->getTag();
 
-    // done
-    ID &res = *extNodes;
-    return res;
+  // done
+  ID &res = *extNodes;
+  return res;
 }
 
 
 
 int 
-Subdomain::getNumDOF(void)
+Subdomain::getNumDOF()
 {
   if (theAnalysis != 0)
     return theAnalysis->getNumExternalEqn();
@@ -527,9 +517,9 @@ Subdomain::getNumDOF(void)
 }
     
 int
-Subdomain::commitState(void)    
+Subdomain::commitState()    
 {
-    return this->commit();
+  return this->commit();
 }
 
 const Matrix &
@@ -559,9 +549,9 @@ Subdomain::getDamp()
 const Matrix &
 Subdomain::getMass()
 {
-    opserr << "Subdomain::getMass(void)";
-    opserr << "DOES NOT DO ANYTHING";    
-    return badResult;
+  opserr << "Subdomain::getMass(void)";
+  opserr << "DOES NOT DO ANYTHING";    
+  return badResult;
 }
 
 
