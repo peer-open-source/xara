@@ -10,7 +10,7 @@ target_link_libraries(OPS_ConvergenceTest PRIVATE OPS_Algorithm OPS_Logging)
 target_sources(OPS_ConvergenceTest
   PRIVATE
     ConvergenceTest.cpp
-    GeneralTest.cpp
+    # GeneralTest.cpp
     CTestNormUnbalance.cpp
     CTestNormDispIncr.cpp
     CTestEnergyIncr.cpp
