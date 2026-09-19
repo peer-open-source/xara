@@ -413,22 +413,12 @@ EQPath::domainChanged(void)
         if (uq != 0)
             delete uq;   // delete the old
         uq = new Vector(size);
-        if (uq == 0 || uq->Size() != size) { // check got it
-            opserr << "FATAL EQPath::domainChanged() - ran out of memory for";
-            opserr << " uq Vector of size " << size << endln;
-            std::exit(-1);
-        }
     }
 
     if (du == 0 || du->Size() != size) { // create new Vector
         if (du != 0)
             delete du;   // delete the old
         du = new Vector(size);
-        if (du == 0 || du->Size() != size) { // check got it
-            opserr << "FATAL EQPath::domainChanged() - ran out of memory for";
-            opserr << " du Vector of size " << size << endln;
-            std::exit(-1);
-        }
     }
 
     
@@ -436,11 +426,6 @@ EQPath::domainChanged(void)
         if (ur != 0)
             delete ur;   // delete the old
         ur = new Vector(size);
-        if (ur == 0 || ur->Size() != size) { // check got it
-            opserr << "FATAL EQPath::domainChanged() - ran out of memory for";
-            opserr << " deltaU Vector of size " << size << endln;
-            std::exit(-1);
-        }
     }
 
     if (q == 0 || q->Size() != size) { 
