@@ -158,10 +158,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_SAniSandMSMaterial)
 		oData[0], oData[1]);
 
 
-	if (theMaterial == 0) {
-		opserr << "WARNING ran out of memory for nDMaterial SAniSandMS material with tag: " << tag << endln;
-	}
-
 	return theMaterial;
 }
 
