@@ -25,7 +25,6 @@
 #include <Exact/CosseratFrame3d01.h> // iterative rotations
 #include <Exact/CosseratFrame3d02.h> // incremental rotations
 #endif
-// #include <ExactFrame03.h>
 #include <stdlib.h>
 #include <vector>
 #include <algorithm>

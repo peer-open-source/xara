@@ -43,7 +43,7 @@ class ForceFrame3d: public BasicFrame3d,
 {
  public:
   ForceFrame3d(int tag,
-               std::array<int,2>& nodes,
+               const std::array<int,2>& nodes,
                std::vector<FrameSection*>& sections,
                BeamIntegration &,
                FrameTransformBuilder &, 
@@ -59,6 +59,7 @@ private:
         ndm = 3,        // dimension of the problem (3D)
         NEN = 2,        // number of element nodes
         NBV = 6+nwm*2;  // number of element DOFs in the basic system
+    static constexpr bool verbose = false;
 
 public:
 
@@ -95,7 +96,8 @@ public:
   const Vector &getResistingForceIncInertia();
   int addInertiaLoadToUnbalance(const Vector &accel); 
   */
-  
+  double getCharacteristicLength();
+
   Response *setResponse(const char **argv, int argc, OPS_Stream &) final;
   int getResponse(int responseID, Information &) final;
   
@@ -109,10 +111,6 @@ public:
   int commitSensitivity(int gradNumber, int numGrads) final;
   int getResponseSensitivity(int responseID, int gradNumber, Information &) final;
 
-
-  // MovableObject
-  int sendSelf(int cTag, Channel &) override;
-  int recvSelf(int cTag, Channel &, FEM_ObjectBroker &) override;
   
   // TaggedObject
   void Print(OPS_Stream &, int flag) override;    
@@ -211,6 +209,11 @@ public:
   
   int    state_flag;             // indicate if the element has been initialized
 
+
+
+  // this variable holds the characteristic length of the i-th 
+  // integration point undergoing the update
+  double current_section_lch = 0.0;
 
   //
   // Section State

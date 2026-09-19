@@ -139,7 +139,7 @@ template <int nn, int ndf, typename IsoT>
 FrameTransform<nn,ndf> *
 EuclidFrameTransf<nn,ndf,IsoT>::getCopy() const
 {
-  return new EuclidFrameTransf<nn,ndf,IsoT>(this->getTag(), vz, offsets);
+  return new EuclidFrameTransf<nn,ndf,IsoT>(this->getTag(), vz, offsets, offset_flags);
 }
 
 
@@ -198,13 +198,6 @@ EuclidFrameTransf<nn,ndf,IsoT>::update() noexcept
   }
 
   return 0;
-}
-
-template <int nn, int ndf, typename IsoT>
-Versor
-EuclidFrameTransf<nn,ndf,IsoT>::getNodeRotation(int tag)
-{
-  return nodes[tag]->getTrialRotation();
 }
 
 
@@ -548,7 +541,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
   {
     MatrixND<nn*ndf,nn*ndf>& Kl = kb;
     const MatrixND<nn*ndf,nn*ndf> A = getProjection();
-    if (op == Transform::Bubnov)
+    if (op == Transform::Bubnov) [[unlikely]]
       Kl = A^kb;
     else
       Kl.addMatrixTripleProduct(0, A, Kb, 1);
@@ -581,9 +574,9 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
     }
 #else 
     {
-      const VectorND<6> pw = this->getWrench(p);
       // VectorND<nn*ndf> Ap = A^p;
       if (op != Transform::Bubnov) [[likely]] {
+        const VectorND<6> pw = this->getWrench(p);
 
         if constexpr (ndf == 6) {
           Kl -= basis.getHessian(pw);
@@ -622,7 +615,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::push(MatrixND<nn*ndf,nn*ndf>&kb,
           Kl.assemble(Hat(&Ap[i*ndf+3])*Gj, i*ndf+3, j*ndf, -1.0);
         }
       }
-      if (op != Transform::Bubnov)
+      if (op != Transform::Bubnov) [[likely]]
         Kl.addMatrixTransposeProduct(1.0, Kb, A,  -1.0*flip);
     }
   } // Projection
@@ -699,8 +692,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::getd1overLdh()
 
 template <int nn, int ndf, typename IsoT>
 void
-EuclidFrameTransf<nn,ndf,IsoT>::pushGrad(VectorND<nn*ndf>& dp,
-                                    VectorND<nn*ndf>& pl)
+EuclidFrameTransf<nn,ndf,IsoT>::pushGrad(VectorND<nn*ndf>& dp, VectorND<nn*ndf>& pl)
 {  
   //
   // dp += T_{gl} dpl
@@ -709,7 +701,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::pushGrad(VectorND<nn*ndf>& dp,
   double doneOverL = -dL/(L*L);
 
   constexpr Vector3D iv{1, 0, 0};
-#if 1
+
   // 1.1) Sum of moments: m = sum_i mi + sum_i (xi x ni)
   Vector3D m{};
   for (int i=0; i<nn; i++) {
@@ -725,8 +717,7 @@ EuclidFrameTransf<nn,ndf,IsoT>::pushGrad(VectorND<nn*ndf>& dp,
   // 1.2) Adjust force part
   for (int i=0; i<nn; i++)
     dp.assemble(i*ndf,  ixm,  (i? 1.0:-1.0)*doneOverL);
-#else 
-#endif
+
 
   // 2) Rotate and do joint offsets
 
@@ -837,6 +828,21 @@ EuclidFrameTransf<nn,ndf,IsoT>::Print(OPS_Stream &s, int flag)
       << vz[1] << ", "
       << vz[2] << "]";
 
+    s << ", \"orientation\": [";
+    const Matrix3D R0 = this->getInitialRotation();
+    for (int i=0; i<3; i++) {
+      s << "[";
+      for (int j=0; j<3; j++) {
+        s << R0(i,j);
+        if (j < 2)
+          s << ", ";
+      }
+      s << "]";
+      if (i < 2)
+        s << ", ";
+    }
+    s << "]";
+  
     //
     // Rotation parameters
     //

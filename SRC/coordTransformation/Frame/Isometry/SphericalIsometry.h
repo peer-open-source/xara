@@ -72,6 +72,7 @@ private:
   double Ln;
   enum {pres, init};
   int m_I,m_J;
+  constexpr static int ic = 0; // std::floor(0.5*(nn+1));
   // std::array<Node*,nn> nodes;
   Vector3D vz;   // vector in the x-z plane
   Vector3D dX;   // deformed length vector
@@ -143,6 +144,9 @@ SphericalIsometry<nn>::initialize(std::array<Node*,nn>& nodes)
   
   const Vector& XC = nodes[m_I]->getCrds();
   Xc = Vector3D {XC[0], XC[1], XC[2]};
+  if (offsets != nullptr) [[unlikely]] {
+    Xc.addVector(1.0, (*offsets)[ic],  1.0);
+  }
   // Cbar
   // c[init] = R[init]^Xc;
   return 0;

@@ -366,23 +366,33 @@ SouzaFrameTransf<nn,ndf>::update() noexcept
 
 template <int nn, int ndf>
 int
-SouzaFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&pl, int)
+SouzaFrameTransf<nn,ndf>::push(VectorND<nn*ndf>&pl, int op)
 {
-  // return T^pl;
-  VectorND<nn*ndf> pg{};
-  for (int a = 0; a<nn; a++) {
-    VectorND<6> pa {pl(a*ndf+0), pl(a*ndf+1), pl(a*ndf+2), 
-                    pl(a*ndf+3), pl(a*ndf+4), pl(a*ndf+5)};
+  if (op & Transform::Adjoint) {
+    // return T^pl;
+    VectorND<nn*ndf> pg{};
+    for (int a = 0; a<nn; a++) {
+      VectorND<6> pa {pl(a*ndf+0), pl(a*ndf+1), pl(a*ndf+2), 
+                      pl(a*ndf+3), pl(a*ndf+4), pl(a*ndf+5)};
 
-    for (int b = 0; b<2; b++) {
-      VectorND<6> pab{};
-      for (int i = 0; i < 6; i++)
-        for (int j = 0; j < 6; j++)
-          pab[j] += T(a*6 + i, b*6+j) * pa[i];
-      pg.assemble(b*6, pab, 1.0);
+      for (int b = 0; b<2; b++) {
+        VectorND<6> pab{};
+        for (int i = 0; i < 6; i++)
+          for (int j = 0; j < 6; j++)
+            pab[j] += T(a*6 + i, b*6+j) * pa[i];
+        pg.assemble(b*6, pab, 1.0);
+      }
+    }
+    pl = pg; // TODO: optimize
+  }
+  else if (op & Transform::Rotation) {
+    const Matrix3D& R = crs.getRotation();
+    for (int i=0; i<nn; i++) {
+      const int base = i * ndf;
+      pl.insert(base,   R*Vector3D{pl[base  ], pl[base+1], pl[base+2]}, 1.0);
+      pl.insert(base+3, R*Vector3D{pl[base+3], pl[base+4], pl[base+5]}, 1.0);
     }
   }
-  pl = pg; // TODO: optimize
   return 0;
 }
 
@@ -527,6 +537,20 @@ SouzaFrameTransf<nn,ndf>::Print(OPS_Stream &s, int flag)
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"SouzaFrameTransf\"" << ", ";
     s << "\"vecxz\": [" << vz(0) << ", " << vz(1) << ", " << vz(2) << "]";
+    s << ", \"orientation\": [";
+    const Matrix3D R0 = this->getInitialRotation();
+    for (int i=0; i<3; i++) {
+      s << "[";
+      for (int j=0; j<3; j++) {
+        s << R0(i,j);
+        if (j < 2)
+          s << ", ";
+      }
+      s << "]";
+      if (i < 2)
+        s << ", ";
+    }
+    s << "]";
 
     if (offsets != nullptr) {
       s << ", \"offsets\": [";

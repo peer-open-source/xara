@@ -40,6 +40,8 @@
 template <int nsr, int nwm, int NBV, int NDF, const FrameStressLayout& scheme>
 class ForceInterpolation {
 public:
+  static constexpr double svy = -1.0;
+  static constexpr double svz = -svy;
   enum : int {
     imy =   3, //  4
     imz =   1, //  5
@@ -90,10 +92,10 @@ public:
 
     pl.zero();
 
-    p[0]       = -q[jnx];
+    p[0]       = -q[jnx]; // N
     p[NDF]     =  q[jnx];
-    p[3]       = -q[jmx];
-    p[NDF+3]   =  q[jmx];
+    p[3]       = -q[jmx]; // T
+    p[NDF+3]   =  q[jmx]; //
     p[4]       =  q[imy];
     p[NDF+4]   =  q[jmy];
     p[5]       =  q[imz];
@@ -200,12 +202,12 @@ public:
         B(i, jnx) = 0.0;
         break;
       case FrameStress::Vy:
-        B(i, imz) = -d1oLdh;
-        B(i, jmz) = -d1oLdh;
+        B(i, imz) =  d1oLdh*svy;
+        B(i, jmz) =  d1oLdh*svy;
         break;
       case FrameStress::Vz:
-        B(i, imy) =  d1oLdh;
-        B(i, jmy) =  d1oLdh;
+        B(i, imy) =  d1oLdh*svz;
+        B(i, jmy) =  d1oLdh*svz;
         break;
       case FrameStress::T:
         B(i, jmx) = 0.0;
@@ -299,12 +301,12 @@ private:
       Bd[jnx*nsr + row] = 1.0;
     }
     else if constexpr (S == FrameStress::Vy) {
-      Bd[imz*nsr + row] = -jsx;
-      Bd[jmz*nsr + row] = -jsx;
+      Bd[imz*nsr + row] =  jsx*svy;
+      Bd[jmz*nsr + row] =  jsx*svy;
     }
     else if constexpr (S == FrameStress::Vz) {
-      Bd[imy*nsr + row] =  jsx;
-      Bd[jmy*nsr + row] =  jsx;
+      Bd[imy*nsr + row] =  jsx*svz;
+      Bd[jmy*nsr + row] =  jsx*svz;
     }
     else if constexpr (S == FrameStress::T) {
       Bd[jmx*nsr + row] = 1.0;
@@ -346,10 +348,10 @@ private:
       return q[jnx];
 
     else if constexpr (S == FrameStress::Vy)
-      return -jsx * (q[imz] + q[jmz]);
+      return  jsx * (q[imz] + q[jmz])*svy;
 
     else if constexpr (S == FrameStress::Vz)
-      return  jsx * (q[imy] + q[jmy]);
+      return  jsx * (q[imy] + q[jmy])*svz;
 
     else if constexpr (S == FrameStress::T)
       return q[jmx];
@@ -368,12 +370,12 @@ private:
 
     else
       return 0.0;
-
   }
 
   template <int i>
   XARA_FORCE_INTERP_INLINE static void
-  interpolate_impl(const double* X_RESTRICT q, double xL, double xL1, double jsx,
+  interpolate_impl(const double* X_RESTRICT q,
+                   double xL, double xL1, double jsx,
                    double* X_RESTRICT s) noexcept
   {
     if constexpr (i < nsr) {
@@ -391,12 +393,12 @@ private:
       v[jnx] += ew;
     }
     else if constexpr (S == FrameStress::Vy) {
-      const double a = -jsx*ew;
+      const double a = jsx*ew*svy;
       v[imz] += a;
       v[jmz] += a;
     }
     else if constexpr (S == FrameStress::Vz) {
-      const double a = jsx*ew;
+      const double a = jsx*ew*svz;
       v[imy] += a;
       v[jmy] += a;
     }
@@ -619,12 +621,12 @@ private:
       F[jnx*NBV + left] += left_val;
     }
     else if constexpr (SRight == FrameStress::Vy) {
-      const double a = -jsx*left_val;
+      const double a = jsx*left_val*svy;
       F[imz*NBV + left] += a;
       F[jmz*NBV + left] += a;
     }
     else if constexpr (SRight == FrameStress::Vz) {
-      const double a = jsx*left_val;
+      const double a = jsx*left_val*svz;
       F[imy*NBV + left] += a;
       F[jmy*NBV + left] += a;
     }
@@ -660,12 +662,12 @@ private:
       add_matrix_right_scatter<SRight>(F, jnx, a, xL, xL1, jsx);
     }
     else if constexpr (SLeft == FrameStress::Vy) {
-      const double b = -jsx*a;
+      const double b = jsx*a*svy;
       add_matrix_right_scatter<SRight>(F, imz, b, xL, xL1, jsx);
       add_matrix_right_scatter<SRight>(F, jmz, b, xL, xL1, jsx);
     }
     else if constexpr (SLeft == FrameStress::Vz) {
-      const double b = jsx*a;
+      const double b = jsx*a*svz;
       add_matrix_right_scatter<SRight>(F, imy, b, xL, xL1, jsx);
       add_matrix_right_scatter<SRight>(F, jmy, b, xL, xL1, jsx);
     }

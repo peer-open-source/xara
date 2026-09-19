@@ -44,7 +44,6 @@
 #include <GroupSO3.h>
 #include "EuclidIsometry.h"
 
-class Node;
 
 namespace OpenSees {
 
@@ -187,7 +186,6 @@ public:
         for (int j = 0; j < 3; j++)
           E(i,j) = e[j][i];
     }
-
 
     //
     //

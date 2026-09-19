@@ -48,7 +48,7 @@ public:
   EuclidFrameTransf(int tag, 
                     const Vector3D &vecxz,
                     const std::array<Vector3D, nn> *offset=nullptr,
-                    int offset_flags = 0);
+                    int offset_flags=0);
 
   ~EuclidFrameTransf();
 
@@ -72,7 +72,6 @@ public:
   VectorND<nn*ndf> getStateVariation() final;
   Vector3D getNodePosition(int tag) final;
   Vector3D getNodeLocation(int tag) final;
-  Versor   getNodeRotation(int tag) /* final */;
   Vector3D getNodeRotationLogarithm(int tag) final;
   Vector3D getNodeRotationUpdateLogarithm(int tag) final {
     return ddur[tag].vector;
@@ -135,7 +134,6 @@ private:
 
     return A;
   }
-
 
 
   template<const Vector& (Node::*Getter)()>

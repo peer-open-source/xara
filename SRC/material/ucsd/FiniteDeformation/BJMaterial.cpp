@@ -103,7 +103,7 @@ BJMaterial::getCopy(const char *type)
 
 
 double
-BJMaterial::getRho(void)
+BJMaterial::getRho()
 {
   return 0.0;
 }
