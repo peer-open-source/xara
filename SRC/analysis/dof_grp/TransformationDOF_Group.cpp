@@ -276,7 +276,7 @@ TransformationDOF_Group::getNumConstrainedDOF() const
       if ((*modID)(i) < 0)
         numConstr++;
 
-      return numConstr;
+    return numConstr;
   } else
     return this->DOF_Group::getNumConstrainedDOF();
 }
@@ -369,7 +369,7 @@ TransformationDOF_Group::getCommittedDisp()
 const Vector &
 TransformationDOF_Group::getCommittedVel()
 {
-    const Vector &responseC = myNode->getVel();
+  const Vector &responseC = myNode->getVel();
 
   if (theMP == 0)
     return responseC;
