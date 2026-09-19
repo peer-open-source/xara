@@ -1,6 +1,6 @@
 [project]
 name = "opensees"
-version = "0.1.28"
+version = "0.1.32"
 
 readme = "about/README.pypi.md"
 
