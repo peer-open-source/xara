@@ -45,10 +45,7 @@ class PeriodicAccelerator: public Accelerator
   int getTangent(void) {return theTangent;}
 
   void Print(OPS_Stream &, int flag) const final;
-  
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);
+
 
  private:
   // Iteration count

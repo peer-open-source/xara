@@ -27,8 +27,12 @@
 #include <cmath>
 
 SecantLineSearch::SecantLineSearch(double tol, int mIter, double mnEta, double mxEta, int pFlag)
-:LineSearch(LINESEARCH_TAGS_SecantLineSearch),
- tolerance(tol), maxIter(mIter), minEta(mnEta), maxEta(mxEta), printFlag(pFlag)
+ : LineSearch()
+ , tolerance(tol)
+ , maxIter(mIter)
+ , minEta(mnEta)
+ , maxEta(mxEta)
+ , printFlag(pFlag)
 {   
 
 }
@@ -142,7 +146,6 @@ SecantLineSearch::search(double s0,
     eta = 1.0;
     
   Xs.addVector(0, dU, eta);
-  // theSOE.setX(Xs);
 
   return 0;
 }

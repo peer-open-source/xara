@@ -43,7 +43,7 @@ extern "C" int naccel_(int *n, int *itr, int *mvec,
 #endif
 
 MillerAccelerator::MillerAccelerator(int max, double tol, int tangent)
-  :Accelerator(ACCELERATOR_TAGS_Miller),
+  :Accelerator(),
    iteration(0), numEqns(0), dimension(0), maxDimension(max), tolerance(tol),
    work(0), fData(0), theTangent(tangent)
 {

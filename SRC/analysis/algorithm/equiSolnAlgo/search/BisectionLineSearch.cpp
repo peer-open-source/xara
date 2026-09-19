@@ -23,7 +23,7 @@
 #include <cmath>
 
 BisectionLineSearch::BisectionLineSearch(double tol, int mIter, double mnEta, double mxEta, int pFlag)
- : LineSearch(LINESEARCH_TAGS_BisectionLineSearch)
+ : LineSearch()
  , tolerance(tol)
  , maxIter(mIter)
  , minEta(mnEta)

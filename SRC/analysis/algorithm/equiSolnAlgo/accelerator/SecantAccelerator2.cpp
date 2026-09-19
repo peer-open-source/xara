@@ -31,7 +31,7 @@
 #include <IncrementalIntegrator.h>
 
 SecantAccelerator2::SecantAccelerator2(int maxIter, int tangent)
-  :Accelerator(ACCELERATOR_TAGS_Secant),
+  : Accelerator(),
    iteration(0), numEqns(0), R1(3.5), R2(0.3),
    vOld(0), rOld(0), maxIterations(maxIter), theTangent(tangent),
    cutOut(false)
@@ -40,7 +40,7 @@ SecantAccelerator2::SecantAccelerator2(int maxIter, int tangent)
 }
 
 SecantAccelerator2::SecantAccelerator2(int maxIter, int tangent, double r1, double r2)
-  :Accelerator(ACCELERATOR_TAGS_Secant),
+  : Accelerator(),
    iteration(0), numEqns(0), R1(r1), R2(r2),
    vOld(0), rOld(0), maxIterations(maxIter), theTangent(tangent),
    cutOut(true)

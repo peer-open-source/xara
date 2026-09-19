@@ -31,7 +31,7 @@
 #include <Vector.h>
 
 
-LineSearch::LineSearch(int clasTag)
+LineSearch::LineSearch()
 : Gn(0), dXs(0)
 {
 

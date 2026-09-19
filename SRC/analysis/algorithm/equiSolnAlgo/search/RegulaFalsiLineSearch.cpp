@@ -27,8 +27,12 @@
 #include <cmath>
 
 RegulaFalsiLineSearch::RegulaFalsiLineSearch(double tol, int mIter, double mnEta, double mxEta, int pFlag)
-: LineSearch(LINESEARCH_TAGS_RegulaFalsiLineSearch),
-  tolerance(tol), maxIter(mIter), minEta(mnEta), maxEta(mxEta), printFlag(pFlag)
+: LineSearch()
+, tolerance(tol)
+, maxIter(mIter)
+, minEta(mnEta)
+, maxEta(mxEta)
+, printFlag(pFlag)
 {   
 
 }

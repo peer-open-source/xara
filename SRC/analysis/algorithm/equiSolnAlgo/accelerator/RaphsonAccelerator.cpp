@@ -34,7 +34,7 @@
 #include <Channel.h>
 
 RaphsonAccelerator::RaphsonAccelerator(int tangent, double iFactor, double cFactor)
-  :Accelerator(ACCELERATOR_TAGS_Raphson), 
+  :Accelerator(), 
    theTangent(tangent), totalIter(0),
    iFactor(iFactor), cFactor(cFactor)
 {

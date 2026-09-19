@@ -39,7 +39,7 @@ class Vector;
 class Accelerator
 {
  public:
-  Accelerator(int classTag);
+  Accelerator();
   virtual ~Accelerator();
   
   // virtual functions

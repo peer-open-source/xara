@@ -50,7 +50,7 @@ extern "C" int dgels_(char *T, int *M, int *N, int *NRHS,
 #endif
 
 KrylovAccelerator::KrylovAccelerator(int max, int tangent)
-  :Accelerator(ACCELERATOR_TAGS_Krylov),
+  :Accelerator(),
    dimension(0), numEqns(0), maxDimension(max),
    v(0), Av(0), AvData(0), rData(0), work(0), lwork(0), theTangent(tangent)
 {

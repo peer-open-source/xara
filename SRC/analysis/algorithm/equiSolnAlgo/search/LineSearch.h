@@ -40,7 +40,7 @@ class OPS_Stream;
 class LineSearch
 {
   public:
-    LineSearch(int classTag);
+    LineSearch();
     virtual ~LineSearch();
 
     int apply(IncrementalResidual &theIntegrator, 

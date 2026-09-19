@@ -26,7 +26,7 @@
 //
 #include <Accelerator.h>
 
-Accelerator::Accelerator(int classTag)
+Accelerator::Accelerator()
 {
 
 }

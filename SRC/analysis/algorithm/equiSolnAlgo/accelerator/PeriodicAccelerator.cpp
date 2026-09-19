@@ -17,14 +17,10 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.2 $
-// $Date: 2008-09-16 18:15:42 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/accelerator/PeriodicAccelerator.cpp,v $
-                                                                        
+//
 // Written: MHS
 // Created: April 2002
-
+//
 // Description: This file contains the class implementation for 
 // PeriodicAccelerator. 
 
@@ -35,10 +31,9 @@
 #include <IncrementalIntegrator.h>
 
 #include <ID.h>
-#include <Channel.h>
 
 PeriodicAccelerator::PeriodicAccelerator(int iter, int tangent)
-  :Accelerator(ACCELERATOR_TAGS_Periodic),
+  :Accelerator(),
    iteration(0), totalIter(0), maxIter(iter), theTangent(tangent)
 {
   if (maxIter < 1)
@@ -125,7 +120,7 @@ PeriodicAccelerator::updateTangent(IncrementalIntegrator &theIntegrator, bool& f
 }
 
 bool
-PeriodicAccelerator::updateTangent(void)
+PeriodicAccelerator::updateTangent()
 {
   if (iteration > maxIter) {
     iteration = 0;
@@ -140,25 +135,4 @@ PeriodicAccelerator::Print(OPS_Stream &s, int flag) const
 {
   s << "PeriodicAccelerator" << "\n";
   s << "\tIterations till restart: " << maxIter << "\n";
-}
-
-int
-PeriodicAccelerator::sendSelf(int commitTag, Channel &theChannel)
-{
-  static ID data(2);
-  data(0) = theTangent;
-  data(1) = maxIter;
-  return theChannel.sendID(0, commitTag, data);
-  
-}
-
-int
-PeriodicAccelerator::recvSelf(int commitTag, Channel &theChannel, 
-			    FEM_ObjectBroker &theBroker)
-{
-  static ID data(2);
-  int res = theChannel.recvID(0, commitTag, data);
-  theTangent = data(0);
-  maxIter = data(1);
-  return res;
 }

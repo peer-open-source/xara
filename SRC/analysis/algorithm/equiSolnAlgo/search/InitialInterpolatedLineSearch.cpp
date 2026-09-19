@@ -33,7 +33,7 @@
 
 InitialInterpolatedLineSearch::InitialInterpolatedLineSearch(double tol, int mIter, double mnEta,
                                                              double mxEta, int pFlag)
- : LineSearch(LINESEARCH_TAGS_InitialInterpolatedLineSearch)
+ : LineSearch()
  , tolerance(tol)
  , maxIter(mIter)
  , minEta(mnEta)

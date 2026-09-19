@@ -37,11 +37,22 @@
 
 #include <ID.h>
 #include <Channel.h>
-#include <math.h>
+#include <cmath>
+
+#ifdef _WIN32
+extern "C" int DGELS(char *T, unsigned int *SZ, int *M, int *N, int *NRHS,
+                              double *A, int *LDA, double *B, int *LDB,
+                              double *WORK, int *LWORK, int *INFO);
+#else
+
+extern "C" int dgels_(char *T, int *M, int *N, int *NRHS,
+                      double *A, int *LDA, double *B, int *LDB,
+                      double *WORK, int *LWORK, int *INFO);
+#endif
 
 KrylovAccelerator2::KrylovAccelerator2(int max, int tangent)
-  :Accelerator(ACCELERATOR_TAGS_Krylov),
-   dimension(0), numEqns(0), maxDimension(max),
+  : Accelerator(),
+    dimension(0), numEqns(0), maxDimension(max),
    v(0), Av(0), AvData(0), rData(0), work(0), lwork(0), theTangent(tangent)
 {
   if (maxDimension < 0)
@@ -148,19 +159,6 @@ KrylovAccelerator2::newStep(const LinearSOE &theSOE)
   return 0;
 }
 
-#ifdef _WIN32
-
-extern "C" int DGELS(char *T, unsigned int *SZ, int *M, int *N, int *NRHS,
-                              double *A, int *LDA, double *B, int *LDB,
-                              double *WORK, int *LWORK, int *INFO);
-
-#else
-
-extern "C" int dgels_(char *T, int *M, int *N, int *NRHS,
-                      double *A, int *LDA, double *B, int *LDB,
-                      double *WORK, int *LWORK, int *INFO);
-
-#endif
 
 int
 KrylovAccelerator2::accelerate(Vector &vStar, LinearSOE &theSOE, 

@@ -991,18 +991,6 @@ enum {
 #define EquiALGORITHM_TAGS_NewtonHallM 15
 #define EquiALGORITHM_TAGS_ExpressNewton 16
 
-#define ACCELERATOR_TAGS_Krylov		1
-#define ACCELERATOR_TAGS_Secant		2
-#define ACCELERATOR_TAGS_Miller         3
-#define ACCELERATOR_TAGS_Monitored      4
-#define ACCELERATOR_TAGS_Raphson        5
-#define ACCELERATOR_TAGS_Periodic       6
-#define ACCELERATOR_TAGS_Difference     7
-
-#define LINESEARCH_TAGS_InitialInterpolatedLineSearch 1
-#define LINESEARCH_TAGS_BisectionLineSearch           2
-#define LINESEARCH_TAGS_RegulaFalsiLineSearch         3
-#define LINESEARCH_TAGS_SecantLineSearch              4
 
 
 #define INTEGRATOR_TAGS_Newmark                          1
