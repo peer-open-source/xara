@@ -33,10 +33,9 @@
 // https://doi.org/10.1002/nme.6456.
 // (https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.6456)
 //
-#ifndef ExpressNewton_h
-#define ExpressNewton_h
-
+#pragma once
 #include <EquiSolnAlgo.h>
+#include <Vector.h>
 
 class ExpressNewton: public EquiSolnAlgo
 {
@@ -45,18 +44,14 @@ class ExpressNewton: public EquiSolnAlgo
     ~ExpressNewton();
 
     int solveCurrentStep() override;
-    
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+  
     
     void Print(OPS_Stream &, int flag) const final;    
     
   private:
+    Vector G, dX;
     int factorOnce;
     int nIter;
     double kMultiplier1, kMultiplier2;
 };
-
-#endif
-
 

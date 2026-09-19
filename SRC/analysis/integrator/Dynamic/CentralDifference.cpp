@@ -18,10 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 
-// $Revision$
-// $Date$
-// $URL$
-
 // Written: fmk
 // Created: 11/98
 // Revision: A
@@ -35,12 +31,10 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 
 
 CentralDifference::CentralDifference()
-    : TransientIntegrator(INTEGRATOR_TAGS_CentralDifference),
+    : TransientIntegrator(),
     deltaT(0.0),
     alphaM(0.0), betaK(0.0), betaKi(0.0), betaKc(0.0),
     updateCount(0), c2(0.0), c3(0.0),
@@ -53,7 +47,7 @@ CentralDifference::CentralDifference()
 
 CentralDifference::CentralDifference(
     double _alphaM, double _betaK, double _betaKi , double _betaKc)
-    : TransientIntegrator(INTEGRATOR_TAGS_CentralDifference),
+    : TransientIntegrator(),
     deltaT(0.0),
     alphaM(_alphaM), betaK(_betaK), betaKi(_betaKi), betaKc(_betaKc),
     updateCount(0), c2(0.0), c3(0.0),
@@ -163,8 +157,8 @@ CentralDifference::domainChanged()
     int size = x.Size();
     
     // if damping factors exist set them in the element & node of the domain
-    if (alphaM != 0.0 || betaK != 0.0 || betaKi != 0.0 || betaKc != 0.0)
-        theModel->setRayleighDampingFactors(alphaM, betaK, betaKi, betaKc);
+    // if (alphaM != 0.0 || betaK != 0.0 || betaKi != 0.0 || betaKc != 0.0)
+    //     theModel->setRayleighDampingFactors(alphaM, betaK, betaKi, betaKc);
     
     // create the new Vector objects
     if (Ut == 0 || Ut->Size() != size) {
@@ -306,48 +300,15 @@ CentralDifference::getVel()
   return *Udot;
 }
 
-int CentralDifference::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(4);
-    data(0) = alphaM;
-    data(1) = betaK;
-    data(2) = betaKi;
-    data(3) = betaKc;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING CentralDifference::sendSelf() - could not send data\n";
-        return -1;
-    }
-
-    return 0;
-}
 
 
-int CentralDifference::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(4);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING CentralDifference::recvSelf() - could not receive data\n"; 
-        return -1;
-    }
-    
-    alphaM = data(0);
-    betaK  = data(1);
-    betaKi = data(2);
-    betaKc = data(3);
-    
-    return 0;
-}
-
-
-void CentralDifference::Print(OPS_Stream &s, int flag)
+void
+CentralDifference::Print(OPS_Stream &s, int flag)
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel != 0) {
         double currentTime = theModel->getCurrentDomainTime();
         s << "CentralDifference - currentTime: " << currentTime << endln;
-        s << "  Rayleigh Damping - alphaM: " << alphaM << "  betaK: " << betaK;
-        s << "  betaKi: " << betaKi << "  betaKc: " << betaKc << endln;	    
     } else 
         s << "CentralDifference - no associated AnalysisModel\n";
 }

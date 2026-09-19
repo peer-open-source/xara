@@ -7,6 +7,7 @@
 target_sources(OPS_Algorithm
     PRIVATE
       LineSearch.cpp 
+      ArmijoLineSearch.cpp
       SecantLineSearch.cpp 
       RegulaFalsiLineSearch.cpp 
       BisectionLineSearch.cpp

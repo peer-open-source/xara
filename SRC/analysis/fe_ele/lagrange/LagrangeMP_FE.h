@@ -29,8 +29,7 @@
 // using the Lagrange method.
 //
 // What: "@(#) LagrangeMP_FE.h, revA"
-
-
+//
 #ifndef LagrangeMP_FE_h
 #define LagrangeMP_FE_h
 
@@ -52,7 +51,8 @@ class LagrangeMP_FE: public FE_Element
   public:
     LagrangeMP_FE(int tag, Domain &theDomain, MP_Constraint &theMP, 
 		  DOF_Group &theDofGrp, double alpha = 1.0);
-    virtual ~LagrangeMP_FE();    
+    virtual ~LagrangeMP_FE();
+    const char *getClassName() const override {return "LagrangeMP_FE";}
 
     // public methods
     int  setID(AnalysisModel&) final;
@@ -67,7 +67,12 @@ class LagrangeMP_FE: public FE_Element
     virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
 
     void zeroTangent() final {tang? tang->Zero() : void();};
-    
+
+    // void addKtToTang(double fact = 1.0) override;
+    // void addKiToTang(double fact = 1.0) override;
+    // void addCtoTang(double fact = 1.0) override;
+    // void addMtoTang(double fact = 1.0) override;
+
   private:
     ID myID;
     double alpha;

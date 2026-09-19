@@ -65,7 +65,7 @@ DifferenceAccelerator2::~DifferenceAccelerator2()
 }
 
 int 
-DifferenceAccelerator2::newStep(LinearSOE &theSOE)
+DifferenceAccelerator2::newStep(const LinearSOE &theSOE)
 {
   int newNumEqns = theSOE.getNumEqn();
 
@@ -260,15 +260,3 @@ DifferenceAccelerator2::Print(OPS_Stream &s, int flag) const
   s << "\tMax subspace dimension: " << maxDimension << "\n";
 }
 
-int
-DifferenceAccelerator2::sendSelf(int commitTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int
-DifferenceAccelerator2::recvSelf(int commitTag, Channel &theChannel, 
-                                 FEM_ObjectBroker &theBroker)
-{
-  return -1;
-}

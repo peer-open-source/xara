@@ -33,8 +33,7 @@
 //
 // Written: cmp
 //
-#ifndef BasicAnalysisBulider_h
-#define BasicAnalysisBulider_h
+#pragma once
 
 class Domain;
 class ModelRegistry;
@@ -112,8 +111,9 @@ public:
     int  getNumEigen() {return numEigen;}
 
     int formUnbalance(Vector& b);
-
+    //
     // Performing analysis
+    //
     int analyze(int num_steps, double size_steps, int flag=Increment|Iterate|Commit);
     int analyzeStatic(int num_steps, int flag);
     
@@ -129,8 +129,8 @@ public:
     int setGradientType(int flag);
     void wipe();
 
-    int setLoadCase(std::string& name);
-    int newLoadCase(std::string& name);
+    // int setLoadCase(std::string& name);
+    // int newLoadCase(std::string& name);
 
     enum CurrentAnalysis  CurrentAnalysisFlag = EMPTY_ANALYSIS;
 
@@ -163,5 +163,3 @@ private:
     bool freeSOE = true;
     bool freeTI  = true;
 };
-
-#endif

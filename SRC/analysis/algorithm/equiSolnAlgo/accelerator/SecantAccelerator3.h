@@ -35,8 +35,8 @@ class SecantAccelerator3: public Accelerator
   SecantAccelerator3(int maxIter, int tangent, double r1, double r2);
   virtual ~SecantAccelerator3();
 
-  int newStep(LinearSOE &theSOE);
-  int accelerate(Vector &v, LinearSOE &theSOE, IncrementalIntegrator &theIntegrator);
+  int newStep(const LinearSOE &) override;
+  int accelerate(Vector &v, LinearSOE &theSOE, IncrementalIntegrator &);
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
 
   void Print(OPS_Stream &, int flag) const final;

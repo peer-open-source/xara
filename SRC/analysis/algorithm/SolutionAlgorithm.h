@@ -41,10 +41,10 @@ class SolutionAlgorithm: public MovableObject
       BadAlgorithm    = -5, // Algo::solveCurrentStep          -5
       BadTestStart    = -5, // test->start()                   -5
       TestFailed      = -9, // result == CTest::Failure,       -3
-      BadLinearSolve  = -3, // theSOE->solve(),                -3
+      BadLinearSolve  = -3, // theSOE->solve,                  -3
       BadStepUpdate   = -4, // theIntegrator->update,          -4
-      BadFormResidual = -2, // theIntegrator->formUnbalance(), -2
-      BadFormTangent  = -1, // theIntegrator->formTangent(),   -1
+      BadFormResidual = -2, // theIntegrator->formUnbalance, -2
+      BadFormTangent  = -1, // theIntegrator->formTangent,   -1
     };
 
     SolutionAlgorithm(int classTag);

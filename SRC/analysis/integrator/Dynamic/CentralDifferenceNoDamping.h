@@ -61,10 +61,6 @@ class CentralDifferenceNoDamping : public TransientIntegrator
     int commit();
 
     const Vector &getVel();
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, 
-                         FEM_ObjectBroker &theBroker);
 
     void Print(OPS_Stream &, int flag) final;        
     

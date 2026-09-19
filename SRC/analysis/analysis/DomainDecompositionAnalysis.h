@@ -90,14 +90,11 @@ class DomainDecompositionAnalysis: public Analysis, public MovableObject
     virtual int  eigenAnalysis(int numMode, bool generalized, bool findSmallest);
     virtual int  computeInternalResponse();
     virtual int  formTangent() final;
-    virtual int  formResidual() final;
+    virtual int  formResidual(Vector &) final;
     virtual int  formTangVectProduct(Vector &force) final;
     const Matrix& getTangent();
     const Vector& getResidual();
     const Vector& getTangVectProduct();
-
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     // methods to change the analysis aggregates
     virtual int setAlgorithm(EquiSolnAlgo &theAlgorithm);

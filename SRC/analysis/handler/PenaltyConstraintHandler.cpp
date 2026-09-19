@@ -144,7 +144,7 @@ PenaltyConstraintHandler::handle(const ID *nodesLast)
       }
     } else {	
       // just a regular element
-      fePtr = new ElementFE(numFeEle++, elePtr);	
+      fePtr = elePtr->createFE_Element(numFeEle++);
       theModel->addFE_Element(fePtr);
     }
   }

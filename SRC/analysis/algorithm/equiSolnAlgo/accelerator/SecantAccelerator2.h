@@ -37,16 +37,13 @@ class SecantAccelerator2: public Accelerator
   SecantAccelerator2(int maxIter, int tangent, double r1, double r2);
   virtual ~SecantAccelerator2();
 
-  int newStep(LinearSOE &theSOE);
+  int newStep(const LinearSOE &) override;
   int accelerate(Vector &v, LinearSOE &, IncrementalIntegrator &);
   int updateTangent(IncrementalIntegrator &, bool& factored);
 
   int getTangent() {return theTangent;}
 
   void Print(OPS_Stream &, int flag) const final;
-  
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
   
  private:
   // Iteration count

@@ -151,7 +151,7 @@ Pressure_Constraint::setDomain(Domain* theDomain)
 
     // check the pressure node
     Node* pNode = theDomain->getNode(pTag);
-    if(pNode == 0) {
+    if (pNode == 0) {
         opserr<<"WARNING: pressure node "<<pTag<<" does not exist ";
         opserr<<"-- Pressure_Constraint::setDomain\n";
         return;
@@ -161,10 +161,10 @@ Pressure_Constraint::setDomain(Domain* theDomain)
 Node*
 Pressure_Constraint::getPressureNode()
 {
-    if(pval != 0) return 0;
+    if (pval != 0) return 0;
 
     Domain* theDomain = this->getDomain();
-    if(theDomain == 0) {
+    if (theDomain == 0) {
         opserr<<"WARNING: domain has not been set";
         opserr<<" -- Pressure_Constraint::getPressureNode\n";
         return 0;

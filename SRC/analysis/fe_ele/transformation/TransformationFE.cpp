@@ -75,13 +75,13 @@ TransformationFE::TransformationFE(int tag, Element *ele)
   // now fill the array of DOF_Group pointers
   for (int i=0; i<numNodes; i++) {
     Node *theNode = theDomain->getNode(nodes(i));
-    if (theNode == 0) {
+    if (theNode == nullptr) {
       opserr << "FATAL TransformationFE::TransformationFE() - no Node with tag: ";
       opserr << nodes(i) << " in the domain\n";;
       exit(-1);
     }
     DOF_Group *theDofGroup = theNode->getDOF_GroupPtr();
-    if (theDofGroup == 0) {
+    if (theDofGroup == nullptr) {
         opserr << "FATAL TransformationFE::TransformationFE() - no DOF_Group : ";
         opserr << " associated with node: " << nodes(i) << " in the domain\n";;
         exit(-1);
@@ -92,9 +92,9 @@ TransformationFE::TransformationFE(int tag, Element *ele)
   // see if theTransformation array is big enough
   // if not delete the old and create a new one
   if (numNodes > sizeTransformations) {
-    if (theTransformations != 0) 
-        delete [] theTransformations;
-    
+    if (theTransformations != 0)
+      delete [] theTransformations;
+
     theTransformations = new Matrix *[numNodes];
     sizeTransformations = numNodes;
   }
@@ -110,8 +110,8 @@ TransformationFE::TransformationFE(int tag, Element *ele)
     sizeBuffer = MAX_NUM_DOF*MAX_NUM_DOF;
 
     for (int i=0; i<MAX_NUM_DOF; i++) {
-        modMatrices[i] = 0;
-        modVectors[i] = 0;
+      modMatrices[i] = 0;
+      modVectors[i] = 0;
     }
   }
 
@@ -222,13 +222,13 @@ TransformationFE::setID(AnalysisModel&)
   if (numTransformedDOF <= MAX_NUM_DOF) {
     // use class wide objects
     if (modVectors[numTransformedDOF] == 0) {
-        modVectors[numTransformedDOF] = new Vector(numTransformedDOF);
-        modMatrices[numTransformedDOF] = new Matrix(numTransformedDOF,numTransformedDOF);
-        modResidual = modVectors[numTransformedDOF];
-        modTangent = modMatrices[numTransformedDOF];
+      modVectors[numTransformedDOF] = new Vector(numTransformedDOF);
+      modMatrices[numTransformedDOF] = new Matrix(numTransformedDOF,numTransformedDOF);
+      modResidual = modVectors[numTransformedDOF];
+      modTangent = modMatrices[numTransformedDOF];
     } else {
-        modResidual = modVectors[numTransformedDOF];
-        modTangent = modMatrices[numTransformedDOF];
+      modResidual = modVectors[numTransformedDOF];
+      modTangent = modMatrices[numTransformedDOF];
     }
   } else {
     // create matrices and vectors for each object instance
@@ -238,6 +238,7 @@ TransformationFE::setID(AnalysisModel&)
 
   return 0;
 }
+
 
 const Matrix &
 TransformationFE::getTangent(Integrator *theNewIntegrator)
@@ -454,8 +455,8 @@ TransformationFE::getK_Force(const Vector &accel, double fact)
       // copy K(i,j) into localK matrix
       // CHECK SIZE OF BUFFER
       for (int a=0; a<numDOFi; a++)
-	for (int b=0; b<numDOFj; b++)
-	  localK(a,b) = theTangent(noRowsOriginal+a, noColsOriginal+b);
+        for (int b=0; b<numDOFj; b++)
+          localK(a,b) = theTangent(noRowsOriginal+a, noColsOriginal+b);
       
       // now perform the matrix computation T(i)^T localK T(j)
       // note: if T == 0 then the Identity is assumed
@@ -463,37 +464,37 @@ TransformationFE::getK_Force(const Vector &accel, double fact)
       static Matrix localTtKT;
       
       if (Ti != 0 && Tj != 0) {
-	noRowsTransformed = Ti->noCols();
-	noColsTransformed = Tj->noCols();
-	// CHECK SIZE OF BUFFER
-	localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
-	//localTtKT = (*Ti) ^ localK * (*Tj);
-	localTtKT.addMatrixTripleProduct(0.0, *Ti, localK, *Tj, 1.0);
+        noRowsTransformed = Ti->noCols();
+        noColsTransformed = Tj->noCols();
+        // CHECK SIZE OF BUFFER
+        localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
+        //localTtKT = (*Ti) ^ localK * (*Tj);
+        localTtKT.addMatrixTripleProduct(0.0, *Ti, localK, *Tj, 1.0);
       } else if (Ti == 0 && Tj != 0) {
-	noRowsTransformed = numDOFi;
-	noColsTransformed = Tj->noCols();
-	// CHECK SIZE OF BUFFER
-	localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
-	// localTtKT = localK * (*Tj);
-	localTtKT.addMatrixProduct(0.0, localK, *Tj, 1.0);
+        noRowsTransformed = numDOFi;
+        noColsTransformed = Tj->noCols();
+        // CHECK SIZE OF BUFFER
+        localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
+        // localTtKT = localK * (*Tj);
+        localTtKT.addMatrixProduct(0.0, localK, *Tj, 1.0);
       } else if (Ti != 0 && Tj == 0) {
-	noRowsTransformed = Ti->noCols();
-	noColsTransformed = numDOFj;
-	// CHECK SIZE OF BUFFER
-	localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
-	//localTtKT = (*Ti) ^ localK;
-	localTtKT.addMatrixTransposeProduct(0.0, *Ti, localK, 1.0);
+        noRowsTransformed = Ti->noCols();
+        noColsTransformed = numDOFj;
+        // CHECK SIZE OF BUFFER
+        localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
+        //localTtKT = (*Ti) ^ localK;
+        localTtKT.addMatrixTransposeProduct(0.0, *Ti, localK, 1.0);
       } else {
-	noRowsTransformed = numDOFi;
-	noColsTransformed = numDOFj;
-	localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
-	localTtKT = localK;
+        noRowsTransformed = numDOFi;
+        noColsTransformed = numDOFj;
+        localTtKT.setData(dataBuffer, noRowsTransformed, noColsTransformed);
+        localTtKT = localK;
       }
       // now copy into modTangent the T(i)^t K(i,j) T(j) product
       for (int c=0; c<noRowsTransformed; c++) 
-	for (int d=0; d<noColsTransformed; d++) 
-	  (*modTangent)(startRow+c, startCol+d) = localTtKT(c,d);
-      
+        for (int d=0; d<noColsTransformed; d++) 
+          (*modTangent)(startRow+c, startCol+d) = localTtKT(c,d);
+
       startCol += noColsTransformed;
       noColsOriginal += numDOFj;
     }
@@ -535,10 +536,10 @@ TransformationFE::getKi_Force(const Vector &accel, double fact)
   // for original node.
   int numNode = numGroups;
   for (int a = 0; a<numNode; a++) {
-    Matrix *theT = theDOFs[a]->getT();
-    theTransformations[a] = theT;
-    if (theT != 0)
-      numDOFs[a] = theT->noRows(); // T^ 
+    Matrix *Tmat = theDOFs[a]->getT();
+    theTransformations[a] = Tmat;
+    if (Tmat != 0)
+      numDOFs[a] = Tmat->noRows(); // T^ 
     else
       numDOFs[a] = theDOFs[a]->getNumDOF();
   }
@@ -632,6 +633,7 @@ TransformationFE::getKi_Force(const Vector &accel, double fact)
 
   return *modResidual;
 }
+
 
 const Vector &
 TransformationFE::getM_Force(const Vector &accel, double fact)
@@ -746,6 +748,7 @@ TransformationFE::getM_Force(const Vector &accel, double fact)
 
   return *modResidual;
 }
+
 
 const Vector &
 TransformationFE::getC_Force(const Vector &accel, double fact)
@@ -911,8 +914,8 @@ TransformationFE::getLastResponse()
   Integrator *theLastIntegrator = this->getLastIntegrator();
   if (theLastIntegrator != 0) {
     if (theLastIntegrator->getLastResponse(*modResidual,*modID) < 0) {
-        opserr << "WARNING TransformationFE::getLastResponse(void)";
-        opserr << " - the Integrator had problems with getLastResponse()\n";
+      opserr << "WARNING TransformationFE::getLastResponse(void)";
+      opserr << " - the Integrator had problems with getLastResponse()\n";
     }
   }
   else {
@@ -966,41 +969,41 @@ TransformationFE::transformResponse(const Vector &modResp, Vector &unmodResp)
 void  
 TransformationFE::addD_ForceSensitivity(int gradNumber, const Vector &disp,  double fact)
 {
-    if (fact == 0.0)
-	return;
+  if (fact == 0.0)
+    return;
 
-    static Vector response;
-    response.setData(dataBuffer, numOriginalDOF);
+  static Vector response;
+  response.setData(dataBuffer, numOriginalDOF);
 
-    for (int i=0; i<numTransformedDOF; i++) {
-      int loc = (*modID)(i);
-      if (loc >= 0)
-        (*modResidual)(i) = disp(loc);
-      else
-        (*modResidual)(i) = 0.0;
-    }
-    transformResponse(*modResidual, response);
-    this->addLocalD_ForceSensitivity(gradNumber, response, fact);
+  for (int i=0; i<numTransformedDOF; i++) {
+    int loc = (*modID)(i);
+    if (loc >= 0)
+      (*modResidual)(i) = disp(loc);
+    else
+      (*modResidual)(i) = 0.0;
+  }
+  transformResponse(*modResidual, response);
+  this->addLocalD_ForceSensitivity(gradNumber, response, fact);
 }   
+
 
 void  
 TransformationFE::addM_ForceSensitivity(int gradNumber, const Vector &disp,  double fact)
 {
-    if (fact == 0.0)
-	return;
+  if (fact == 0.0)
+    return;
 
-    static Vector response;
-    response.setData(dataBuffer, numOriginalDOF);
+  static Vector response;
+  response.setData(dataBuffer, numOriginalDOF);
 
-    for (int i=0; i<numTransformedDOF; i++) {
-      int loc = (*modID)(i);
-      if (loc >= 0)
-          (*modResidual)(i) = disp(loc);
-      else
-          (*modResidual)(i) = 0.0;
-    }
-    transformResponse(*modResidual, response);
-    this->addLocalM_ForceSensitivity(gradNumber, response, fact);
+  for (int i=0; i<numTransformedDOF; i++) {
+    int loc = (*modID)(i);
+    if (loc >= 0)
+        (*modResidual)(i) = disp(loc);
+    else
+        (*modResidual)(i) = 0.0;
+  }
+  transformResponse(*modResidual, response);
+  this->addLocalM_ForceSensitivity(gradNumber, response, fact);
 }   
 
-// AddingSensitivity:END ////////////////////////////////////

@@ -40,7 +40,6 @@ class HHTExplicit : public TransientIntegrator
 {
 public:
     // constructors
-    HHTExplicit();
     HHTExplicit(double alpha,
         bool updElemDisp = false);
     HHTExplicit(double alpha, double gamma,
@@ -60,12 +59,9 @@ public:
     int update(const Vector &aiPlusOne);
     int commit(void);
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
-    void Print(OPS_Stream &s, int flag = 0);
+    const Vector &getVel();
+
+    void Print(OPS_Stream &s, int flag);
     
 private:
     double alpha;

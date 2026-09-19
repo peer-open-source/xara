@@ -1,26 +1,18 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-**                                                                    **
-**                                                                    **
-** (C) Copyright 1999, The Regents of the University of California    **
-** All Rights Reserved.                                               **
-**                                                                    **
-** Commercial use of this program without express permission of the   **
-** University of California, Berkeley, is strictly prohibited.  See   **
-** file 'COPYRIGHT'  in main directory for information on usage and   **
-** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
-**                                                                    **
-** Developed by:                                                      **
-**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
-**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
 //
-// Written: fmk 
-// Created: 11/01
-
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 // Description: This file contains the class definition for BisectinLineSearch.
 // This performs the search for U(i+1) = U(i) + eta * deltaU(i) by using the 
 // bisection method to find the best solution.
@@ -38,11 +30,14 @@
 //      if s(eta(j+1))*s(l) < 0 { eta(u) = eta(j+1) and s(u) = s(eta(j+1))
 //      if s(eta(j+1))*s(u) < 0 { eta(l) = eta(j+1) and s(l) = s(eta(j+1))
 //      if s(eta(j+1))*s(u) == 0  SOLN FOUND.
+//
+// Written: cmp
+// Adapted from BisectionLineSearch.cpp by fmk, dated 11/01
+//
 #pragma once
 
 #include <LineSearch.h>
-class Vector;
-class OPS_Stream;
+#include <Vector.h>
 
 class BisectionLineSearch: public LineSearch
 {
@@ -55,18 +50,17 @@ class BisectionLineSearch: public LineSearch
 
     ~BisectionLineSearch();
 
-    int newStep(LinearSOE &theSOE);
+    int newStep(const Vector &) override;
     int search(double s0, 
                double s1, 
-               LinearSOE &theSOE, 
-               IncrementalIntegrator &theIntegrator);
+               const Vector& dU,
+               Vector& G,
+               Vector& Xs,
+               IncrementalResidual &) override;
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    void Print(OPS_Stream &s, int flag =0) ;    
-    
+    void Print(OPS_Stream &s, int flag) override;    
+
   private:
-    Vector *x;
     double tolerance;
     int    maxIter;
     double minEta;

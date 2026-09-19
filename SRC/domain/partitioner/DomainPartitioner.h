@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.3 $
-// $Date: 2006-01-10 00:31:52 $
-// $Source: /usr/local/cvs/OpenSees/SRC/domain/partitioner/DomainPartitioner.h,v $
-                                                                        
+//
 // Written: fmk 
 // Created: Fri Sep 20 15:27:47: 1996
 // Revision: A
@@ -33,10 +29,6 @@
 
 #ifndef DomainPartitioner_h
 #define DomainPartitioner_h
-
-#ifndef _bool_h
-#include <stdbool.h>
-#endif
 
 #include <ID.h>
 
@@ -63,9 +55,9 @@ class DomainPartitioner
     virtual int balance(Graph &theWeightedSubdomainGraph);
 
     // public member functions needed by the load balancer
-    virtual int getNumPartitions(void) const;
-    virtual Graph &getPartitionGraph(void);
-    virtual Graph &getColoredGraph(void);
+    virtual int getNumPartitions() const;
+    virtual Graph &getPartitionGraph();
+    virtual Graph &getColoredGraph();
     
     virtual int  swapVertex(int from, 
 			    int to, 

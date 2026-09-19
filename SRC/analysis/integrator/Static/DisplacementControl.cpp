@@ -97,19 +97,19 @@ DisplacementControl::~DisplacementControl()
     delete deltaUbar;
   if (phat != 0)
     delete phat;
-  if(dUhatdh !=0)
+  if (dUhatdh !=0)
     delete dUhatdh;
-  if(dUIJdh !=0)
+  if (dUIJdh !=0)
     delete dUIJdh; 
-  if(Residual !=0)
+  if (Residual !=0)
     delete Residual;
-  if(sensU !=0)
+  if (sensU !=0)
     delete sensU;
-  if(Residual2 !=0)
+  if (Residual2 !=0)
     delete Residual2;
-  if(dLAMBDAdh !=0) 
+  if (dLAMBDAdh !=0) 
     delete dLAMBDAdh;
-  if(dphatdh !=0)
+  if (dphatdh !=0)
     delete dphatdh;
 
   dLAMBDAdh=0;
@@ -150,7 +150,7 @@ DisplacementControl::newStep()
   this->formTangent(tangFlag);
   theLinSOE->setB(*phat);
   if (theLinSOE->solve() < 0) {
-     return -1;
+    return -1;
   }
 
   (*deltaUhat) = theLinSOE->getX();
@@ -234,7 +234,7 @@ DisplacementControl::update(const Vector &dU)
   (*deltaUbar) = dU; // have to do this as the SOE is gonna change
   double dUabar = (*deltaUbar)(theDofID);//dUbar is the vector of residual displacement and dUabar is its component
 
-  // determine dUhat    
+  // determine dUhat
   theLinSOE->setB(*phat);
   theLinSOE->solve();
   (*deltaUhat) = theLinSOE->getX();    
@@ -280,148 +280,135 @@ DisplacementControl::update(const Vector &dU)
 int 
 DisplacementControl::domainChanged()
 {
-   // we first create the Vectors needed
-   AnalysisModel *theModel = this->getAnalysisModel();
-   LinearSOE *theLinSOE = this->getLinearSOE(); 
-    if (theModel == 0 || theLinSOE == 0) {
-      opserr << "WARNING DisplacementControl::domainChanged ";
-      opserr << "No AnalysisModel or LinearSOE has been set\n";
-      return -1;
-   }
+  // we first create the Vectors needed
+  AnalysisModel *theModel = this->getAnalysisModel();
+  LinearSOE *theLinSOE = this->getLinearSOE(); 
+  if (theModel == 0 || theLinSOE == 0) {
+    opserr << "WARNING DisplacementControl::domainChanged ";
+    opserr << "No AnalysisModel or LinearSOE has been set\n";
+    return -1;
+  }
 
-   int size = theModel->getNumEqn(); // ask model in case N+1 space
+  int size = theModel->getNumEqn(); // ask model in case N+1 space
 
-   if (deltaUhat == 0 || deltaUhat->Size() != size) {
-      if (deltaUhat != 0)
-         delete deltaUhat;
-      deltaUhat = new Vector(size);
-   }
+  if (deltaUhat == 0 || deltaUhat->Size() != size) {
+    if (deltaUhat != 0)
+        delete deltaUhat;
+    deltaUhat = new Vector(size);
+  }
 
-   if (deltaUbar == 0 || deltaUbar->Size() != size) {
-      if (deltaUbar != 0)
-         delete deltaUbar;   // delete the old
-      deltaUbar = new Vector(size);
-   }
+  if (deltaUbar == 0 || deltaUbar->Size() != size) {
+    if (deltaUbar != 0)
+        delete deltaUbar;   // delete the old
+    deltaUbar = new Vector(size);
+  }
 
-   if (deltaU == 0 || deltaU->Size() != size) {
-     if (deltaU != 0)
-       delete deltaU;   // delete the old
-     deltaU = new Vector(size);
-   }
+  if (deltaU == 0 || deltaU->Size() != size) {
+    if (deltaU != 0)
+      delete deltaU;   // delete the old
+    deltaU = new Vector(size);
+  }
 
-   if (deltaUstep == 0 || deltaUstep->Size() != size) { 
-      if (deltaUstep != 0)
-        delete deltaUstep;  
-      deltaUstep = new Vector(size);
-   }
+  if (deltaUstep == 0 || deltaUstep->Size() != size) { 
+    if (deltaUstep != 0)
+      delete deltaUstep;  
+    deltaUstep = new Vector(size);
+  }
 
-   if (phat == 0 || phat->Size() != size) { 
-      if (phat != 0)
-         delete phat;  
-      phat = new Vector(size);
-   }
+  if (phat == 0 || phat->Size() != size) { 
+    if (phat != 0)
+        delete phat;  
+    phat = new Vector(size);
+  }
 
-   if (dphatdh == 0 || dphatdh->Size() != size) { 
-     if (dphatdh != 0)
-       delete dphatdh;  
-     dphatdh = new Vector(size);
-   }    
+  if (dphatdh == 0 || dphatdh->Size() != size) { 
+    if (dphatdh != 0)
+      delete dphatdh;  
+    dphatdh = new Vector(size);
+  }    
 
-   if (dUhatdh == 0 || dUhatdh->Size() != size) { 
-     if (dUhatdh != 0)
-       delete dUhatdh;  
-     dUhatdh = new Vector(size);
-   } 
-   
-   if (dUIJdh == 0 || dUIJdh->Size() != size) { 
-      if (dUIJdh != 0)
-         delete dUIJdh;  
-      dUIJdh = new Vector(size);
-   }
+  if (dUhatdh == 0 || dUhatdh->Size() != size) { 
+    if (dUhatdh != 0)
+      delete dUhatdh;  
+    dUhatdh = new Vector(size);
+  } 
+  
+  if (dUIJdh == 0 || dUIJdh->Size() != size) { 
+    if (dUIJdh != 0)
+        delete dUIJdh;  
+    dUIJdh = new Vector(size);
+  }
 
-   if (Residual == nullptr || Residual->Size() != size) { 
-      if (Residual != nullptr)
-         delete Residual;  
-      Residual = new Vector(size);
-   } 
-   
-   if (Residual2 == nullptr || Residual2->Size() != size) { 
-     if (Residual2 != nullptr)
-       delete Residual2;  
-     Residual2 = new Vector(size);
-   } 
+  if (Residual == nullptr || Residual->Size() != size) { 
+    if (Residual != nullptr)
+        delete Residual;  
+    Residual = new Vector(size);
+  } 
+  
+  if (Residual2 == nullptr || Residual2->Size() != size) { 
+    if (Residual2 != nullptr)
+      delete Residual2;  
+    Residual2 = new Vector(size);
+  } 
 
-   if (sensU == nullptr || sensU->Size() != size) { 
-      if (sensU != nullptr)
-         delete sensU;  
-      sensU = new Vector(size);
-   }
-
-
-   // Domain *theDomain = theModel->getDomainPtr();
-   int numGrads = theDomain->getNumParameters();
-
-   if (dLAMBDAdh == 0 || dLAMBDAdh->Size() != (numGrads)) { 
-     if (dLAMBDAdh != nullptr)  
-       delete dLAMBDAdh;
-     dLAMBDAdh = new Vector(numGrads);
-   } 
-   
-   // now we have to determine phat
-   // do this by incrementing lambda by 1, applying load
-   // and getting phat from unbalance.
-   currentLambda = theModel->getCurrentDomainTime();
-   currentLambda += 1.0;
-   theModel->applyLoadDomain(currentLambda);    
-   this->formUnbalance(); // NOTE: this assumes unbalance at last was 0
-   (*phat) = theLinSOE->getB();
-   currentLambda -= 1.0;
-   theModel->setCurrentDomainTime(currentLambda);
-
-   // check there is a reference load
-   int haveLoad = 0;
-   for (int i=0; i<size; i++)
-      if ( (*phat)(i) != 0.0 ) {
-         haveLoad = 1;
-         break;
-      }
-
-   if (haveLoad == 0) {
-      opserr << "WARNING DisplacementControl: zero reference load\n";
-      return -1;
-   }
-
-   // lastly we determine the id of the nodal dof
-   // TODO: EXTRA CODE TO DO SOME ERROR CHECKING REQUIRED
-
-   Node *theNodePtr = theDomain->getNode(theNode);
-   if (theNodePtr == nullptr) {
-      opserr << "DisplacementControl::domainChanged - no node\n";
-      return -1;
-   }
-
-   DOF_Group *theGroup = theNodePtr->getDOF_GroupPtr();
-   if (theGroup == 0) {
-      return 0;
-   }
-   const ID &theID = theGroup->getID();
-   theDofID = theID(theDof);
-   return 0;
-}
+  if (sensU == nullptr || sensU->Size() != size) { 
+    if (sensU != nullptr)
+        delete sensU;  
+    sensU = new Vector(size);
+  }
 
 
-int
-DisplacementControl::sendSelf(int cTag, Channel &theChannel)
-{
+  // Domain *theDomain = theModel->getDomainPtr();
+  int numGrads = theDomain->getNumParameters();
+
+  if (dLAMBDAdh == 0 || dLAMBDAdh->Size() != (numGrads)) { 
+    if (dLAMBDAdh != nullptr)  
+      delete dLAMBDAdh;
+    dLAMBDAdh = new Vector(numGrads);
+  } 
+  
+  // now we have to determine phat
+  // do this by incrementing lambda by 1, applying load
+  // and getting phat from unbalance.
+  currentLambda = theModel->getCurrentDomainTime();
+  currentLambda += 1.0;
+  theModel->applyLoadDomain(currentLambda);    
+  this->formUnbalance(*phat); // NOTE: this assumes unbalance at last was 0
+  currentLambda -= 1.0;
+  theModel->setCurrentDomainTime(currentLambda);
+
+  // check there is a reference load
+  int haveLoad = 0;
+  for (int i=0; i<size; i++)
+    if ( (*phat)(i) != 0.0 ) {
+      haveLoad = 1;
+      break;
+    }
+
+  if (haveLoad == 0) {
+    opserr << "WARNING DisplacementControl: zero reference load\n";
+    return -1;
+  }
+
+  // lastly we determine the id of the nodal dof
+  // TODO: EXTRA CODE TO DO SOME ERROR CHECKING REQUIRED
+
+  Node *theNodePtr = theDomain->getNode(theNode);
+  if (theNodePtr == nullptr) {
+    opserr << "DisplacementControl::domainChanged - no node\n";
+    return -1;
+  }
+
+  DOF_Group *theGroup = theNodePtr->getDOF_GroupPtr();
+  if (theGroup == 0) {
+    return 0;
+  }
+  const ID &theID = theGroup->getID();
+  theDofID = theID(theDof);
   return 0;
 }
 
 
-int
-DisplacementControl::recvSelf(int cTag,  Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  return 0;
-}
 
 void
 DisplacementControl::Print(OPS_Stream &s, int flag)
@@ -501,9 +488,7 @@ DisplacementControl::formTangDispSensitivity(Vector *dUhatdh,int gradNumber)
             relevantID = anID(dofNumber-1);
             oneDimID(0) = relevantID;
             theLinSOE->addB(oneDimVectorWithOne, oneDimID);
-            (*dphatdh)=theLinSOE->getB();
-
-
+            (*dphatdh) = theLinSOE->getB();
          }
       }
    }
@@ -516,9 +501,9 @@ DisplacementControl::formTangDispSensitivity(Vector *dUhatdh,int gradNumber)
    (*dUhatdh)=theLinSOE->getX();
 
 
-/////////////////////////////////////////////////////////
    return dUhatdh;
 }
+
 
 // form dLambda for each time step dLambda
 double 
@@ -578,7 +563,7 @@ DisplacementControl::getLambdaSensitivity(int gradNumber)
    Vector &dufRdh=*dUIJdh;// component of the dUfrDh: derivative of the residual displacement
    double dufRdh_Comp=dufRdh(theDofID);
 
-   if(UFT_Comp==0.0 )
+   if (UFT_Comp==0.0 )
      Dlambdadh=0.0;
    else
      // dLambdadh_ij( the sensitivity of the load component to the parameter h)
@@ -646,7 +631,7 @@ DisplacementControl::formSensitivityRHS(int grad)
   LoadPattern *loadPatternPtr;
   Domain *theDomain = theAnalysisModel->getDomainPtr();
   LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
-  while((loadPatternPtr = thePatterns()) != 0) {
+  while ((loadPatternPtr = thePatterns()) != 0) {
     const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(grad);
     int sizeRandomLoads = randomLoads.Size();
     if (sizeRandomLoads == 1) {
@@ -694,6 +679,7 @@ DisplacementControl::saveSensitivity(const Vector &v, int gradNum, int numGrads)
 
   return 0;
 }
+
 
 int
 DisplacementControl::saveLambdaSensitivity(double dlambdadh, int gradNum, int numGrads)

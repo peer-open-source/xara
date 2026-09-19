@@ -1,22 +1,17 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-**                                                                    **
-**                                                                    **
-** (C) Copyright 1999, The Regents of the University of California    **
-** All Rights Reserved.                                               **
-**                                                                    **
-** Commercial use of this program without express permission of the   **
-** University of California, Berkeley, is strictly prohibited.  See   **
-** file 'COPYRIGHT'  in main directory for information on usage and   **
-** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
-**                                                                    **
-** Developed by:                                                      **
-**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
-**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
 //
 // Purpose: This file contains the class definition for ConvergenceTest,
 // which is an abstract class. Objects of concrete subclasses can be used
@@ -37,20 +32,20 @@
 #include <LinearSOE.h>
 
 class LinearSOE;
-#include <classTags.h>
-// enum {
-//   CONVERGENCE_TEST_CTestNormUnbalance             =    1<<0,
-//   CONVERGENCE_TEST_CTestNormDispIncr              =    1<<1,
-//   CONVERGENCE_TEST_CTestEnergyIncr                =    1<<2,
-//   CONVERGENCE_TEST_CTestRelativeNormUnbalance     =      40,
-//   CONVERGENCE_TEST_CTestRelativeNormDispIncr      =      50,
-//   CONVERGENCE_TEST_CTestRelativeEnergyIncr        =      60,
-//   CONVERGENCE_TEST_CTestRelativeTotalNormDispIncr =      70,
-//   CONVERGENCE_TEST_CTestFixedNumIter              =      80,
-//   CONVERGENCE_TEST_NormDispAndUnbalance           =      90,
-//   CONVERGENCE_TEST_NormDispOrUnbalance            =     100,
-//   CONVERGENCE_TEST_CTestPFEM                      =     110,
-// };
+// #include <classTags.h>
+enum {
+  CONVERGENCE_TEST_CTestNormUnbalance             =    1<<0,
+  CONVERGENCE_TEST_CTestNormDispIncr              =    1<<1,
+  CONVERGENCE_TEST_CTestEnergyIncr                =    1<<2,
+  CONVERGENCE_TEST_CTestRelativeNormUnbalance     =      40,
+  CONVERGENCE_TEST_CTestRelativeNormDispIncr      =      50,
+  CONVERGENCE_TEST_CTestRelativeEnergyIncr        =      60,
+  CONVERGENCE_TEST_CTestRelativeTotalNormDispIncr =      70,
+  CONVERGENCE_TEST_CTestFixedNumIter              =      80,
+  CONVERGENCE_TEST_NormDispAndUnbalance           =      90,
+  CONVERGENCE_TEST_NormDispOrUnbalance            =     100,
+  CONVERGENCE_TEST_CTestPFEM                      =     110,
+};
 
 class ConvergenceTest : public MovableObject
 {
@@ -92,8 +87,8 @@ class ConvergenceTest : public MovableObject
     //
     // int getNumNorms();
 
-
   protected:
+    void printIter(const Vector&b, const Vector&x, double* b0, double* x0, double* w0, int printFlag);
     std::string pad(double x);
     std::string pad(int i);
     StandardStream pstream;

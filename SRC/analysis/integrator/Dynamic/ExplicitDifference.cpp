@@ -1,3 +1,6 @@
+//
+// Shuhao Zhang, Tsinghua University, and Prof. Xinzheng Lu, Tsinghua University
+//
 #include <ExplicitDifference.h>
 #include <FE_Element.h>
 #include <LinearSOE.h>
@@ -5,12 +8,10 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 
 
 ExplicitDifference::ExplicitDifference()
-	: TransientIntegrator(INTEGRATOR_TAGS_ExplicitDifference),
+	: TransientIntegrator(),
 	deltaT(0.0),
 	alphaM(0.0), betaK(0.0), betaKi(0.0), betaKc(0.0),
 	updateCount(0),
@@ -23,7 +24,7 @@ ExplicitDifference::ExplicitDifference()
 
 ExplicitDifference::ExplicitDifference(
 	double _alphaM, double _betaK, double _betaKi, double _betaKc)
-	: TransientIntegrator(INTEGRATOR_TAGS_ExplicitDifference),
+	: TransientIntegrator(),
 	deltaT(0.0),
 	alphaM(_alphaM), betaK(_betaK), betaKi(_betaKi), betaKc(_betaKc),
 	updateCount(0),
@@ -56,7 +57,8 @@ ExplicitDifference::~ExplicitDifference()
 }
 
 
-int ExplicitDifference::newStep(double _deltaT)
+int
+ExplicitDifference::newStep(double _deltaT)
 {
 	updateCount = 0;
 
@@ -64,7 +66,7 @@ int ExplicitDifference::newStep(double _deltaT)
 
 	if (deltaT <= 0.0)  {
 		opserr << "ExplicitDifference::newStep() - error in variable\n";
-		opserr << "dT = " << deltaT << endln;
+		opserr << "dT = " << deltaT << "\n";
 		return -1;
 	}
 
@@ -104,17 +106,18 @@ int ExplicitDifference::newStep(double _deltaT)
 }
 
 
-int ExplicitDifference::formEleTangent(FE_Element *theEle)
+int 
+ExplicitDifference::formEleTangent(FE_Element *theEle)
 {
 	theEle->zeroTangent();
 
 	theEle->addMtoTang();
-
 	return 0;
 }
 
 
-int ExplicitDifference::formNodTangent(DOF_Group *theDof)
+int 
+ExplicitDifference::formNodTangent(DOF_Group *theDof)
 {
 	theDof->zeroTangent();
 
@@ -124,7 +127,8 @@ int ExplicitDifference::formNodTangent(DOF_Group *theDof)
 }
 
 
-int ExplicitDifference::domainChanged()
+int 
+ExplicitDifference::domainChanged()
 {
 
 	AnalysisModel *theModel = this->getAnalysisModel();
@@ -135,8 +139,8 @@ int ExplicitDifference::domainChanged()
 
 
 	// if damping factors exist set them in the element & node of the domain
-	if (alphaM != 0.0 || betaK != 0.0 || betaKi != 0.0 || betaKc != 0.0)
-		theModel->setRayleighDampingFactors(alphaM, betaK, betaKi, betaKc);
+	// if (alphaM != 0.0 || betaK != 0.0 || betaKi != 0.0 || betaKc != 0.0)
+	// 	theModel->setRayleighDampingFactors(alphaM, betaK, betaKi, betaKc);
 
 
 	// create the new Vector objects
@@ -167,45 +171,6 @@ int ExplicitDifference::domainChanged()
 		U = new Vector(size);
 		Utdotdot1 = new Vector(size);
 		Utdot1 = new Vector(size);
-	
-
-		// check we obtained the new
-		if ( Ut == 0 || Ut->Size() != size ||
-			Utdot == 0 || Utdot->Size() != size ||
-			Utdotdot == 0 || Utdotdot->Size() != size ||
-			Udot == 0 || Udot->Size() != size ||
-			U == 0 || U->Size() != size ||
-			Utdotdot1 == 0 || Utdotdot1->Size() != size ||
-			Utdot1 == 0 || Utdot1->Size() != size 
-		)  {
-
-			opserr << "ExplicitDifference::domainChanged - ran out of memory\n";
-
-			// delete the old
-	
-			if (Ut != 0)
-				delete Ut;
-			if (Utdot != 0)
-				delete Utdot;
-			if (Utdotdot != 0)
-				delete Utdotdot;
-			if (Udot != 0)
-				delete Udot;
-			if (U != 0)
-				delete U;
-			if (Utdotdot1 != 0)
-				delete Utdotdot1;
-			if (Utdot1 != 0)
-				delete Utdot1;
-		
-	
-
-			Ut = 0; Utdot = 0; Utdotdot = 0;
-			Udot = 0; U = 0, Utdotdot1 = 0;
-			Utdot1 = 0; 
-		
-			return -1;
-		}
 	}
 
 	// now go through and populate U, Udot and Udotdot by iterating through
@@ -307,14 +272,12 @@ int ExplicitDifference::update(const Vector &Udotdot)
 	(*Utdotdot) = Udotdot;
 	(*Utdotdot1) = Udotdot;
 
-
-
-
 	return 0;
 }
 
 
-int ExplicitDifference::commit(void)
+int
+ExplicitDifference::commit()
 {
 	AnalysisModel *theModel = this->getAnalysisModel();
 	if (theModel == 0) {
@@ -331,38 +294,6 @@ int ExplicitDifference::commit(void)
 }
 
 
-int ExplicitDifference::sendSelf(int cTag, Channel &theChannel)
-{
-	Vector data(4);
-	data(0) = alphaM;
-	data(1) = betaK;
-	data(2) = betaKi;
-	data(3) = betaKc;
-
-	if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-		opserr << "WARNING ExplicitDifference::sendSelf() - could not send data\n";
-		return -1;
-	}
-
-	return 0;
-}
-
-
-int ExplicitDifference::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-	Vector data(4);
-	if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-		opserr << "WARNING ExplicitDifference::recvSelf() - could not receive data\n";
-		return -1;
-	}
-
-	alphaM = data(0);
-	betaK = data(1);
-	betaKi = data(2);
-	betaKc = data(3);
-
-	return 0;
-}
 
 
 void ExplicitDifference::Print(OPS_Stream &s, int flag)

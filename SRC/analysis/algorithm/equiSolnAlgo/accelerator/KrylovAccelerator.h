@@ -17,20 +17,13 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.1 $
-// $Date: 2007-10-26 04:22:01 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/accelerator/KrylovAccelerator.h,v $
-
+//
 // Written: MHS
 // Created: April 2002
 
 // Description: This file contains the class definition for 
 // KrylovAccelerator. 
-
-#ifndef KrylovAccelerator_h
-#define KrylovAccelerator_h
-
+#pragma once
 #include "Accelerator.h"
 #include <IncrementalIntegrator.h>
 
@@ -40,17 +33,12 @@ class KrylovAccelerator : public Accelerator
   KrylovAccelerator(int maxDim = 3, int tangent = CURRENT_TANGENT);
   virtual ~KrylovAccelerator();
   
-  int newStep(LinearSOE &theSOE);
-  int accelerate(Vector &v, LinearSOE &theSOE, 
-		 IncrementalIntegrator &theIntegrator);
-  int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
-  bool updateTangent(void);
+  int  newStep(const LinearSOE &);
+  int  accelerate(Vector &v, LinearSOE&, IncrementalIntegrator &);
+  int  updateTangent(IncrementalIntegrator &, bool& factored);
+  bool updateTangent();
 
   void Print(OPS_Stream &, int flag) const final;
-  
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);
 
  private:
   // Current dimension of Krylov subspace
@@ -73,9 +61,6 @@ class KrylovAccelerator : public Accelerator
   
   // Length of work array
   int lwork;
-
   // Which tangent to form at restart
   int theTangent;
 };
-
-#endif

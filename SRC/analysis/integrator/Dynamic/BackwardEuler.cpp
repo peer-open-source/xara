@@ -31,8 +31,6 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 
 
 BackwardEuler::BackwardEuler(int eulerOption)
@@ -296,34 +294,6 @@ int BackwardEuler::update(const Vector &deltaU)
     return 0;
 }    
 
-
-int BackwardEuler::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(1);
-    data(0) = optn;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING BackwardEuler::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int BackwardEuler::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(1);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING BackwardEuler::recvSelf() - could not receive data\n";
-        optn = 0;
-        return -1;
-    }
-    
-    optn = (int)data(0);
-    
-    return 0;
-}
 
 
 void BackwardEuler::Print(OPS_Stream &s, int flag)

@@ -17,14 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
-#ifndef HHTHSFixedNumIter_h
-#define HHTHSFixedNumIter_h
-
+//
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 10/05
 // Revision: A
@@ -37,7 +30,7 @@
 // increments are utilized to update the elements. The reduced command displacements
 // are determined by means of Lagrange interpolation using the trial displacements
 // of the current iteration step and the last n committed displacements.
-
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -48,7 +41,6 @@ class HHTHSFixedNumIter : public TransientIntegrator
 {
 public:
     // constructors
-    HHTHSFixedNumIter();
     HHTHSFixedNumIter(double rhoInf, int polyOrder,
         bool updDomFlag = true);
     HHTHSFixedNumIter(double alphaI, double alphaF,
@@ -63,17 +55,14 @@ public:
     int formEleTangent(FE_Element *theEle);
     int formNodTangent(DOF_Group *theDof);
     
-    int domainChanged(void);
+    int domainChanged();
     int newStep(double deltaT);
-    int revertToLastStep(void);
+    int revertToLastStep();
     int update(const Vector &deltaU);
-    int commit(void);
+    int commit();
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+    const Vector &getVel();
+
     void Print(OPS_Stream &s, int flag = 0);
     
 private:
@@ -94,4 +83,3 @@ private:
     Vector *scaledDeltaU;                       // scaled displacement increment
 };
 
-#endif

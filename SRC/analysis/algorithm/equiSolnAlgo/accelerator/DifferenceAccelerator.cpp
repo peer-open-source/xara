@@ -65,7 +65,7 @@ DifferenceAccelerator::~DifferenceAccelerator()
 }
 
 int 
-DifferenceAccelerator::newStep(LinearSOE &theSOE)
+DifferenceAccelerator::newStep(const LinearSOE &theSOE)
 {
   int newNumEqns = theSOE.getNumEqn();
 

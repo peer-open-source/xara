@@ -49,16 +49,6 @@ NewtonRaphson::NewtonRaphson(IncrementalIntegrator::TangentFlagType prediction_t
 
 }
 
-NewtonRaphson::NewtonRaphson()
-    :EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonRaphson),
-    prediction_tangent(CURRENT_TANGENT),
-    correction_tangent(CURRENT_TANGENT),
-    iFactor(0.), cFactor(1.)
-{
-
-}
-
-
 
 NewtonRaphson::~NewtonRaphson()
 {
@@ -75,23 +65,27 @@ NewtonRaphson::solveCurrentStep()
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
   LinearSOE  *theSOE = this->getLinearSOEptr();
 
-  if  (  (theIntegrator== nullptr)
-      || (theSOE       == nullptr)
-      || (theTest      == nullptr)) {
-      opserr << "WARNING NewtonRaphson::solveCurrentStep() - setLinks() has";
-      opserr << " not been called - or no ConvergenceTest has been set\n";
-      return SolutionAlgorithm::BadAlgorithm;
+  if  ((theIntegrator== nullptr)
+    || (theSOE       == nullptr)
+    || (theTest      == nullptr)) {
+    return SolutionAlgorithm::BadAlgorithm;
   }
+  G.resize(theSOE->getNumEqn());
+  dX.resize(theSOE->getNumEqn());
 
   //
   // 1 Form unbalance
   //
   timer.start<Steps::Residual>();
-  if (theIntegrator->formUnbalance() < 0)
+  G.Zero();
+  if (theIntegrator->formUnbalance(G) < 0)
     return SolutionAlgorithm::BadFormResidual;
   timer.stop<Steps::Residual>();
 
+
+  // Start test; this should be done after the initial residual is formed
   // Its prbably good to pass theTest as an argument to solveCurrentStep.
+  theSOE->setB(G);
   if (theTest->start(*theSOE) < 0)
     return SolutionAlgorithm::BadTestStart;
 
@@ -124,12 +118,14 @@ NewtonRaphson::solveCurrentStep()
     // 2.2 Solve for dx
     //
     timer.start<Steps::Solve>();
-    if (theSOE->solve() < 0)
+
+    if (theSOE->solve(G, dX) < 0)
       return SolutionAlgorithm::BadLinearSolve;
+
     timer.stop<Steps::Solve>();
 
     timer.start<Steps::Update>();
-    if (theIntegrator->update(theSOE->getX()) < 0)
+    if (theIntegrator->update(dX) < 0)
       return SolutionAlgorithm::BadStepUpdate;
     timer.stop<Steps::Update>();
 
@@ -137,14 +133,16 @@ NewtonRaphson::solveCurrentStep()
     // 2.3 Form updated residual
     //
     timer.start<Steps::Residual>();
-    if (theIntegrator->formUnbalance() < 0)
+    G.Zero();
+    if (theIntegrator->formUnbalance(G) < 0)
       return SolutionAlgorithm::BadFormResidual;
     timer.stop<Steps::Residual>();
+    // opserr << "R[" << numIterations << "] = " << theSOE->getB();
 
     //
     // 2.4 Test on updated residual
     //
-    result = theTest->test(*theSOE);
+    result = theTest->test(G, dX);
     numIterations++;
     this->record(numIterations);
 
@@ -159,37 +157,11 @@ NewtonRaphson::solveCurrentStep()
 }
 
 
-int
-NewtonRaphson::sendSelf(int cTag, Channel &theChannel)
-{
-  static Vector data(3);
-  data(0) = double(correction_tangent);
-  data(1) = double(prediction_tangent);
-  data(2) = iFactor;
-  data(3) = cFactor;
-  return theChannel.sendVector(this->getDbTag(), cTag, data);
-}
-
-int
-NewtonRaphson::recvSelf(int cTag,
-                        Channel &theChannel,
-                        FEM_ObjectBroker &theBroker)
-{
-  static Vector data(3);
-  theChannel.recvVector(this->getDbTag(), cTag, data);
-  correction_tangent = int(data(0));
-  prediction_tangent = int(data(1));
-  iFactor = data(2);
-  cFactor = data(3);
-  return 0;
-}
-
-
 void
 NewtonRaphson::Print(OPS_Stream &s, int flag) const
 {
   if (flag == 0) {
-    s << "NewtonRaphson" << endln;
+    s << "NewtonRaphson" << "\n";
   }
 }
 

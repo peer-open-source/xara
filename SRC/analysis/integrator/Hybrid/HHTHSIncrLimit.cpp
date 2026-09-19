@@ -91,18 +91,6 @@ OPS_ADD_RUNTIME_VPV(OPS_HHTHSIncrLimit)
 }
 
 
-HHTHSIncrLimit::HHTHSIncrLimit()
-    : TransientIntegrator(INTEGRATOR_TAGS_HHTHSIncrLimit),
-    alphaI(0.5), alphaF(0.5), beta(0.25), gamma(0.5), limit(0.1), normType(2),
-    deltaT(0.0), c1(0.0), c2(0.0), c3(0.0),
-    Ut(0), Utdot(0), Utdotdot(0), U(0), Udot(0), Udotdot(0),
-    Ualpha(0), Ualphadot(0), Ualphadotdot(0),
-    scaledDeltaU(0)
-{
-    
-}
-
-
 HHTHSIncrLimit::HHTHSIncrLimit(double _rhoInf, double _limit, int normtype)
     : TransientIntegrator(INTEGRATOR_TAGS_HHTHSIncrLimit),
     alphaI((2.0-_rhoInf)/(1.0+_rhoInf)), alphaF(1.0/(1.0+_rhoInf)),
@@ -222,7 +210,8 @@ int HHTHSIncrLimit::newStep(double _deltaT)
 }
 
 
-int HHTHSIncrLimit::revertToLastStep()
+int 
+HHTHSIncrLimit::revertToLastStep()
 {
     // set response at t+deltaT to be that at t .. for next step
     if (U != 0)  {
@@ -235,7 +224,8 @@ int HHTHSIncrLimit::revertToLastStep()
 }
 
 
-int HHTHSIncrLimit::formEleTangent(FE_Element *theEle)
+int 
+HHTHSIncrLimit::formEleTangent(FE_Element *theEle)
 {
     theEle->zeroTangent();
     
@@ -412,7 +402,7 @@ int HHTHSIncrLimit::update(const Vector &deltaU)
 }
 
 
-int HHTHSIncrLimit::commit(void)
+int HHTHSIncrLimit::commit()
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel == 0)  {
@@ -441,45 +431,10 @@ HHTHSIncrLimit::getVel()
   return *Udot;
 }
 
-int HHTHSIncrLimit::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(6);
-    data(0) = alphaI;
-    data(1) = alphaF;
-    data(2) = beta;
-    data(3) = gamma;
-    data(4) = limit;
-    data(5) = normType;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTHSIncrLimit::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
 
 
-int HHTHSIncrLimit::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(6);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTHSIncrLimit::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    alphaI   = data(0);
-    alphaF   = data(1);
-    beta     = data(2);
-    gamma    = data(3);
-    limit    = data(4);
-    normType = int(data(5));
-    
-    return 0;
-}
-
-
-void HHTHSIncrLimit::Print(OPS_Stream &s, int flag)
+void 
+HHTHSIncrLimit::Print(OPS_Stream &s, int flag)
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel != 0)  {

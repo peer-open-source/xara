@@ -30,8 +30,6 @@
 #include <Linear.h>
 #include <LinearSOE.h>
 #include <Vector.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <ConvergenceTest.h>
 #include <ID.h>
 
@@ -42,7 +40,6 @@ Linear::Linear(int theTangent, int Fact)
 
 }
 
-// Destructor
 Linear::~Linear()
 {
 
@@ -70,17 +67,19 @@ Linear::solveCurrentStep()
     if (factorOnce == 1)
       factorOnce = 2;
   }
+  G.resize(theSOE->getNumEqn());
+  dX.resize(theSOE->getNumEqn());
 
 
-  if (theIncIntegrator->formUnbalance() < 0)
+  if (theIncIntegrator->formUnbalance(G) < 0)
     return SolutionAlgorithm::BadFormResidual;
 
 
-  if (theSOE->solve() < 0)
+  if (theSOE->solve(G,dX) < 0)
     return SolutionAlgorithm::BadLinearSolve;
 
 
-  if (theIncIntegrator->update(theSOE->getX()) < 0)
+  if (theIncIntegrator->update(dX) < 0)
     return SolutionAlgorithm::BadStepUpdate;
 
   return 0;

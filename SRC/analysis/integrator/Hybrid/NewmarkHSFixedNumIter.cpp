@@ -36,9 +36,8 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <ConvergenceTest.h>
+
 #include <elementAPI.h>
 #define OPS_Export
 
@@ -468,45 +467,6 @@ const Vector &
 NewmarkHSFixedNumIter::getVel()
 {
   return *Udot;
-}
-
-int NewmarkHSFixedNumIter::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(4);
-    data(0) = gamma;
-    data(1) = beta;
-    data(2) = polyOrder;
-    if (updDomFlag == true) 
-        data(3) = 1.0;
-    else
-        data(3) = 0.0;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING NewmarkHSFixedNumIter::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int NewmarkHSFixedNumIter::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(4);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING NewmarkHSFixedNumIter::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    gamma     = data(0);
-    beta      = data(1);
-    polyOrder = int(data(2));
-    if (data(3) == 1.0)
-        updDomFlag = true;
-    else
-        updDomFlag = false;
-    
-    return 0;
 }
 
 

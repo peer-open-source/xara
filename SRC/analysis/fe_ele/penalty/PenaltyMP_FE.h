@@ -17,10 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-#ifndef PenaltyMP_FE_h
-#define PenaltyMP_FE_h
-
+//
 // Written: fmk 
 // Created: 11/96
 // Revision: A
@@ -30,7 +27,7 @@
 // using the penalty method.
 //
 // What: "@(#) PenaltyMP_FE.h, revA"
-
+#pragma once
 #include <FE_Element.h>
 #include <ID.h>
 #include <Matrix.h>
@@ -43,25 +40,39 @@ class Domain;
 class MP_Constraint;
 class Node;
 
+#define NEW_PENALTY_STIFFNESS
+
 class PenaltyMP_FE: public FE_Element
 {
   public:
     PenaltyMP_FE(int tag, Domain &, MP_Constraint &, double alpha);
-    virtual ~PenaltyMP_FE();    
+    virtual ~PenaltyMP_FE();
+    const char *getClassName() const override {return "PenaltyMP_FE";}
 
     // public methods
     int  setID(AnalysisModel &) final;
     const ID &getID() const final {return myID;}
-    virtual const Matrix &getTangent(Integrator *theIntegrator);
-    virtual const Vector &getResidual(Integrator *theIntegrator);
+    const Matrix &getTangent(Integrator *) final;
+    const Vector &getResidual(Integrator *) final;
     virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
 
     virtual const Vector &getK_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getKi_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
-    void zeroTangent() final {tang? tang->Zero() : void();};
-    
+  
+    void zeroTangent() final {
+#ifdef NEW_PENALTY_STIFFNESS
+        tang->Zero();
+#endif
+      // tang? tang->Zero() : void();
+    }
+    void  addKtToTang(double fact) final;
+    void  addKiToTang(double fact) final {addKtToTang(fact);}
+    void  addCtoTang (double fact) final {}
+    void  addMtoTang (double fact) final {} //addKtToTang(fact);}
+    // void  addKpToTang(double fact = 1.0, int numP = 0);
+
   private:
     void determineTangent();
     ID myID;
@@ -76,7 +87,3 @@ class PenaltyMP_FE: public FE_Element
     double alpha;
   
 };
-
-#endif
-
-

@@ -62,7 +62,7 @@ SecantAccelerator3::~SecantAccelerator3()
 }
 
 int 
-SecantAccelerator3::newStep(LinearSOE &theSOE)
+SecantAccelerator3::newStep(const LinearSOE &theSOE)
 {
   int newNumEqns = theSOE.getNumEqn();
 
@@ -129,8 +129,6 @@ SecantAccelerator3::accelerate(Vector &vStar, LinearSOE &theSOE,
     // Check "cut-out" criteria
     if (cutOut && (A > R1 || A < 1.0/R1 || DA > R2 || DA < -0.5*R2)) {
       // do nothing
-      //opserr << "SecantAccelerator3::accelerate() -- cut out, A = " << A
-      //	   << ", D/A = " << DA << "\n";
     }
     else {
       vStar.addVector(A, *vOld, B);

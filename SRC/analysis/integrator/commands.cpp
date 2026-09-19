@@ -23,36 +23,6 @@ TclCommand_createHoubolt(ClientData clientData, Tcl_Interp* interp, int argc, TC
 
 
 
-#include <analysis/integrator/Static/ArcLength1.h>
-int
-TclCommand_createArcLength1(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char**const argv) 
-{
-  BasicAnalysisBuilder *builder = static_cast<BasicAnalysisBuilder*>(clientData);
-
-  double arcLength;
-  double alpha;
-  if (OPS_GetNumRemainingInputArgs() < 2) {
-    opserr << "WARNING integrator ArcLength arcLength alpha \n";
-    return TCL_ERROR;
-  }
-
-  int numdata = 1;
-  if (OPS_GetDoubleInput(&numdata, &arcLength) < 0) {
-    opserr << "WARNING integrator ArcLength failed to read arc length\n";
-    return TCL_ERROR;
-  }
-  if (OPS_GetDoubleInput(&numdata, &alpha) < 0) {
-    opserr << "WARNING integrator ArcLength failed to read alpha\n";
-    return TCL_ERROR;
-  }
-
-  builder->set(*new ArcLength1(arcLength, alpha));
-  return TCL_OK;
-}
-
-
-
-
 
 #include <analysis/integrator/Dynamic/BackwardEuler.h>
 int

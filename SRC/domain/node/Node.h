@@ -35,7 +35,7 @@
 #undef VIRTUAL
 #endif
 
-#define VIRTUAL virtual
+#define VIRTUAL // virtual
 #include <TaggedObject.h>
 #include <MovableObject.h>
 // TODO: Remove include of NodeData
@@ -63,7 +63,13 @@ class Node : public TaggedObject, public MovableObject
     typedef int Tag;
   
     enum class Field {
-      R1, R2, R3, SE2, SE3, None
+      // Solid mechanics
+      U1, U2, U3, SE2, SE3, 
+      // Poromechanics
+      U2_P1, U3_P1,
+      // Fluid mechanics
+      V1, V2, V3,
+      None,
     } field;
 
     // constructors
@@ -77,11 +83,12 @@ class Node : public TaggedObject, public MovableObject
     // destructor
     VIRTUAL ~Node();
 
+    Rotations::Parameters getRotationParameters() const {return rotationType;}
+  
     // public methods dealing with the DOF at the node
     VIRTUAL int  getNumberDOF() const;
     VIRTUAL void setDOF_GroupPtr(DOF_Group *);
     VIRTUAL DOF_Group *getDOF_GroupPtr();
-    Rotations::Parameters getRotationParameters() const {return rotationType;}
 
     // public methods for obtaining the nodal coordinates
     VIRTUAL const Vector &getCrds() const;
@@ -129,8 +136,7 @@ class Node : public TaggedObject, public MovableObject
     VIRTUAL const Matrix &getMass();
     VIRTUAL const Matrix &getDamp();
     VIRTUAL int setMass(const Matrix &);
-    VIRTUAL int addPositionInertia(double value);
-    VIRTUAL const Vector &getRV(const Vector &V);
+    // VIRTUAL int addPositionInertia(double value);
     VIRTUAL int setRayleighDampingFactor(double alphaM);
 
     // Eigen vectors
@@ -161,12 +167,6 @@ class Node : public TaggedObject, public MovableObject
 
     VIRTUAL const Vector *getResponse(NodeData);
     int fillResponse(NodeData responseType, Vector& result, int offset=0);
-    
-    //
-    // Parallel
-    //
-    VIRTUAL int sendSelf(int commitTag, Channel &);
-    VIRTUAL int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     //
     // Misc
@@ -198,6 +198,9 @@ class Node : public TaggedObject, public MovableObject
     Domain *getDomain() {return theDomain;}
     void setDomain(Domain *model) {theDomain = model;}
 
+    // Deprecated    
+    VIRTUAL const Vector &getRV(const Vector &V);
+
   protected:
     double *vel, *accel;              // double arrays holding the vel and accel values
     Vector *trialDisp, *commitDisp, *incrDisp, *incrDeltaDisp;
@@ -208,6 +211,11 @@ class Node : public TaggedObject, public MovableObject
     Rotations::Parameters rotationType;
 
   private:
+
+    Vector xyz;                       // coordinates in ref. configuration
+    double coord_data[3];
+    int numberDOF;                    // number of dof at Node
+
     double *disp;
 
     // State
@@ -233,17 +241,14 @@ class Node : public TaggedObject, public MovableObject
     int createAccel();
 
     // private data associated with each node object
-    int numberDOF;                    // number of dof at Node
     DOF_Group *theDOF_GroupPtr;       // pointer to associated DOF_Group
     NodalThermalAction *theNodalThermalActionPtr; //Added by Liming Jiang for pointer to nodalThermalAction, [SIF]
 
-    Vector xyz;                       // coordinates in ref. configuration
-    double coord_data[3];
     
 
     Matrix *R;                          // nodal participation matrix
     Matrix *mass;                       // pointer to mass matrix
-    double alphaM;                      // rayleigh damping factor 
+    double alphaM;                      // rayleigh damping factor
     double position_inertia;
     enum class MassType {
       Full,
@@ -252,13 +257,11 @@ class Node : public TaggedObject, public MovableObject
     } mass_type = MassType::None;
 
 
-
-    int dbTag1, dbTag2, dbTag3, dbTag4; // needed for database
-
     // AddingSensitivity:BEGIN /////////////////////////////////////////
     Matrix *dispSensitivity;
     Matrix *velSensitivity;
     Matrix *accSensitivity;
+
     int parameterID;
 
     Vector *reaction;

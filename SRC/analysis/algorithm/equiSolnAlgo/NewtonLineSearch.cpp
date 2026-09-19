@@ -19,8 +19,6 @@
 ** ****************************************************************** */
 //
 // Description: This file contains the implementation for NewtonLineSearch. 
-// 
-// What: "@(#)NewtonLineSearch.h, revA"
 //
 // Written: fmk 
 // Created: 11/96 
@@ -29,24 +27,19 @@
 #include <NewtonLineSearch.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <ConvergenceTest.h>
+#include <LineSearch.h>
+#include <update/UpdateBFGS.h>
 #include <ID.h>
 
 
-
-NewtonLineSearch::NewtonLineSearch()
+NewtonLineSearch::NewtonLineSearch(LineSearch *theSearch, 
+                                   IncrementalIntegrator::TangentFlagType prediction_tangent,
+                                   IncrementalIntegrator::TangentFlagType correction_tangent) 
 :EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonLineSearch),
- theLineSearch(0)
-{
-
-}
-
-
-NewtonLineSearch::NewtonLineSearch(LineSearch *theSearch) 
-:EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonLineSearch),
- theLineSearch(theSearch)
+ theLineSearch(theSearch),
+ prediction_tangent(prediction_tangent),
+ correction_tangent(correction_tangent)
 {
 
 }
@@ -63,76 +56,102 @@ int
 NewtonLineSearch::solveCurrentStep()
 {
   // set up some pointers and check they are valid
-  // NOTE this could be taken away if we set Ptrs as protecetd in superclass
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
   LinearSOE  *theSOE = this->getLinearSOEptr();
 
-  if ((theIntegrator == 0) || (theSOE == 0) || (theTest == 0)){
+  if ((theIntegrator == 0) || (theSOE == 0) || (theTest == 0)) {
     return SolutionAlgorithm::BadAlgorithm;
-  }        
-
-  theLineSearch->newStep(*theSOE);
-
-  if (theTest->start(*theSOE) < 0) {
-    return SolutionAlgorithm::BadTestStart;
   }
+  Go.resize(theSOE->getNumEqn());
+  Gn.resize(theSOE->getNumEqn());
+  dX.resize(theSOE->getNumEqn());
+  dXs.resize(theSOE->getNumEqn());
+
 
   ConvergenceTest *theOtherTest = nullptr;
   theOtherTest = theTest->getCopy(10);
 
-  if (theIntegrator->formUnbalance() < 0) 
+  //
+  // 1 Form unbalance
+  //
+  Go.Zero();
+  if (theIntegrator->formUnbalance(Go) < 0) 
     return SolutionAlgorithm::BadFormResidual;
+  theSOE->setB(Go);
 
-  int result = -1;
+  //
+  //
+  //
+  if (theTest->start(*theSOE) < 0)
+    return SolutionAlgorithm::BadTestStart;
+
+  int result = ConvergenceTest::Continue;
+  int numIterations = 0;
   do {
 
-    // residual at this iteration before next solve 
-    const Vector &Resid0 = theSOE->getB() ;
+    // 2.1 Form the tangent
+    if (numIterations == 0) {
+      SOLUTION_ALGORITHM_tangentFlag = prediction_tangent;
+      if (theIntegrator->formTangent(prediction_tangent) < 0)
+        return SolutionAlgorithm::BadFormTangent;
+    }
+    else if (correction_tangent == PREDICTOR_TANGENT) {
+      // here we reuse the tangent formed at the first iteration, relying
+      // on it being maintained in the LinearSOE.
+      ;
+    }
+    else {
+      SOLUTION_ALGORITHM_tangentFlag = correction_tangent;
+      if (theIntegrator->formTangent(correction_tangent) < 0)
+        return SolutionAlgorithm::BadFormTangent;
+    }
 
-    // form the tangent
-    if (theIntegrator->formTangent() < 0)
-      return SolutionAlgorithm::BadFormTangent;
-
-    if (theSOE->solve() < 0)
+    //
+    // 2.2 Solve for dx
+    //
+    if (theSOE->solve(Go, dX) < 0)
       return SolutionAlgorithm::BadLinearSolve;      
 
 
-    // line search direction 
-    const Vector &dx0 = theSOE->getX() ;
-
-    // initial value of s
-    double s0 = - (dx0 ^ Resid0); 
-
-    if (theIntegrator->update(theSOE->getX()) < 0)     
+    if (theIntegrator->update(dX) < 0)     
       return SolutionAlgorithm::BadStepUpdate;
 
+    //
+    // line search 
+    //
+    dXs = dX;
+    if (theLineSearch != nullptr) {
+      // initial value of s
+      double so = dX ^ Go;
 
-    if (theIntegrator->formUnbalance() < 0)
-      return SolutionAlgorithm::BadFormResidual;
+      Gn.Zero();
+      if (theIntegrator->formUnbalance(Gn) < 0)
+        return SolutionAlgorithm::BadFormResidual;
 
-    // do a line search only if convergence criteria not met
-    theOtherTest->start(*theSOE);
-    result = theOtherTest->test(*theSOE);
+      // do a line search only if convergence criteria not met
+      theOtherTest->start(*theSOE);
+      result = theOtherTest->test(Gn, dX);
 
-    if (result < 1) {
-      // new residual 
-      const Vector &Resid = theSOE->getB();
-      
-      // new value of s 
-      double s = - ( dx0 ^ Resid );
-      
-      int search_result = 0;
-      if (theLineSearch != nullptr)
-        search_result = theLineSearch->search(s0, s, *theSOE, *theIntegrator);
+      if (result < 1) {
 
-      if (search_result < 0) {
-        return search_result;
+        // new value of s
+        double su =  dX ^ Gn;
+    
+        int search_result = 0;
+        theLineSearch->newStep(Go);
+        search_result = theLineSearch->search(so, su, dX, Gn, dXs, *theIntegrator);
+
+        if (search_result < 0)
+          return search_result;
       }
     }
 
     this->record(0);
 
-    result = theTest->test(*theSOE);
+    result = theTest->test(Gn, dXs);
+    numIterations++;
+    if (result == ConvergenceTest::Continue)
+      Go = Gn;
 
   } while (result == ConvergenceTest::Continue);
 
@@ -143,59 +162,6 @@ NewtonLineSearch::solveCurrentStep()
   // note - if positive result we are returning what the convergence test returned
   // which should be the number of iterations
   return result;
-}
-
-
-int
-NewtonLineSearch::sendSelf(int cTag, Channel &theChannel)
-{
-  static ID data(1);
-  data(0) = theLineSearch->getClassTag();
-  if (theChannel.sendID(0, cTag, data) < 0) {
-    opserr << "NewtonLineSearch::sendSelf(int cTag, Channel &theChannel)   - failed to send date\n";
-    return -1;
-  }
-
-  if (theLineSearch->sendSelf(cTag, theChannel) < 0) {
-    opserr << "NewtonLineSearch::sendSelf(int cTag, Channel &theChannel)   - failed to send line search\n";
-    return -1;
-  }
-
-  return 0;
-}
-
-
-int
-NewtonLineSearch::recvSelf(int cTag, 
-                        Channel &theChannel, 
-                        FEM_ObjectBroker &theBroker)
-{
-  static ID data(1);
-  if (theChannel.recvID(0, cTag, data) < 0) {
-    opserr << "NewtonLineSearch::recvSelf(int cTag, Channel &theChannel) - failed to recv data\n";
-    return -1;
-  }
-
-  int lineSearchClassTag = data(0);
-
-  if (theLineSearch == 0 || theLineSearch->getClassTag() != lineSearchClassTag) {
-    if (theLineSearch != nullptr)
-      delete theLineSearch;
-
-    theLineSearch = theBroker.getLineSearch(lineSearchClassTag);
-    if (theLineSearch == nullptr) {
-      opserr << "NewtonLineSearch::recvSelf(int cTag, Channel &theChannel) - failed to obtain a LineSerach object\n";
-      return -1;
-    }
-  }
-
-  if (theLineSearch->recvSelf(cTag, theChannel, theBroker) < 0) {
-    opserr << "NewtonLineSearch::recvSelf(int cTag, Channel &theChannel) - failed to recv the LineSerach object\n";
-    return -1;
-  }
-
-  return 0;
-
 }
 
 

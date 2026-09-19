@@ -60,10 +60,7 @@ public:
     int commit();
 
     const Vector &getVel();
-    
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-    
+
     void Print(OPS_Stream &s, int flag);
     
 private:

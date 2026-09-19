@@ -34,6 +34,7 @@
 #include <Vector.h>
 #include <TaggedIterator.hpp>
 #include <MapOfTaggedObjects.h>
+#include "state/EigenState.h"
 
 enum class NodeData: int;
 class Element;
@@ -76,7 +77,6 @@ class Domain
   public:
     Domain();
     virtual ~Domain();
-
 
     using NodeStorage = MapOfTaggedObjects;
     using PatternStorage = MapOfTaggedObjects;
@@ -145,7 +145,6 @@ class Domain
     // methods to query the state of the domain
     virtual double  getCurrentTime() const;
     virtual double  getDT() const;
-    virtual int getCreep() const;
     virtual int getCommitTag() const;    	
     virtual int getNumElements() const;
     virtual int getNumNodes() const;
@@ -168,11 +167,13 @@ class Domain
     virtual  void setCommitTag(int newTag);    	
     virtual  void setCurrentTime(double newTime);
     virtual  void setCommittedTime(double newTime);
-    virtual  void setCreep(int newCreep);
     virtual  void applyLoad(double pseudoTime);
-    virtual  int  initialize(void);    
+    virtual  int  initialize();    
     virtual  int  setRayleighDampingFactors(double alphaM, double betaK, double betaK0, double betaKc);
 
+    virtual int getCreep() const;
+    virtual  void setCreep(int newCreep);
+  
     virtual  int  commit();
     virtual  int  revertToLastCommit();
     virtual  int  revertToStart();    
@@ -191,8 +192,7 @@ class Domain
     virtual double getTimeEigenvaluesSet();
 
     int setModalDampingFactors(Vector *, bool inclModalMatrix = false);
-    const Vector *getModalDampingFactors(void);
-    bool inclModalDampingMatrix(void);
+    const Vector *getModalDampingFactors();
     
     // methods for other objects to determine if model has changed
     virtual int hasDomainChanged();
@@ -219,8 +219,6 @@ class Domain
 
     friend OPS_Stream &operator<<(OPS_Stream &s, Domain &M);    
 
-    virtual int sendSelf(int commitTag, Channel &);  
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);    
 
     // nodal methods required in domain interface for parallel interprter
     virtual double getNodeDisp(int nodeTag, int dof, int &errorFlag);
@@ -280,6 +278,7 @@ class Domain
     bool initBounds;  // added to fix bug when all nodes are positive or negative - ambaker1
     bool resetBounds; // added to optimize bound resetting for when nodes are removed.
     
+    EigenState eigen_state;
     Vector *theEigenvalues;
     double theEigenvalueSetTime;
     Vector *theModalDampingFactors;

@@ -25,9 +25,14 @@
 // Created: 11/01
 //
 #include <LineSearch.h>
+#include <ConvergenceTest.h>
+#include <IncrementalResidual.h>
+#include <LinearSOE.h>
+#include <Vector.h>
+
 
 LineSearch::LineSearch(int clasTag)
-:MovableObject(clasTag)
+: Gn(0), dXs(0)
 {
 
 }
@@ -37,4 +42,36 @@ LineSearch::~LineSearch()
 
 }
 
+
+int
+LineSearch::apply(IncrementalResidual &theIntegrator, 
+                  LinearSOE &theSOE, 
+                  ConvergenceTest &theTest,
+                  Vector &dX, 
+                  Vector &Go)
+{
+  Gn.resize(Go.Size());
+  dXs.resize(dX.Size());
+
+  // initial value of s
+  const double s0 = dX ^ Go;
+
+  Gn.Zero();
+  if (theIntegrator.formUnbalance(Gn) < 0)
+    return -1;
+
+  
+  int status = 0;
+  theTest.start(theSOE);
+  if (theTest.test(Gn, dX) < 1) {
+    const double s = dX ^ Gn;
+    this->newStep(Go);
+    status = this->search(s0, s, dX, Go, dXs, theIntegrator);
+    if (status == 0) {
+      // Search was successful, update dX with the new value
+      dX = dXs;
+    }
+  }
+  return status;
+}
 

@@ -31,40 +31,20 @@
 #include <FEM_ObjectBroker.h>
 #include <ConvergenceTest.h>
 #include <ID.h>
-#include <math.h>
+#include <cmath>
 
-#if 0
-//Constructor
-Broyden::Broyden(ConvergenceTest &theT, int theTangentToUse, int n)
-:EquiSolnAlgo(EquiALGORITHM_TAGS_Broyden),
- tangent(theTangentToUse), numberLoops(n) 
-{
-  s  = new Vector*[numberLoops+3] ;
-  z  = new Vector*[numberLoops+3] ;
-
-  residOld = nullptr ;
-  residNew = nullptr ;
-  du = nullptr ;
-  temp = nullptr ;
-
-  for ( int i =0; i < numberLoops+3; i++ ) {
-    s[i] = 0 ;
-    z[i] = 0 ;
-  }
-}
-#endif
 
 Broyden::Broyden(int theTangentToUse, int n )
 :EquiSolnAlgo(EquiALGORITHM_TAGS_Broyden),
- tangent(theTangentToUse), numberLoops(n) 
+ tangent(theTangentToUse), numberLoops(n),
+ du(0),
+ temp(0)
 {
   s  = new Vector*[numberLoops+3] ;
   z  = new Vector*[numberLoops+3] ;
 
   residOld = nullptr ;
   residNew = nullptr ;
-  du = nullptr ;
-  temp = nullptr ;
 
   for ( int i =0; i < numberLoops+3; i++ ) {
     s[i] = 0 ;
@@ -85,22 +65,15 @@ Broyden::~Broyden()
     delete residNew ;
   residNew = 0 ;
 
-  if ( du != 0 )
-    delete du ;
-  du = 0 ;
 
-  if ( temp != 0 )
-    delete temp ;
-  temp = 0 ;
-
-  for ( int i =0; i < numberLoops+3; i++ ) {
+  for (int i =0; i < numberLoops+3; i++ ) {
     if ( s[i] != 0 )
       delete s[i] ;
     if ( z[i] != 0 )
       delete z[i] ;
     s[i] = 0 ;
     z[i] = 0 ;
-  } //end for i
+  } // end for i
 
   if ( s != 0 ) delete[] s ; 
 
@@ -125,74 +98,62 @@ Broyden::solveCurrentStep()
   if ((theIntegrator == nullptr) 
     || (theSOE == nullptr)
     || (theTest == nullptr)) {
-    opserr << "WARNING Broyden::solveCurrentStep() - setLinks() has";
-    opserr << " not been called - or no ConvergenceTest has been set\n";
-    return -5;
+    return SolutionAlgorithm::BadAlgorithm;
   }        
 
   if (theTest->start(*theSOE) < 0) {
-    opserr << "Broyden::solveCurrentStep() -";
-    opserr << "the ConvergenceTest object failed in start()\n";
-    return -3;
+    return SolutionAlgorithm::BadTestStart;
   }
 
   ConvergenceTest *localTest = theTest->getCopy(this->numberLoops);
+
+  const int systemSize = theSOE->getNumEqn();
+  temp.resize(systemSize);
+  du.resize(systemSize);
+
+  // initial displacement increment
+  if ( s[1] == nullptr ) 
+    s[1] = new Vector(systemSize);
 
   int result = -1 ;
   int count = 0 ;
   do {
 
     // form the initial tangent
-    if (theIntegrator->formTangent(tangent) < 0){
-      opserr << "WARNING Broyden::solveCurrentStep() -";
-      opserr << "the Integrator failed in formTangent()\n";
-      return -1; 
-    }
+    if (theIntegrator->formTangent(tangent) < 0)
+      return SolutionAlgorithm::BadFormTangent;
+
 
     // form the initial residual 
-    if (theIntegrator->formUnbalance() < 0) {
+    if (theIntegrator->formUnbalance(temp) < 0) {
       opserr << "WARNING Broyden::solveCurrentStep() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+      opserr << "the Integrator failed in formUnbalance\n";
     }            
 
     // solve
-    if (theSOE->solve() < 0)
+    if (theSOE->solve(temp, *s[1]) < 0)
       return SolutionAlgorithm::BadLinearSolve;
 
     // update
-    if ( theIntegrator->update(theSOE->getX() ) < 0)
+    if ( theIntegrator->update(*s[1]) < 0)
       return SolutionAlgorithm::BadStepUpdate;
 
-    int systemSize = theSOE->getNumEqn( ) ;
-
-    // temporary vector
-    if ( temp == nullptr ) 
-      temp = new Vector(systemSize) ;
-
-    // initial displacement increment
-    if ( s[1] == nullptr ) 
-      s[1] = new Vector(systemSize) ;
-
-    *s[1] = theSOE->getX( ) ;
 
     // initial residual
     if ( residOld == nullptr )
       residOld = new Vector(systemSize) ;
 
-    *residOld = theSOE->getB( )  ;
+    *residOld = theSOE->getB();
     *residOld *= (-1.0 ) ;
 
     //form the residual again
-    if (theIntegrator->formUnbalance() < 0) {
+    if (theIntegrator->formUnbalance(temp) < 0) {
       opserr << "WARNING Broyden::solveCurrentStep() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+      opserr << "the Integrator failed in formUnbalance\n";        
     }            
 
     if ( residNew == nullptr ) 
       residNew = new Vector(systemSize) ;
-
-    if ( du == nullptr ) 
-      du = new Vector(systemSize) ;
 
 
     localTest->start(*theSOE) ;
@@ -206,38 +167,33 @@ Broyden::solveCurrentStep()
       *r[nBroyden] *= (-1.0 ) ; 
       */
 
-      *residNew =  theSOE->getB( ) ; 
-      *residNew *= (-1.0 ) ;
-    
+      *residNew =  -1.0*temp;
+
       // solve
-      if (theSOE->solve() < 0)
+      if (theSOE->solve(temp, du) < 0)
         return SolutionAlgorithm::BadLinearSolve;
 
-      // save displacement increment
-      *du = theSOE->getX( ) ;
-
       // broyden modifications to du
-      BroydenUpdate(theIntegrator, theSOE, *du, nBroyden );
+      BroydenUpdate(*theIntegrator, *theSOE, du, nBroyden );
 
-      if ( theIntegrator->update( *du ) < 0 )
+      if ( theIntegrator->update(du) < 0 )
         return SolutionAlgorithm::BadStepUpdate;
       
       //increment broyden counter
       nBroyden += 1 ;
 
-      //save displacement increment
+      // save displacement increment
       if ( s[nBroyden] == 0 ) 
         s[nBroyden] = new Vector(systemSize) ;
 
-      *s[nBroyden] = *du ;
+      *s[nBroyden] = du ;
 
       // swap residuals
       *residOld = *residNew ;
 
       //form the residual again
-      if (theIntegrator->formUnbalance() < 0) {
-        opserr << "WARNING Broyden::solveCurrentStep() -";
-        opserr << "the Integrator failed in formUnbalance()\n";        
+      if (theIntegrator->formUnbalance(temp) < 0) {
+        ;
       }            
       
       result = localTest->test(*theSOE); ;
@@ -262,33 +218,30 @@ Broyden::solveCurrentStep()
 
 
 
-void  Broyden::BroydenUpdate( IncrementalIntegrator *theIntegrator, 
-                               LinearSOE *theSOE, 
-                               Vector &du, 
-                               int nBroyden ) 
+int
+Broyden::BroydenUpdate( IncrementalIntegrator &theIntegrator, 
+                        LinearSOE &theSOE, 
+                        Vector &du, 
+                        int nBroyden ) 
 {
 
   static constexpr double eps = 1.0e-16 ;
-
-  int systemSize = theSOE->getNumEqn() ;
 
 
   //compute z
   //  theSOE->setB( (*r[nBroyden]) - (*r[nBroyden-1]) ) ;
   //    theSOE->setB( (*residNew) - (*residOld) ) ;
-  *temp  = (*residNew) ;
-  *temp -= (*residOld) ;
-  theSOE->setB( *temp ) ;
+  temp  = (*residNew);
+  temp -= (*residOld);
+  theSOE.setB(temp);
 
-  if (theSOE->solve() < 0) {
-      opserr << "WARNING Broyden::solveCurrentStep() -";
-      opserr << "the LinearSysOfEqn failed in solve()\n";        
-  }            
-  
   if ( z[nBroyden] == 0 ) 
-    z[nBroyden] = new Vector(systemSize) ;
+    z[nBroyden] = new Vector(du.Size());
 
-  *z[nBroyden] = theSOE->getX() ; 
+  if (theSOE.solve(temp, *z[nBroyden]) < 0)
+    return SolutionAlgorithm::BadLinearSolve;
+
+
   *z[nBroyden] *= (-1.0) ;
 
 
@@ -296,16 +249,13 @@ void  Broyden::BroydenUpdate( IncrementalIntegrator *theIntegrator,
 
     double p = - ( (*s[i]) ^ (*z[i]) ) ;
 
-    if ( fabs(p) < eps ) break ;
+    if ( std::fabs(p) < eps ) break ;
 
     double sdotz = (*s[i]) ^ (*z[nBroyden]) ;
 
     //*z[nBroyden] += (1.0/p) * sdotz * ( *s[i] + *z[i] ) ;
-    *temp  = (*s[i]) ;
-    *temp += (*z[i]) ;
-    *temp *= ( (1.0/p) * sdotz ) ;
-    *z[nBroyden] += (*temp) ;
-
+    z[nBroyden]->addVector(1.0, *s[i], (1.0/p) * sdotz);
+    z[nBroyden]->addVector(1.0, *z[i], (1.0/p) * sdotz);
   }
 
 
@@ -320,61 +270,9 @@ void  Broyden::BroydenUpdate( IncrementalIntegrator *theIntegrator,
     double sdotdu = (*s[i]) ^ du ;
 
     //du += (1.0/p) * sdotdu * ( *s[i] + *z[i] ) ;
-    *temp  = (*s[i]) ;
-    *temp += (*z[i]) ;
-    *temp *= ( (1.0/p) * sdotdu ) ;
-    du += (*temp) ;
-  }
+    du.addVector(1.0, *s[i], (1.0/p) * sdotdu);
+    du.addVector(1.0, *z[i], (1.0/p) * sdotdu);
 
-}
-
-
-int
-Broyden::sendSelf(int cTag, Channel &theChannel)
-{
-  static ID data(2);
-  data(0) = tangent;
-  data(1) = numberLoops;
-  if (theChannel.sendID(0, cTag, data) < 0) {
-    opserr << "Broyden::sendSelf() - failed to send data\n";
-    return -1;
-  }
-  return 0;
-}
-
-int
-Broyden::recvSelf(int cTag, 
-                  Channel &theChannel, 
-                  FEM_ObjectBroker &theBroker)
-{
-  static ID data(2);
-  if (theChannel.recvID(0, cTag, data) < 0) {
-    opserr << "Broyden::recvSelf() - failed to recv data\n";
-    return -1;
-  }
-  tangent = data(0);
-
-  if (numberLoops != data(1)) {
-
-    // remove old
-    if (s != 0 && z != 0) {
-      for ( int i =0; i < numberLoops+3; i++ ) {
-        if ( s[i] != 0 ) delete s[i] ;
-        if ( z[i] != 0 ) delete z[i] ;
-      }
-      delete [] s;
-      delete [] z;
-    }
-
-    numberLoops = data(1);
-
-    // create new
-    s  = new Vector*[numberLoops+3] ;
-    z  = new Vector*[numberLoops+3] ;
-    for ( int i =0; i < numberLoops+3; i++ ) {
-      s[i] = 0 ;
-      z[i] = 0 ;
-    }
   }
 
   return 0;
@@ -429,7 +327,7 @@ Broyden::Print(OPS_Stream &s, int flag) const
 
         if (theIntegrator->formUnbalance() < 0) {
             opserr << "WARNING Broyden::solveCurrentStep() -";
-            opserr << "the Integrator failed in formUnbalance()\n";        
+            opserr << "the Integrator failed in formUnbalance\n";        
             return -2;
         }        
         

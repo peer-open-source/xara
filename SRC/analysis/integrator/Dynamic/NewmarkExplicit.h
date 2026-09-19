@@ -17,15 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
-
-#ifndef NewmarkExplicit_h
-#define NewmarkExplicit_h
-
+//
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com) 
 // Created: 02/05
 // Revision: A
@@ -33,7 +25,7 @@
 // Description: This file contains the class definition for NewmarkExplicit.
 // NewmarkExplicit is an algorithmic class for performing a transient analysis
 // using the explicit Newmark integration scheme (beta = 0).
-
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -60,12 +52,9 @@ public:
     int revertToLastStep(void);
     int update(const Vector &aiPlusOne);
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
-    void Print(OPS_Stream &s, int flag = 0);
+    const Vector &getVel() override;
+
+    void Print(OPS_Stream &s, int flag);
     
 private:
     double gamma;
@@ -75,5 +64,3 @@ private:
     Vector *Ut, *Utdot, *Utdotdot;  // response quantities at time t
     Vector *U, *Udot, *Udotdot;     // response quantities at time t+deltaT
 };
-
-#endif

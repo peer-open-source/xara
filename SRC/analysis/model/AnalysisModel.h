@@ -29,9 +29,7 @@
 // Created: 9/96
 // Revision: A
 //
-#ifndef AnalysisModel_h
-#define AnalysisModel_h
-
+#pragma once
 #include <MovableObject.h>
 #include <TaggedIterator.hpp>
 #include <VectorOfTaggedObjects.h>
@@ -60,14 +58,19 @@ class AnalysisModel: public MovableObject
     ~AnalysisModel();
     void setLinks(Domain &, ConstraintHandler &);
 
+    Domain *getDomainPtr() const;
+
+    //
     // called by Handler
+    //
     bool addFE_Element(FE_Element *);
     bool addDOF_Group(DOF_Group *);
     void clearAll();
     void clearDOFGraph();                 // called by Numberer and Analysis
     void clearDOFGroupGraph();
-    int  getNumDOF_Groups() const;		
+    int  getNumDOF_Groups() const;
     DOF_Group *getDOF_GroupPtr(int tag);
+    //
     FE_EleIter  &getFEs();
     DOF_GrpIter &getDOFs();
     void   setNumEqn(int);
@@ -88,19 +91,25 @@ class AnalysisModel: public MovableObject
 //  void incrAccel(const Vector &vel);
 
     int getState(Vector&, Vector&, Vector&, int flag); // cmp
+    // int getVector(Vector&, int flag); // cmp
 
-    int applyResidual(Integrator&, LinearSOE&);
+    // Useful methods
+    int    applyLoadDomain(double time);
+    int    updateDomain();
+    int    updateDomain(double newTime, double dT);
+
+    int applyResidual(Integrator&, Vector&); // StaticIntegrator::formUnbalance
+    int applyInertia(const Vector &v, Vector &res, double c); // used by ModalDamping
 
 
+    //
+    // Sensitivity
+    //
+    int  applyLoadGradient();
     void setStateGradient(const Vector &du, const Vector &dv, const Vector &da, int grad, int ngrad);
     void getStateGradient(Vector &du, Vector &dv, Vector &da, int grad);
     int  commitGradient(int gradNum, int numGrads);
 
-    // Useful methods
-    void   applyLoadDomain(double time);
-    int    applyLoadGradient();
-    int    updateDomain();
-    int    updateDomain(double newTime, double dT);
 
     // Simple wrappers for the Domain methods; remove these!
     int    commitDomain();
@@ -110,36 +119,33 @@ class AnalysisModel: public MovableObject
     void   setRayleighDampingFactors(double alphaM, double betaK, double betaKi, double betaKc);
     const Vector &getEigenvalues();
 
-    void Print(OPS_Stream &s, int flag =0);
 
-    // Parallel
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-
-    Domain *getDomainPtr() const;
+    //
+    // Modal Damping
+    //
     ModalDamping *getModalDamping() const {
       return modalDamping;
     }
-
     int setModalDamping(const Vector &modalDampingFactors);
+    const Vector *getModalDampingFactors();
     
 
-    // Store the eigenvalues and vectors in the domain
+    //
+    // Eigenvectors and eigenvalues
+    //
     void setNumEigenvectors(int numEigenvectors);
     void setEigenvector(int mode, const Vector &);
     void setEigenvalues(const Vector &);
-    const Vector *getModalDampingFactors();
-    bool inclModalDampingMatrix();
 
-    int applyInertia(const Vector &v, Vector &res);
-    int applyInertia(const Vector& v, LinearSOE&, double c);
-
+    // Misc.
+    void Print(OPS_Stream &s, int flag =0);
 
   private:
-    using Storage = ArrayOfTaggedObjects; //VectorOfTaggedObjects;
+    using Storage = ArrayOfTaggedObjects;
 
-  
     Domain *myDomain;
+
+    // used in clearAll(), applyLoadDomain, updateDomain()
     ConstraintHandler *myHandler;
 
     Graph *myDOFGraph;
@@ -152,16 +158,12 @@ class AnalysisModel: public MovableObject
     Storage  *theFEs;
     Storage  *theDOFs;
     
-    FE_EleIter    *theFEiter;     
+    FE_EleIter    *theFEiter;
     DOF_GrpIter   *theDOFiter;
 
-
+    // Eigenvectors, eigenvalues, damping
     double   *eigenVectors;
     Vector   *eigenValues;
-    // bool      isDiagonal;
-    // double   *diagMass;
 
     ModalDamping *modalDamping;
 };
-
-#endif

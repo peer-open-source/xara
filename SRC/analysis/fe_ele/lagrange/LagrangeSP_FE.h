@@ -54,7 +54,8 @@ class LagrangeSP_FE: public FE_Element
   public:
     LagrangeSP_FE(int tag, Domain &theDomain, SP_Constraint &theSP, 
 		  DOF_Group &theDofGrp, double alpha = 1.0);
-    virtual ~LagrangeSP_FE();    
+    virtual ~LagrangeSP_FE();
+    const char *getClassName() const override {return "LagrangeSP_FE";}
 
     // public methods
     int  setID(AnalysisModel& ) final;

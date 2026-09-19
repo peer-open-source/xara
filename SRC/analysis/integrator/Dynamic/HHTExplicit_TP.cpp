@@ -36,8 +36,7 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
+
 #include <elementAPI.h>
 #define OPS_Export
 
@@ -136,14 +135,14 @@ int HHTExplicit_TP::newStep(double _deltaT)
     
     if (gamma == 0)  {
         opserr << "HHTExplicit_TP::newStep() - error in variable\n";
-        opserr << "gamma = " << gamma << endln;
+        opserr << "gamma = " << gamma << "\n";
         return -1;
     }
     
     deltaT = _deltaT;
     if (deltaT <= 0.0)  {
         opserr << "HHTExplicit_TP::newStep() - error in variable\n";
-        opserr << "dT = " << deltaT << endln;
+        opserr << "dT = " << deltaT << "\n";
         return -2;
     }
     
@@ -201,7 +200,8 @@ int HHTExplicit_TP::newStep(double _deltaT)
 }
 
 
-int HHTExplicit_TP::revertToLastStep()
+int
+HHTExplicit_TP::revertToLastStep()
 {
     // set response at t+deltaT to be that at t .. for next step
     if (U != 0)  {
@@ -214,35 +214,30 @@ int HHTExplicit_TP::revertToLastStep()
 }
 
 
-int HHTExplicit_TP::formUnbalance()
+int
+HHTExplicit_TP::formUnbalance(Vector& G)
 {
     // get a pointer to the LinearSOE and the AnalysisModel
     LinearSOE *theLinSOE = this->getLinearSOE();
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theLinSOE == 0 || theModel == 0)  {
-        opserr << "WARNING HHTExplicit_TP::formUnbalance() - ";
-        opserr << "no LinearSOE or AnalysisModel has been set\n";
         return -1;
     }
     
-    theLinSOE->setB(*Put);
+    G = *Put;
     
     // do modal damping
     const Vector *modalValues = theModel->getModalDampingFactors();
     if (modalValues != 0)  {
-        this->addModalDampingForce(modalValues);
+      this->addModalDampingForce(modalValues);
     }
     
-    if (this->formElementResidual() < 0)  {
-        opserr << "WARNING HHTExplicit_TP::formUnbalance() ";
-        opserr << " - this->formElementResidual failed\n";
-        return -2;
+    if (this->formElementResidual(G) < 0)  {
+      return -2;
     }
     
-    if (this->formNodalUnbalance() < 0)  {
-        opserr << "WARNING HHTExplicit_TP::formUnbalance() ";
-        opserr << " - this->formNodalUnbalance failed\n";
-        return -3;
+    if (this->formNodalUnbalance(G) < 0)  {
+      return -3;
     }
     
     return 0;
@@ -335,40 +330,6 @@ int HHTExplicit_TP::domainChanged()
         Udot = new Vector(size);
         Udotdot = new Vector(size);
         Put = new Vector(size);
-        
-        // check we obtained the new
-        if (Ut == 0 || Ut->Size() != size ||
-            Utdot == 0 || Utdot->Size() != size ||
-            Utdotdot == 0 || Utdotdot->Size() != size ||
-            U == 0 || U->Size() != size ||
-            Udot == 0 || Udot->Size() != size ||
-            Udotdot == 0 || Udotdot->Size() != size ||
-            Put == 0 || Put->Size() != size)  {
-            
-            opserr << "HHTExplicit_TP::domainChanged() - ran out of memory\n";
-            
-            // delete the old
-            if (Ut != 0)
-                delete Ut;
-            if (Utdot != 0)
-                delete Utdot;
-            if (Utdotdot != 0)
-                delete Utdotdot;
-            if (U != 0)
-                delete U;
-            if (Udot != 0)
-                delete Udot;
-            if (Udotdot != 0)
-                delete Udotdot;
-            if (Put != 0)
-                delete Put;
-            
-            Ut = 0; Utdot = 0; Utdotdot = 0;
-            U = 0; Udot = 0; Udotdot = 0;
-            Put = 0;
-            
-            return -1;
-        }
     }
     
     theModel->getState(*U, *Udot, *Udotdot, 0);
@@ -378,8 +339,7 @@ int HHTExplicit_TP::domainChanged()
     // from current step instead of previous step
     alphaD = alphaR = alphaP = (1.0 - alpha);
     if (alpha < 1.0)  {
-        this->TransientIntegrator::formUnbalance();
-        (*Put) = theLinSOE->getB();
+        this->TransientIntegrator::formUnbalance(*Put);
     } else {
         Put->Zero();
     }
@@ -437,11 +397,11 @@ int HHTExplicit_TP::commit()
     
     // get unbalance Put and store it for next step
     alphaD = alphaR = alphaP = (1.0 - alpha);
-    this->TransientIntegrator::formUnbalance();
-    (*Put) = theLinSOE->getB();
+    this->TransientIntegrator::formUnbalance(*Put);
     
     return theModel->commitDomain();
 }
+
 
 const Vector &
 HHTExplicit_TP::getVel()
@@ -449,38 +409,6 @@ HHTExplicit_TP::getVel()
   return *Udot;
 }
 
-int HHTExplicit_TP::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(2);
-    data(0) = alpha;
-    data(1) = gamma;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTExplicit_TP::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int HHTExplicit_TP::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(2);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTExplicit_TP::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    alpha  = data(0);
-    gamma  = data(1);
-    
-    alphaD = alpha;
-    alphaR = alpha;
-    alphaP = alpha;
-    
-    return 0;
-}
 
 
 void HHTExplicit_TP::Print(OPS_Stream &s, int flag)

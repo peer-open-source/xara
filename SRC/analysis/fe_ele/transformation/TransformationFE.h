@@ -40,32 +40,33 @@ class TransformationFE: public ElementFE
 {
   public:
   TransformationFE(int tag, Element *);
-  ~TransformationFE();    
+  ~TransformationFE();
+  const char* getClassName() const override {return "TransformationFE";}
 
-    // public methods for setting/obtaining mapping information
-    virtual const ID &getID() const final;
-    int setID(AnalysisModel&) final;
-    
-    // methods to form and obtain the tangent and residual
-    virtual const Matrix &getTangent(Integrator *);
-    virtual const Vector &getResidual(Integrator *);
-    
-    // methods for ele-by-ele strategies
-    virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
-    virtual const Vector &getK_Force(const Vector &accel, double fcat = 1.0);
-    virtual const Vector &getKi_Force(const Vector &accel, double fcat = 1.0);
-    virtual const Vector &getM_Force(const Vector &accel, double fcat = 1.0);
-    virtual const Vector &getC_Force(const Vector &vel, double fcat = 1.0);
-    virtual void  addD_Force(const Vector &vel,   double fact = 1.0);
-    virtual void  addM_Force(const Vector &accel, double fact = 1.0);    
-    
-    const Vector &getLastResponse();
+  // public methods for setting/obtaining mapping information
+  virtual const ID &getID() const final;
+  int setID(AnalysisModel&) final;
+  
+  // methods to form and obtain the tangent and residual
+  virtual const Matrix &getTangent(Integrator *);
+  virtual const Vector &getResidual(Integrator *);
+  
+  // methods for ele-by-ele strategies
+  virtual const Vector &getTangForce(const Vector &x, double fact = 1.0);
+  virtual const Vector &getK_Force(const Vector &accel, double fcat = 1.0);
+  virtual const Vector &getKi_Force(const Vector &accel, double fcat = 1.0);
+  virtual const Vector &getM_Force(const Vector &accel, double fcat = 1.0);
+  virtual const Vector &getC_Force(const Vector &vel, double fcat = 1.0);
+  virtual void  addD_Force(const Vector &vel,   double fact = 1.0);
+  virtual void  addM_Force(const Vector &accel, double fact = 1.0);    
+  
+  const Vector &getLastResponse();
 
-    // AddingSensitivity:BEGIN ////////////////////////////////////
-    virtual void addM_ForceSensitivity       (int gradNumber, const Vector &vect, double fact = 1.0);
-    virtual void addD_ForceSensitivity       (int gradNumber, const Vector &vect, double fact = 1.0);
-    // AddingSensitivity:END //////////////////////////////////////
-    
+  // AddingSensitivity:BEGIN ////////////////////////////////////
+  virtual void addM_ForceSensitivity       (int gradNumber, const Vector &vect, double fact = 1.0);
+  virtual void addD_ForceSensitivity       (int gradNumber, const Vector &vect, double fact = 1.0);
+  // AddingSensitivity:END //////////////////////////////////////
+
   protected:
     int transformResponse(const Vector &modResponse, Vector &unmodResponse);
     

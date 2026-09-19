@@ -42,13 +42,9 @@ class HSConstraint : public StaticIntegrator
 
     ~HSConstraint();
 
-    int newStep(void);    
+    int newStep();    
     int update(const Vector &deltaU);
-    int domainChanged(void);
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    int domainChanged();
 
     void Print(OPS_Stream &, int flag) final;    
     

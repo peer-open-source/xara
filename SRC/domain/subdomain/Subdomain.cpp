@@ -635,7 +635,7 @@ Subdomain::setRayleighDampingFactors(double alphaM, double betaK, double betaK0,
 }
 
 int 
-Subdomain::computeTang(void)
+Subdomain::computeTang()
 {   
   if (theAnalysis != 0) {
     //    theTimer.start();
@@ -655,63 +655,64 @@ Subdomain::computeTang(void)
 
 
 int 
-Subdomain::computeResidual(void)
+Subdomain::computeResidual()
 {
   if (theAnalysis != 0) {
     //    theTimer.start();
     
-    int res =0;
-    res = theAnalysis->formResidual();
-    
+    int res = 0;
+    // res = theAnalysis->formResidual();
+    res = -1;
+
     //theTimer.pause();
     //    realCost += theTimer.getReal();
     //    cpuCost += theTimer.getCPU();
     //    pageCost += theTimer.getNumPageFaults();
     
     return res;
-    
-    } else {
-      opserr << "Subdomain::computeResidual() ";
-      opserr << " - no StaticCondensationAnalysis has been set\n";
-      return 0;
-    }
+
+  } else {
+    opserr << "Subdomain::computeResidual() ";
+    opserr << " - no StaticCondensationAnalysis has been set\n";
+    return 0;
+  }
 }
     
 
 const Matrix &
-Subdomain::getTang(void)    
+Subdomain::getTang()    
 {
-    if (theAnalysis == 0) {
-	opserr << "Subdomain::getTang() ";
-	opserr << " - no StaticCondensationAnalysis has been set\n";
-	exit(-1);
-    }	
+  if (theAnalysis == 0) {
+    opserr << "Subdomain::getTang() ";
+    opserr << " - no StaticCondensationAnalysis has been set\n";
+    exit(-1);
+  }	
 
-    if (mapBuilt == false)
-	this->buildMap();
+  if (mapBuilt == false)
+    this->buildMap();
 
-    ID &theMap = *map;
-    const Matrix &anaTang = theAnalysis->getTangent();
-    int numDOF = this->getNumDOF();
-    for (int i=0; i<numDOF; i++)
-	for (int j=0; j<numDOF; j++)
-	    (*mappedMatrix)(i,j) = anaTang(theMap(i),theMap(j));
+  ID &theMap = *map;
+  const Matrix &anaTang = theAnalysis->getTangent();
+  int numDOF = this->getNumDOF();
+  for (int i=0; i<numDOF; i++)
+    for (int j=0; j<numDOF; j++)
+        (*mappedMatrix)(i,j) = anaTang(theMap(i),theMap(j));
 
-    return *mappedMatrix;
+  return *mappedMatrix;
 }
 
 
 void
 Subdomain::setFE_ElementPtr(FE_Element *theFE_Ele)
 {
-    theFEele = theFE_Ele;
+  theFEele = theFE_Ele;
 }
 
 
 FE_Element *
-Subdomain::getFE_ElementPtr(void)
+Subdomain::getFE_ElementPtr()
 {
-    return theFEele;
+  return theFEele;
 }
 
 
@@ -745,16 +746,16 @@ Subdomain::getLastExternalSysResponse()
 int 
 Subdomain::computeNodalResponse()
 {
-    int res =0;
-    if (theAnalysis != 0) {
-	res = theAnalysis->computeInternalResponse();
-	return res;
-    }
-    else {
-	opserr << "Subdomain::computeNodalResponse() ";
-	opserr << "- no StaticAnalysis has been set\n"; 
-	return 0;
-    }
+  int res =0;
+  if (theAnalysis != 0) {
+    res = theAnalysis->computeInternalResponse();
+    return res;
+  }
+  else {
+    opserr << "Subdomain::computeNodalResponse() ";
+    opserr << "- no StaticAnalysis has been set\n"; 
+    return 0;
+  }
 }
 
 
@@ -790,19 +791,19 @@ Subdomain::doesIndependentAnalysis()
 int 
 Subdomain::sendSelf(int cTag, Channel &theChannel)
 {
-    int dataTag = this->getDbTag();
-    if (theAnalysis != 0) {
-      ID data(2);
-      data(0) = theAnalysis->getClassTag();
-      data(1) = 0;
-      theChannel.sendID(dataTag, cTag, data);
-            
-      return theAnalysis->sendSelf(cTag, theChannel);
-    }
-    else {
-      opserr << "Subdomain::sendSelf - no analysis set\n";
-    }
-    return -1;
+  int dataTag = this->getDbTag();
+  if (theAnalysis != 0) {
+    ID data(2);
+    data(0) = theAnalysis->getClassTag();
+    data(1) = 0;
+    theChannel.sendID(dataTag, cTag, data);
+
+    return theAnalysis->sendSelf(cTag, theChannel);
+  }
+  else {
+    opserr << "Subdomain::sendSelf - no analysis set\n";
+  }
+  return -1;
 }
 
 int 
@@ -885,7 +886,7 @@ Subdomain::buildMap()
 
 
 DomainDecompositionAnalysis *
-Subdomain::getDDAnalysis(void)
+Subdomain::getDDAnalysis()
 {
   return theAnalysis;
 }

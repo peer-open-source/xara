@@ -47,14 +47,12 @@ class UniformExcitation : public LoadPattern
 
     void setDomain(Domain *) override;
     void applyLoad(double time) override;
-    int applyResidual(AnalysisModel &, LinearSOE &, double) override;
+    int applyResidual(AnalysisModel &, Vector &, double) override;
 
     bool addSP_Constraint(SP_Constraint *) override {return false;}
 
     void Print(OPS_Stream &s, int flag);
 
-    int sendSelf(int tag, Channel &) override;
-    int recvSelf(int tag, Channel &, FEM_ObjectBroker &) override;
 
     virtual int setParameter(const char **argv, int argc, Parameter &);
     virtual int  updateParameter(int parameterID, Information &);

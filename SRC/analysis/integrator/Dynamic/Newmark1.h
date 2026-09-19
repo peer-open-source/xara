@@ -18,9 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-#ifndef Newmark1_h
-#define Newmark1_h
-
 // File: ~/analysis/integrator/Newmark1.h
 // 
 // Written: fmk 
@@ -32,7 +29,7 @@
 // using the Newmark1 integration scheme.
 //
 // What: "@(#) Newmark1.h, revA"
-
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -59,9 +56,6 @@ class Newmark1 : public TransientIntegrator
     int update(const Vector &deltaU);
 
     const Vector &getVel();
-    
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker);
 
     void Print(OPS_Stream &, int flag) final;        
     
@@ -75,6 +69,3 @@ class Newmark1 : public TransientIntegrator
     Vector *U, *Udot, *Udotdot; //response quantities at time t+deltat = predicted + corrected
 	
 };
-
-#endif
-

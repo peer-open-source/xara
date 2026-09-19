@@ -69,7 +69,6 @@ class Brick02 : public Element {
 
     void zeroLoad();
     int addLoad(ElementalLoad *, double loadFactor);
-    int addInertiaLoadToUnbalance(const Vector &accel);
 
     const Vector &getResistingForce();
     const Vector &getResistingForceIncInertia();

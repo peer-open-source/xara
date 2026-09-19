@@ -33,7 +33,6 @@
 class NewtonHallM: public EquiSolnAlgo
 {
 public:
-  NewtonHallM();
   NewtonHallM(double initFactor, int method, double alpha, double c);    
   ~NewtonHallM();
   
@@ -44,6 +43,7 @@ public:
   int getNumIterations() const override;
 
 private:
+  Vector G, dX;
   int numIterations;
 
   int method;

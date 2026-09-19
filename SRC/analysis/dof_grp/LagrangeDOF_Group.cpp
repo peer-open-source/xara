@@ -56,9 +56,6 @@ LagrangeDOF_Group::LagrangeDOF_Group(int tag, MP_Constraint &mpPtr)
 }
 
 
-// ~LagrangeDOF_Group();    
-//	destructor.
-
 LagrangeDOF_Group::~LagrangeDOF_Group()
 {
 
@@ -69,10 +66,10 @@ LagrangeDOF_Group::getTangent(Integrator *theIntegrator)
 {
     // does nothing - the Lagrange FE_Elements provide coeffs to tangent
     if (tangent == nullptr) {
-	int numDOF = this->getNumDOF();
-	tangent = new Matrix(numDOF,numDOF);
+        int numDOF = this->getNumDOF();
+        tangent = new Matrix(numDOF,numDOF);
     }
-    
+
     tangent->Zero();
     return *tangent;
     
@@ -114,7 +111,7 @@ LagrangeDOF_Group::setNodeDisp(const Vector &u)
 void
 LagrangeDOF_Group::setNodeVel(const Vector &udot)
 {
-    return;
+  return;
 }
 
 
@@ -126,7 +123,7 @@ LagrangeDOF_Group::setNodeVel(const Vector &udot)
 void
 LagrangeDOF_Group::setNodeAccel(const Vector &udotdot)
 {
-    return;
+  return;
 }
 
 
@@ -174,7 +171,7 @@ LagrangeDOF_Group::incrNodeAccel(const Vector &udotdot)
 
 
 const Vector &
-LagrangeDOF_Group::getCommittedDisp(void)
+LagrangeDOF_Group::getCommittedDisp()
 {
     // note: this is actually the trial one. but this method is only
     // called by triansient integrators during the domainChanged method
@@ -183,25 +180,27 @@ LagrangeDOF_Group::getCommittedDisp(void)
 }
 
 const Vector &
-LagrangeDOF_Group::getCommittedVel(void)
+LagrangeDOF_Group::getCommittedVel()
 {
     unbalance->Zero();
     return *unbalance;
 }
 
 const Vector &
-LagrangeDOF_Group::getCommittedAccel(void)
+LagrangeDOF_Group::getCommittedAccel()
 {
     unbalance->Zero();
     return *unbalance;
 }
 
-const Vector& LagrangeDOF_Group::getTrialDisp()
+const Vector& 
+LagrangeDOF_Group::getTrialDisp()
 {
-    return m_lagrange_variable;
+  return m_lagrange_variable;
 }
 
-const Vector& LagrangeDOF_Group::getTrialVel()
+const Vector& 
+LagrangeDOF_Group::getTrialVel()
 {
     unbalance->Zero();
     return *unbalance;
@@ -219,12 +218,12 @@ LagrangeDOF_Group::addMtoTang(double fact)
 }
 
 void  
-LagrangeDOF_Group::zeroUnbalance(void)
+LagrangeDOF_Group::zeroUnbalance()
 {
 }
 
 void  
-LagrangeDOF_Group::zeroTangent(void)
+LagrangeDOF_Group::zeroTangent()
 {
 }
 

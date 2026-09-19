@@ -344,45 +344,6 @@ Newmark1::getVel()
   return *Udot;
 }
 
-int
-Newmark1::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(7);
-    data(0) = gamma;
-    data(1) = beta;
-    data(2) = 1.0;	
-    data(3) = alphaM;
-    data(4) = betaK;
-    data(5) = betaKi;
-    data(6) = betaKc;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0) {
-	opserr << "WARNING Newmark1::sendSelf() - could not send data\n";
-	return -1;
-    }	
-    return 0;
-}
-
-int
-Newmark1::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(7);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0) {
-	opserr << "WARNING Newmark1::recvSelf() - could not receive data\n";
-	gamma = 0.5; beta = 0.25; 
-	return -1;
-    }
-    
-    gamma = data(0);
-    beta = data(1);
-    alphaM = data(3);
-    betaK = data(4);
-    betaKi = data(5);
-    betaKc = data(6);
-      
-    return 0;
-    
-}
 
 void
 Newmark1::Print(OPS_Stream &s, int flag)

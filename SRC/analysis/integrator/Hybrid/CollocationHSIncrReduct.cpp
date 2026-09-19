@@ -359,40 +359,6 @@ int CollocationHSIncrReduct::commit(void)
 }
 
 
-int CollocationHSIncrReduct::sendSelf(int cTag, Channel &theChannel)
-{
-    static Vector data(4);
-    data(0) = theta;
-    data(1) = beta;
-    data(2) = gamma;
-    data(3) = reduct;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING CollocationHSIncrReduct::sendSelf() - failed to send the data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int CollocationHSIncrReduct::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(4);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING CollocationHSIncrReduct::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    theta  = data(0);
-    beta   = data(1);
-    gamma  = data(2);
-    reduct = data(3);
-    
-    return 0;
-}
-
-
 void CollocationHSIncrReduct::Print(OPS_Stream &s, int flag)
 {
     AnalysisModel *theModel = this->getAnalysisModel();

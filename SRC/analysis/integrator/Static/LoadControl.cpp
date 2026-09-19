@@ -35,21 +35,20 @@
 #include <FE_EleIter.h>
 #include <Node.h> // getDOF_GroupPtr
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <LoadPattern.h>
-#include <LoadPatternIter.h>
 #include <Domain.h>
 #include <Parameter.h>
 #include <ParameterIter.h>
 
 
-LoadControl::LoadControl(double dLambda, int numIncr, double min, double max, int classtag)
-  : StaticIntegrator(classtag),
+LoadControl::LoadControl(double dLambda, int numIncr, double min, double max, double exponent)
+  : StaticIntegrator(INTEGRATOR_TAGS_LoadControl),
     deltaLambda(dLambda), 
     specNumIncrStep(numIncr), 
     numIncrLastStep(numIncr),
     dLambdaMin(min), 
-    dLambdaMax(max)
+    dLambdaMax(max),
+    pcontrol(dLambda, numIncr, min, max, exponent)
 {
   // to avoid divide-by-zero error on first update() ensure numIncr != 0
   if (numIncr == 0) {
@@ -65,39 +64,44 @@ LoadControl::~LoadControl()
     
 }
 
+int
+LoadControl::domainChanged()
+{
+  AnalysisModel *theModel = this->getAnalysisModel();    
+  if (theModel == nullptr) {
+    return -1;
+  }
+
+  pcontrol.domainChanged(*this->getLinearSOE(), *theModel);
+
+  return 0;
+}
+
 // increment
 int 
 LoadControl::newStep()
 {
+
   AnalysisModel *theModel = this->getAnalysisModel();    
   if (theModel == nullptr) {
-    opserr << "LoadControl::newStep() - no associated AnalysisModel\n";
+    return -1;
+  }
+  double current_time = theModel->getCurrentDomainTime();
+
+  double deltaLambda;
+  if (pcontrol.predict(*this->getLinearSOE(), deltaLambda) < 0) {
+    opserr << "LoadControl::newStep() - predictor control failed\n";
     return -1;
   }
 
-  // determine delta lambda for this step based on dLambda and #iter of last step
-  double expon  = 1.0;
-  double factor = std::pow(specNumIncrStep/numIncrLastStep, expon);
 
-  deltaLambda *= factor;
+  current_time += deltaLambda;
+  theModel->applyLoadDomain(current_time);
 
-  if (deltaLambda < dLambdaMin)
-    deltaLambda = dLambdaMin;
-
-  else if (deltaLambda > dLambdaMax)
-    deltaLambda = dLambdaMax;
-
-
-  double currentLambda = theModel->getCurrentDomainTime();
-
-  currentLambda += deltaLambda;
-  theModel->applyLoadDomain(currentLambda);
-
-  numIncrLastStep = 0;
-  
   return 0;
 }
-    
+
+
 int
 LoadControl::update(const Vector &deltaU)
 {
@@ -116,57 +120,32 @@ LoadControl::update(const Vector &deltaU)
   theSOE->setX(deltaU);
 
   numIncrLastStep++;
-
-  return 0;
-}
-
-
-int
-LoadControl::setDeltaLambda(double newValue)
-{
-  // we set the #incr at last step = #incr so get newValue incr
-  numIncrLastStep = specNumIncrStep;
-  deltaLambda = newValue;
-  return 0;
-}
-
-
-int
-LoadControl::sendSelf(int cTag,
-                      Channel &theChannel)
-{
-  Vector data(5);
-  data(0) = deltaLambda;
-  data(1) = specNumIncrStep;
-  data(2) = numIncrLastStep;
-  data(3) = dLambdaMin;
-  data(4) = dLambdaMax;
-  if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0) {
-      opserr << "LoadControl::sendSelf() - failed to send the Vector\n";
-      return -1;
+  if (pcontrol.update(deltaU) < 0) {
+    opserr << "LoadControl::update() - predictor control failed\n";
+    return -1;
   }
+
   return 0;
 }
 
 
 int
-LoadControl::recvSelf(int cTag,
-                      Channel &theChannel, FEM_ObjectBroker &theBroker)
+LoadControl::commit()
 {
-  Vector data(5);
+  int result = StaticIntegrator::commit();
+  if (result == 0)
+    pcontrol.commit();
+  return result;
+}
 
-  if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0) {
-      opserr << "LoadControl::sendSelf() - failed to send the Vector\n";
-      deltaLambda = 0;
-      return -1;
-  }      
-  deltaLambda = data(0);
-  specNumIncrStep = data(1);
-  numIncrLastStep = data(2);
-  dLambdaMin = data(3);
-  dLambdaMax = data(4);
+
+int
+LoadControl::revertToLastStep()
+{
+  pcontrol.revert();
   return 0;
 }
+
 
 
 
@@ -177,8 +156,6 @@ LoadControl::formSensitivityRHS(int grad)
   this->setResidualType(ResidualType::StaticSensitivity);
   this->setGradIndex(grad);
 
-//  sensitivityFlag = 1;
-//  gradNumber = grad;
 
   // get model
   AnalysisModel* theAnalysisModel = this->getAnalysisModel();
@@ -189,9 +166,9 @@ LoadControl::formSensitivityRHS(int grad)
   //
   FE_Element *elePtr;
   FE_EleIter &theEles = theAnalysisModel->getFEs();
-  while((elePtr = theEles()) != nullptr) {
-    theSOE->addB(  elePtr->getResidual(this),  elePtr->getID() );
-  }
+  while((elePtr = theEles()) != nullptr)
+    theSOE->addB( elePtr->getResidual(this),  elePtr->getID());
+
 
   //
   // add dPext/dh contributions
@@ -211,17 +188,17 @@ LoadControl::formSensitivityRHS(int grad)
       ;  // No random loads in this load pattern
     }
     else {
-        int numRandomLoads = (int)(sizeRandomLoads/2);
-        for (int i=0; i<numRandomLoads*2; i=i+2) {
-            int nodeNumber = (int)randomLoads(i);
-            int dofNumber = (int)randomLoads(i+1);
-            Node* aNode = theDomain->getNode(nodeNumber);
-            DOF_Group* aDofGroup = aNode->getDOF_GroupPtr();
-            const ID &anID = aDofGroup->getID();
-            int relevantID = anID(dofNumber-1);
-            oneDimID(0) = relevantID;
-            theSOE->addB(oneDimVectorWithOne, oneDimID);
-        }
+      int numRandomLoads = (int)(sizeRandomLoads/2);
+      for (int i=0; i<numRandomLoads*2; i=i+2) {
+        int nodeNumber = (int)randomLoads(i);
+        int dofNumber = (int)randomLoads(i+1);
+        Node* aNode = theDomain->getNode(nodeNumber);
+        DOF_Group* aDofGroup = aNode->getDOF_GroupPtr();
+        const ID &anID = aDofGroup->getID();
+        int relevantID = anID(dofNumber-1);
+        oneDimID(0) = relevantID;
+        theSOE->addB(oneDimVectorWithOne, oneDimID);
+      }
     }
   }
 
@@ -299,7 +276,7 @@ LoadControl::computeSensitivities()
     theSOE->solve();
 
     // Save sensitivity to nodes
-    this->updateGradient( theSOE->getX(), gradIndex, numGrads);
+    this->updateGradient(theSOE->getX(), gradIndex, numGrads);
     
     // Commit unconditional history variables (also for elastic problems; strain sens may be needed anyway)
     theModel->commitGradient(gradIndex, numGrads);
@@ -316,12 +293,20 @@ LoadControl::computeSensitivities()
 void
 LoadControl::Print(OPS_Stream &s, int flag)
 { 
-    AnalysisModel *theModel = this->getAnalysisModel();
-    if (theModel != nullptr) {
-      double currentLambda = theModel->getCurrentDomainTime();
-      s << "\t LoadControl - currentLambda: " << currentLambda;
-      s << "  deltaLambda: " << deltaLambda << endln;
-    } else 
-      s << "\t LoadControl - no associated AnalysisModel\n";    
-}
 
+  s << "LoadControl Integrator\n";
+  s << "  expon: " << expon << "\n";
+  s << "  specNumIncrStep: " << specNumIncrStep << "\n";
+  s << "  numIncrLastStep: " << numIncrLastStep << "\n";
+  s << "  dLambdaMin: " << dLambdaMin << "\n";
+  s << "  dLambdaMax: " << dLambdaMax << "\n";
+
+  AnalysisModel *theModel = this->getAnalysisModel();
+
+  if (theModel != nullptr) {
+    double currentLambda = theModel->getCurrentDomainTime();
+    s << "\t LoadControl - currentLambda: " << currentLambda;
+    s << "  deltaLambda: " << deltaLambda << "\n";
+  }
+
+}

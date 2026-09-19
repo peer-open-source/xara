@@ -58,7 +58,7 @@ SecantAccelerator2::~SecantAccelerator2()
 }
 
 int 
-SecantAccelerator2::newStep(LinearSOE &theSOE)
+SecantAccelerator2::newStep(const LinearSOE &theSOE)
 {
   int newNumEqns = theSOE.getNumEqn();
 
@@ -182,17 +182,4 @@ SecantAccelerator2::Print(OPS_Stream &s, int flag) const
     s << "\tCut-out factors -- R1: " << R1 << ", R2: " << R2 << "\n";
   else
     s << "\tNo cut-outs" << "\n";
-}
-
-int
-SecantAccelerator2::sendSelf(int commitTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int
-SecantAccelerator2::recvSelf(int commitTag, Channel &theChannel, 
-			     FEM_ObjectBroker &theBroker)
-{
-  return -1;
 }

@@ -43,11 +43,15 @@ class Domain;
 class SP_Constraint;
 class Node;
 
+#define NEW_PENALTY_SP_STIFFNESS
+
 class PenaltySP_FE: public FE_Element
 {
   public:
     PenaltySP_FE(int tag, Domain &, SP_Constraint &, double alpha=1.0e8);    
-    virtual ~PenaltySP_FE();    
+    virtual ~PenaltySP_FE();
+
+    const char *getClassName() const override {return "PenaltySP_FE";}
 
     // public methods
     int  setID(AnalysisModel& ) final;
@@ -60,7 +64,17 @@ class PenaltySP_FE: public FE_Element
     virtual const Vector &getKi_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getC_Force(const Vector &x, double fact = 1.0);
     virtual const Vector &getM_Force(const Vector &x, double fact = 1.0);
-    void zeroTangent() final {tang.Zero();}
+
+    void zeroTangent() final {
+#ifdef NEW_PENALTY_SP_STIFFNESS
+        tang.Zero();
+#endif
+      // tang? tang->Zero() : void();
+    }
+    void  addKtToTang(double fact) final;
+    void  addKiToTang(double fact) final {addKtToTang(fact);}
+    void  addCtoTang (double fact) final {}
+    void  addMtoTang (double fact) final {} //addKtToTang(fact);}
 
   private:
     ID myID;

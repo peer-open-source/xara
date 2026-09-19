@@ -66,10 +66,6 @@ class HarmonicSteadyState : public StaticIntegrator
     bool computeSensitivityAtEachIteration();
     int revertToLastStep() override {return 0;}
 
-    // MovableObject interface
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-
     void Print(OPS_Stream &, int flag) final;
 
   private:

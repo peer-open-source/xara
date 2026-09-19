@@ -82,13 +82,8 @@ AnalysisModel::AnalysisModel(Domain& domain)
  , eigenVectors(0), eigenValues(0)
  , modalDamping(nullptr)
 {
-#if 0
-  theFEs     = new VectorOfTaggedObjects(); // 256);
-  theDOFs    = new VectorOfTaggedObjects(); // 256);
-#else
   theFEs     = new ArrayOfTaggedObjects(1024);
   theDOFs    =  new ArrayOfTaggedObjects(1024);
-#endif
   theFEiter  = new FE_EleIter(theFEs);
   theDOFiter = new DOF_GrpIter(theDOFs);
 
@@ -117,8 +112,8 @@ AnalysisModel::~AnalysisModel()
     delete theDOFiter;
 
   if (myGroupGraph != nullptr) {
-    delete myGroupGraph;    
-  }        
+    delete myGroupGraph;
+  }
   
   if (myDOFGraph != nullptr) {
     delete myDOFGraph;
@@ -126,7 +121,7 @@ AnalysisModel::~AnalysisModel()
 
   if (modalDamping != nullptr)
     delete modalDamping;
-}    
+}
 
 void
 AnalysisModel::setLinks(Domain &theDomain, ConstraintHandler &theHandler)
@@ -194,7 +189,7 @@ AnalysisModel::addDOF_Group(DOF_Group *theGroup)
 
 
 void
-AnalysisModel::clearAll() 
+AnalysisModel::clearAll()
 {
   // if the graphs have been constructed delete them
   this->clearDOFGroupGraph();
@@ -203,7 +198,7 @@ AnalysisModel::clearAll()
 
   theFEs->clearAll();
   theDOFs->clearAll();
-  
+
   numFE_Ele =0;
   numDOF_Grp = 0;
   numEqn = 0;
@@ -215,12 +210,12 @@ AnalysisModel::clearAll()
     delete modalDamping;
   modalDamping = nullptr;
 
-  
+
   // for the nodes reset the DOF_Group pointers to 0
   Domain *theDomain = this->getDomainPtr();
   if (theDomain == nullptr)
     return;
-  
+
   NodeIter &theNod = theDomain->getNodes();
   Node *nodPtr;
   while ((nodPtr = theNod()) != nullptr)
@@ -240,8 +235,8 @@ void
 AnalysisModel::clearDOFGroupGraph() 
 {
   if (myGroupGraph != nullptr)
-    delete myGroupGraph;    
-  
+    delete myGroupGraph;
+
   myGroupGraph = nullptr;
 }
 
@@ -281,9 +276,10 @@ AnalysisModel::getDOFs()
   return *theDOFiter;
 }
 
-void 
+void
 AnalysisModel::setNumEqn(int theNumEqn)
 {
+
   if (modalDamping != nullptr && (numEqn != theNumEqn)) {
     delete modalDamping;
     modalDamping = nullptr;
@@ -292,7 +288,7 @@ AnalysisModel::setNumEqn(int theNumEqn)
   numEqn = theNumEqn;
 }
 
-int 
+int
 AnalysisModel::getNumEqn() const
 {
   return numEqn;
@@ -311,23 +307,17 @@ AnalysisModel::getDOFGraph()
     //
     // create a vertex for each dof
     //
-    
-    DOF_Group *dofPtr =0;
+    DOF_Group *dofPtr =nullptr;
     DOF_GrpIter &theDOFs = this->getDOFs();
-    while ((dofPtr = theDOFs()) != 0) {
+    while ((dofPtr = theDOFs()) != nullptr) {
       const ID &id = dofPtr->getID();
       int size = id.Size();
       for (int i=0; i<size; i++) {
         int dofTag = id(i);
         if (dofTag >= START_EQN_NUM) {
           Vertex *vertexPtr = myDOFGraph->getVertexPtr(dofTag);
-          if (vertexPtr == 0) {
-            Vertex *vertexPtr = new Vertex(dofTag, dofTag);      
-            if (vertexPtr == 0) {
-              opserr << "WARNING AnalysisModel::getDOFGraph";
-              opserr << " - Not Enough Memory to create " << i+1 << "th Vertex\n";
-              return *myDOFGraph;
-            }
+          if (vertexPtr == nullptr) {
+            Vertex *vertexPtr = new Vertex(dofTag, dofTag);
             if (myDOFGraph->addVertex(vertexPtr, false) == false) {
               opserr << "WARNING AnalysisModel::getDOFGraph - error adding vertex\n";
               return *myDOFGraph;
@@ -336,33 +326,34 @@ AnalysisModel::getDOFGraph()
         }
       }
     }
-    
+
     // now add the edges, by looping over the FE_elements, getting their
     // IDs and adding edges between DOFs for equation numbers >= START_EQN_NUM
-    
+
     FE_Element *elePtr =0;
     FE_EleIter &eleIter = this->getFEs();
-    
+
     myDOFGraph->startAddEdge();
     while((elePtr = eleIter()) != 0) {
       const ID &id = elePtr->getID();
       const int size = id.Size();
       for (int i=0; i<size; i++) {
         int eqn1 = id(i);
-        
+
         // if eqnNum of DOF is a valid eqn number add an edge
         // to all other DOFs with valid eqn numbers.
         if (eqn1 >=START_EQN_NUM) {
           for (int j=i+1; j<size; j++) {
             int eqn2 = id(j);
-            if (eqn2 >=START_EQN_NUM)
+            // https://github.com/peer-open-source/xara/pull/114
+            if (eqn2 >=START_EQN_NUM && eqn1 != eqn2)
               myDOFGraph->addEdgeFast(eqn1-START_EQN_NUM+START_VERTEX_NUM,
                                   eqn2-START_EQN_NUM+START_VERTEX_NUM);
           }
         }
       }
     }
-  }    
+  }
 
   return *myDOFGraph;
 }
@@ -377,7 +368,7 @@ AnalysisModel::getDOFGroupGraph()
     // myGroupGraph = new Graph(numVertex);
     MapOfTaggedObjects *graphStorage = new MapOfTaggedObjects();
     myGroupGraph = new Graph(*graphStorage);
-        
+
 
     // now create the vertices with a reference equal to the DOF_Group number.
     // and a tag which ranges from 0 through numVertex-1
@@ -395,7 +386,7 @@ AnalysisModel::getDOFGroupGraph()
 
     // now add the edges, by looping over the Elements, getting their
     // IDs and adding edges between DOFs for equation numbers >= START_EQN_NUM
-    
+
     FE_Element *elePtr;
     FE_EleIter &eleIter = this->getFEs();
 
@@ -419,7 +410,7 @@ AnalysisModel::getDOFGroupGraph()
 
 
 
-void 
+void
 AnalysisModel::setResponse(const Vector &disp,
                            const Vector &vel, 
                            const Vector &accel)
@@ -450,7 +441,8 @@ AnalysisModel::setStateGradient(
   }
 }
 
-void 
+
+void
 AnalysisModel::getStateGradient(
                     Vector &du, 
                     Vector &dv, 
@@ -486,14 +478,14 @@ AnalysisModel::commitGradient(int gradNum, int numGrads)
 {
   // Loop through the FE_Elements and set unconditional sensitivities
   FE_Element *elePtr;
-  FE_EleIter &theEles = this->getFEs();    
+  FE_EleIter &theEles = this->getFEs();
   while ((elePtr = theEles()) != nullptr)
     elePtr->commitSensitivity(gradNum, numGrads);
 
   return 0;
 }
 
-void 
+void
 AnalysisModel::setDisp(const Vector &disp)
 {
   DOF_GrpIter &theDOFGrps = this->getDOFs();
@@ -501,30 +493,30 @@ AnalysisModel::setDisp(const Vector &disp)
 
   while ((dofPtr = theDOFGrps()) != nullptr)
     dofPtr->setNodeDisp(disp);
-}        
-        
-void 
+}
+
+void
 AnalysisModel::setVel(const Vector &vel)
 {
   DOF_GrpIter &theDOFGrps = this->getDOFs();
   DOF_Group   *dofPtr;
-  
+
   while ((dofPtr = theDOFGrps()) != nullptr)
     dofPtr->setNodeVel(vel);
 }
-        
 
-void 
+
+void
 AnalysisModel::setAccel(const Vector &accel)
 {
   DOF_GrpIter &theDOFGrps = this->getDOFs();
   DOF_Group   *dofPtr;
-  
-  while ((dofPtr = theDOFGrps()) != 0) 
-    dofPtr->setNodeAccel(accel);        
+
+  while ((dofPtr = theDOFGrps()) != nullptr) 
+    dofPtr->setNodeAccel(accel);
 }
 
-void 
+void
 AnalysisModel::incrDisp(const Vector &disp)
 {
   DOF_GrpIter &theDOFGrps = this->getDOFs();
@@ -533,27 +525,27 @@ AnalysisModel::incrDisp(const Vector &disp)
   while ((dofPtr = theDOFGrps()) != nullptr)
     dofPtr->incrNodeDisp(disp);
 }
-        
-void 
+
+void
 AnalysisModel::incrVel(const Vector &vel)
 {
   DOF_GrpIter &theDOFGrps = this->getDOFs();
-  DOF_Group         *dofPtr;    
+  DOF_Group         *dofPtr;
   while ((dofPtr = theDOFGrps()) != nullptr)
     dofPtr->incrNodeVel(vel);
 }
 
 
 #if 0
-void 
+void
 AnalysisModel::incrAccel(const Vector &accel)
 {
   DOF_GrpIter &theDOFGrps = this->getDOFs();
     DOF_Group         *dofPtr;
-    
-    while ((dofPtr = theDOFGrps()) != 0) 
-      dofPtr->incrNodeAccel(accel);        
-}        
+
+    while ((dofPtr = theDOFGrps()) != nullptr) 
+      dofPtr->incrNodeAccel(accel);
+}
 #endif
 
 
@@ -573,21 +565,21 @@ AnalysisModel::getState(Vector &U, Vector &Udot, Vector &Udotdot, int flag)
     int idSize = id.Size();
 
     const Vector &disp = dofPtr->getCommittedDisp();
-    for (int i=0; i < idSize; i++)  {
-        int loc = id(i);
-        if (loc >= 0)  {
-          U(loc) = disp(i);
-        }
+    for (int i=0; i < idSize; i++) {
+      int loc = id(i);
+      if (loc >= 0)  {
+        U(loc) = disp(i);
+      }
     }
-    
+
     const Vector &vel = dofPtr->getCommittedVel();
     for (int i=0; i < idSize; i++)  {
       int loc = id(i);
-      if (loc >= 0)  {
+      if (loc >= 0) {
         Udot(loc) = vel(i);
       }
     }
-    
+
     const Vector &accel = dofPtr->getCommittedAccel();
     for (int i=0; i < idSize; i++)  {
       int loc = id(i);
@@ -602,7 +594,7 @@ AnalysisModel::getState(Vector &U, Vector &Udot, Vector &Udotdot, int flag)
 
 
 int 
-AnalysisModel::applyResidual(Integrator& assm, LinearSOE& soe)
+AnalysisModel::applyResidual(Integrator& assm, Vector& b)
 {
 
   // loop through the DOF_Groups and add the unbalance
@@ -612,7 +604,8 @@ AnalysisModel::applyResidual(Integrator& assm, LinearSOE& soe)
   int res = 0;
 
   while ((dofPtr = theDOFs()) != nullptr) {
-    if (soe.addB( dofPtr->getUnbalance(&assm), dofPtr->getID()) <0) [[unlikely]] {
+    // if (soe.addB( dofPtr->getUnbalance(&assm), dofPtr->getID()) <0) [[unlikely]] {
+    if (b.Assemble( dofPtr->getUnbalance(&assm), dofPtr->getID()) <0) [[unlikely]] {
       res = -1;
     }
   }
@@ -620,9 +613,11 @@ AnalysisModel::applyResidual(Integrator& assm, LinearSOE& soe)
   // loop through the FE_Elements and add the residual
   // same as IncrementalIntegrator::formElementResidual
   FE_Element *elePtr;
-  FE_EleIter &theEles2 = this->getFEs();    
+  FE_EleIter &theEles2 = this->getFEs();
   while ((elePtr = theEles2()) != nullptr) {
-    if (soe.addB(elePtr->getResidual(&assm), elePtr->getID()) < 0) [[unlikely]] {
+    const Vector& v = elePtr->getResidual(&assm);
+    if (b.Assemble(v, elePtr->getID()) < 0) [[unlikely]] {
+    // if (soe.addB(v, elePtr->getID()) < 0) [[unlikely]] {
       res = -2;
     }
   }
@@ -632,60 +627,35 @@ AnalysisModel::applyResidual(Integrator& assm, LinearSOE& soe)
 
 
 
-int 
-AnalysisModel::applyInertia(const Vector &v, Vector &res)
+int
+AnalysisModel::applyInertia(const Vector &v, Vector &res, double fact)
 {
   // int n = v.Size();
   assert(v.Size() == numEqn);
   assert(res.Size() == numEqn);
 
-  res.Zero();
+  // res.Zero();
 
   // loop over the FE_Elements
   FE_Element *elePtr;
-  FE_EleIter &theEles = this->getFEs();    
+  FE_EleIter &theEles = this->getFEs();
   while((elePtr = theEles()) != nullptr) {
     const Vector &b = elePtr->getM_Force(v, 1.0);
-    res.Assemble(b, elePtr->getID(), 1.0);
+    res.Assemble(b, elePtr->getID(), fact);
   }
 
   // loop over the DOF_Groups
   DOF_Group *dofPtr;
   DOF_GrpIter &theDofs = this->getDOFs();
   while ((dofPtr = theDofs()) != nullptr) {
-    const Vector &a = dofPtr->getM_Force(v, 1.0);      
-    res.Assemble(a, dofPtr->getID(), 1.0);
+    const Vector &a = dofPtr->getM_Force(v, 1.0);
+    res.Assemble(a, dofPtr->getID(), fact);
   }
   return 0;
 }
 
 
-int 
-AnalysisModel::applyInertia(const Vector &v, LinearSOE& soe, double fact)
-{
-  assert(v.Size() == numEqn);
-  assert(soe.getNumEqn() == numEqn);
-
-  // loop over the FE_Elements
-  FE_Element *elePtr;
-  FE_EleIter &theEles = this->getFEs();    
-  while((elePtr = theEles()) != nullptr) {
-    const Vector &b = elePtr->getM_Force(v, 1.0);
-    soe.addB(b, elePtr->getID(), fact);
-  }
-
-  // loop over the DOF_Groups
-  DOF_Group *dofPtr;
-  DOF_GrpIter &theDofs = this->getDOFs();
-  while ((dofPtr = theDofs()) != 0) {
-    const Vector &a = dofPtr->getM_Force(v, 1.0);      
-    soe.addB(a, dofPtr->getID(), fact);
-  }
-  return 0;
-}
-
-
-void 
+void
 AnalysisModel::setNumEigenvectors(int numEigenvectors)
 {
   Node *theNode;
@@ -695,18 +665,18 @@ AnalysisModel::setNumEigenvectors(int numEigenvectors)
 }
 
 
-void 
+void
 AnalysisModel::setEigenvalues(const Vector &eigenvalues)
 {
   myDomain->setEigenvalues(eigenvalues);
-}        
+}
 
 
 const Vector &
 AnalysisModel::getEigenvalues()
 {
   return myDomain->getEigenvalues();
-}        
+}
 
 
 
@@ -716,12 +686,6 @@ AnalysisModel::getModalDampingFactors()
   return myDomain->getModalDampingFactors();
 }
 
-
-bool 
-AnalysisModel::inclModalDampingMatrix()
-{
-  return myDomain->inclModalDampingMatrix();
-}
 
 int 
 AnalysisModel::setModalDamping(const Vector &modalDampingFactors)
@@ -733,23 +697,25 @@ AnalysisModel::setModalDamping(const Vector &modalDampingFactors)
   return 0;
 }
 
-void 
+void
 AnalysisModel::setEigenvector(int mode, const Vector &eigenvalue)
 {
   DOF_GrpIter &theDOFGrps = this->getDOFs();
   DOF_Group   *dofPtr;
   
   while ((dofPtr = theDOFGrps()) != nullptr) 
-    dofPtr->setEigenvector(mode, eigenvalue);        
-}        
+    dofPtr->setEigenvector(mode, eigenvalue);
+}
 
 
-void 
+int
 AnalysisModel::applyLoadDomain(double time)
 {
   assert(myDomain != nullptr);
+  int res = 0;
   myDomain->applyLoad(time);
-  myHandler->applyLoad();
+  res = myHandler->applyLoad();
+  return res;
 }
 
 
@@ -791,15 +757,19 @@ AnalysisModel::updateDomain(double newTime, double dT)
 {
   assert(myDomain != nullptr);
 
-  // invoke the method
-  int res = 0;
-  myDomain->applyLoad(newTime);
+  int res = this->applyLoadDomain(newTime);
   if (res == 0)
-    res = myHandler->applyLoad();
-  if (res == 0)
-    res = myDomain->update();
-  if (res == 0)
-    res = myHandler->update();
+    res = this->updateDomain();
+
+  // int res = 0;
+  // myDomain->applyLoad(newTime);
+  // if (res == 0)
+  //   res = myHandler->applyLoad();
+
+  // if (res == 0)
+  //   res = myDomain->update();
+  // if (res == 0)
+  //   res = myHandler->update();
 
   return res;
 }
@@ -877,7 +847,7 @@ AnalysisModel::getDomainPtr() const
   return myDomain;
 }
 
-void 
+void
 AnalysisModel::Print(OPS_Stream &s, int flag)
 {
   opserr << "{\n";
@@ -901,17 +871,4 @@ AnalysisModel::Print(OPS_Stream &s, int flag)
   }
   opserr << "\n  ]\n";
   opserr << "}\n";
-}
-
-int
-AnalysisModel::sendSelf(int cTag, Channel &theChannel)
-{
-  return 0;
-}
-
-
-int
-AnalysisModel::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker) 
-{
-  return 0;
 }

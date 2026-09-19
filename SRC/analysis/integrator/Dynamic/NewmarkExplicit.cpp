@@ -281,33 +281,6 @@ NewmarkExplicit::getVel()
 }
 
 
-int NewmarkExplicit::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(1);
-    data(0) = gamma;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING NewmarkExplicit::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int NewmarkExplicit::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(1);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING NewmarkExplicit::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    gamma = data(0);
-    
-    return 0;
-}
-
 
 void NewmarkExplicit::Print(OPS_Stream &s, int flag)
 {

@@ -35,10 +35,7 @@
 //
 // It is based on previous work of Jun Peng(Stanford)
 //
-
-
-#ifndef ArpackSolver_h
-#define ArpackSolver_h
+#pragma once
 
 #include <EigenSolver.h>
 #include <ArpackSOE.h>
@@ -60,9 +57,6 @@ class ArpackSolver : public EigenSolver
     const Vector &getEigenvector(int mode) final;
     int getEigenvector(int mode, Vector &theVector) final;
     double getEigenvalue(int mode) final;
-    
-    int sendSelf(int commitTag, Channel &);
-    int recvSelf(int commitTag, Channel &,  FEM_ObjectBroker &theBroker);
 
   private:
     LinearSOE *theSOE;
@@ -123,5 +117,3 @@ class ArpackSolver : public EigenSolver
     int  getNCV(int n, int nev);
     int  solveI(int numMode, bool generalized, bool findSmallest = true);
 };
-
-#endif

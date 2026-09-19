@@ -36,8 +36,7 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
+
 #include <elementAPI.h>
 #define OPS_Export
 
@@ -348,39 +347,6 @@ const Vector &
 NewmarkHSIncrLimit::getVel()
 {
   return *Udot;
-}
-
-int NewmarkHSIncrLimit::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(4);
-    data(0) = gamma;
-    data(1) = beta;
-    data(2) = limit;
-    data(3) = normType;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING NewmarkHSIncrLimit::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int NewmarkHSIncrLimit::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(4);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING NewmarkHSIncrLimit::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    gamma    = data(0);
-    beta     = data(1);
-    limit    = data(2);
-    normType = int(data(3));
-    
-    return 0;
 }
 
 

@@ -36,8 +36,8 @@ class PeriodicAccelerator: public Accelerator
   PeriodicAccelerator(int iter = 3, int tangent = CURRENT_TANGENT);
   virtual ~PeriodicAccelerator();
   
-  int newStep(LinearSOE &theSOE);
-  int accelerate(Vector &v, LinearSOE &theSOE, 
+  int newStep(const LinearSOE &theSOE) override;
+  int accelerate(Vector &v, LinearSOE &, 
 		 IncrementalIntegrator &theIntegrator);
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
   bool updateTangent(void);

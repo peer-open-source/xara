@@ -56,9 +56,6 @@ class ArcLength1 : public StaticIntegrator
     int update(const Vector &deltaU) override;
     int domainChanged() override;
     int revertToLastStep() override {return 0;}
-    
-    int sendSelf(int commitTag, Channel &) override;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) override;
 
     void Print(OPS_Stream &, int flag) final;    
     

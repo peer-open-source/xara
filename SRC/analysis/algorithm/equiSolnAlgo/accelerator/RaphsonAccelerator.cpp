@@ -47,7 +47,7 @@ RaphsonAccelerator::~RaphsonAccelerator()
 }
 
 int 
-RaphsonAccelerator::newStep(LinearSOE &theSOE)
+RaphsonAccelerator::newStep(const LinearSOE &theSOE)
 {
   totalIter = 0;
 

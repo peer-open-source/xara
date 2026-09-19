@@ -498,13 +498,15 @@ ASDAbsorbingBoundary2D::getMass()
     return M;
 }
 
-int ASDAbsorbingBoundary2D::addInertiaLoadToUnbalance(const Vector& accel)
+int 
+ASDAbsorbingBoundary2D::addInertiaLoadToUnbalance(const Vector& accel)
 {
     // we don't need this!
     return 0;
 }
 
-const Vector& ASDAbsorbingBoundary2D::getResistingForce()
+const Vector& 
+ASDAbsorbingBoundary2D::getResistingForce()
 {
     // initialize vector
     static Vector R;
@@ -527,7 +529,8 @@ const Vector& ASDAbsorbingBoundary2D::getResistingForce()
     return R;
 }
 
-const Vector& ASDAbsorbingBoundary2D::getResistingForceIncInertia()
+const Vector& 
+ASDAbsorbingBoundary2D::getResistingForceIncInertia()
 {
     // initialize vector
     static Vector R;

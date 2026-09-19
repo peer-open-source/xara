@@ -37,7 +37,6 @@
 #include <NodalLoadIter.h>
 #include <SingleDomSP_Iter.h>
 #include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <OPS_Globals.h>
 
 
@@ -251,19 +250,6 @@ LoadPattern::getLoadFactor()
     return 0.0;
 }
 
-
-int
-LoadPattern::sendSelf(int cTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int 
-LoadPattern::recvSelf(int cTag, Channel &theChannel,
-                          FEM_ObjectBroker &theBroker)
-{
-  return -1;
-}
 
 #if 0
 void 

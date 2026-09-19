@@ -18,9 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-#ifndef LoadPath_h
-#define LoadPath_h
-
 // File: ~/analysis/integrator/LoadPath.h
 // 
 // Written: fmk 
@@ -32,7 +29,7 @@
 // using a user defined load path (a user specified lambda path)
 //
 // What: "@(#) LoadPath.h, revA"
-
+#pragma once
 #include <StaticIntegrator.h>
 
 class LinearSOE;
@@ -48,13 +45,8 @@ class LoadPath : public StaticIntegrator
 
     ~LoadPath();
 
-    int newStep(void);    
-    int update(const Vector &deltaU);
-
-    // Public methods for Output
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-		 FEM_ObjectBroker &theBroker);
+    int newStep() override;    
+    int update(const Vector &deltaU) override;
 
     void Print(OPS_Stream &, int flag) final;    
     
@@ -63,5 +55,4 @@ class LoadPath : public StaticIntegrator
     int currentStep;
 };
 
-#endif
 

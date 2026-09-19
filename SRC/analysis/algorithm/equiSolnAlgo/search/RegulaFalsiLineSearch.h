@@ -41,12 +41,10 @@
 // Written: fmk 
 // Created: 11/01
 //
-#ifndef RegulaFalsiLineSearch_h
-#define RegulaFalsiLineSearch_h
+#pragma once
 
 #include <LineSearch.h>
-class Vector;
-class OPS_Stream;
+#include <Vector.h>
 
 class RegulaFalsiLineSearch: public LineSearch
 {
@@ -59,25 +57,21 @@ class RegulaFalsiLineSearch: public LineSearch
 
     ~RegulaFalsiLineSearch();
 
-    int newStep(LinearSOE &theSOE);
-    int search(double s0, 
-	       double s1, 
-	       LinearSOE &theSOE, 
-	       IncrementalIntegrator &theIntegrator);
+    int newStep(const Vector &Go) override;
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
+    int search(double s0, 
+                double s1, 
+                const Vector& dU,
+                Vector& G,
+                Vector& dXs,
+                IncrementalResidual &) override;
+
     void Print(OPS_Stream &s, int flag);
     
   private:
-    Vector *x;
     double tolerance;
     int    maxIter;
     double minEta;
     double maxEta;
     int    printFlag;
 };
-
-#endif
-
-

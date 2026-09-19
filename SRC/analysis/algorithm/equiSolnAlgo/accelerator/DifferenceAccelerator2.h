@@ -23,10 +23,7 @@
 //
 // Description: This file contains the class definition for 
 // DifferenceAccelerator2. 
-
-#ifndef DifferenceAccelerator2_h
-#define DifferenceAccelerator2_h
-
+#pragma once
 #include <Accelerator.h>
 #include <IncrementalIntegrator.h>
 
@@ -35,19 +32,14 @@ class DifferenceAccelerator2 : public Accelerator
  public:
   DifferenceAccelerator2(int maxDim = 3, int tangent = CURRENT_TANGENT);
   virtual ~DifferenceAccelerator2();
-  
-  int newStep(LinearSOE &theSOE);
+
+  int newStep(const LinearSOE &theSOE);
   int accelerate(Vector &v, LinearSOE &theSOE, 
 		 IncrementalIntegrator &theIntegrator);
-  int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
+  int updateTangent(IncrementalIntegrator &, bool& factored);
   
   void Print(OPS_Stream &s, int flag) const final;
-  
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);
 
-  
  private:
   // Current dimension of Krylov subspace
   int dimension;
@@ -73,5 +65,3 @@ class DifferenceAccelerator2 : public Accelerator
   // Which tangent to form at restart
   int theTangent;
 };
-
-#endif

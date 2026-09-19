@@ -17,14 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
-#ifndef HHTGeneralized_TP_h
-#define HHTGeneralized_TP_h
-
+//
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 08/15
 // Revision: A
@@ -32,7 +25,7 @@
 // Description: This file contains the class definition for HHTGeneralized_TP.
 // HHTGeneralized_TP is an algorithmic class for performing a transient analysis
 // using the HHTGeneralized_TP integration scheme based on the trapezoidal rule.
-
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -43,7 +36,6 @@ class HHTGeneralized_TP : public TransientIntegrator
 {
 public:
     // constructors
-    HHTGeneralized_TP();
     HHTGeneralized_TP(double rhoInf);
     HHTGeneralized_TP(double alphaI, double alphaF, double beta, double gamma);
     
@@ -51,8 +43,8 @@ public:
     ~HHTGeneralized_TP();
     
     // method to set up the system of equations
-    int formUnbalance(void);
-    
+    int formUnbalance(Vector&) override;
+
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
     int formEleTangent(FE_Element *theEle);
@@ -60,17 +52,14 @@ public:
     int formEleResidual(FE_Element *theEle);
     int formNodUnbalance(DOF_Group *theDof);
     
-    int domainChanged(void);
+    int domainChanged();
     int newStep(double deltaT);
-    int revertToLastStep(void);
+    int revertToLastStep();
     int update(const Vector &deltaU);
-    int commit(void);
+    int commit();
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+    const Vector &getVel() override;
+
     void Print(OPS_Stream &s, int flag = 0);
     
 private:
@@ -87,4 +76,3 @@ private:
     Vector *Put;                            // unbalance at time t
 };
 
-#endif

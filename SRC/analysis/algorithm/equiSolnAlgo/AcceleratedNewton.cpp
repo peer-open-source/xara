@@ -52,7 +52,8 @@ AcceleratedNewton::AcceleratedNewton(Accelerator *theAccel,
     tangent(incr_tangent),
     search(nullptr),
     theAccelerator(theAccel), vAccel(0), 
-    numFactorizations(0), numIterations(0)
+    numFactorizations(0), numIterations(0),
+    residual(0)
 {
  
 }
@@ -76,15 +77,16 @@ AcceleratedNewton::solveCurrentStep()
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
   LinearSOE *theSOE = this->getLinearSOEptr();
   
-  if ((theIntegrator == 0) || (theSOE == 0)  || (theTest == 0)) {
+  if ((theIntegrator == 0) || (theSOE == 0)  || (theTest == 0))
     return SolutionAlgorithm::BadAlgorithm;
-  }        
 
-  // Set up memory in the accelerator
+
+  // Set up memory for the acceleration
+  int numEqns = theSOE->getNumEqn();
   if (theAccelerator != nullptr)
     theAccelerator->newStep(*theSOE);
 
-  int numEqns = theSOE->getNumEqn();
+  residual.resize(numEqns);
 
   if (vAccel == nullptr)
     vAccel = new Vector(numEqns);
@@ -97,7 +99,7 @@ AcceleratedNewton::solveCurrentStep()
   // 1. Form unbalance
   //
   // Evaluate system residual R(y_0)
-  if (theIntegrator->formUnbalance() < 0) {
+  if (theIntegrator->formUnbalance(residual) < 0) {
     return SolutionAlgorithm::BadFormResidual;
   }
 
@@ -123,11 +125,9 @@ AcceleratedNewton::solveCurrentStep()
   do {
 
     // Solve for displacement increment
-    if (theSOE->solve() < 0) 
+    if (theSOE->solve(residual, *vAccel) < 0) 
       return SolutionAlgorithm::BadLinearSolve;
 
-    // Get the modified Newton increment
-    *vAccel = theSOE->getX();
 
     // Accelerate the displacement increment
     if (theAccelerator != nullptr) {
@@ -150,7 +150,7 @@ AcceleratedNewton::solveCurrentStep()
     }        
 
     // Evaluate residual
-    if (theIntegrator->formUnbalance() < 0) 
+    if (theIntegrator->formUnbalance(residual) < 0) 
       return SolutionAlgorithm::BadFormResidual;
 
     numIterations++;

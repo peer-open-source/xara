@@ -33,9 +33,7 @@
 // Written: JZhong 
 // Created: 01/04
 //
-#ifndef DisplacementPath_h
-#define DisplacementPath_h
-
+#pragma once
 #include <StaticIntegrator.h>
 
 class LinearSOE;
@@ -50,14 +48,10 @@ class DisplacementPath : public StaticIntegrator
 	
     ~DisplacementPath();
 
-    int newStep(void);    
+    int newStep();    
     int update(const Vector &deltaU);
-    int domainChanged(void);
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
-
+    int domainChanged();
+  
     void Print(OPS_Stream &, int flag) final;    
     
   private:
@@ -74,6 +68,4 @@ class DisplacementPath : public StaticIntegrator
     double theCurrentIncrement;  // deltaU at step (i)
     int currentStep;
 };
-
-#endif
 

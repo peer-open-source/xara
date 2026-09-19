@@ -58,7 +58,7 @@ SecantAccelerator1::~SecantAccelerator1()
 }
 
 int 
-SecantAccelerator1::newStep(LinearSOE &theSOE)
+SecantAccelerator1::newStep(const LinearSOE &theSOE)
 {
   int newNumEqns = theSOE.getNumEqn();
 

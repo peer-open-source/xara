@@ -36,8 +36,6 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <elementAPI.h>
 #define OPS_Export
 
@@ -73,17 +71,6 @@ OPS_ADD_RUNTIME_VPV(OPS_HHTHSIncrReduct_TP)
     return theIntegrator;
 }
 
-
-HHTHSIncrReduct_TP::HHTHSIncrReduct_TP()
-    : TransientIntegrator(INTEGRATOR_TAGS_HHTHSIncrReduct_TP),
-    alphaI(0.5), alphaF(0.5), beta(0.25), gamma(0.5), reduct(1.0),
-    deltaT(0.0), c1(0.0), c2(0.0), c3(0.0),
-    alphaM(0.5), alphaD(0.5), alphaR(0.5), alphaP(0.5),
-    Ut(0), Utdot(0), Utdotdot(0), U(0), Udot(0), Udotdot(0),
-    scaledDeltaU(0), Put(0)
-{
-    
-}
 
 
 HHTHSIncrReduct_TP::HHTHSIncrReduct_TP(double _rhoInf, double _reduct)
@@ -138,14 +125,14 @@ int HHTHSIncrReduct_TP::newStep(double _deltaT)
 {
     if (beta == 0 || gamma == 0 )  {
         opserr << "HHTHSIncrReduct_TP::newStep() - error in variable\n";
-        opserr << "gamma = " << gamma << " beta = " << beta << endln;
+        opserr << "gamma = " << gamma << " beta = " << beta << "\n";
         return -1;
     }
     
     deltaT = _deltaT;
     if (deltaT <= 0.0)  {
         opserr << "HHTHSIncrReduct_TP::newStep() - error in variable\n";
-        opserr << "dT = " << deltaT << endln;
+        opserr << "dT = " << deltaT << "\n";
         return -2;
     }
     
@@ -210,34 +197,30 @@ int HHTHSIncrReduct_TP::revertToLastStep()
 }
 
 
-int HHTHSIncrReduct_TP::formUnbalance()
+int HHTHSIncrReduct_TP::formUnbalance(Vector &G)
 {
     // get a pointer to the LinearSOE and the AnalysisModel
     LinearSOE *theLinSOE = this->getLinearSOE();
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theLinSOE == 0 || theModel == 0)  {
-        opserr << "WARNING HHTHSIncrReduct_TP::formUnbalance() - ";
+        opserr << "WARNING HHTHSIncrReduct_TP::formUnbalance - ";
         opserr << "no LinearSOE or AnalysisModel has been set\n";
         return -1;
     }
     
-    theLinSOE->setB(*Put);
-    
+    G = *Put;
+
     // do modal damping
     const Vector *modalValues = theModel->getModalDampingFactors();
     if (modalValues != 0)  {
         this->addModalDampingForce(modalValues);
     }
     
-    if (this->formElementResidual() < 0)  {
-        opserr << "WARNING HHTHSIncrReduct_TP::formUnbalance() ";
-        opserr << " - this->formElementResidual failed\n";
+    if (this->formElementResidual(G) < 0)  {
         return -2;
     }
     
-    if (this->formNodalUnbalance() < 0)  {
-        opserr << "WARNING HHTHSIncrReduct_TP::formUnbalance() ";
-        opserr << " - this->formNodalUnbalance failed\n";
+    if (this->formNodalUnbalance(G) < 0)  {
         return -3;
     }
     
@@ -339,43 +322,6 @@ int HHTHSIncrReduct_TP::domainChanged()
         Udotdot = new Vector(size);
         scaledDeltaU = new Vector(size);
         Put = new Vector(size);
-        
-        // check we obtained the new
-        if (Ut == 0 || Ut->Size() != size ||
-            Utdot == 0 || Utdot->Size() != size ||
-            Utdotdot == 0 || Utdotdot->Size() != size ||
-            U == 0 || U->Size() != size ||
-            Udot == 0 || Udot->Size() != size ||
-            Udotdot == 0 || Udotdot->Size() != size ||
-            scaledDeltaU == 0 || scaledDeltaU->Size() != size ||
-            Put == 0 || Put->Size() != size)  {
-            
-            opserr << "HHTHSIncrReduct_TP::domainChanged() - ran out of memory\n";
-            
-            // delete the old
-            if (Ut != 0)
-                delete Ut;
-            if (Utdot != 0)
-                delete Utdot;
-            if (Utdotdot != 0)
-                delete Utdotdot;
-            if (U != 0)
-                delete U;
-            if (Udot != 0)
-                delete Udot;
-            if (Udotdot != 0)
-                delete Udotdot;
-            if (scaledDeltaU != 0)
-                delete scaledDeltaU;
-            if (Put != 0)
-                delete Put;
-            
-            Ut = 0; Utdot = 0; Utdotdot = 0;
-            U = 0; Udot = 0; Udotdot = 0;
-            scaledDeltaU = 0; Put = 0;
-            
-            return -1;
-        }
     }
     
     this->getAnalysisModel()->getState(*U, *Udot, *Udotdot, 0);
@@ -385,14 +331,14 @@ int HHTHSIncrReduct_TP::domainChanged()
     // from current step instead of previous step
     alphaM = (1.0 - alphaI);
     alphaD = alphaR = alphaP = (1.0 - alphaF);
-    this->TransientIntegrator::formUnbalance();
-    (*Put) = theLinSOE->getB();
+    this->TransientIntegrator::formUnbalance(*Put);
     
     return 0;
 }
 
 
-int HHTHSIncrReduct_TP::update(const Vector &deltaU)
+int 
+HHTHSIncrReduct_TP::update(const Vector &deltaU)
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel == 0)  {
@@ -434,7 +380,7 @@ int HHTHSIncrReduct_TP::update(const Vector &deltaU)
 }
 
 
-int HHTHSIncrReduct_TP::commit(void)
+int HHTHSIncrReduct_TP::commit()
 {
     // get a pointer to the LinearSOE and the AnalysisModel
     LinearSOE *theLinSOE = this->getLinearSOE();
@@ -453,56 +399,16 @@ int HHTHSIncrReduct_TP::commit(void)
     // get unbalance Put and store it for next step
     alphaM = (1.0 - alphaI);
     alphaD = alphaR = alphaP = (1.0 - alphaF);
-    this->TransientIntegrator::formUnbalance();
-    (*Put) = theLinSOE->getB();
+    this->TransientIntegrator::formUnbalance(*Put);
     
     return theModel->commitDomain();
 }
+
 
 const Vector &
 HHTHSIncrReduct_TP::getVel()
 {
   return *Udot;
-}
-
-int HHTHSIncrReduct_TP::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(5);
-    data(0) = alphaI;
-    data(1) = alphaF;
-    data(2) = beta;
-    data(3) = gamma;
-    data(4) = reduct;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTHSIncrReduct_TP::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int HHTHSIncrReduct_TP::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(5);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTHSIncrReduct_TP::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    alphaI = data(0);
-    alphaF = data(1);
-    beta   = data(2);
-    gamma  = data(3);
-    reduct = data(4);
-    
-    alphaM = alphaI;
-    alphaD = alphaF;
-    alphaR = alphaF;
-    alphaP = alphaF;
-    
-    return 0;
 }
 
 

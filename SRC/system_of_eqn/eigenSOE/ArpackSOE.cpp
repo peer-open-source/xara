@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.3 $
-// $Date: 2009-05-14 23:25:56 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/eigenSOE/ArpackSOE.cpp,v $
-
+//
 // Written: fmk
 // Created: 05/09
 //
@@ -213,6 +209,7 @@ ArpackSOE::addA(const Matrix &m, const ID &id, double fact)
 
   return theSOE->addA(m, id, fact);
 }
+
 
 int
 ArpackSOE::setMask()

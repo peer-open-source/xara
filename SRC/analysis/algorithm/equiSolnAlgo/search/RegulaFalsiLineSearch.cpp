@@ -20,81 +20,76 @@
 //
 // Written: fmk 
 // Created: 11/01
-// 
-// What: "@(#)RegulaFalsiLineSearch.h, revA"
+//
 #include <RegulaFalsiLineSearch.h>
-#include <IncrementalIntegrator.h>
-#include <LinearSOE.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
+#include <IncrementalResidual.h>
 #include <Vector.h>
-#include <math.h>
+#include <cmath>
 
 RegulaFalsiLineSearch::RegulaFalsiLineSearch(double tol, int mIter, double mnEta, double mxEta, int pFlag)
-:LineSearch(LINESEARCH_TAGS_RegulaFalsiLineSearch),
- x(0), tolerance(tol), maxIter(mIter), minEta(mnEta), maxEta(mxEta), printFlag(pFlag)
+: LineSearch(LINESEARCH_TAGS_RegulaFalsiLineSearch),
+  tolerance(tol), maxIter(mIter), minEta(mnEta), maxEta(mxEta), printFlag(pFlag)
 {   
 
 }
 
 RegulaFalsiLineSearch::~RegulaFalsiLineSearch()
 {
-  if (x != 0)
-    delete x;
+
 }
 
 
 int 
-RegulaFalsiLineSearch::newStep(LinearSOE &theSOE)
+RegulaFalsiLineSearch::newStep(const Vector &Go)
 {
-  const Vector &dU = theSOE.getX();
-
-  if (x == 0)
-    x = new Vector(dU);
-
-  if (x->Size() != dU.Size()) {
-    delete x;
-    x = new Vector(dU);
-  }
-
   return 0;
 }
+
 
 int 
 RegulaFalsiLineSearch::search(double s0, 
                               double s1, 
-                              LinearSOE &theSOE, 
-                              IncrementalIntegrator &theIntegrator)
+                              const Vector& dU,
+                              Vector& G,
+                              Vector& Xs,
+                              IncrementalResidual &theIntegrator)
 {
+  // Initialize residual ratio
   double r0 = 0.0;
-
   if ( s0 != 0.0 ) 
-    r0 = fabs( s1 / s0 );
-        
-  if  (r0 <= tolerance )
-    return 0; // Line Search Not Required Residual Decrease Less Than Tolerance
+    r0 = std::fabs( s1 / s0 );
+
+  if (r0 <= tolerance )
+    // Line Search Not Required Residual Decrease Less Than Tolerance
+    return 0;
 
   if (s1 == s0)
     return 0;  // RegulaFalsi will have a divide-by-zero error if continue
 
-  // set some variables
-  double eta    = 1.0;
+  //
+  // 1) Initialize search
+  //
+  double r      = r0;
   double s      = s1;
+  double eta    = 1.0;
   double etaU   = 1.0;
   double etaL   = 0.0;
   double sU     = s1;
   double sL     = s0;
-  double r      = r0;
   double etaJ   = 1.0;
   double compoundFactor = 0.0;
 
-  const Vector &dU = theSOE.getX();
+  Xs = dU;
 
   if (printFlag == 0) {
-    opserr << "RegulaFalsi Line Search - initial: "
+    opserr << "        Line Search - initial: "
            << "      eta(0) : " 
            << eta << " , Ratio |s/s0| = " << r0 << "\n";
   }
+
+  //
+  // 2) Search for a bracket
+  //
 
   // we first search for a bracket to a solution, i.e. we want sU * sL < 0.0
   int count = 0;
@@ -108,37 +103,31 @@ RegulaFalsiLineSearch::search(double s0,
     else
     */
     etaU = etaJ * 4.0;
+    if (etaU > maxEta)
+      etaU = maxEta;
 
-    //update the incremental difference in response and determine new unbalance
-    *x = dU;
+    // update the incremental difference in response and determine new unbalance
     double factor = etaU - etaJ;
+    Xs.addVector(0, dU, factor);
     compoundFactor += factor;
-    *x *= factor;
 
     etaJ = etaU;
 
-    if (theIntegrator.update(*x) < 0) {
-      opserr << "WARNING BisectionLineSearch::search() -";
-      opserr << "the Integrator failed in update()\n";        
+    // new value of sU
+    if (theIntegrator.update(Xs) < 0)
       return -1;
-    }
-    
-    if (theIntegrator.formUnbalance() < 0) {
-      opserr << "WARNING BisectionLineSearch::search() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+    G.Zero();
+    if (theIntegrator.formUnbalance(G) < 0)
       return -2;
-    }        
-  
-    //new residual
-    const Vector &ResidJ = theSOE.getB();
-    
-    //new value of sU
-    sU = dU ^ ResidJ;
+
+    sU = dU ^ G;
 
     // check if we have a solution we are happy with
-    r = fabs( sU / s0 ); 
-    if (r < tolerance)
+    r = std::fabs( sU / s0 ); 
+    if (r < tolerance) {
+      Xs.addVector(0, dU, etaJ);
       return 0;
+    }
 
     if (printFlag == 0) {
       opserr << "Bisection Line Search - bracketing: " << count 
@@ -146,17 +135,20 @@ RegulaFalsiLineSearch::search(double s0,
     }
   }
 
-  // return if no bracket for a solution found, resetting to initial values
+  // return if no bracket for a solution found, reset to initial values
   if (sU * sL > 0.0) {
-    *x = dU;
-    theSOE.setX(*x);
-    *x *= -compoundFactor;
-    theIntegrator.update(*x);
-    theIntegrator.formUnbalance();
+    Xs = dU;
+    // theSOE.setX(Xs);
+    Xs *= -compoundFactor;
+    if (theIntegrator.update(Xs) < 0)
+      return -1;
+    if (theIntegrator.formUnbalance(G) < 0)
+      return -2;
     return 0; 
   }
 
-  // perform the secant iterations:
+  //
+  // 3) Perform the secant iterations:
   //
   //                eta(j+1) = eta(u) -  s(u) * (eta(l) -eta(u))
   //                                     ------------------------
@@ -170,7 +162,7 @@ RegulaFalsiLineSearch::search(double s0,
     eta = etaU - sU * (etaL-etaU) / (sL - sU);
 
 
-    //-- want to put limits on eta(i)
+    // Put limits on eta(i)
     if (eta > maxEta)  eta = maxEta;
     if (  r >  r0   )  eta =  1.0;
     if (eta < minEta)  eta = minEta;
@@ -179,36 +171,28 @@ RegulaFalsiLineSearch::search(double s0,
       break;
     
     //update the incremental difference in response and determine new unbalance
-    *x = dU;
-    *x *= eta-etaJ;
+    Xs = dU;
+    Xs *= eta-etaJ;
             
-    if (theIntegrator.update(*x) < 0) {
-      opserr << "WARNING RegulaFalsiLineSearch::search() -";
-      opserr << "the Integrator failed in update()\n";        
+    if (theIntegrator.update(Xs) < 0) {  
       return -1;
     }
-    
-    if (theIntegrator.formUnbalance() < 0) {
-      opserr << "WARNING RegulaFalsiLineSearch::search() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+    G.Zero();
+    if (theIntegrator.formUnbalance(G) < 0) { 
       return -2;
-    }        
+    }
 
-    //new residual
-    const Vector &ResidJ = theSOE.getB();
-    
-    //new value of s
-    s = dU ^ ResidJ;
-    
-    //new value of r 
-    r = fabs( s / s0 ); 
+    // new value of s
+    s = dU ^ G;
+
+    // new value of r 
+    r = std::fabs( s / s0 ); 
 
 
     if (printFlag == 0) {
       opserr << "RegulaFalsi Line Search - iteration: " << count 
-           << " , eta(j) : " << eta << " , Ratio |sj/s0| = " << r << endln;
+           << " , eta(j) : " << eta << " , Ratio |sj/s0| = " << r << "\n";
     }
-    
 
     if (etaJ == eta)
       count = maxIter;
@@ -229,31 +213,19 @@ RegulaFalsiLineSearch::search(double s0,
     if (sL == sU)
       count = maxIter;
 
-  } //end while
+  } // end while
 
   // set X in the SOE for the revised dU, needed for convergence tests
-  *x = dU;
-  if (eta != 0.0)
-    *x *= eta;
-  theSOE.setX(*x);
-  
+
+  if (eta == 0.0)
+    eta = 1.0;
+
+  Xs.addVector(0, dU, etaJ);
+  // theSOE.setX(Xs);
+
   return 0;
 }
 
-
-int
-RegulaFalsiLineSearch::sendSelf(int cTag, Channel &theChannel)
-{
-  return 0;
-}
-
-int
-RegulaFalsiLineSearch::recvSelf(int cTag, 
-                                Channel &theChannel, 
-                                FEM_ObjectBroker &theBroker)
-{
-  return 0;
-}
 
 
 void

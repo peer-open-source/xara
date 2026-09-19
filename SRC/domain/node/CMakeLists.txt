@@ -7,11 +7,9 @@
 target_sources(OPS_Domain
   PRIVATE
     Node.cpp
-#   HeapNode.cpp
     NodalLoad.cpp
   PUBLIC
     Node.h
-#   HeapNode.h
     NodalLoad.h
 )
 

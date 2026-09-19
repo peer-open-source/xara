@@ -47,6 +47,7 @@ public:
   private:
     int tangent;
     int numIterations;
+    Vector G, dX;
 
     double iFactor;
     double cFactor;

@@ -36,6 +36,7 @@
 
 #include <StaticIntegrator.h>
 #include <Vector.h>
+
 class LinearSOE;
 class AnalysisModel;
 class FE_Element;
@@ -55,9 +56,6 @@ class DisplacementControl : public StaticIntegrator
       int update(const Vector &deltaU) final;
       int domainChanged() final;
       int revertToLastStep() final {return 0;}
-
-      int sendSelf(int commitTag, Channel &) final;
-      int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
 
       void Print(OPS_Stream &s, int flag) final;   
 

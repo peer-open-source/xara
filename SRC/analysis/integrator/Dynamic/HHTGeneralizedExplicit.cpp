@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
+//
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 10/05
 // Revision: A
@@ -382,46 +378,6 @@ HHTGeneralizedExplicit::getVel()
   return *Udot;
 }
 
-int HHTGeneralizedExplicit::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(5);
-    data(0) = alphaI;
-    data(1) = alphaF;
-    data(2) = beta;
-    data(3) = gamma;
-    if (updElemDisp == false)
-        data(4) = 0.0;
-    else
-        data(4) = 1.0;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTGeneralizedExplicit::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int HHTGeneralizedExplicit::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(5);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTGeneralizedExplicit::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    alphaI = data(0);
-    alphaF = data(1);
-    beta   = data(2);
-    gamma  = data(3);
-    if (data(4) == 0.0)
-        updElemDisp = false;
-    else
-        updElemDisp = true;
-    
-    return 0;
-}
 
 
 void HHTGeneralizedExplicit::Print(OPS_Stream &s, int flag)

@@ -51,7 +51,7 @@ PeriodicAccelerator::~PeriodicAccelerator()
 }
 
 int 
-PeriodicAccelerator::newStep(LinearSOE &theSOE)
+PeriodicAccelerator::newStep(const LinearSOE &theSOE)
 {
   totalIter = 0;
 

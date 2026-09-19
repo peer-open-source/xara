@@ -587,7 +587,7 @@ StaticPattern::Print(OPS_Stream &s, int flag)
     // theSPs->Print(s, flag);
     s << "\n" << OPS_PRINT_JSON_MATE_INDENT <<  "],\n";
     s << OPS_PRINT_JSON_MATE_INDENT << "\"elements\": [\n";
-    //theElementalLoads->Print(s, flag);
+    // theElementalLoads->Print(s, flag);
     s << "\n" << OPS_PRINT_JSON_MATE_INDENT <<  "]\n";
     s << OPS_PRINT_JSON_MATE_INDENT << "}";
     return;

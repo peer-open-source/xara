@@ -14,16 +14,21 @@
 //===----------------------------------------------------------------------===//
 //
 
+#pragma once
+
 #include <cmath>
 #include <Logging.h>
+#include <control/PredictorControlBase.h>
+#include <control/TrackSign.h>
 
-class PredictorControl {
+class PredictorControl : public PredictorControlBase {
     public:
     PredictorControl( double base_step,
                       int target_count,
                       double min_size,
                       double max_size,
-                      double exponent)
+                      double exponent,
+                      TrackSign::Type sign_type = TrackSign::Type::None)
     // : base_step(base_step)
     : target_count(target_count)
     , min_size(min_size)
@@ -32,56 +37,69 @@ class PredictorControl {
     , last_step(base_step)
     , next_step(base_step)
     , current_count(0)
+    , track_sign(sign_type)
     {
 
     }
+
+    int predict(LinearSOE &, double &load_increment) override {
+      load_increment = size();
+      reset(load_increment);
+      return 0;
+    }
+
+    int update(const Vector &) override {
+      update();
+      return 0;
+    }
     
     void reset(double step_size) {
-        current_count = 0; // target_count; // 0
-        last_step = step_size;
-        next_step = step_size;
+      current_count = 0; // target_count; // 0
+      last_step = step_size;
+      next_step = step_size;
     }
 
     int update() {
-        current_count++;
-        return current_count;
+      current_count++;
+      return current_count;
     }
 
     double size() const {
+      double factor = current_count > 0? target_count/current_count : 1.0;
+      if (factor < 1.0)
+          // shrink fast
+          factor = std::pow(factor, exponent);
+      else
+          // grow slow
+          factor = std::pow(factor, 1/exponent);
 
-        double factor = current_count > 0? target_count/current_count : 1.0;
-        if (factor < 1.0)
-            // shrink fast
-            factor = std::pow(factor, exponent);
-        else 
-            // grow slow
-            factor = std::pow(factor, 1/exponent);
+      if (factor != 1.0) {
+          opsdbg << "  Resizing step: "
+                  << "old step = " << last_step << ", "
+                  << "new step = " << last_step * factor << ", "
+                  << "scale = " << factor << "\n";
+      }
+      double step = last_step * factor;
 
-        if (factor != 1.0) {
-            opsdbg << "  Resizing step: " 
-                   << "old step = " << last_step << ", "
-                   << "new step = " << last_step * factor << ", "
-                   << "scale = " << factor << "\n";
-        }
-        double step = last_step * factor;
-
-        if (step < min_size)
-            step = min_size;
-        else if (step > max_size)
-            step = max_size;
-        return step;
+      if (step < min_size)
+        step = min_size;
+      else if (step > max_size)
+        step = max_size;
+      return step;
     }
 
     
+
+  private:
+    double target_count;
+    const double min_size;
+    const double max_size;
+    const double exponent;
+    // double base_step;
+    //
     double last_step;
     double next_step;
     double current_count;
 
-    private:
-    double target_count;
-    double min_size;
-    double max_size;
-    double exponent;
-    // double base_step;
-    //
+    TrackSign track_sign;
 };

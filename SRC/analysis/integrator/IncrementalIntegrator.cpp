@@ -33,9 +33,8 @@
 #include <DOF_Group.h>
 #include <cmath>
 
-IncrementalIntegrator::IncrementalIntegrator(int clasTag)
- : MovableObject(clasTag)
- , statusFlag(CURRENT_TANGENT)
+IncrementalIntegrator::IncrementalIntegrator()
+ : statusFlag(CURRENT_TANGENT)
  , eigenVectors(0), eigenValues(0), dampingForces(0)
  , isDiagonal(false),diagMass(0)
  , mV(0),tmpV1(0),tmpV2(0),
@@ -99,7 +98,6 @@ IncrementalIntegrator::formTangent(int statFlag)
   DOF_Group *dofPtr;
   while ((dofPtr = theDOFs()) != nullptr) {
     if (theSOE->addA(dofPtr->getTangent(this),dofPtr->getID()) <0) {
-      opserr << "TransientIntegrator::formTangent() - failed to addA:dof\n";
       result = -1;
     }
   }    
@@ -111,12 +109,16 @@ IncrementalIntegrator::formTangent(int statFlag)
   FE_Element *elePtr;
   FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
   while((elePtr = theEles2()) != nullptr)
-    if (theSOE->addA(elePtr->getTangent(this), elePtr->getID()) < 0) {
-      opserr << "WARNING IncrementalIntegrator::formTangent -";
-      opserr << " failed in addA for ID " << elePtr->getID();            
+    if (elePtr->assemble(*this, *theSOE) < 0) [[unlikely]] {
       result = -3;
     }
+    // if (theSOE->addA(elePtr->getTangent(this), elePtr->getID()) < 0) {
+    //   opserr << "WARNING IncrementalIntegrator::formTangent -";
+    //   opserr << " failed in addA for ID " << elePtr->getID();            
+    //   result = -3;
+    // }
 
+  // opserr << "K = " << *theSOE->getA();
   return result;
 }
 
@@ -164,6 +166,7 @@ IncrementalIntegrator::initialize()
   return 0;
 }
 
+
 int
 IncrementalIntegrator::commit() 
 {
@@ -177,6 +180,7 @@ IncrementalIntegrator::commit()
 }
 
 
+
 int
 IncrementalIntegrator::revertToLastStep() 
 {
@@ -187,17 +191,16 @@ IncrementalIntegrator::revertToLastStep()
 int
 IncrementalIntegrator::revertToStart()
 {
-  opserr << "ERROR: revertToStart() method not yet implemented " << endln
-         << " for the chosen type of integrator. " << endln;
-  
   return 0;
 }    
+
 
 LinearSOE *
 IncrementalIntegrator::getLinearSOE() const
 {
   return theSOE;
-}   
+}
+
 
 ConvergenceTest *
 IncrementalIntegrator::getConvergenceTest() const
@@ -213,7 +216,7 @@ IncrementalIntegrator::getAnalysisModel() const
 
 
 int 
-IncrementalIntegrator::formNodalUnbalance()
+IncrementalIntegrator::formNodalUnbalance(Vector &resid)
 {
   // loop through the DOF_Groups and add the unbalance
   DOF_GrpIter &theDOFs = theAnalysisModel->getDOFs();
@@ -221,10 +224,8 @@ IncrementalIntegrator::formNodalUnbalance()
   int res = 0;
 
   while ((dofPtr = theDOFs()) != nullptr) {
-    if (theSOE->addB(dofPtr->getUnbalance(this),dofPtr->getID()) <0) {
-        opserr << "WARNING IncrementalIntegrator::formNodalUnbalance -";
-        opserr << " failed in addB for ID " << dofPtr->getID();
-        res = -2;
+    if (resid.Assemble(dofPtr->getUnbalance(this),dofPtr->getID()) <0) {
+      res = -2;
     }
   }
       
@@ -233,7 +234,7 @@ IncrementalIntegrator::formNodalUnbalance()
 
 
 int
-IncrementalIntegrator::formElementResidual()
+IncrementalIntegrator::formElementResidual(Vector& resid)
 {
   // loop through the FE_Elements and add the residual
 
@@ -242,9 +243,7 @@ IncrementalIntegrator::formElementResidual()
   FE_Element *elePtr;
   FE_EleIter &theEles2 = theAnalysisModel->getFEs();    
   while ((elePtr = theEles2()) != nullptr) {
-    if (theSOE->addB(elePtr->getResidual(this),elePtr->getID()) < 0) {
-      opserr << "WARNING IncrementalIntegrator::formElementResidual -";
-      opserr << " failed in addB for ID " << elePtr->getID();
+    if (resid.Assemble(elePtr->getResidual(this),elePtr->getID()) < 0) {
       res = -2;
     }
   }
