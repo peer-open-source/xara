@@ -27,6 +27,10 @@
 #include <ArgumentTracker.h>
 #include <set>
 
+#include <control/StiffnessPredictorControl.h>
+#include <control/PredictorControl.h>
+#include <control/TrackSign.h>
+
 // integrators
 #include <LoadControl.h>
 #include <ArcLength1.h>
@@ -133,7 +137,6 @@ XaraCmd_integrator(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TCL_
 
   else
     return TCL_ERROR;
-
 }
 
 
@@ -148,22 +151,6 @@ XaraCmd_newStaticIntegrator(ClientData clientData, Tcl_Interp *interp, ArgSize a
 
   //
   StaticIntegrator* theStaticIntegrator = nullptr;
-
-  // Check argv[1] for type of integrator and create the object
-
-  if (strcmp(argv[1], "ArcLength1") == 0) {
-    double arcLength;
-    double alpha;
-    if (argc != 4) {
-      opserr << "WARNING integrator ArcLength1 arcLength alpha \n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[2], &arcLength) != TCL_OK)
-      return TCL_ERROR;
-    if (Tcl_GetDouble(interp, argv[3], &alpha) != TCL_OK)
-      return TCL_ERROR;
-    theStaticIntegrator = new ArcLength1(arcLength, alpha);
-  }
 
   //
   // Done parsing; set the integrator
@@ -418,11 +405,11 @@ G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, ArgSize argc, 
     return TCL_ERROR;
   }
 
-  if (tracker.contains(Position::MinStepSize))
+  if (!tracker.received(Position::MinStepSize))
     minIncr = dLambda;
-  if (tracker.contains(Position::MaxStepSize))
+  if (!tracker.received(Position::MaxStepSize))
     maxIncr = dLambda;
-  if (tracker.contains(Position::IterationTarget))
+  if (!tracker.received(Position::IterationTarget))
     numIter = 1;
 
 
@@ -438,31 +425,31 @@ G3Parse_newLoadControl(ClientData clientData, Tcl_Interp *interp, ArgSize argc, 
 StaticIntegrator*
 G3Parse_newEQPathIntegrator(ClientData clientData, Tcl_Interp *interp, ArgSize argc, const char *argv[])
 {
-    double arcLength;
-    int type;
-    if (argc != 4) {
-      opserr << "WARNING integrator EQPath $arc_length $type \n";
-      opserr << "REFS : \n";
-      opserr << " https://doi.org/10.12989/sem.2013.48.6.849         \n";
-      opserr << " https://doi.org/10.12989/sem.2013.48.6.879         \n";
-      return nullptr;
-    }
+  double arcLength;
+  int type;
+  if (argc != 4) {
+    opserr << "WARNING integrator EQPath $arc_length $type \n";
+    opserr << "REFS : \n";
+    opserr << " https://doi.org/10.12989/sem.2013.48.6.849         \n";
+    opserr << " https://doi.org/10.12989/sem.2013.48.6.879         \n";
+    return nullptr;
+  }
 
-    if (Tcl_GetDouble(interp, argv[2], &arcLength) != TCL_OK) {
-      opserr << "WARNING integrator EQPath $arc_length $type \n";
-      return nullptr;
-    }
+  if (Tcl_GetDouble(interp, argv[2], &arcLength) != TCL_OK) {
+    opserr << "WARNING integrator EQPath $arc_length $type \n";
+    return nullptr;
+  }
 
-    if (Tcl_GetInt(interp, argv[3], &type) != TCL_OK) {
-      opserr << "WARNING integrator EQPath $arc_length $type \n";
-      opserr << "$type = 1 Minimum Residual Displacement \n";
-      opserr << "$type = 2 Normal Plain \n";
-      opserr << "$type = 3 Update Normal Plain \n";
-      opserr << "$type = 4 Cylindrical Arc-Length \n";
-      return nullptr;
-    }
+  if (Tcl_GetInt(interp, argv[3], &type) != TCL_OK) {
+    opserr << "WARNING integrator EQPath $arc_length $type \n";
+    opserr << "$type = 1 Minimum Residual Displacement \n";
+    opserr << "$type = 2 Normal Plain \n";
+    opserr << "$type = 3 Update Normal Plain \n";
+    opserr << "$type = 4 Cylindrical Arc-Length \n";
+    return nullptr;
+  }
 
-    return new EQPath(arcLength, type);
+  return new EQPath(arcLength, type);
 }
 
 #include <ArcLength.h>
@@ -521,7 +508,10 @@ G3Parse_newArcLengthIntegrator(ClientData clientData, Tcl_Interp *interp,
 
   }
 
-  return new ArcLength(arcLength, alpha, numIter, expon, use_det, reference);
+  if (strcmp(argv[1], "ArcLength1") == 0)
+    return new ArcLength1(arcLength, alpha);
+  else
+    return new ArcLength(arcLength, alpha, numIter, expon, use_det, reference);
 }
 
 
@@ -562,7 +552,6 @@ G3Parse_newMinUnbalDispNormIntegrator(ClientData clientData, Tcl_Interp* interp,
   for (int i=3; i < argc; ++i) {
     if ((strcmp(argv[i], "-determinant") == 0) || 
       (strcmp(argv[i], "-det") == 0)) {
-      // signFirstStepMethod = MinUnbalDispNorm::CHANGE_DETERMINANT;
       if (version >= OpenSeesVersion::X1)
         sign_type = TrackSign::Type::Determinant;
       else
