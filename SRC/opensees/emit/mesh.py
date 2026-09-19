@@ -4,7 +4,7 @@ def load(interp, file):
     mesh = meshio.read(file)
 
 
-def dump(model, file, format="vtk"):
+def dump(model, file=None, format="vtk"):
     if "StructuralAnalysisModel" in model:
         model = model["StructuralAnalysisModel"]
 
