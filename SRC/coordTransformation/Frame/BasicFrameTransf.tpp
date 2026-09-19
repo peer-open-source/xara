@@ -5,7 +5,6 @@
 //
 //----------------------------------------------------------------------------//
 //
-// Please cite the following resource in any derivative works:
 //
 // [1] Perez, C.M., and Filippou F.C. "On Nonlinear Geometric Transformations
 //     of Finite Elements" Int. J. Numer. Meth. Engrg. 2024; 
@@ -131,7 +130,7 @@ BasicFrameTransf3d<ndf>::getBasicTrialDisp()
   static Vector wrapper(ub);
   Vector3D wi = t.getNodeRotationLogarithm(0),
            wj = t.getNodeRotationLogarithm(1);
-  ub[0] = t.getDeformedLength() - t.getInitialLength(); // t.getNodePosition(1)[0]; //
+  ub[0] = t.getDeformedLength() - t.getInitialLength();
   ub[1] = wi[2];
   ub[2] = wj[2];
   ub[3] = wi[1];
@@ -177,21 +176,16 @@ BasicFrameTransf3d<ndf>::getGlobalResistingForce(const Vector &q_pres, const Vec
   
   static constexpr int nwm = ndf - 6; // Number of warping DOFs
 
-  static constexpr double c = 1.0;
 
   static VectorND<NDF*2> pl{};
   static Vector wrapper(pl); // to return reference
   pl.zero();
-  pl[0*NDF+0]  = -q_pres[jnx] + p0[0]*c; // Ni
-  pl[0*NDF+1]  =  p0[1]*c;               //
-  pl[0*NDF+2]  =  p0[3]*c;               //
-  pl[0*NDF+3]  = -q_pres[jmx];           // Ti
+  pl[0*NDF+0]  = -q_pres[jnx]; // Ni
+  pl[0*NDF+3]  = -q_pres[jmx]; // Ti
   pl[0*NDF+4]  =  q_pres[imy];
   pl[0*NDF+5]  =  q_pres[imz];
-  pl[1*NDF+0]  =  q_pres[jnx];           // Nj
-  pl[1*NDF+1]  =  p0[2]*c;               // Vyj
-  pl[1*NDF+2]  =  p0[4]*c;               // Vzj
-  pl[1*NDF+3]  =  q_pres[jmx];           // Tj
+  pl[1*NDF+0]  =  q_pres[jnx]; // Nj
+  pl[1*NDF+3]  =  q_pres[jmx]; // Tj
   pl[1*NDF+4]  =  q_pres[jmy];
   pl[1*NDF+5]  =  q_pres[jmz];
 
@@ -205,20 +199,18 @@ BasicFrameTransf3d<ndf>::getGlobalResistingForce(const Vector &q_pres, const Vec
 
   t.push(pl, Transform::Total);
 
-#if 0
   if (p0.Norm() > 0.0) [[unlikely]] {
     // Add the external nodal loads
 
     VectorND<NDF*2> pf{};
-    pf[0*NDF + 0] = p0[0];
-    pf[0*NDF + 1] = p0[1];
-    pf[0*NDF + 2] = p0[3];
-    pf[1*NDF + 1] = p0[2];
-    pf[1*NDF + 2] = p0[4];
-    linear.push(pf, Transform::Total);
+    pf[0*NDF + 0] = p0[0]; // N
+    pf[0*NDF + 1] = p0[1]; // Vy(I)
+    pf[0*NDF + 2] = p0[3]; // Vz(I)
+    pf[1*NDF + 1] = p0[2]; // Vy(J)
+    pf[1*NDF + 2] = p0[4]; // Vz(J)
+    t.push(pf, Transform::Total&~(Transform::Adjoint|Transform::Logarithm));
     pl += pf;
   }
-#endif
 
   return wrapper;
 }
@@ -252,51 +244,6 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
   //
   static MatrixND<2*NDF,2*NDF> kl;
   static Matrix Wrapper(kl);
-#if 0
-  kl.zero();
-  for (int i=0; i<NDF*2; i++) {
-    int ii = std::abs(iq[i]);
-    if (ii >= NBV)
-      continue;
-    for (int j=0; j<NDF*2; j++) {
-      int jj = std::abs(iq[j]);
-      if (jj >= NBV)
-        continue;
-
-      kl(i,j) = kb(ii, jj);
-    }
-  }
-
-  for (int i = 0; i < 2*NDF; i++) {
-    kl(0*NDF+0, i) = kl(i, 0*NDF+0) =  i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
-    kl(0*NDF+3, i) = kl(i, 0*NDF+3) =  i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
-  }
-#elif 0
-  kl.zero();
-  Repeat<NDF*2> ([&](auto i_) {
-    constexpr static int i = i_.value;
-    constexpr int ii = iq[i] >= 0 ? iq[i] : -iq[i];
-    if constexpr (ii >= NBV) {
-      return;
-    }
-
-    Repeat<NDF*2> ([&](auto j_) {
-    constexpr static int j = j_.value;
-    // for (int j=0; j<NDF*2; j++) {
-      constexpr int jj = iq[j] >= 0 ? iq[j] : -iq[j];
-      if constexpr (jj >= NBV)
-        return;
-
-      kl(i,j) = kb(ii, jj);
-    });
-  });
-
-  Repeat<NDF*2> ([&](auto i_) {
-    constexpr static int i = i_.value;
-    kl(0*NDF+0, i) = kl(i, 0*NDF+0) =  i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
-    kl(0*NDF+3, i) = kl(i, 0*NDF+3) =  i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
-  });
-#else
 
   Repeat<NDF*2> ([&](auto j_) {
   constexpr static int j = j_.value;
@@ -322,7 +269,7 @@ BasicFrameTransf3d<ndf>::getGlobalStiffMatrix(const Matrix &kb, const Vector &q_
     kl(0*NDF+0, i) = kl(i, 0*NDF+0) =  i==0? kl(NDF+0, NDF+0): (i==3? kl(NDF+0, NDF+3) : -kl( NDF+0, i));
     kl(0*NDF+3, i) = kl(i, 0*NDF+3) =  i==0? kl(NDF+3, NDF+0): (i==3? kl(NDF+3, NDF+3) : -kl( NDF+3, i));
   });
-#endif
+
   t.push(kl, pl, Transform::Total);
 
   return Wrapper;
@@ -362,8 +309,8 @@ BasicFrameTransf3d<ndf>::getInitialGlobalStiffMatrix(const Matrix &KB)
   for (int i = 0; i < 12; i++) {
     kl( 0, i) = -tmp[0][i];
     kl( 3, i) = -tmp[5][i];
-    kl( 4, i) = tmp[3][i];
-    kl( 5, i) = tmp[1][i];
+    kl( 4, i) =  tmp[3][i];
+    kl( 5, i) =  tmp[1][i];
 
     kl( 6, i) = tmp[0][i];
     kl( 9, i) = tmp[5][i];
@@ -526,23 +473,6 @@ void
 BasicFrameTransf3d<ndf>::Print(OPS_Stream &s, int flag)
 {
   t.Print(s, flag);
-}
-
-
-template<int ndf>
-int
-BasicFrameTransf3d<ndf>::sendSelf(int cTag, Channel &theChannel)
-{
-  return -1;
-}
-
-
-template<int ndf>
-int
-BasicFrameTransf3d<ndf>::recvSelf(int cTag, Channel &,
-                            FEM_ObjectBroker &theBroker)
-{
-  return -1;
 }
 
 }
