@@ -16,11 +16,14 @@ target_sources(OPS_Element
     EulerDeltaFrame3d.cpp
   PUBLIC
     BasicFrame3d.h
-    ForceFrame3d.h
     ForceDeltaFrame3d.h
 )
 
-target_include_directories(OPS_Element PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(OPS_Element 
+  PUBLIC 
+  ${CMAKE_CURRENT_LIST_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/Force
+)
 
 add_subdirectory(Elastic)
 add_subdirectory(Other/Displ)
