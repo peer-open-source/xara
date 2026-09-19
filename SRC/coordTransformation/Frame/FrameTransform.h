@@ -57,7 +57,7 @@ enum Action : int {
   Isometry    = 1u << 2, // 2.1
   Rotation    = 1u << 3, // 2.2
   Offset      = 1u << 4, // 1
-  Bubnov      = 1u << 6,
+  Bubnov      = 1u << 6, // for conservative loads in force formulation
   Adjoint     = 1u << 7,
   Tangent     = 1u << 8,
   Total  = (1u<<0) // Logarithm
@@ -150,6 +150,7 @@ public:
   }
   virtual const std::array<Vector3D,nn> *getRigidOffsets() const =0;
 
+  virtual bool hybrid() const {return false;}
   //
   virtual int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const =0;
 
@@ -183,9 +184,10 @@ public:
 
 protected:
   constexpr static int ndm = 3;
+public:
   static inline constexpr void
   pushRotation(MatrixND<nn*ndf,nn*ndf>& Kg, const Matrix3D& R);
-
+protected:
   static inline constexpr void
   pushOffsets(MatrixND<nn*ndf,nn*ndf>& Kg, const std::array<Vector3D,nn>& offsets);
 
