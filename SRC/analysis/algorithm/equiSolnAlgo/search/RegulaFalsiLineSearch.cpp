@@ -142,7 +142,6 @@ RegulaFalsiLineSearch::search(double s0,
   // return if no bracket for a solution found, reset to initial values
   if (sU * sL > 0.0) {
     Xs = dU;
-    // theSOE.setX(Xs);
     Xs *= -compoundFactor;
     if (theIntegrator.update(Xs) < 0)
       return -1;
@@ -225,7 +224,6 @@ RegulaFalsiLineSearch::search(double s0,
     eta = 1.0;
 
   Xs.addVector(0, dU, etaJ);
-  // theSOE.setX(Xs);
 
   return 0;
 }

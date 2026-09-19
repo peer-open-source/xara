@@ -52,16 +52,6 @@ class Broyden: public EquiSolnAlgo
                       Vector &du, 
                       int count );
 
-    // class BroydenAction : public LinearAction
-    // {
-    //   public:
-    //     BroydenAction(Broyden *theAlgo) : theAlgo(theAlgo) {}
-    //     int apply(const Vector &v, Vector &result) {return -1;}
-    //     int solve(const Vector &v, Vector &result);
-    //   private:
-    //     Broyden *theAlgo;
-    // } action;
-
     IncrementalIntegrator::TangentFlagType tangent;
     int numberLoops ; // number of Broyden iterations
 

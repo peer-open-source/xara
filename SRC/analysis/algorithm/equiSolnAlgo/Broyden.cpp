@@ -78,9 +78,6 @@ Broyden::~Broyden()
   if ( s != 0 ) delete[] s ; 
 
   if ( z != 0 ) delete[] z ;
-
-  s = 0 ;  
-  z = 0 ;
 }
 
 

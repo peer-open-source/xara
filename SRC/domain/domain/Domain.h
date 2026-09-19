@@ -34,7 +34,6 @@
 #include <Vector.h>
 #include <TaggedIterator.hpp>
 #include <MapOfTaggedObjects.h>
-#include "state/EigenState.h"
 
 enum class NodeData: int;
 class Element;
@@ -277,8 +276,7 @@ class Domain
     Vector theBounds;
     bool initBounds;  // added to fix bug when all nodes are positive or negative - ambaker1
     bool resetBounds; // added to optimize bound resetting for when nodes are removed.
-    
-    EigenState eigen_state;
+
     Vector *theEigenvalues;
     double theEigenvalueSetTime;
     Vector *theModalDampingFactors;
