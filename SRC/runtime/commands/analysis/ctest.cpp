@@ -60,9 +60,17 @@ XaraCmd_test(ClientData clientData, Tcl_Interp *interp, ArgSize argc, G3_Char **
 }
 
 
+
 static ConvergenceTest*
 TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, ArgSize argc, G3_Char ** const argv)
 {
+  // test NormUnbalance $tol $iter <$pFlag> <$nType>
+  // test NormDispIncr $tol $iter <$pFlag> <$nType>
+  // test EnergyIncr $tol $iter <$pFlag> <$nType>
+  // test RelativeNormUnbalance $tol $iter <$pFlag> <$nType>
+  // test FixedNumIter $iter <$pFlag> <$nType>
+  // test('NormDispOrUnbalance', tolIncr, tolR, iter, pFlag=0, nType=2, maxincr=-1)
+
   // get the tolerence first
   double tol     = 1e-12;
   double tol2    = 0.0;
@@ -163,6 +171,7 @@ TclDispatch_newConvergenceTest(ClientData clientData, Tcl_Interp* interp, ArgSiz
     // All others
     //
     // test <type> $tol $iter < $pFlag > < $nType >
+    //
     if (argc == 4) {
       if (Tcl_GetDouble(interp, argv[2], &tol) != TCL_OK)
         return nullptr;
@@ -336,9 +345,9 @@ XaraCmd_testNorms(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   }
 
-  int type = 0;
   const Vector* t_data = nullptr;
 #if 0
+  int type = 0;
   if (argc > 1) {
     if (strcmp(argv[1], "Residual") == 0)
       type = GeneralTest::Residual;
