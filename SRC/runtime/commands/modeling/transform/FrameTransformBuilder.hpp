@@ -41,16 +41,6 @@ namespace OpenSees {
 
 class FrameTransformBuilder : public TaggedObject {
 public:
-    FrameTransformBuilder(int ndm, int t, const char *n) 
-    : ndm(ndm), 
-      TaggedObject(t), 
-      vz{{0, 0, 0}}, offsets{}, offset_flags(0) {
-      snprintf(name, sizeof(name), "%s", n);
-      // offset_flags |= LogIter;
-    }
-
-    virtual ~FrameTransformBuilder() {}
-  
     enum class TransformType {
       Unknown,
       Linear_O3,
@@ -65,9 +55,24 @@ public:
       Corotational06_X1,
 
       Spherical_X1,
+      Identity_X1,
+
       PDelta_O3,
       PDelta_X1,
     };
+
+    FrameTransformBuilder(int ndm, int tag, TransformType type, const char *n) 
+    : ndm(ndm), 
+      TaggedObject(tag), 
+      vz{{0, 0, 0}}, offsets{},
+      offset_flags(0),
+      type(type)
+    {
+      snprintf(name, sizeof(name), "%s", n);
+      // offset_flags |= LogIter;
+    }
+
+    virtual ~FrameTransformBuilder() {}
 
     template<int nn, int ndf>
     FrameTransform<nn, ndf> *
@@ -91,17 +96,45 @@ public:
       }
 
       int tag = this->getTag();
-      if (strstr(name, "Linear") != nullptr) {
-        if (!getenv("Linear02"))
+
+      switch (type) {          
+        case TransformType::Linear_O3:
           return new LinearFrameTransf<nn, ndf> (tag, vz, offset_array, c_flags);
-        else
+        case TransformType::LinearIsometric_X1:
           return new EuclidFrameTransf<nn, ndf, LinearIsometry<nn>> (tag, vz, offset_array, c_flags);
+
+        case TransformType::PDelta_O3:
+        case TransformType::PDelta_X1: {
+          bool ctan = (type == TransformType::PDelta_O3) ? false : true;
+          if constexpr (nn == 2)
+            return new PDeltaFrameTransf<nn, ndf> (tag, vz, offset_array, c_flags, ctan);
+        }
+        case TransformType::Corotational_O3:
+          if constexpr (ndf == 6 && nn==2)
+            return new SouzaFrameTransf<nn, ndf> (tag, vz, offset_array, c_flags);
+          else 
+            return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,false>> (tag, vz, offset_array, c_flags);
+
+        case TransformType::Corotational02_X1:
+          return new EuclidFrameTransf<nn, ndf, RankinIsometry<nn>> (tag, vz, offset_array, c_flags);
+        case TransformType::Corotational03_X1:
+          return new EuclidFrameTransf<nn, ndf, BattiniIsometry<nn>> (tag, vz, offset_array, c_flags);
+        case TransformType::Corotational04_X1:
+          return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,true>> (tag, vz, offset_array, c_flags);
+        case TransformType::Corotational05_X1:
+          return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,false>> (tag, vz, offset_array, c_flags);
+        case TransformType::Spherical_X1:
+          return new EuclidFrameTransf<nn, ndf, SphericalIsometry<nn>> (tag, vz, offset_array, c_flags);
+        case TransformType::Identity_X1:
+          return new EuclidFrameTransf<nn, ndf, IdentityIsometry<nn>> (tag, vz, offset_array, c_flags);
+        default:
+          return nullptr;
       }
-
-      else if (strstr(name, "LinearIsometric") != nullptr)
-        return new EuclidFrameTransf<nn, ndf, LinearIsometry<nn>> (tag, vz, offset_array, c_flags);
-
-      else if (strcmp(name, "Corotational") == 0) {
+#if 0
+      if (strstr(name, "Linear") != nullptr) {
+        return new LinearFrameTransf<nn, ndf> (tag, vz, offset_array, c_flags);
+      }
+      else if (strcmp(name, "Corotational") == 0 || strcmp(name, "Corotational01") == 0) {
         if constexpr (ndf == 6 && nn==2)
           return new SouzaFrameTransf<nn, ndf> (tag, vz, offset_array, c_flags);
         else 
@@ -122,16 +155,9 @@ public:
         }
       }
 
-      else if (strcmp(name, "Corotational02") == 0 || strcmp(name, "Isometric") == 0 || strstr(name, "Rigid") != nullptr)
+      else if (strcmp(name, "Corotational02") == 0)
       {
-        if (getenv("Battini"))
-          return new EuclidFrameTransf<nn, ndf, BattiniIsometry<nn>> (tag, vz, offset_array, c_flags);
-        else if (getenv("Crisfield"))
-          return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,true>> (tag, vz, offset_array, c_flags);
-        else if (getenv("Crisfield02"))
-          return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,false>> (tag, vz, offset_array, c_flags);
-        else
-          return new EuclidFrameTransf<nn, ndf, RankinIsometry<nn>> (tag, vz, offset_array, c_flags);
+        return new EuclidFrameTransf<nn, ndf, RankinIsometry<nn>> (tag, vz, offset_array, c_flags);
       }
       else if (strcmp(name, "Corotational03") == 0)
         return new EuclidFrameTransf<nn, ndf, BattiniIsometry<nn>> (tag, vz, offset_array, c_flags);
@@ -141,7 +167,7 @@ public:
 
       else if (strcmp(name, "Corotational05") == 0)
         return new EuclidFrameTransf<nn, ndf, CrisfieldIsometry<nn,false>> (tag, vz, offset_array, c_flags);
-#if 0
+#if 1
       else if (strcmp(name, "Corotational06") == 0)
         return new EuclidFrameTransf<nn, ndf, Crisfield06<nn>> (tag, vz, offset_array, c_flags);
 #endif
@@ -150,9 +176,10 @@ public:
 
       else if (strcmp(name, "Identity") == 0)
         return new EuclidFrameTransf<nn, ndf, IdentityIsometry<nn>> (tag, vz, offset_array, c_flags);
-      return nullptr;
-    }
 
+      return nullptr;
+#endif
+    }
     virtual void 
     Print(OPS_Stream&s, int flag) {
       if (flag == OPS_PRINT_PRINTMODEL_JSON) {
