@@ -469,11 +469,6 @@ int Joint2D::addMP_Joint(Domain* theDomain,
   // create MP_ForJoint constraint
   Temp_MP = new MP_Joint2D(theDomain, RnodeID, CnodeID, MainDOF, FixedEnd, LrgDispFlag);
 
-  if (Temp_MP == NULL)
-  {
-    opserr << "Joint2D::addMP_Joint - WARNING ran out of memory for ForJoint MP_Constraint ";
-    return -1;
-  }
   // Add the multi-point constraint to the domain
   if (theDomain->addMP_Constraint(Temp_MP) == false)
   {
