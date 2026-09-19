@@ -45,26 +45,26 @@ static int numInitialStateAnalysisWrapperMaterials = 0;
 void * OPS_ADD_RUNTIME_VPV(OPS_InitialStateAnalysisWrapperMaterial)
 {
 	if (numInitialStateAnalysisWrapperMaterials == 0) {
-		numInitialStateAnalysisWrapperMaterials++;
-		opslog << "InitialStateAnalysisWrapper nDmaterial - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
-  	}
+    numInitialStateAnalysisWrapperMaterials++;
+    opslog << "InitialStateAnalysisWrapper nDmaterial - Written: C.McGann, P.Arduino, P.Mackenzie-Helnwein, U.Washington\n";
+  }
 
-  	NDMaterial *theMaterial = nullptr;
+  NDMaterial *theMaterial = nullptr;
 
-  	int numArgs = OPS_GetNumRemainingInputArgs();
+  int numArgs = OPS_GetNumRemainingInputArgs();
 
-  	if (numArgs < 2) {
-    	opserr << "Want: nDMaterial InitialStateAnalysisWrapper tag? nDMatTag? numDim?" << endln;
-    	return 0;	
-  	}
-  
-  	int iData[3];
+  if (numArgs < 2) {
+    opserr << "Want: nDMaterial InitialStateAnalysisWrapper tag? nDMatTag? numDim?" << endln;
+    return 0;	
+  }
 
-  	int numData = 3;
-  	if (OPS_GetInt(&numData, iData) != 0) {
-    	opserr << "WARNING invalid integer data: nDMaterial InitialStateAnalysisWrapper with tag: " << iData[0] << endln;
-    	return 0;
-  	}
+  int iData[3];
+
+  int numData = 3;
+  if (OPS_GetInt(&numData, iData) != 0) {
+    opserr << "WARNING invalid integer data: nDMaterial InitialStateAnalysisWrapper with tag: " << iData[0] << endln;
+    return 0;
+  }
 
 	int matID = iData[1];
 	NDMaterial *theMainMaterial = OPS_getNDMaterial(matID);
@@ -75,13 +75,9 @@ void * OPS_ADD_RUNTIME_VPV(OPS_InitialStateAnalysisWrapperMaterial)
 	}
 
 	// parsing was successful, allocate the material
-  	theMaterial = new InitialStateAnalysisWrapper(iData[0], *theMainMaterial, iData[2]);
-  
-  	if (theMaterial == 0) {
-    	opserr << "WARNING ran out of memory for nDMaterial InitialStateAnalysisWrapper with tag: " << iData[0] << endln;
-  	}
+  theMaterial = new InitialStateAnalysisWrapper(iData[0], *theMainMaterial, iData[2]);
 
-  	return theMaterial;
+  return theMaterial;
 }
 
 // full constructor
