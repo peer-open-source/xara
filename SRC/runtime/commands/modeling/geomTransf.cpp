@@ -42,10 +42,10 @@ using namespace OpenSees;
 using namespace Xara;
 
 static int 
-TclCommand_addTransformBuilder(ClientData clientData,
-                               Tcl_Interp *interp,
-                               ArgSize argc,
-                               const char ** const argv)
+XaraCmd_transform(ClientData clientData,
+                  Tcl_Interp *interp,
+                  ArgSize argc,
+                  const char ** const argv)
 {
   assert(clientData != nullptr);
   ModelRegistry *builder = static_cast<ModelRegistry*>(clientData);
@@ -69,8 +69,10 @@ TclCommand_addTransformBuilder(ClientData clientData,
   }
 
   const char *name = argv[1];
+#if 0
   if (getenv("XARA_TRANSFORM"))
     name = getenv("XARA_TRANSFORM");
+#endif
 
   int tag;
   if (Tcl_GetInt(interp, argv[2], &tag) != TCL_OK) {
@@ -82,8 +84,12 @@ TclCommand_addTransformBuilder(ClientData clientData,
 
   FrameTransformBuilder::TransformType type = FrameTransformBuilder::TransformType::Unknown;
   OpenSeesVersion version = GetCompatibilityVersion(interp);
+
   if (strcmp(name, "Linear") == 0) {
     type = FrameTransformBuilder::TransformType::Linear_O3;
+  }
+  else if (strcmp(name, "LinearIsometric") == 0) {
+    type = FrameTransformBuilder::TransformType::LinearIsometric_X1;
   }
 
   else if (strcmp(name, "Corotational") == 0) {
@@ -92,7 +98,6 @@ TclCommand_addTransformBuilder(ClientData clientData,
     else
       type = FrameTransformBuilder::TransformType::Corotational_O3;
   }
-
   else if (strstr(name, "PDelta") != nullptr) {
     if (version >= OpenSeesVersion::X1)
       type = FrameTransformBuilder::TransformType::PDelta_X1;
@@ -101,7 +106,10 @@ TclCommand_addTransformBuilder(ClientData clientData,
   }
   else if (strcmp(name, "PDelta01") == 0)
     type = FrameTransformBuilder::TransformType::PDelta_O3;
-
+  else if (strcmp(name, "PDelta02") == 0)
+    type = FrameTransformBuilder::TransformType::PDelta_X1;
+  else if (strcmp(name, "Corotational01") == 0)
+    type = FrameTransformBuilder::TransformType::Corotational_O3;
   else if (strcmp(name, "Corotational02") == 0)
     type = FrameTransformBuilder::TransformType::Corotational02_X1;
   else if (strcmp(name, "Corotational03") == 0)
@@ -112,15 +120,19 @@ TclCommand_addTransformBuilder(ClientData clientData,
     type = FrameTransformBuilder::TransformType::Corotational05_X1;
   else if (strcmp(name, "Corotational06") == 0)
     type = FrameTransformBuilder::TransformType::Corotational06_X1;
-  // else {
-  //   opserr << OpenSees::PromptValueError
-  //          << "unknown transform type: " << name
-  //          << OpenSees::SignalMessageEnd;
-  //   return TCL_ERROR;
-  // }
+  else if (strcmp(name, "Spherical") == 0)
+    type = FrameTransformBuilder::TransformType::Spherical_X1;
+  else if (strcmp(name, "Identity") == 0)
+    type = FrameTransformBuilder::TransformType::Identity_X1;
+  else {
+    opserr << OpenSees::PromptValueError
+           << "unknown transform type: " << name
+           << OpenSees::SignalMessageEnd;
+    return TCL_ERROR;
+  }
 
 
-  FrameTransformBuilder& transform = *new FrameTransformBuilder(ndm, tag, name);
+  FrameTransformBuilder& transform = *new FrameTransformBuilder(ndm, tag, type, name);
 
   // Parse orientation vector
   int argi = 3;
@@ -355,7 +367,7 @@ XaraCmd_geomTransf(ClientData clientData, Tcl_Interp *interp,
                          const char ** const argv)
 
 {
-  if (TclCommand_addTransformBuilder(clientData, interp, argc, argv) != TCL_OK)
+  if (XaraCmd_transform(clientData, interp, argc, argv) != TCL_OK)
     return TCL_ERROR;
   
   if (strcmp(argv[0], "transform") == 0)
@@ -453,22 +465,22 @@ XaraCmd_geomTransf(ClientData clientData, Tcl_Interp *interp,
     CrdTransf *crdTransf2d = nullptr;
 
     if (strcmp(argv[1], "Linear") == 0)
-        crdTransf2d = new LinearCrdTransf2d(tag, jntOffsetI, jntOffsetJ);
+      crdTransf2d = new LinearCrdTransf2d(tag, jntOffsetI, jntOffsetJ);
 
     else if (strcmp(argv[1], "LinearInt") == 0)
-      crdTransf2d =
-          new LinearCrdTransf2dInt(tag, jntOffsetI, jntOffsetJ);
+      crdTransf2d = new LinearCrdTransf2dInt(tag, jntOffsetI, jntOffsetJ);
 
-    else if (strcmp(argv[1], "PDelta") == 0 ||
-             strcmp(argv[1], "LinearWithPDelta") == 0)
+    else if ((strcmp(argv[1], "PDelta") == 0)   ||
+             (strcmp(argv[1], "PDelta01") == 0) ||
+             (strcmp(argv[1], "PDelta02") == 0) ||
+             (strcmp(argv[1], "LinearWithPDelta") == 0))
       crdTransf2d = new PDeltaCrdTransf2d(tag, jntOffsetI, jntOffsetJ);
 
     else if ((strcmp(argv[1], "Corotational") == 0 || strcmp(argv[1], "Corotational02") == 0) && ndf == 3)
       crdTransf2d = new CorotCrdTransf2d(tag, jntOffsetI, jntOffsetJ);
 
     else if ((strcmp(argv[1], "Corotational") == 0 || strcmp(argv[1], "Corotational02") == 0) && ndf == 4)
-      crdTransf2d =
-          new CorotCrdTransfWarping2d(tag, jntOffsetI, jntOffsetJ);
+      crdTransf2d = new CorotCrdTransfWarping2d(tag, jntOffsetI, jntOffsetJ);
 
     else {
       opserr << OpenSees::PromptValueError 
@@ -550,7 +562,6 @@ XaraCmd_geomTransf(ClientData clientData, Tcl_Interp *interp,
     //
     // Additional keyword options
     //
-
     while (argi != argc) {
       if (strcmp(argv[argi], "-jntOffset") == 0) {
         argi++;
