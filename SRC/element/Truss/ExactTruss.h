@@ -120,11 +120,12 @@ private:
       case StrainType::Green:
         B = (dX + du)/(Lo*Lo);
         return Ln/Lo;
-      case StrainType::Corotational:
-        B = (dX + du)/(Lo*Ln);
-        return 1.0;
       case StrainType::Logarithmic:
         B = (Lo/Ln)*(dX + du)/(Lo*Ln);
+        return 1.0;
+      case StrainType::Corotational:
+      default:
+        B = (dX + du)/(Lo*Ln);
         return 1.0;
     }
   }

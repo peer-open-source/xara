@@ -554,11 +554,12 @@ ExactTruss::computeCurrentStrain()
       return dX.dot(du)/(Lo*Lo);
     case StrainType::Green:
       return egr;
-    case StrainType::Corotational:
-      return 2.0*Lo*egr/(Ln + Lo);
     case StrainType::Logarithmic:
       // return 0.5*std::log(C*C);
       return std::log(Ln/Lo);
+    case StrainType::Corotational:
+    default:
+      return 2.0*Lo*egr/(Ln + Lo);
   }
 }
 
