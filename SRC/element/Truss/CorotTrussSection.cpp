@@ -149,7 +149,7 @@ CorotTrussSection::setDomain(Domain* theDomain)
     return;
   }
 
-  // now determine the number of dof and the dimesnion
+  // now determine the number of dof and the dimension
   int dofNd1 = theNodes[0]->getNumberDOF();
   int dofNd2 = theNodes[1]->getNumberDOF();
 
@@ -602,7 +602,7 @@ CorotTrussSection::setParameter(const char** argv, int argc, Parameter& param)
   if (argc < 1)
     return -1;
 
-  // Mass densitity of the truss
+  // Mass density of the truss
   if (strcmp(argv[0], "rho") == 0)
     return param.addObject(2, this);
 

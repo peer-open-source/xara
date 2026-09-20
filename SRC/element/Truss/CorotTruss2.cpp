@@ -273,14 +273,14 @@ CorotTruss2::setDomain(Domain *theDomain)
     }
 
   
-  // now determine the number of dof and the dimesnion    
+  // now determine the number of dof and the dimension
   int dofNd1 = theNodes[0]->getNumberDOF();
   int dofNd2 = theNodes[1]->getNumberDOF();        
   
   // if differing dof at the ends - print a warning message
   if (dofNd1 != dofNd2) {
     opserr << "WARNING CorotTruss2::setDomain(): nodes " << Nd1 <<
-      " and " << Nd2 << "have differing dof at ends for CorotTruss2 " << this->getTag() << endln;
+      " and " << Nd2 << "have differing dof at ends for CorotTruss2 " << this->getTag() << "\n";
     
     // fill this in so don't segment fault later
     numDOF = 6;    
