@@ -57,7 +57,8 @@ def parse_args(args):
         "verbose":   False,
         "interact":  False,
         "enable_tk": False,
-        "commands":  []
+        "cargv":     False, # shift argv by one
+        "commands":  [],
     }
     file = None
     argi = iter(args[1:])
@@ -71,6 +72,9 @@ def parse_args(args):
 
             elif arg == "--enable-tk":
                 opts["enable_tk"] = True
+
+            elif arg == "--cargv":
+                opts["cargv"] = True
 
             elif arg == "--subproc":
                 opts["subproc"] = True
@@ -139,8 +143,12 @@ def main():
     #
     #
     argv = list(argi)
-    tcl.eval(f"set argc {len(argv)+1}")
-    tcl.eval(f"set argv {{{file} {' '.join(argv)}}}")
+    if opts["cargv"]:
+        tcl.eval(f"set argc {len(argv)+1}")
+        tcl.eval(f"set argv {{{file} {' '.join(argv)}}}")
+    else:
+        tcl.eval(f"set argc {len(argv)}")
+        tcl.eval(f"set argv {{{' '.join(argv)}}}")
 
     script = None
     run_cmds = "before"
