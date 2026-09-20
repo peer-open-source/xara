@@ -395,9 +395,6 @@ ExactTruss::addLoad(ElementalLoad* theLoad, double loadFactor)
 const Vector&
 ExactTruss::getResistingForce()
 {
-  int order      = theSection->getOrder();
-  const ID& code = theSection->getType();
-
   double Ln;
   Vector3D ql{};
   double J  = this->interpolate(ql,Ln);
