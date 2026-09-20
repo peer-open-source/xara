@@ -57,9 +57,12 @@ def parse_args(args):
         "verbose":   False,
         "interact":  False,
         "enable_tk": False,
-        "cargv":     False, # shift argv by one
+        "cargv":     True, # shift argv by one
         "commands":  [],
     }
+    if args[0] == "opensees":
+        opts["cargv"] = False
+
     file = None
     argi = iter(args[1:])
     for arg in argi:
@@ -74,7 +77,7 @@ def parse_args(args):
                 opts["enable_tk"] = True
 
             elif arg == "--cargv":
-                opts["cargv"] = True
+                opts["cargv"] = not opts["cargv"]
 
             elif arg == "--subproc":
                 opts["subproc"] = True
@@ -144,6 +147,7 @@ def main():
     #
     argv = list(argi)
     if opts["cargv"]:
+        # C-style argv
         tcl.eval(f"set argc {len(argv)+1}")
         tcl.eval(f"set argv {{{file} {' '.join(argv)}}}")
     else:
