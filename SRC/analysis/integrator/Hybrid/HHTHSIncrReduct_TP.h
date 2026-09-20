@@ -46,7 +46,6 @@ class HHTHSIncrReduct_TP : public TransientIntegrator
 {
 public:
     // constructors
-    HHTHSIncrReduct_TP();
     HHTHSIncrReduct_TP(double rhoInf, double reduct);
     HHTHSIncrReduct_TP(double alphaI, double alphaF,
         double beta, double gamma, double reduct);
@@ -55,7 +54,7 @@ public:
     ~HHTHSIncrReduct_TP();
     
     // method to set up the system of equations
-    int formUnbalance(void);
+    int formUnbalance(Vector &G) override;
     
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
@@ -64,18 +63,15 @@ public:
     int formEleResidual(FE_Element *theEle);
     int formNodUnbalance(DOF_Group *theDof);
     
-    int domainChanged(void);
+    int domainChanged();
     int newStep(double deltaT);
-    int revertToLastStep(void);
+    int revertToLastStep();
     int update(const Vector &deltaU);
-    int commit(void);
+    int commit();
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
-    void Print(OPS_Stream &s, int flag = 0);
+    const Vector &getVel();
+
+    void Print(OPS_Stream &s, int flag);
     
 private:
     double alphaI;

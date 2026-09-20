@@ -265,7 +265,7 @@ CatenaryCable::setDomain(Domain *theDomain)
       return;
     }
 
-    // now determine the number of dof and the dimesnion    
+    // now determine the number of dof and the dimension 
     int dofNd1 = theNodes[0]->getNumberDOF();
     int dofNd2 = theNodes[1]->getNumberDOF();	
 

@@ -191,11 +191,11 @@ PY_Macro2D::setDomain(Domain *theDomain)
     return;
   }
 
-  // now determine the number of dof and the dimesnion
+  // now determine the number of dof and the dimension
   int dofNd1 = theNodes[0]->getNumberDOF();
   int dofNd2 = theNodes[1]->getNumberDOF();
 
-  if (dofNd1 != 2) {		//!!!!!!!!!!!!!
+  if (dofNd1 != 2) {
     opserr <<"WARNING PY_Macro2D::setDomain(): node 1: " << Nd1 << " needs 3 dof\n ";
     return;
   }

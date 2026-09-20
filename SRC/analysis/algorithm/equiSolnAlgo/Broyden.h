@@ -17,29 +17,22 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.5 $
-// $Date: 2007-05-04 23:41:56 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/Broyden.h,v $
-                                                                        
-#ifndef Broyden_h
-#define Broyden_h
-
-// File: ~/OOP/analysis/algorithm/Broyden.h 
-// 
+//
 // Written: Ed C++ Love
 // Created: 04/01
-
+//
 // Description: This file contains the class definition for
 // Broyden.  Broyden is a class which performs the Broyden
 // solution algorithm in solving the equations.
 // 
 // What: "@(#)Broyden.h, revA"
-
+//
+#pragma once
 #include <EquiSolnAlgo.h>
 #include <Vector.h>
 #include <IncrementalIntegrator.h>
-#include <LinearSOE.h> 
+#include <LinearSOE.h>
+#include <LinearAction.h>
 
 class Broyden: public EquiSolnAlgo
 {
@@ -50,17 +43,14 @@ class Broyden: public EquiSolnAlgo
     ~Broyden();
 
     int solveCurrentStep() final;
-    
-    virtual int sendSelf(int commitTag, Channel &) final;
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
 
     void Print(OPS_Stream &, int flag) const final;    
-    
+
   private:
-    void BroydenUpdate( IncrementalIntegrator *theIntegrator,
-                        LinearSOE *theSOE,
-                        Vector &du, 
-                        int count ) ;  
+    int BroydenUpdate(IncrementalIntegrator &,
+                      LinearSOE &,
+                      Vector &du, 
+                      int count );
 
     IncrementalIntegrator::TangentFlagType tangent;
     int numberLoops ; // number of Broyden iterations
@@ -70,11 +60,7 @@ class Broyden: public EquiSolnAlgo
     Vector *residOld ;  //residuals
     Vector *residNew ;
 
-    Vector *du ; //displacement increment
-
-    Vector *temp ; //temporary vector
+    Vector du; // displacement increment
+    Vector temp; //temporary vector
 };
-
-#endif
-
 

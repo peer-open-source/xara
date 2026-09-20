@@ -32,6 +32,7 @@
 // What: "@(#)Linear.h, revA"
 #pragma once
 #include <EquiSolnAlgo.h>
+#include <Vector.h>
 
 class Linear: public EquiSolnAlgo
 {
@@ -45,4 +46,5 @@ public:
 private:
   int incrTangent;
   int factorOnce;
+  Vector G, dX;
 };

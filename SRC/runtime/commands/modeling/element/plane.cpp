@@ -187,8 +187,8 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
     element_type = PlaneElementType::Qn;
   }
   else if ((strcasecmp(element_name, "Q4") == 0) || 
-      (strcasecmp(element_name, "Quad") == 0) || 
-      (strcasecmp(element_name, "FourNodeQuad") == 0)) {
+           (strcasecmp(element_name, "Quad") == 0) || 
+           (strcasecmp(element_name, "FourNodeQuad") == 0)) {
     element_type = PlaneElementType::Q4;
   }
 
@@ -512,7 +512,8 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
               strcmp(type,"PlaneStrain2D") != 0 && 
               strcmp(type,"PlaneStress2D") != 0) {
             opserr << OpenSees::PromptValueError 
-                   << "improper material type: " << type << "\n";
+                   << "improper material type: " << type 
+                   << "\n";
             return TCL_ERROR;
           }
           tracker.increment();
@@ -608,8 +609,7 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
       nodes[i] = multi_nodes[i];
 
     if (element_type == PlaneElementType::T3) {
-      theElement = 
-          new Tri31(tag, nodes, *nd_mat, thickness, p, rho, b1, b2);
+      theElement = new Tri31(tag, nodes, *nd_mat, thickness, p, rho, b1, b2);
     }
   }
 
@@ -634,14 +634,13 @@ TclBasicBuilder_addFourNodeQuad(ClientData clientData,
                << "\n";
         return TCL_ERROR;
       }
-      if (strcasecmp(argv[1], "EnhancedQuad") == 0) {
-        theElement =
-            new EnhancedQuad(tag, nodes, *nd_mat, thickness);
+      if (element_type == PlaneElementType::Q4_E5) {
+        theElement = new EnhancedQuad(tag, nodes, *nd_mat, thickness);
       }
-      else if (strcasecmp(argv[1], "bbarQuad") == 0 || 
-               strcasecmp(argv[1], "mixedQuad") == 0) {
-        theElement = new ConstantPressureVolumeQuad(tag, nodes, *nd_mat, thickness);
-      }
+      // else if (strcasecmp(argv[1], "bbarQuad") == 0 || 
+      //          strcasecmp(argv[1], "mixedQuad") == 0) {
+      //   theElement = new ConstantPressureVolumeQuad(tag, nodes, *nd_mat, thickness);
+      // }
       else if (strcasecmp(argv[1], "sspquad") == 0) {
         theElement = new SSPquad(tag, nodes, *nd_mat, thickness, rho, b1, b2);
       }
@@ -1194,18 +1193,14 @@ TclBasicBuilder_addFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
 
 int
 TclBasicBuilder_addNineFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
-                                      int argc, TCL_Char ** const argv)
+                                      ArgSize argc, TCL_Char ** const argv)
 {
   ModelRegistry *builder = (ModelRegistry*)clientData;
-
-  if (builder == 0 || clientData == 0) {
-    opserr << OpenSees::PromptValueError << "builder has been destroyed\n";
-    return TCL_ERROR;
-  }
+  assert(builder != nullptr);
 
   if (builder->getNDM() != 2) {
-    opserr << OpenSees::PromptValueError << "-- model dimensions not compatible with 9-4-NodeQuadUP "
-              "element\n";
+    opserr << OpenSees::PromptValueError 
+           << "-- model dimensions not compatible with 9-4-NodeQuadUP element\n";
     return TCL_ERROR;
   }
 

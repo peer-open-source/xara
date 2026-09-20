@@ -103,8 +103,8 @@ LinearSOE::solve(const Vector& b, Vector& x)
     return ok;
 
   if (m_fwd_update)
-   if ((ok = m_fwd_update->solve(b,x)) < 0)
-     return ok;
+    if ((ok = m_fwd_update->solve(b,x)) < 0)
+      return ok;
 
   if (m_inv_update)
     if ((ok = m_inv_update->apply(b,x)) < 0)

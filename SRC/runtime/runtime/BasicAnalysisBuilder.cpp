@@ -59,6 +59,8 @@
 #include <TransformationConstraintHandler.h>
 #include <ProcessContext.h>
 
+#include <analysis/damping/ModalDamping.h>
+
 
 static std::unordered_map<int, std::string> AnalyzeFailedMessage {
    {SolutionAlgorithm::BadFormResidual, "Failed to form residual\n"},
@@ -103,7 +105,6 @@ BasicAnalysisBuilder::~BasicAnalysisBuilder()
 void
 BasicAnalysisBuilder::wipe()
 {
-
   if (theAlgorithm != nullptr) {
     delete theAlgorithm;
     theAlgorithm = nullptr;
@@ -463,16 +464,6 @@ int
 BasicAnalysisBuilder::analyzeTransient(int numSteps, double dT)
 {
   int result = 0;
-  if (theDomain->getModalDampingFactors() != nullptr) {
-    if ((theDomain->getNumEigenvalues() < theDomain->getModalDampingFactors()->Size())) {
-      opserr << "Cannot include modal damping in transient analysis without eigenvalues\n";
-      return -1;
-    }
-
-    if (theAnalysisModel->getModalDamping() == nullptr) {
-      theAnalysisModel->setModalDamping(*theDomain->getModalDampingFactors());
-    }
-  }
 
   for (int i=0; i<numSteps; i++) {
     result = this->analyzeStep(dT);
@@ -532,11 +523,26 @@ BasicAnalysisBuilder::analyzeStep(double dT)
     }
   }
 
+  if (theDomain->getModalDampingFactors() != nullptr) {
+    if ((theDomain->getNumEigenvalues() < theDomain->getModalDampingFactors()->Size())) {
+      opserr << "Cannot include modal damping in transient analysis without eigenvalues\n";
+      return -1;
+    }
+
+    if (theAnalysisModel->getModalDamping() == nullptr) {
+      theAnalysisModel->setModalDamping(*theDomain->getModalDampingFactors());
+    }
+  }
+  theSOE->setForwardUpdate(theAnalysisModel->getModalDamping());
+
+  //
+  //
   if (theTransientIntegrator->newStep(dT) < 0) {
     opserr << "DirectIntegrationAnalysis::analyze() - the Integrator failed";
     opserr << " at time " << theDomain->getCurrentTime() << "\n";
     theDomain->revertToLastCommit();
     theTransientIntegrator->revertToLastStep();
+    theSOE->setForwardUpdate(nullptr);
     return -2;
   }
 
@@ -548,29 +554,33 @@ BasicAnalysisBuilder::analyzeStep(double dT)
     }
     theDomain->revertToLastCommit();
     theTransientIntegrator->revertToLastStep();
+    theSOE->setForwardUpdate(nullptr);
     return -3;
   }
 
   if (theTransientIntegrator->shouldComputeAtEachStep()) {
     result = theTransientIntegrator->computeSensitivities();
     if (result < 0) {
-      opserr << "TransientAnalysis::analyze() - the SensitivityAlgorithm failed";
+      opserr << "the SensitivityAlgorithm failed";
       opserr << " at time " << theDomain->getCurrentTime() << "\n";
       theDomain->revertToLastCommit();
       theTransientIntegrator->revertToLastStep();
+      theSOE->setForwardUpdate(nullptr);
       return -5;
     }    
   }
 
   result = theTransientIntegrator->commit();
   if (result < 0) {
-    opserr << "DirectIntegrationAnalysis::analyze() - ";
     opserr << "the Integrator failed to commit";
     opserr << " at time " << theDomain->getCurrentTime() << "\n";
     theDomain->revertToLastCommit();
     theTransientIntegrator->revertToLastStep();
+    theSOE->setForwardUpdate(nullptr);
     return -4;
   }
+
+  theSOE->setForwardUpdate(nullptr);
 
   return result;
 }
@@ -683,7 +693,7 @@ BasicAnalysisBuilder::analyzeVariable(int numSteps, double dT, double dtMin, dou
       result = 0;
     }
 
-    // now we determine a new delta T for next loop
+    // now determine a new delta T for next loop
     currentDt = determineDt(currentDt, dtMin, dtMax, Jd, theTest);
   }
 
@@ -1111,21 +1121,11 @@ BasicAnalysisBuilder::getConvergenceTest()
 int
 BasicAnalysisBuilder::formUnbalance(Vector& b)
 {
-#if 0
   if (theStaticIntegrator != nullptr)
     return theStaticIntegrator->formUnbalance(b);
 
   else if (theTransientIntegrator != nullptr)
     return theTransientIntegrator->formUnbalance(b);
-#else
-  if (theStaticIntegrator != nullptr)
-    return theStaticIntegrator->formUnbalance();
-
-  else if (theTransientIntegrator != nullptr)
-    return theTransientIntegrator->formUnbalance();
-  
-  b = theSOE->getB();
-#endif
   return -1;
 }
 

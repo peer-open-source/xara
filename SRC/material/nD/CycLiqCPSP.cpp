@@ -101,10 +101,6 @@ OPS_Export void * OPS_ADD_RUNTIME_VPV(OPS_CycLiqCPSPMaterial)
     theMaterial = new CycLiqCPSP(tag, 0, dData[0], dData[1], dData[2], dData[3], dData[4], dData[5], 
                                             dData[6], dData[7], dData[8], dData[9], dData[10], dData[11], dData[12], dData[13], dData[14], dData[15]);
   }
-  
-  if (theMaterial == 0) {
-    opserr << "WARNING ran out of memory for nDMaterial CycLiqCPSP  with tag: " << tag << endln;
-  }
 
   return theMaterial;
 }

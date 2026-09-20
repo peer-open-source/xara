@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
+//
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 10/05
 // Revision: A
@@ -93,18 +89,6 @@ OPS_ADD_RUNTIME_VPV(OPS_HHTHSFixedNumIter)
 }
 
 
-HHTHSFixedNumIter::HHTHSFixedNumIter()
-    : TransientIntegrator(INTEGRATOR_TAGS_HHTHSFixedNumIter),
-    alphaI(0.5), alphaF(0.5), beta(0.25), gamma(0.5),
-    polyOrder(2), updDomFlag(true),
-    deltaT(0.0), c1(0.0), c2(0.0), c3(0.0), x(1.0),
-    Ut(0), Utdot(0), Utdotdot(0), U(0), Udot(0), Udotdot(0),
-    Ualpha(0), Ualphadot(0), Ualphadotdot(0),
-    Utm1(0), Utm2(0), scaledDeltaU(0)
-{
-    
-}
-
 
 HHTHSFixedNumIter::HHTHSFixedNumIter(double _rhoInf,
     int polyorder, bool upddomflag)
@@ -165,7 +149,8 @@ HHTHSFixedNumIter::~HHTHSFixedNumIter()
 }
 
 
-int HHTHSFixedNumIter::newStep(double _deltaT)
+int
+HHTHSFixedNumIter::newStep(double _deltaT)
 {
     deltaT = _deltaT;
     if (beta == 0 || gamma == 0 )  {
@@ -194,10 +179,10 @@ int HHTHSFixedNumIter::newStep(double _deltaT)
     }
     
     // set response at t to be that at t+deltaT of previous step
-    (*Utm2) = *Utm1;
-    (*Utm1) = *Ut;
-    (*Ut) = *U;
-    (*Utdot) = *Udot;
+    (*Utm2)     = *Utm1;
+    (*Utm1)     = *Ut;
+    (*Ut)       = *U;
+    (*Utdot)    = *Udot;
     (*Utdotdot) = *Udotdot;
     
     // determine new velocities and accelerations at t+deltaT
@@ -229,7 +214,8 @@ int HHTHSFixedNumIter::newStep(double _deltaT)
 }
 
 
-int HHTHSFixedNumIter::revertToLastStep()
+int
+HHTHSFixedNumIter::revertToLastStep()
 {
     // set response at t+deltaT to be that at t .. for next step
     if (U != 0)  {
@@ -417,7 +403,8 @@ int HHTHSFixedNumIter::domainChanged()
 }
 
 
-int HHTHSFixedNumIter::update(const Vector &deltaU)
+int
+HHTHSFixedNumIter::update(const Vector &deltaU)
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel == 0)  {
@@ -489,7 +476,7 @@ int HHTHSFixedNumIter::update(const Vector &deltaU)
 }
 
 
-int HHTHSFixedNumIter::commit(void)
+int HHTHSFixedNumIter::commit()
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel == 0)  {
@@ -503,7 +490,7 @@ int HHTHSFixedNumIter::commit(void)
             opserr << "WARNING HHTHSFixedNumIter::commit() - no LinearSOE set\n";
             return -2;
         }
-        
+
         if (this->formTangent(statusFlag) < 0)  {
             opserr << "WARNING HHTHSFixedNumIter::commit() - "
                 << "the Integrator failed in formTangent()\n";
@@ -532,9 +519,10 @@ int HHTHSFixedNumIter::commit(void)
     double time = theModel->getCurrentDomainTime();
     time += (1.0-alphaF)*deltaT;
     theModel->setCurrentDomainTime(time);
-    
+
     return theModel->commitDomain();
 }
+
 
 const Vector &
 HHTHSFixedNumIter::getVel()
@@ -542,48 +530,6 @@ HHTHSFixedNumIter::getVel()
   return *Udot;
 }
 
-int HHTHSFixedNumIter::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(6);
-    data(0) = alphaI;
-    data(1) = alphaF;
-    data(2) = beta;
-    data(3) = gamma;
-    data(4) = polyOrder;
-    if (updDomFlag == true) 
-        data(5) = 1.0;
-    else
-        data(5) = 0.0;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTHSFixedNumIter::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int HHTHSFixedNumIter::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(6);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTHSFixedNumIter::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    alphaI    = data(0);
-    alphaF    = data(1);
-    beta      = data(2);
-    gamma     = data(3);
-    polyOrder = int(data(4));
-    if (data(5) == 1.0)
-        updDomFlag = true;
-    else
-        updDomFlag = false;
-    
-    return 0;
-}
 
 
 void HHTHSFixedNumIter::Print(OPS_Stream &s, int flag)

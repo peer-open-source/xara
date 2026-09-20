@@ -37,7 +37,7 @@
 
 
 CentralDifferenceAlternative::CentralDifferenceAlternative()
-:TransientIntegrator(INTEGRATOR_TAGS_CentralDifferenceAlternative),
+:TransientIntegrator(),
  updateCount(0), Ut(0), Utp1(0),  Udot(0), deltaT(0)
 {
     

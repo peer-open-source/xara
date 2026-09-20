@@ -37,11 +37,22 @@
 
 #include <ID.h>
 #include <Channel.h>
-#include <math.h>
+#include <cmath>
+
+#ifdef _WIN32
+extern "C" int DGELS(char *T, unsigned int *SZ, int *M, int *N, int *NRHS,
+                              double *A, int *LDA, double *B, int *LDB,
+                              double *WORK, int *LWORK, int *INFO);
+#else
+
+extern "C" int dgels_(char *T, int *M, int *N, int *NRHS,
+                      double *A, int *LDA, double *B, int *LDB,
+                      double *WORK, int *LWORK, int *INFO);
+#endif
 
 KrylovAccelerator2::KrylovAccelerator2(int max, int tangent)
-  :Accelerator(ACCELERATOR_TAGS_Krylov),
-   dimension(0), numEqns(0), maxDimension(max),
+  : Accelerator(),
+    dimension(0), numEqns(0), maxDimension(max),
    v(0), Av(0), AvData(0), rData(0), work(0), lwork(0), theTangent(tangent)
 {
   if (maxDimension < 0)
@@ -73,7 +84,7 @@ KrylovAccelerator2::~KrylovAccelerator2()
 }
 
 int 
-KrylovAccelerator2::newStep(LinearSOE &theSOE)
+KrylovAccelerator2::newStep(const LinearSOE &theSOE)
 {
   int newNumEqns = theSOE.getNumEqn();
 
@@ -148,19 +159,6 @@ KrylovAccelerator2::newStep(LinearSOE &theSOE)
   return 0;
 }
 
-#ifdef _WIN32
-
-extern "C" int DGELS(char *T, unsigned int *SZ, int *M, int *N, int *NRHS,
-                              double *A, int *LDA, double *B, int *LDB,
-                              double *WORK, int *LWORK, int *INFO);
-
-#else
-
-extern "C" int dgels_(char *T, int *M, int *N, int *NRHS,
-                      double *A, int *LDA, double *B, int *LDB,
-                      double *WORK, int *LWORK, int *INFO);
-
-#endif
 
 int
 KrylovAccelerator2::accelerate(Vector &vStar, LinearSOE &theSOE, 
@@ -199,8 +197,8 @@ KrylovAccelerator2::accelerate(Vector &vStar, LinearSOE &theSOE,
           sumi += A(ii,i)*A(ii,i);
           sumj += A(ii,j)*A(ii,j);
         }
-        sumi = sqrt(sumi);
-        sumj = sqrt(sumj);
+        sumi = std::sqrt(sumi);
+        sumj = std::sqrt(sumj);
         sum = sum/(sumi*sumj);
       }
     }
@@ -211,16 +209,12 @@ KrylovAccelerator2::accelerate(Vector &vStar, LinearSOE &theSOE,
     
     // No transpose
     char trans[] = "N";
-    
     // The number of right hand side vectors
     int nrhs = 1;
-    
     // Leading dimension of the right hand side vector
     int ldb = (numEqns > k) ? numEqns : k;
-    
     // Subroutine error flag
     int info = 0;
-    
     // Call the LAPACK least squares subroutine
 #ifdef _WIN32
     unsigned int sizeC = 1;
@@ -245,11 +239,10 @@ KrylovAccelerator2::accelerate(Vector &vStar, LinearSOE &theSOE,
     Q = R;
 
     // Compute the correction vector
-    double cj;
     for (j = 0; j < k; j++) {
       
       // Solution to least squares is written to rData
-      cj = rData[j];
+      double cj = rData[j];
       
       // Compute w_{k+1} = c_1 v_1 + ... + c_k v_k
       vStar.addVector(1.0, *(v[j]), cj);
@@ -291,7 +284,7 @@ KrylovAccelerator2::updateTangent(IncrementalIntegrator &theIntegrator, bool& fa
 }
 
 bool
-KrylovAccelerator2::updateTangent(void)
+KrylovAccelerator2::updateTangent()
 {
   if (dimension > maxDimension) {
     dimension = 0;
@@ -306,17 +299,4 @@ KrylovAccelerator2::Print(OPS_Stream &s, int flag) const
 {
   s << "KrylovAccelerator2" << "\n";
   s << "\tMax subspace dimension: " << maxDimension << "\n";
-}
-
-int
-KrylovAccelerator2::sendSelf(int commitTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int
-KrylovAccelerator2::recvSelf(int commitTag, Channel &theChannel, 
-                             FEM_ObjectBroker &theBroker)
-{
-  return -1;
 }

@@ -61,12 +61,6 @@ class EquiSolnAlgo: public SolutionAlgorithm
 
     virtual int    getNumFactorizations() const {return 0;}
     virtual int    getNumIterations()  const {return 0;}
-    virtual double getTotalTimeCPU()   const {return 0.0;}
-    virtual double getTotalTimeReal()  const {return 0.0;}
-    virtual double getSolveTimeCPU()   const {return 0.0;}
-    virtual double getSolveTimeReal()  const {return 0.0;}
-    virtual double getAccelTimeCPU()   const {return 0.0;}
-    virtual double getAccelTimeReal()  const {return 0.0;}
  
     // the following are not protected as convergence test
     // may need access to them

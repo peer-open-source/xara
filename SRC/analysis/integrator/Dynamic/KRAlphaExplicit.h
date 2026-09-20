@@ -77,11 +77,8 @@ public:
     double getCFactor() {return c2;}
 
     const Vector &getVel();
-    
-    virtual int sendSelf(int tag, Channel &);
-    virtual int recvSelf(int tag, Channel &, FEM_ObjectBroker &);
-    
-    void Print(OPS_Stream &s, int flag = 0);
+
+    void Print(OPS_Stream &s, int flag);
     
 private:
     double alphaM;

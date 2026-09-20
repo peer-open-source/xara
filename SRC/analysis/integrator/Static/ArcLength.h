@@ -33,15 +33,18 @@
 //
 #ifndef ArcLength_h
 #define ArcLength_h
-
+#define NO_ARC_LAMBDA
+#include <Vector.h>
 #include <StaticIntegrator.h>
 class Vector;
 
 class ArcLength : public StaticIntegrator
 {
   public:
-    ArcLength(double arcLength, double alpha = 1.0, 
-              double numIter=1.0, double expon=0.0,
+    ArcLength(double arcLength, 
+              double alpha,
+              double numIter, 
+              double expon=0.0,
               bool use_det=false, 
               ReferencePattern reference_type=ReferencePattern::Full
     );
@@ -51,10 +54,6 @@ class ArcLength : public StaticIntegrator
     int newStep();    
     int update(const Vector &deltaU);
     int domainChanged();
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
 
     void Print(OPS_Stream &, int flag) final;
 
@@ -73,22 +72,26 @@ class ArcLength : public StaticIntegrator
     void formResidualDispSensitivity( int gradNumber);
 
 
-  protected:
-    
   private:
-    double numLastIter, numSpecIter;
+    double numSpecIter;
+    const double expon;          // exponent parameter
+    const double alpha2;
+    const bool   use_det;
+    const ReferencePattern  reference_type;
+
     double arcLength;
-    double expon;          // exponent parameter
-    double alpha2;
-    bool   use_det;
-    ReferencePattern  reference_type;
+    double numLastIter;
 
     double a,b,c,b24ac;
-    Vector *deltaUhat, *deltaUbar, *deltaU, *deltaUstep;
-    Vector *deltaUstep2; // will be in the sensitivity part
-    Vector *phat; // the reference load vector
+    Vector dUhat, deltaUbar, deltaU, deltaUstep;
+    Vector phat; // the reference load vector
+    // Sensitivity
+    Vector *deltaUstep2;
     Vector *dUhatdh, *dphatdh,*dLAMBDAdh, *dUIJdh,*dDeltaUstepdh,*sensU,*Residual;
-    double deltaLambdaStep,dDeltaLambdaStepdh, currentLambda, dlambdaJdh;
+    double deltaLambdaStep,dDeltaLambdaStepdh,dlambdaJdh;
+#ifndef NO_ARC_LAMBDA
+    double currentLambda;
+#endif
     int signLastDeltaLambdaStep, signLastDeterminant;
     
     double dLAMBDA, dLAMBDA2; // Need it to be called when deriving dLambda1dh.

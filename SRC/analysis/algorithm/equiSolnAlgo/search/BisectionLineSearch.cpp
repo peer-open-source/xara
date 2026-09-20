@@ -1,77 +1,65 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-**                                                                    **
-**                                                                    **
-** (C) Copyright 1999, The Regents of the University of California    **
-** All Rights Reserved.                                               **
-**                                                                    **
-** Commercial use of this program without express permission of the   **
-** University of California, Berkeley, is strictly prohibited.  See   **
-** file 'COPYRIGHT'  in main directory for information on usage and   **
-** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
-**                                                                    **
-** Developed by:                                                      **
-**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
-**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
 //
-// Written: fmk 
-// Created: 11/01
-// 
-// What: "@(#)BisectionLineSearch.h, revA"
-
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
+//
+// Written: cmp
+// Adapted from BisectionLineSearch.cpp by fmk, dated 11/01
+//
 #include <BisectionLineSearch.h>
-#include <IncrementalIntegrator.h>
-#include <LinearSOE.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
+#include <IncrementalResidual.h>
 #include <Vector.h>
-#include <math.h>
+#include <cmath>
 
 BisectionLineSearch::BisectionLineSearch(double tol, int mIter, double mnEta, double mxEta, int pFlag)
-:LineSearch(LINESEARCH_TAGS_BisectionLineSearch),
- x(0), tolerance(tol), maxIter(mIter), minEta(mnEta), maxEta(mxEta), printFlag(pFlag)
+ : LineSearch()
+ , tolerance(tol)
+ , maxIter(mIter)
+ , minEta(mnEta)
+ , maxEta(mxEta)
+ , printFlag(pFlag)
 {   
 
 }
 
 BisectionLineSearch::~BisectionLineSearch()
 {
-  if (x != 0)
-    delete x;
+
 }
 
 
 int 
-BisectionLineSearch::newStep(LinearSOE &theSOE)
+BisectionLineSearch::newStep(const Vector &Go)
 {
-  const Vector &dU = theSOE.getX();
-
-  if (x == 0)
-    x = new Vector(dU);
-
-  if (x->Size() != dU.Size()) {
-    delete x;
-    x = new Vector(dU);
-  }
-
   return 0;
 }
 
-int 
+
+int
 BisectionLineSearch::search(double s0, 
                             double s1, 
-                            LinearSOE &theSOE, 
-                            IncrementalIntegrator &theIntegrator)
+                            const Vector& dU,
+                            Vector& G,
+                            Vector& Xs,
+                            IncrementalResidual &theIntegrator)
 {
   double r0 = 0.0;
-
   if ( s0 != 0.0 ) 
-    r0 = fabs( s1 / s0 );
-        
+    r0 = std::fabs( s1 / s0 );
+
+  Xs = dU;
+
   if  (r0 <= tolerance )
     return 0; // Line Search Not Required Residual Decrease Less Than Tolerance
 
@@ -89,11 +77,12 @@ BisectionLineSearch::search(double s0,
   double etaJ   = 1.0;
   double compoundFactor = 0.0;
 
-  const Vector &dU = theSOE.getX();
 
   if (printFlag == 0) {
-    opserr << "Bisection Line Search - initial: " 
-         << "     eta(0) : " << eta << " , Ratio |sj/s0| = " << r0 << endln;
+    opserr << "           Line Search: " << 0
+         << "    eta : " << eta 
+         << " , Ratio |s/s0| = " << r0 
+         << "\n";
   }
 
   // we first search for a bracket to a solution, i.e. we want sU * sL < 0.0
@@ -109,50 +98,39 @@ BisectionLineSearch::search(double s0,
     */
     etaU = etaJ * 4.0;
 
-    //update the incremental difference in response and determine new unbalance
-    *x = dU;
+    // update the incremental difference in response and determine new unbalance
     double factor = etaU - etaJ;
+    Xs.addVector(0, dU, factor);
     compoundFactor += factor;
-    *x *= factor;
 
     etaJ = etaU;
 
-    if (theIntegrator.update(*x) < 0) {
-      opserr << "WARNING BisectionLineSearch::search() -";
-      opserr << "the Integrator failed in update()\n";        
+    if (theIntegrator.update(Xs) < 0)
       return -1;
-    }
-    
-    if (theIntegrator.formUnbalance() < 0) {
-      opserr << "WARNING BisectionLineSearch::search() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+    if (theIntegrator.formUnbalance(G) < 0)
       return -2;
-    }        
-  
-    //new residual
-    const Vector &ResidJ = theSOE.getB();
-    
-    //new value of sU
-    sU = dU ^ ResidJ;
+
+    sU = dU ^ G;
 
     // check if we have a solution we are happy with
-    r = fabs( sU / s0 ); 
+    r = std::fabs( sU / s0 ); 
     if (r < tolerance)
       return 0;
 
     if (printFlag == 0) {
-      opserr << "Bisection Line Search - bracketing: " << count 
-           << " , eta(j) : " << etaU << " , Ratio |sj/s0| = " << r << endln;
+      opserr << "           Line Search: " << count 
+            << " ,  eta: " << eta
+            << " , |s/s0| = " << r 
+            << "\n";
     }
   }
 
   // return if no bracket for a solution found, resetting to initial values
   if (sU * sL > 0.0) {
-    *x = dU;
-    theSOE.setX(*x);
-    *x *= -compoundFactor;
-    theIntegrator.update(*x);
-    theIntegrator.formUnbalance();
+    Xs = dU;
+    Xs *= -compoundFactor;
+    theIntegrator.update(Xs);
+    theIntegrator.formUnbalance(G);
     return 0; 
   }
 
@@ -172,35 +150,26 @@ BisectionLineSearch::search(double s0,
     //-- want to put limits on eta(i)
     //    if (r   > r0    )  eta =  1.0;
     
-    //update the incremental difference in response and determine new unbalance
-    *x = dU;
+    // update the incremental difference in response and determine new unbalance
+    Xs = dU;
     double fact = eta-etaJ;
 
     if (fact == 0)
       break;
 
-    *x *= fact;
+    Xs *= fact;
             
-    if (theIntegrator.update(*x) < 0) {
-      opserr << "WARNING BisectionLineSearch::search() -";
-      opserr << "the Integrator failed in update()\n";        
+    if (theIntegrator.update(Xs) < 0) { 
       return -1;
     }
-    
-    if (theIntegrator.formUnbalance() < 0) {
-      opserr << "WARNING BisectionLineSearch::search() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+    if (theIntegrator.formUnbalance(G) < 0) {
       return -2;
-    }        
-
-    //new residual
-    const Vector &ResidJ = theSOE.getB();
-    
+    }
     //new value of s
-    s = dU ^ ResidJ;
+    s = Xs ^ G;
     
     //new value of r 
-    r = fabs( s / s0 ); 
+    r = std::fabs( s / s0 ); 
 
     // set variables for next iteration
     etaJ = eta;
@@ -220,35 +189,19 @@ BisectionLineSearch::search(double s0,
 
     if (printFlag == 0) {
       opserr << "Bisection Line Search - iteration: " << count 
-           << " , eta(j) : " << eta << " , Ratio |sj/s0| = " << r << endln;
+           << " , eta(j) : " << eta << " , Ratio |sj/s0| = " << r << "\n";
     }
     
-  } //end while
+  } // end while
 
   // set X in the SOE for the revised dU, needed for convergence tests
-  *x = dU;
+  Xs = dU;
   if (eta != 0.0) 
-    *x *= eta;
+    Xs *= eta;
 
-  theSOE.setX(*x);
-  
   return 0;
 }
 
-
-int
-BisectionLineSearch::sendSelf(int cTag, Channel &theChannel)
-{
-  return 0;
-}
-
-int
-BisectionLineSearch::recvSelf(int cTag, 
-                              Channel &theChannel, 
-                              FEM_ObjectBroker &theBroker)
-{
-  return 0;
-}
 
 
 void
@@ -260,5 +213,4 @@ BisectionLineSearch::Print(OPS_Stream &s, int flag)
     s << "                         max value on eta = " << maxEta << "\n";
   }
 }
-
 

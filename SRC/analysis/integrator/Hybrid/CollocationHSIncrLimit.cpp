@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
+//
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 11/09
 // Revision: A
@@ -382,7 +378,7 @@ int CollocationHSIncrLimit::update(const Vector &deltaU)
 }
 
 
-int CollocationHSIncrLimit::commit(void)
+int CollocationHSIncrLimit::commit()
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel == 0)  {
@@ -424,40 +420,7 @@ CollocationHSIncrLimit::getVel()
   return *Udot;
 }
 
-int CollocationHSIncrLimit::sendSelf(int cTag, Channel &theChannel)
-{
-    static Vector data(5);
-    data(0) = theta;
-    data(1) = beta;
-    data(2) = gamma;
-    data(3) = limit;
-    data(4) = normType;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING CollocationHSIncrLimit::sendSelf() - failed to send the data\n";
-        return -1;
-    }
-    
-    return 0;
-}
 
-
-int CollocationHSIncrLimit::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(5);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING CollocationHSIncrLimit::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    theta    = data(0);
-    beta     = data(1);
-    gamma    = data(2);
-    limit    = data(3);
-    normType = int(data(4));
-    
-    return 0;
-}
 
 
 void CollocationHSIncrLimit::Print(OPS_Stream &s, int flag)

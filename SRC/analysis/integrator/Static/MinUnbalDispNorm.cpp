@@ -39,7 +39,6 @@
 #include <Parameter.h>
 #include <ParameterIter.h>
 #include <EquiSolnAlgo.h>
-#include <TaggedObjectStorage.h>
 #include <Matrix.h>
 
 
@@ -70,15 +69,15 @@ MinUnbalDispNorm::MinUnbalDispNorm(double lambda1, int specNumIter,
 MinUnbalDispNorm::~MinUnbalDispNorm()
 {
     if (deltaUhat != nullptr)
-	delete deltaUhat;
+      delete deltaUhat;
     if (deltaU != nullptr)
-	delete deltaU;
+      delete deltaU;
     if (deltaUstep != nullptr)
-	delete deltaUstep;
+      delete deltaUstep;
     if (deltaUbar != nullptr)
-	delete deltaUbar;
+      delete deltaUbar;
     if (phat != nullptr)
-	delete phat;
+      delete phat;
 
   if (dUhatdh !=0)
     delete dUhatdh;
@@ -112,11 +111,9 @@ MinUnbalDispNorm::newStep()
   // determine dUhat
   //
   this->formTangent();
-  theLinSOE->setB(*phat);
-  if (theLinSOE->solve() < 0)
+  if (theLinSOE->solve(*phat, *deltaUhat) < 0)
     return -1;
 
-  (*deltaUhat) = theLinSOE->getX();
   Vector &dUhat = *deltaUhat;
 
   //
@@ -144,30 +141,22 @@ MinUnbalDispNorm::newStep()
   //     signLastDeltaLambdaStep = -1;
   //   else
   //     signLastDeltaLambdaStep = +1;
-    
   //   dLambda *= signLastDeltaLambdaStep; // base sign of load change
   //                                       // on what was happening last step
   // }
   // else {
-
   //   double det = theLinSOE->getDeterminant();
   //   int signDeterminant = 1;
   //   if (det < 0)
   //     signDeterminant = -1;
-  
   //   dLambda *= signDeterminant * signLastDeterminant;
-  
   //   signLastDeterminant = signDeterminant;
   // }
 
-  /*
-  double work = (*phat)^(dUhat);
-  int signCurrentWork = 1;
-  if (work < 0) signCurrentWork = -1;
 
-  if (signCurrentWork != signLastDeltaStep)
-  */
-
+  //
+  // 4) Increment current load factor
+  //
   currentLambda = theModel->getCurrentDomainTime();
   currentLambda  += dLambda;
   deltaLambdaStep = dLambda;
@@ -176,8 +165,9 @@ MinUnbalDispNorm::newStep()
     this->newStepSensitivity(dLambda);
 
 
-
+  //
   // determine delta U(1) == dU = dUhat * dlambda
+  //
   (*deltaU) = dUhat;
   (*deltaU) *= dLambda;
   (*deltaUstep) = (*deltaU);
@@ -340,8 +330,7 @@ MinUnbalDispNorm::domainChanged()
     currentLambda = theModel->getCurrentDomainTime();
     currentLambda += 1.0;
     theModel->applyLoadDomain(currentLambda);
-    this->formUnbalance(); // NOTE: this assumes unbalance at last was 0
-    (*phat) = theLinSOE->getB();// - *phat;
+    this->formUnbalance(*phat); // NOTE: this assumes unbalance at last was 0
     currentLambda -= 1.0;
     theModel->setCurrentDomainTime(currentLambda);
 
@@ -351,8 +340,7 @@ MinUnbalDispNorm::domainChanged()
     currentLambda = theModel->getCurrentDomainTime();
     theModel->applyLoadDomain(1.0);
     theLinSOE->zeroB();
-    this->formNodalUnbalance();
-    (*phat) = theLinSOE->getB();
+    this->formNodalUnbalance(*phat);
     theModel->setCurrentDomainTime(currentLambda);
   }
 
@@ -372,61 +360,6 @@ MinUnbalDispNorm::domainChanged()
   return 0;
 }
 
-int
-MinUnbalDispNorm::sendSelf(int cTag, Channel &theChannel)
-{
-  Vector data(8);
-  data(0) = dLambda1LastStep;
-  data(1) = specNumIncrStep;
-  data(2) = numLastIter;
-  data(3) = deltaLambdaStep;
-  data(4) = currentLambda;
-  if (signLastDeltaLambdaStep == 1)
-    data(5)  = 1.0;
-  else
-    data(5) = 0.0;
-  data(6) = dLambda1min;
-  data(7) = dLambda1max;
-
-  if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0) {
-    opserr << "MinUnbalDispNorm::sendSelf() - failed to send the data\n";
-    return -1;
-  }
-  return 0;
-}
-
-
-int
-MinUnbalDispNorm::recvSelf(int cTag,
-		    Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-#if 1
-  // Disabled to make members const
-  return -1;
-#else
-  Vector data(8);
-  if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0) {
-      opserr << "MinUnbalDispNorm::sendSelf() - failed to send the data\n";
-      return -1;
-  }      
-
-  // set the data
-
-  dLambda1LastStep = data(0);
-  specNumIncrStep = data(1);
-  numLastIter = data(2);
-  deltaLambdaStep = data(3);
-  currentLambda = data(4);
-  if (data(5)== 1.0)
-    signLastDeltaLambdaStep = 1;
-  else
-    signLastDeltaLambdaStep = -1;
-  dLambda1min = data(6);
-  dLambda1max = data(7);
-
-  return 0;
-#endif
-}
 
 void
 MinUnbalDispNorm::Print(OPS_Stream &s, int flag)

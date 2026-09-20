@@ -98,10 +98,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_CycLiqCPMaterial)
                                             dData[6], dData[7], dData[8], dData[9], dData[10],  dData[11]);
   }
 
-  if (theMaterial == nullptr) {
-    opserr << "WARNING ran out of memory for nDMaterial CycLiqCP  with tag: " << tag << endln;
-  }
-
   return theMaterial;
 }
 

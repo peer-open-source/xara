@@ -18,42 +18,36 @@
 **                                                                    **
 ** ****************************************************************** */
 //
+// Description: This file contains the class definition for 
+// NewtonLineSearch. NewtonLineSearch is a class which performs a Newton-Raphson 
+// with line search solution algorithm in solving the equations as outline in
+// Crissfields book [1].
+//
 // Written: fmk 
 // Created: 11/96 
 // Modified: Ed "C++" Love 10/00 to perform the line search
 //
-// Description: This file contains the class definition for 
-// NewtonLineSearch. NewtonLineSearch is a class which performs a Newton-Raphson 
-// with line search solution algorithm in solving the equations as outline in
-// Crissfields book.
-// 
-// What: "@(#)NewtonLineSearch.h, revA"
-
-#ifndef NewtonLineSearch_h
-#define NewtonLineSearch_h
-
+#pragma once
 #include <EquiSolnAlgo.h>
 #include <LineSearch.h>
-
+#include <Vector.h>
 
 class NewtonLineSearch: public EquiSolnAlgo
 {
   public:
-    NewtonLineSearch( );    
-    NewtonLineSearch(LineSearch *theLineSearch);
-    ~NewtonLineSearch( );
+    NewtonLineSearch(LineSearch *theLineSearch,
+                     IncrementalIntegrator::TangentFlagType prediction_tangent,
+                     IncrementalIntegrator::TangentFlagType correction_tangent);
+    ~NewtonLineSearch();
 
     int solveCurrentStep();
-    
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
     void Print(OPS_Stream &, int flag) const final;    
     
   private:
     LineSearch *theLineSearch;
+    IncrementalIntegrator::TangentFlagType
+      correction_tangent, 
+      prediction_tangent;
+    Vector Go, Gn, dX, dXs;
 };
-
-#endif
-
-

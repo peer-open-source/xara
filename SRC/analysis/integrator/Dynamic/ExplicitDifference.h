@@ -14,7 +14,7 @@ class ExplicitDifference : public TransientIntegrator
 public:
 	ExplicitDifference();
 	ExplicitDifference(double alphaM, double betaK, double betaKi, double betaKc);
-	~ExplicitDifference();                                                                //constructors and unconstructor
+	~ExplicitDifference();
 
 	                                                 
 
@@ -22,18 +22,15 @@ public:
 
 	int formNodTangent(DOF_Group *theDof);
 	
-	const Vector & getVel(void);    //added for Modal damping
+	const Vector & getVel();    //added for Modal damping
 
-	int domainChanged(void);
+	int domainChanged();
 	int newStep(double deltaT);
 	int update(const Vector &U);
 
-	int commit(void);
+	int commit();
 
-	virtual int sendSelf(int commitTag, Channel &theChannel);
-	virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-
-	void Print(OPS_Stream &s, int flag = 0);
+	void Print(OPS_Stream &s, int flag);
 
 
 private:

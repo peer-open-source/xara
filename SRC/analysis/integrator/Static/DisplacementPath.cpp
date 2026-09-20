@@ -79,20 +79,20 @@ DisplacementPath::~DisplacementPath()
 }
 
 int
-DisplacementPath::newStep(void)
+DisplacementPath::newStep()
 {
     if (theDofID == -1) {
-            opserr << "DisplacementPath::newStep() - domainChanged has not been called\n";
-            return -1;
+        opserr << "DisplacementPath::newStep() - domainChanged has not been called\n";
+        return -1;
     }
 
     // get pointers to AnalysisModel and LinearSOE
     AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();    
     if (theModel == 0 || theLinSOE == 0) {
-    opserr << "WARNING DisplacementPath::newStep() ";
-    opserr << "No AnalysisModel or LinearSOE has been set\n";
-    return -1;
+        opserr << "WARNING DisplacementPath::newStep() ";
+        opserr << "No AnalysisModel or LinearSOE has been set\n";
+        return -1;
     }
 
     // check theIncrementVector Vector
@@ -104,7 +104,7 @@ DisplacementPath::newStep(void)
 
     // determine increment for this iteration
     if (currentStep < theIncrementVector->Size()) {
-    theCurrentIncrement = (*theIncrementVector)(currentStep);
+        theCurrentIncrement = (*theIncrementVector)(currentStep);
     }
     else {
         theCurrentIncrement = 0.0;
@@ -118,33 +118,29 @@ DisplacementPath::newStep(void)
 
     // determine dUhat and dUabar
     this->formTangent();
-    this->formUnbalance();
+    // this->formUnbalance(); // CMP
 
     (*deltaUbar) = theLinSOE->getX();
     double dUabar = (*deltaUbar)(theDofID);
 
 
-    theLinSOE->setB(*phat);
-
-    if (theLinSOE->solve() < 0) {
+    if (theLinSOE->solve(*phat, *deltaUhat) < 0) {
       opserr << "DisplacementControl::newStep(void) - failed in solver\n";
       return -1;
     }
-    
-    
-    (*deltaUhat)  = theLinSOE->getX();
+
     Vector &dUhat = *deltaUhat;
 
     double dUahat = dUhat(theDofID);
 
     if (dUahat == 0.0) {
-    opserr << "WARNING DisplacementPath::newStep() ";
-    opserr << "dUahat is zero -- zero reference displacement at control node DOF\n";
-    
-    opserr << "currentStep = " << currentStep << endln; // add by zhong
-    opserr << " theCurrentIncrement = " << theCurrentIncrement << endln; // zhong
+        opserr << "WARNING DisplacementPath::newStep() ";
+        opserr << "dUahat is zero -- zero reference displacement at control node DOF\n";
+        
+        opserr << "currentStep = " << currentStep << "\n"; // add by zhong
+        opserr << " theCurrentIncrement = " << theCurrentIncrement << "\n"; // zhong
 
-    return -1;
+        return -1;
     }
     
 
@@ -153,8 +149,6 @@ DisplacementPath::newStep(void)
 
     deltaLambdaStep = dLambda;
     currentLambda += dLambda;
- //   opserr << "DisplacementPath: " << dUahat  << " " << theDofID << endln;
- //   opserr << "DisplacementPath::newStep() : " << deltaLambdaStep << endln;
     // determine delta U(1) == dU
     (*deltaU) = dUhat;
     (*deltaU) *= dLambda;
@@ -184,18 +178,16 @@ DisplacementPath::update(const Vector &dU)
     AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();    
     if (theModel == 0 || theLinSOE == 0) {
-    opserr << "WARNING DisplacementPath::update() ";
-    opserr << "No AnalysisModel or LinearSOE has been set\n";
-    return -1;
+        opserr << "WARNING DisplacementPath::update() ";
+        opserr << "No AnalysisModel or LinearSOE has been set\n";
+        return -1;
     }
 
     (*deltaUbar) = dU; // have to do this as the SOE is gonna change
     double dUabar = (*deltaUbar)(theDofID);
-    
-    // determine dUhat    
-    theLinSOE->setB(*phat);
-    theLinSOE->solve();
-    (*deltaUhat) = theLinSOE->getX();    
+
+    // determine dUhat
+    theLinSOE->solve(*phat, *deltaUhat);
 
     // add by zhong for check purpose
     //int size = deltaUhat->Size();
@@ -212,9 +204,9 @@ DisplacementPath::update(const Vector &dU)
     //opserr << "dUahat = " << dUahat << endln;
 
     if (dUahat == 0.0) {
-    opserr << "WARNING DisplacementPath::update() ";
-    opserr << "dUahat is zero -- zero reference displacement at control node DOF\n";
-    return -1;
+        opserr << "WARNING DisplacementPath::update() ";
+        opserr << "dUahat is zero -- zero reference displacement at control node DOF\n";
+        return -1;
     }
     
     // determine delta lambda(1) == dlambda    
@@ -247,78 +239,52 @@ DisplacementPath::update(const Vector &dU)
     // set the X soln in linearSOE to be deltaU for convergence Test
     theLinSOE->setX(*deltaU);
 
-
     return 0;
 }
 
 
 
 int 
-DisplacementPath::domainChanged(void)
+DisplacementPath::domainChanged()
 {
     // we first create the Vectors needed
     AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();    
     if (theModel == 0 || theLinSOE == 0) {
-    opserr << "WARNING DisplacementPath::update() ";
-    opserr << "No AnalysisModel or LinearSOE has been set\n";
-    return -1;
-    }    
+        opserr << "WARNING DisplacementPath::update() ";
+        opserr << "No AnalysisModel or LinearSOE has been set\n";
+        return -1;
+    }
     int size = theModel->getNumEqn(); // ask model in case N+1 space
 
     if (deltaUhat == 0 || deltaUhat->Size() != size) { // create new Vector
-    if (deltaUhat != 0)
-        delete deltaUhat;   // delete the old
-    deltaUhat = new Vector(size);
-    if (deltaUhat == 0 || deltaUhat->Size() != size) { // check got it
-        opserr << "FATAL DisplacementPath::domainChanged() - ran out of memory for";
-        opserr << " deltaUhat Vector of size " << size << endln;
-        exit(-1);
-    }
+        if (deltaUhat != 0)
+            delete deltaUhat;   // delete the old
+        deltaUhat = new Vector(size);
     }
 
     if (deltaUbar == 0 || deltaUbar->Size() != size) { // create new Vector
-    if (deltaUbar != 0)
-        delete deltaUbar;   // delete the old
-    deltaUbar = new Vector(size);
-    if (deltaUbar == 0 || deltaUbar->Size() != size) { // check got it
-        opserr << "FATAL DisplacementPath::domainChanged() - ran out of memory for";
-        opserr << " deltaUbar Vector of size " << size << endln;
-        exit(-1);
-    }
+        if (deltaUbar != 0)
+            delete deltaUbar;   // delete the old
+        deltaUbar = new Vector(size);
     }
     
     if (deltaU == 0 || deltaU->Size() != size) { // create new Vector
-    if (deltaU != 0)
-        delete deltaU;   // delete the old
-    deltaU = new Vector(size);
-    if (deltaU == 0 || deltaU->Size() != size) { // check got it
-        opserr << "FATAL DisplacementPath::domainChanged() - ran out of memory for";
-        opserr << " deltaU Vector of size " << size << endln;
-        exit(-1);
-    }
+        if (deltaU != 0)
+            delete deltaU;   // delete the old
+        deltaU = new Vector(size);
     }
 
     if (deltaUstep == 0 || deltaUstep->Size() != size) { 
-    if (deltaUstep != 0)
-        delete deltaUstep;  
-    deltaUstep = new Vector(size);
-    if (deltaUstep == 0 || deltaUstep->Size() != size) { 
-        opserr << "FATAL DisplacementPath::domainChanged() - ran out of memory for";
-        opserr << " deltaUstep Vector of size " << size << endln;
-        exit(-1);
-    }
+        if (deltaUstep != 0)
+            delete deltaUstep;  
+        deltaUstep = new Vector(size);
     }
 
     if (phat == 0 || phat->Size() != size) { 
-    if (phat != 0)
-        delete phat;  
-    phat = new Vector(size);
-    if (phat == 0 || phat->Size() != size) { 
-        opserr << "FATAL DisplacementPath::domainChanged() - ran out of memory for";
-        opserr << " phat Vector of size " << size << endln;
-        exit(-1);
-    }
+        if (phat != 0)
+            delete phat;  
+        phat = new Vector(size);
     }    
 
     // now we have to determine phat
@@ -327,8 +293,7 @@ DisplacementPath::domainChanged(void)
     currentLambda = theModel->getCurrentDomainTime();
     currentLambda += 1.0;
     theModel->applyLoadDomain(currentLambda);    
-    this->formUnbalance(); // NOTE: this assumes unbalance at last was 0
-    (*phat) = theLinSOE->getB();
+    this->formUnbalance(*phat); // NOTE: this assumes unbalance at last was 0
     currentLambda -= 1.0;
     theModel->setCurrentDomainTime(currentLambda);    
 
@@ -337,8 +302,8 @@ DisplacementPath::domainChanged(void)
     int haveLoad = 0;
     for (int i=0; i<size; i++)
       if ( (*phat)(i) != 0.0 ) {
-    haveLoad = 1;
-    i = size;
+        haveLoad = 1;
+        i = size;
       }
 
     if (haveLoad == 0) {
@@ -361,26 +326,10 @@ DisplacementPath::domainChanged(void)
     }
     const ID &theID = theGroup->getID();
     theDofID = theID(theDof);
-    
+
     return 0;
 }
 
-int
-DisplacementPath::sendSelf(int cTag,
-            Channel &theChannel)
-{
-    // TO FINISH
-  return 0;
-}
-
-
-int
-DisplacementPath::recvSelf(int cTag,
-            Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    // TO FINISH
-  return 0;
-}
 
 void
 DisplacementPath::Print(OPS_Stream &s, int flag)

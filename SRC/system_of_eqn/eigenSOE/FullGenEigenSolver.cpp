@@ -375,12 +375,6 @@ FullGenEigenSolver::setSize()
         delete eigenV;
 
     eigenV = new Vector(size);
-    if (eigenV == 0 || eigenV->Size() != size) {
-        opserr << "FullGenEigenSolver::setSize() ";
-        opserr << " - ran out of memory for eigenVector of size ";
-        opserr << theSOE->size << endln;
-        return -2;            
-    }
   }
 
   return 0;
@@ -391,7 +385,6 @@ int
 FullGenEigenSolver::setEigenSOE(FullGenEigenSOE &thesoe)
 {
   theSOE = &thesoe;
-
   return 0;
 }
 

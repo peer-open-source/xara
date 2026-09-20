@@ -28,8 +28,6 @@
 #include <Matrix.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <elementAPI.h>
 #define OPS_Export
 
@@ -483,47 +481,6 @@ const Vector &
 KRAlphaExplicit::getVel()
 {
   return *Ualphadot;
-}
-
-int KRAlphaExplicit::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(5);
-    data(0) = alphaM;
-    data(1) = alphaF;
-    data(2) = beta;
-    data(3) = gamma;
-    if (updElemDisp == false) 
-        data(4) = 0.0;
-    else
-        data(4) = 1.0;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING KRAlphaExplicit::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int KRAlphaExplicit::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(5);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING KRAlphaExplicit::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    alphaM = data(0);
-    alphaF = data(1);
-    beta   = data(2);
-    gamma  = data(3);
-    if (data(4) == 0.0)
-        updElemDisp = false;
-    else
-        updElemDisp = true;
-    
-    return 0;
 }
 
 

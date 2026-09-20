@@ -18,10 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 
-// $Revision: 1.1 $
-// $Date: 2009-03-20 18:36:30 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/integrator/TRBDF2.h,v $
-
 #ifndef TRBDF2_h
 #define TRBDF2_h
 
@@ -56,16 +52,13 @@ public:
     int formEleTangent(FE_Element *theEle);
     int formNodTangent(DOF_Group *theDof);        
     
-    int domainChanged(void);    
+    int domainChanged();    
     int newStep(double deltaT);    
-    int revertToLastStep(void);        
+    int revertToLastStep();        
     int update(const Vector &deltaU);
 
-    const Vector &getVel(void);
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+    const Vector &getVel();
+
     void Print(OPS_Stream &s, int flag = 0);
     
  private:

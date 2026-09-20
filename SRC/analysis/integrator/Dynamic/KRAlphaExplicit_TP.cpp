@@ -62,21 +62,6 @@ OPS_ADD_RUNTIME_VPV(OPS_KRAlphaExplicit_TP)
 }
 
 
-KRAlphaExplicit_TP::KRAlphaExplicit_TP()
-    : TransientIntegrator(INTEGRATOR_TAGS_KRAlphaExplicit_TP),
-    alphaI(0.5), alphaF(0.5), beta(0.25), gamma(0.5),
-    deltaT(0.0), alpha1(0), alpha3(0), Mhat(0),
-    updateCount(0), initAlphaMatrices(1),
-    c1(0.0), c2(0.0), c3(0.0),
-    alphaM(0.0), alphaD(0.5), alphaR(0.5), alphaP(0.5),
-    Ut(0), Utdot(0), Utdotdot(0),
-    U(0), Udot(0), Udotdot(0),
-    Utdothat(0), Put(0)
-{
-    
-}
-
-
 KRAlphaExplicit_TP::KRAlphaExplicit_TP(double _rhoInf)
     : TransientIntegrator(INTEGRATOR_TAGS_KRAlphaExplicit_TP),
     alphaI((2.0-_rhoInf)/(1.0+_rhoInf)), alphaF(1.0/(1.0+_rhoInf)),
@@ -121,7 +106,8 @@ KRAlphaExplicit_TP::~KRAlphaExplicit_TP()
 }
 
 
-int KRAlphaExplicit_TP::newStep(double _deltaT)
+int
+KRAlphaExplicit_TP::newStep(double _deltaT)
 {
     updateCount = 0;
     
@@ -212,8 +198,7 @@ int KRAlphaExplicit_TP::newStep(double _deltaT)
         alphaD = alphaR = alphaP = (1.0 - alphaF);
         Udotdot->addMatrixVector(0.0, *alpha3, *Utdotdot, 1.0);
         theModel->setAccel(*Udotdot);
-        this->TransientIntegrator::formUnbalance();
-        (*Put) = theLinSOE->getB();
+        this->TransientIntegrator::formUnbalance(*Put);
         // reset accelerations at t+deltaT
         (*Udotdot) = *Utdotdot;
         theModel->setAccel(*Udotdot);
@@ -303,37 +288,33 @@ KRAlphaExplicit_TP::formTangent(int statFlag)
 }
 
 
-int KRAlphaExplicit_TP::formUnbalance()
+int KRAlphaExplicit_TP::formUnbalance(Vector &G)
 {
     // get a pointer to the LinearSOE and the AnalysisModel
     LinearSOE *theLinSOE = this->getLinearSOE();
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theLinSOE == 0 || theModel == 0)  {
-        opserr << "WARNING KRAlphaExplicit_TP::formUnbalance() - ";
+        opserr << "WARNING KRAlphaExplicit_TP::formUnbalance - ";
         opserr << "no LinearSOE or AnalysisModel has been set\n";
         return -1;
     }
-    
-    theLinSOE->setB(*Put);
-    
+
+    G = *Put;
+
     // do modal damping
     const Vector *modalValues = theModel->getModalDampingFactors();
     if (modalValues != 0)  {
         this->addModalDampingForce(modalValues);
     }
-    
-    if (this->formElementResidual() < 0)  {
-        opserr << "WARNING KRAlphaExplicit_TP::formUnbalance() ";
-        opserr << " - this->formElementResidual failed\n";
-        return -2;
+
+    if (this->formElementResidual(G) < 0)  {
+      return -2;
     }
-    
-    if (this->formNodalUnbalance() < 0)  {
-        opserr << "WARNING KRAlphaExplicit_TP::formUnbalance() ";
-        opserr << " - this->formNodalUnbalance failed\n";
-        return -3;
+
+    if (this->formNodalUnbalance(G) < 0)  {
+      return -3;
     }
-    
+
     return 0;
 }
 
@@ -499,7 +480,7 @@ int KRAlphaExplicit_TP::update(const Vector &aiPlusOne)
 }
 
 
-int KRAlphaExplicit_TP::commit(void)
+int KRAlphaExplicit_TP::commit()
 {
     // get a pointer to the LinearSOE and the AnalysisModel
     LinearSOE *theLinSOE = this->getLinearSOE();
@@ -520,8 +501,7 @@ int KRAlphaExplicit_TP::commit(void)
     alphaD = alphaR = alphaP = (1.0 - alphaF);
     Udotdot->addMatrixVector(0.0, *alpha3, *Utdotdot, 1.0);
     theModel->setAccel(*Udotdot);
-    this->TransientIntegrator::formUnbalance();
-    (*Put) = theLinSOE->getB();
+    this->TransientIntegrator::formUnbalance(*Put);
     // reset accelerations at t+deltaT
     (*Udotdot) = *Utdotdot;
     theModel->setAccel(*Udotdot);
@@ -536,43 +516,6 @@ KRAlphaExplicit_TP::getVel()
   return *Udot;
 }
 
-int KRAlphaExplicit_TP::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(4);
-    data(0) = alphaI;
-    data(1) = alphaF;
-    data(2) = beta;
-    data(3) = gamma;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING KRAlphaExplicit_TP::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int KRAlphaExplicit_TP::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(4);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING KRAlphaExplicit_TP::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    alphaI = data(0);
-    alphaF = data(1);
-    beta   = data(2);
-    gamma  = data(3);
-    
-    alphaM = 0.0;
-    alphaD = alphaF;
-    alphaR = alphaF;
-    alphaP = alphaF;
-    
-    return 0;
-}
 
 
 void KRAlphaExplicit_TP::Print(OPS_Stream &s, int flag)

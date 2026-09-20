@@ -93,17 +93,6 @@ OPS_ADD_RUNTIME_VPV(OPS_HHTExplicit)
 }
 
 
-HHTExplicit::HHTExplicit()
-    : TransientIntegrator(INTEGRATOR_TAGS_HHTExplicit),
-    alpha(1.0), gamma(0.5), updElemDisp(false),
-    deltaT(0.0), updateCount(0), c2(0.0), c3(0.0), 
-    Ut(0), Utdot(0), Utdotdot(0), U(0), Udot(0), Udotdot(0),
-    Ualpha(0), Ualphadot(0)
-{
-    
-}
-
-
 HHTExplicit::HHTExplicit(double _alpha,
     bool updelemdisp)
     : TransientIntegrator(INTEGRATOR_TAGS_HHTExplicit),
@@ -436,43 +425,6 @@ const Vector &
 HHTExplicit::getVel()
 {
   return *Udot;
-}
-
-int HHTExplicit::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(3);
-    data(0) = alpha;
-    data(1) = gamma;
-    if (updElemDisp == false)
-        data(2) = 0.0;
-    else
-        data(2) = 1.0;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTExplicit::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int HHTExplicit::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(3);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTExplicit::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    alpha = data(0);
-    gamma = data(1);
-    if (data(2) == 0.0)
-        updElemDisp = false;
-    else
-        updElemDisp = true;
-    
-    return 0;
 }
 
 

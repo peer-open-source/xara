@@ -18,6 +18,7 @@
 #include <vector>
 #include <runtime/interpreter/Interpreter.h>
 #include <MPI_MachineBroker.h>
+class MPI_MachineBroker;
 
 class XaraClassBroker;
 class Channel;
@@ -47,6 +48,9 @@ public:
 
 private:
   XaraClassBroker *m_obroker;
+// TODO: This cant be conditionally compiled,
+// because ProcessContext.h is known to ModelRegistry
+// which is compiled only once in target Xara_InterpreterCore
 #if defined(XARA_ENABLE_MPI)
   MPI_MachineBroker theMachine;
 #endif

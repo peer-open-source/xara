@@ -146,13 +146,6 @@ SProfileSPDLinSOE::setSize(Graph &theGraph)
     if (size > Bsize) { 
         if (iDiagLoc != 0) delete [] iDiagLoc;
         iDiagLoc = new (nothrow) int[size];
-
-        if (iDiagLoc == 0) {
-            opserr << "WARNING SProfileSPDLinSOE::setSize() : ";
-            opserr << " - ran out of memory for iDiagLoc\n";
-            size = 0; Asize = 0;
-            result = -1;
-        }
     }
 
     // zero out iDiagLoc 

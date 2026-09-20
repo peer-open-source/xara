@@ -9,8 +9,6 @@
  * Adapted from MATLAB source code by Claudio Perez                     07/2021
  */
 
-
-
 #include "DegradingUniaxialWrapper.h"
 #include "distributions.h"
 

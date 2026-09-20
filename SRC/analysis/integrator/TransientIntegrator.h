@@ -29,12 +29,9 @@
 // equations for a static analysis and for Incrementing the nodal displacements
 // with the values in the soln vector to the LinearSOE object. 
 //
-// What: "@(#) TransientIntegrator.h, revA"
-
-#ifndef TransientIntegrator_h
-#define TransientIntegrator_h
-
+#pragma once
 #include <IncrementalIntegrator.h>
+
 class Information;
 class LinearSOE;
 class AnalysisModel;
@@ -45,17 +42,17 @@ class Vector;
 class TransientIntegrator : public IncrementalIntegrator
 {
 public:
+  TransientIntegrator();
   TransientIntegrator(int classTag);
   virtual ~TransientIntegrator();
 
   virtual int newStep(double dT) = 0;
-  virtual int formUnbalance();
-  virtual int formTangent(int statusFlag);
-#if 1
+  int formUnbalance(Vector&) override;
+  int formTangent(int statusFlag) override;
   virtual int formTangent(int statusFlag, 
         double iFactor,
         double cFactor) final;
-#endif
+
 
   virtual const Vector& getVel() = 0; // For modal damping 
 
@@ -63,6 +60,3 @@ public:
   int formEleResidual(FE_Element *theEle) override;
   int formNodUnbalance(DOF_Group *theDof) override;
 };
-
-#endif
-

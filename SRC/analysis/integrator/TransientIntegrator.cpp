@@ -38,8 +38,16 @@
 #include <LoadPattern.h>
 #include <LoadPatternIter.h>
 
+
+TransientIntegrator::TransientIntegrator()
+ : IncrementalIntegrator()
+{
+
+}
+
+
 TransientIntegrator::TransientIntegrator(int clasTag)
- : IncrementalIntegrator(clasTag)
+ : IncrementalIntegrator()
 {
 
 }
@@ -64,7 +72,6 @@ TransientIntegrator::formTangent(int statFlag)
 {
   statusFlag = statFlag;
 
-
   int result = 0;
   LinearSOE *theLinSOE = this->getLinearSOE();
   AnalysisModel *theModel = this->getAnalysisModel();
@@ -76,26 +83,13 @@ TransientIntegrator::formTangent(int statFlag)
 
   // the loops to form and add the tangents are broken into two for 
   // efficiency when performing parallel computations
-  
   theLinSOE->zeroA();
-#if 0
-  // old modal damping
-  bool inclModalMatrix = theModel->inclModalDampingMatrix();
-  if (inclModalMatrix == true) {
-    const Vector *modalValues = theModel->getModalDampingFactors();
-    if (modalValues != 0) {
-      this->addModalDampingMatrix(modalValues);
-    }
-  }
-#endif
-  
 
   // loop through the DOF_Groups and add the unbalance
   DOF_GrpIter &theDOFs = theModel->getDOFs();
   DOF_Group *dofPtr; 
   while ((dofPtr = theDOFs()) != nullptr) {
     if (theLinSOE->addA(dofPtr->getTangent(this),dofPtr->getID()) <0) [[unlikely]] {
-      opserr << "TransientIntegrator::formTangent() - failed to addA:dof\n";
       result = -1;
     }
   }
@@ -105,7 +99,6 @@ TransientIntegrator::formTangent(int statFlag)
   FE_Element *elePtr;    
   while((elePtr = theEles2()) != nullptr) {
     if (theLinSOE->addA(elePtr->getTangent(this),elePtr->getID()) < 0) [[unlikely]] {
-      opserr << "TransientIntegrator::formTangent() - failed to addA:ele\n";
       result = -2;
     }
   }
@@ -121,7 +114,7 @@ TransientIntegrator::formTangent(int statFlag)
 
 
 int
-TransientIntegrator::formUnbalance()
+TransientIntegrator::formUnbalance(Vector& resid)
 {
   // The dynamic residual is the sum of three sources:
   //   Pm: Modal damping force
@@ -132,21 +125,17 @@ TransientIntegrator::formUnbalance()
   AnalysisModel *theModel = this->getAnalysisModel();
 
   if (theModel == nullptr || theLinSOE == nullptr) {
-    opserr << "WARNING IncrementalIntegrator::formUnbalance -";
-    opserr << " no AnalysisModel or LinearSOE has been set\n";
     return -1;
   }
 
-  theLinSOE->zeroB();
+  resid.Zero();
 
   // do modal damping
   ModalDamping *modalDamping = theModel->getModalDamping();
   if (modalDamping != nullptr) {
-    modalDamping->applyResidual(*this, *theLinSOE);
+    modalDamping->apply(this->getVel(), resid);
   }
-  // const Vector *modalValues = theModel->getModalDampingFactors();
-  // if (modalValues != nullptr)
-  //   this->addModalDampingForce(modalValues);
+
 #if 1
   {
     Domain *theDomain = theModel->getDomainPtr();
@@ -154,17 +143,21 @@ TransientIntegrator::formUnbalance()
       LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
       LoadPattern *thePattern;
       while ((thePattern = thePatterns()) != nullptr) {
-        thePattern->applyResidual(*theModel, *theLinSOE, 1.0);//this->getCFactor());
+        thePattern->applyResidual(*theModel, resid, 1.0);
       }
     }
   }
 #endif
-  if (this->formElementResidual() < 0)
+
+
+  if (this->formElementResidual(resid) < 0)
     return -1;
 
-  if (this->formNodalUnbalance() < 0)
+  if (this->formNodalUnbalance(resid) < 0)
     return -2;
 
+  // TODO: This is done in case anything still depends on LinearSOE for holding b
+  theLinSOE->setB(resid);
   return 0;
 }
 

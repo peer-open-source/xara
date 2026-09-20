@@ -150,7 +150,6 @@ public:
   }
   virtual const std::array<Vector3D,nn> *getRigidOffsets() const =0;
 
-  virtual bool hybrid() const {return false;}
   //
   virtual int getLocalAxes(Vector3D &x, Vector3D &y, Vector3D &z) const =0;
 

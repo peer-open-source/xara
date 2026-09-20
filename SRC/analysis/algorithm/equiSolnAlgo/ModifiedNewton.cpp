@@ -62,7 +62,10 @@ ModifiedNewton::solveCurrentStep()
     return SolutionAlgorithm::BadAlgorithm;
   }
 
-  if (theIncIntegratorr->formUnbalance() < 0) {    
+  G.resize(theSOE->getNumEqn());
+  dX.resize(theSOE->getNumEqn());
+
+  if (theIncIntegratorr->formUnbalance(G) < 0) {    
     return SolutionAlgorithm::BadFormResidual;
   }        
 
@@ -71,7 +74,7 @@ ModifiedNewton::solveCurrentStep()
     return SolutionAlgorithm::BadFormTangent;
 
 
-
+  theSOE->setB(G);
   if (theTest->start(*theSOE) < 0)
     return SolutionAlgorithm::BadTestStart;
 
@@ -80,16 +83,16 @@ ModifiedNewton::solveCurrentStep()
   int result = -1;
   numIterations = 0;
   do {
-    if (theSOE->solve() < 0)
+    if (theSOE->solve(G, dX) < 0)
       return SolutionAlgorithm::BadLinearSolve;
     
-    if (theIncIntegratorr->update(theSOE->getX()) < 0)
+    if (theIncIntegratorr->update(dX) < 0)
       return SolutionAlgorithm::BadStepUpdate;
 
-    if (theIncIntegratorr->formUnbalance() < 0)
+    if (theIncIntegratorr->formUnbalance(G) < 0)
       return SolutionAlgorithm::BadFormResidual;
 
-    result = theTest->test(*theSOE);
+    result = theTest->test(G,dX);
     numIterations++;
     this->record(numIterations);
 
@@ -106,7 +109,7 @@ void
 ModifiedNewton::Print(OPS_Stream &s, int flag) const
 {
   if (flag == 0) {
-      s << "ModifiedNewton";
+    s << "ModifiedNewton";
   }
 }
 

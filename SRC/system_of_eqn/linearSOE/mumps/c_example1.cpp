@@ -108,19 +108,19 @@ int main(int argc, char ** argv)
   a[20]=1354000;
 
   if (myid != 0) {
-      nz = 6;
+    nz = 6;
 
-      a[0]=4169.95/nump;
-      a[1]=0.0;
-      a[2]=10075.0/nump;
+    a[0]=4169.95/nump;
+    a[1]=0.0;
+    a[2]=10075.0/nump;
 
-      a[3]=10084.0/nump;
-      a[4]=-1612.0/nump;
+    a[3]=10084.0/nump;
+    a[4]=-1612.0/nump;
 
-      a[5]=1354080.0/nump;
+    a[5]=1354080.0/nump;
 
-      irn = irnS;
-      jcn = jcnS;
+    irn = irnS;
+    jcn = jcnS;
   }
 
 #define ICNTL(I) icntl[(I)-1] /* macro s.t. indices match documentation */

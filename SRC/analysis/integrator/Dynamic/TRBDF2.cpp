@@ -39,8 +39,6 @@
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <elementAPI.h> // OPS_ADD_RUNTIME_VPV
 
 void *
@@ -301,16 +299,6 @@ TRBDF2::getVel()
   return *Udot;
 }
 
-int TRBDF2::sendSelf(int cTag, Channel &theChannel)
-{
-    return 0;
-}
-
-
-int TRBDF2::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    return 0;
-}
 
 
 void TRBDF2::Print(OPS_Stream &s, int flag)

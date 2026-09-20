@@ -472,38 +472,38 @@ Brick02::addLoad(ElementalLoad *theLoad, double loadFactor)
 }
 
 
-int
-Brick02::addInertiaLoadToUnbalance(const Vector &accel)
-{
-  int haveRho = 0;
-  for (int i=0; i<NIP; i++) {
-    if (materialPointers[i]->getRho() != 0.0)
-      haveRho = 1;
-  }
+// int
+// Brick02::addInertiaLoadToUnbalance(const Vector &accel)
+// {
+//   int haveRho = 0;
+//   for (int i=0; i<NIP; i++) {
+//     if (materialPointers[i]->getRho() != 0.0)
+//       haveRho = 1;
+//   }
 
-  if (haveRho == 0)
-    return 0;
+//   if (haveRho == 0)
+//     return 0;
 
-  inertia.zero();
-  formInertiaTerms(1, inertia_wrap);
+//   inertia.zero();
+//   formInertiaTerms(1, inertia_wrap);
 
-  // store computed RV for nodes in inertia vector
-  int count = 0;
-  for (int i=0; i<NEN; i++) {
-    const Vector &Raccel = theNodes[i]->getRV(accel);
-    for (int j=0; j<NDF; j++)
-      inertia(count++) = Raccel(j);
-  }
+//   // store computed RV for nodes in inertia vector
+//   int count = 0;
+//   for (int i=0; i<NEN; i++) {
+//     const Vector &Raccel = theNodes[i]->getRV(accel);
+//     for (int j=0; j<NDF; j++)
+//       inertia(count++) = Raccel(j);
+//   }
 
-  // create the load vector if one does not exist
-  if (load == nullptr)
-    load = new Vector(NDOF);
+//   // create the load vector if one does not exist
+//   if (load == nullptr)
+//     load = new Vector(NDOF);
 
-  // add -M * RV(accel) to the load vector
-  load->addMatrixVector(1.0, mass, inertia_wrap, -1.0);
+//   // add -M * RV(accel) to the load vector
+//   load->addMatrixVector(1.0, mass, inertia_wrap, -1.0);
 
-  return 0;
-}
+//   return 0;
+// }
 
 
 const Vector&

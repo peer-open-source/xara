@@ -54,7 +54,8 @@ LagrangeMP_FE::LagrangeMP_FE(int tag, Domain &theDomain, MP_Constraint &TheMP,
   myID( TheMP.getConstrainedDOFs().Size()
         + TheMP.getRetainedDOFs().Size()
         + TheMP.getRetainedDOFs().Size()), // *see note 1
-  alpha(Alpha), theMP(&TheMP),
+  alpha(Alpha), 
+  theMP(&TheMP),
   theConstrainedNode(0), theRetainedNode(0),
   theDofGroup(&theGroup), tang(0), resid(0)
 {
@@ -109,6 +110,7 @@ LagrangeMP_FE::LagrangeMP_FE(int tag, Domain &theDomain, MP_Constraint &TheMP,
   myDOF_Groups(2) = theDofGroup->getTag();
 }
 
+
 LagrangeMP_FE::~LagrangeMP_FE()
 {
   if (tang != 0)
@@ -116,6 +118,7 @@ LagrangeMP_FE::~LagrangeMP_FE()
   if (resid != 0)
     delete resid;
 }    
+
 
 // void setID(int index, int value);
 //        Method to set the correMPonding index of the ID to value.
@@ -173,9 +176,9 @@ LagrangeMP_FE::setID(AnalysisModel& theModel)
   }
   DOF_Group *theRetainedNodesDOFs = theRetainedNode->getDOF_GroupPtr();
   if (theRetainedNodesDOFs == nullptr) {
-      opserr << "WARNING LagrangeMP_FE::setID()";
-      opserr << " - no DOF_Group with Retained Node\n";
-      return -2;
+    opserr << "WARNING LagrangeMP_FE::setID()";
+    opserr << " - no DOF_Group with Retained Node\n";
+    return -2;
   }    
   
   const ID &RetainedDOFs = theMP->getRetainedDOFs();
@@ -183,23 +186,23 @@ LagrangeMP_FE::setID(AnalysisModel& theModel)
 
   int size2 = RetainedDOFs.Size();
   for (int j=0; j<size2; j++) {
-      int retained = RetainedDOFs(j);
-      if (retained < 0 || retained >= theRetainedNode->getNumberDOF()) {
-          opserr << "WARNING LagrangeMP_FE::setID() - unknown DOF ";
-          opserr << retained << " at Node\n";
-          myID(j+size1) = -1; // modify so nothing will be added
-          result = -3;
-      }            
-      else {
-          if (retained >= theRetainedNodesID.Size()) {
-              opserr << "WARNING LagrangeMP_FE::setID(void) - ";
-              opserr << " Nodes DOF_Group too small\n";
-              myID(j+size1) = -1; // modify so nothing will be added 
-              result = -4;
-          }
-          else
-              myID(j+size1) = theRetainedNodesID(retained);
+    int retained = RetainedDOFs(j);
+    if (retained < 0 || retained >= theRetainedNode->getNumberDOF()) {
+      opserr << "WARNING LagrangeMP_FE::setID() - unknown DOF ";
+      opserr << retained << " at Node\n";
+      myID(j+size1) = -1; // modify so nothing will be added
+      result = -3;
+    }
+    else {
+      if (retained >= theRetainedNodesID.Size()) {
+        opserr << "WARNING LagrangeMP_FE::setID(void) - ";
+        opserr << " Nodes DOF_Group too small\n";
+        myID(j+size1) = -1; // modify so nothing will be added 
+        result = -4;
       }
+      else
+        myID(j+size1) = theRetainedNodesID(retained);
+    }
   }
 
   // finally set the ID corresponding to the ID's at the LagrangeDOF_Group
@@ -212,14 +215,68 @@ LagrangeMP_FE::setID(AnalysisModel& theModel)
   return result;
 }
 
+
+
 const Matrix &
 LagrangeMP_FE::getTangent(Integrator *theNewIntegrator)
 {
   if (theMP->isTimeVarying() == true)
     this->determineTangent();
 
+  // if (theNewIntegrator != 0) {
+  //   theNewIntegrator->formEleTangent(this);
+  // }
+
   return *tang;
 }
+
+#if 0
+void
+LagrangeMP_FE::addKtToTang(double fact)
+{
+  // Copy static coupling, then scale lower-left C by integrator fact (c1).
+  // Upper-right C^T stays unscaled. HALL_TANGENT may call addKi after addKt:
+  // the second call only accumulates the lower-left block.
+  if (fact == 0.0)
+      return;
+
+  const Matrix &Ks = this->getStaticTangent();
+
+  const int nLambda = Ks.noRows() - numU;
+
+  if (!urLoaded) {
+      *sysTang = Ks;
+      if (fact != 1.0) {
+        for (int i = 0; i < nLambda; i++)
+          for (int j = 0; j < numU; j++)
+            (*sysTang)(numU + i, j) *= fact;
+      }
+      urLoaded = true;
+  } else {
+    for (int i = 0; i < nLambda; i++)
+      for (int j = 0; j < numU; j++)
+        (*sysTang)(numU + i, j) += Ks(numU + i, j) * fact;
+  }
+}
+
+void
+LagrangeMP_FE::addKiToTang(double fact)
+{
+  this->addKtToTang(fact);
+}
+
+void
+LagrangeMP_FE::addCtoTang(double fact)
+{
+  // no damping contribution from lagrange constraint
+}
+
+void
+LagrangeMP_FE::addMtoTang(double fact)
+{
+  // no mass contribution from lagrange constraint
+}
+#endif
 
 const Vector &
 LagrangeMP_FE::getResidual(Integrator *theNewIntegrator)
@@ -237,12 +294,12 @@ LagrangeMP_FE::getResidual(Integrator *theNewIntegrator)
   const Vector& Ur0 = theMP->getRetainedDOFsInitialDisplacement();
   const Vector& lambda = theDofGroup->getTrialDisp();
   for (int i = 0; i < id1.Size(); ++i) {
-      int cdof = id1(i);
-      if (cdof < 0 || cdof >= Uc.Size()) {
-        opserr << "LagrangeMP_FE::getResidual FATAL Error: Constrained DOF " << cdof << " out of bounds [0-" << Uc.Size() << "]\n";
-        exit(-1);
-      }
-      UU(i) = Uc(cdof) - Uc0(i);
+    int cdof = id1(i);
+    if (cdof < 0 || cdof >= Uc.Size()) {
+      opserr << "LagrangeMP_FE::getResidual FATAL Error: Constrained DOF " << cdof << " out of bounds [0-" << Uc.Size() << "]\n";
+      exit(-1);
+    }
+    UU(i) = Uc(cdof) - Uc0(i);
   }
   for (int i = 0; i < id2.Size(); ++i) {
     int rdof = id2(i);
@@ -281,23 +338,23 @@ LagrangeMP_FE::getResidual(Integrator *theNewIntegrator)
 const Vector &
 LagrangeMP_FE::getTangForce(const Vector &disp, double fact)
 {
- opserr << "WARNING lagrangeMP_FE::getTangForce() - not yet implemented\n";
- return *resid;
+  opserr << "WARNING lagrangeMP_FE::getTangForce() - not yet implemented\n";
+  return *resid;
 }
 
 
 const Vector &
 LagrangeMP_FE::getK_Force(const Vector &disp, double fact)
 {
- opserr << "WARNING lagrangeMP_FE::getK_Force() - not yet implemented\n";
- return *resid;
+  opserr << "WARNING lagrangeMP_FE::getK_Force() - not yet implemented\n";
+  return *resid;
 }
 
 const Vector &
 LagrangeMP_FE::getKi_Force(const Vector &disp, double fact)
 {
- opserr << "WARNING LagrangeMP_FE::getKi_Force() - not yet implemented\n";
- return *resid;
+  opserr << "WARNING LagrangeMP_FE::getKi_Force() - not yet implemented\n";
+  return *resid;
 }
 
 const Vector &
@@ -310,8 +367,8 @@ LagrangeMP_FE::getC_Force(const Vector &disp, double fact)
 const Vector &
 LagrangeMP_FE::getM_Force(const Vector &disp, double fact)
 {
- opserr << "WARNING lagrangeMP_FE::getM_Force() - not yet implemented\n";
- return *resid;
+  opserr << "WARNING lagrangeMP_FE::getM_Force() - not yet implemented\n";
+  return *resid;
 }
 
 void  

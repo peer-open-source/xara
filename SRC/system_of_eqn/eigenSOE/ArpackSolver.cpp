@@ -473,24 +473,13 @@ ArpackSolver::solve(int numModes, bool generalized, bool findSmallest)
 
   int processID = theArpackSOE->processID;
 
-#if !defined(ARPACK_ICB)
-char which[3];
-  if (findSmallest == true)
-    strcpy(which, "LM");
-  else
-    strcpy(which, "SM");
-
-  char bmat  = 'G';
-  char howmy = 'A';
-
-#else
   arpack::which  which = findSmallest
                        ? arpack::which::largest_magnitude
                        : arpack::which::smallest_magnitude; 
 
   arpack::bmat   bmat  = arpack::bmat::generalized; // 'G'
   arpack::howmny howmy = arpack::howmny::ritz_vectors; // 'A'
-#endif
+
 
   ArpackWorkspace w(n, nev, ArpackWorkspace::Symmetric);
   int ncv = w.ncv;
@@ -519,7 +508,7 @@ char which[3];
     // Project into Range(M): r = M * x
     theArpackSOE->opM(n, x.data(), r.data());
 
-    // Zero out entries known to be zero-mass (helps numerically)
+    // Zero out entries known to be zero-mass
     for (int i = 0; i < n; ++i)
       if (std::abs(mdiag[i]) <= tau) 
         r[i] = 0.0;
@@ -542,11 +531,11 @@ char which[3];
     }
 
     if (ido == -1) {
-      // IDO = -1: compute  Y = OP * X  where
-      //           IPNTR(1) is the pointer into WORKD for X,
-      //           IPNTR(2) is the pointer into WORKD for Y.
-      //           This is for the initialization phase to force the
-      //           starting vector into the range of OP.
+      // compute  Y = OP * X  where
+      //   IPNTR(1) is the pointer into WORKD for X,
+      //   IPNTR(2) is the pointer into WORKD for Y.
+      // This is for the initialization phase to force the
+      // starting vector into the range of OP.
       
       // y <- x
       theArpackSOE->opM(n, &w.workd[ipntr[0]-1], &w.workd[ipntr[1]-1]); 
@@ -587,7 +576,6 @@ char which[3];
    
       const Vector &X = theSOE->getX();
       theVector = X;
-      // theVector.setData(&workd[ipntr[1] - 1], size);
 
       continue;
     }
@@ -731,10 +719,9 @@ ArpackSolver::solveI(int numModes, bool generalized, bool findSmallest)
       if (generalized == true)
         theArpackSOE->opM(n, x, y);
       else
-        // theArpackSOE->opM(n, x, y);
         this->myCopy(n, x, y);
 
-      // solve (K - σ M) z = y, store solution (z) into y
+      // solve (K - s M) z = y, store solution (z) into y
       if (true) { // sigma != 0.0 && generalized == true) {
         theVector.setData(y, n);
         theSOE->setB(theVector);
@@ -837,7 +824,6 @@ const Vector &
 ArpackSolver::getEigenvector(int mode)
 {
   this->getEigenvector(mode, theVector);
-
   return theVector;
 }
 
@@ -852,7 +838,7 @@ ArpackSolver::getEigenvector(int mode, Vector &eigenvector)
   
   eigenvector.setData(&solution.eigenvectors[index], size);
 
-  return 0;  
+  return 0;
 }
 
 
@@ -880,15 +866,3 @@ ArpackSolver::setSize()
   return 0;
 }
 
-
-int    
-ArpackSolver::sendSelf(int commitTag, Channel &)
-{
-  return 0;
-}
-
-int
-ArpackSolver::recvSelf(int commitTag, Channel &, FEM_ObjectBroker &)
-{
-  return 0;
-}

@@ -17,14 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
-#ifndef HHTHSIncrLimit_TP_h
-#define HHTHSIncrLimit_TP_h
-
+//
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 11/09
 // Revision: A
@@ -35,7 +28,7 @@
 // integrator for hybrid simulation where the response increments are limited by a user
 // specified value. This enhances the smoothness of the convergence path and reduces the
 // possibility of spurious loading/unloading cycles during iteration.
-
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -46,7 +39,6 @@ class HHTHSIncrLimit_TP : public TransientIntegrator
 {
 public:
     // constructors
-    HHTHSIncrLimit_TP();
     HHTHSIncrLimit_TP(double rhoInf, double limit, int normType);
     HHTHSIncrLimit_TP(double alphaI, double alphaF,
         double beta, double gamma, double limit, int normType);
@@ -55,7 +47,7 @@ public:
     ~HHTHSIncrLimit_TP();
     
     // method to set up the system of equations
-    int formUnbalance(void);
+    int formUnbalance(Vector& G) override;
     
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
@@ -70,11 +62,8 @@ public:
     int update(const Vector &deltaU);
     int commit(void);
 
-    const Vector &getVel(void);
-	
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+    const Vector &getVel() override;
+
     void Print(OPS_Stream &s, int flag = 0);
     
 private:
@@ -93,5 +82,3 @@ private:
     Vector *scaledDeltaU;                   // scaled displacement increment
     Vector *Put;                            // unbalance at time t
 };
-
-#endif

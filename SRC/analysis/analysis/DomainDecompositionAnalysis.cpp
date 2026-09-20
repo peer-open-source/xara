@@ -340,7 +340,7 @@ DomainDecompositionAnalysis::formTangent()
 
 
 int  
-DomainDecompositionAnalysis::formResidual()
+DomainDecompositionAnalysis::formResidual(Vector& G)
 {
     int result =0;
     Domain *the_Domain = this->getDomainPtr();    
@@ -360,7 +360,7 @@ DomainDecompositionAnalysis::formResidual()
                               // is not formed twice at same state
     }
 
-    result = theIntegrator->formUnbalance();
+    result = theIntegrator->formUnbalance(G);
 
     if (result < 0)
         return result;
@@ -429,7 +429,7 @@ DomainDecompositionAnalysis::getResidual()
     if (stamp != domainStamp) {
         domainStamp = stamp;
         this->domainChanged();
-        this->formResidual();        
+        // this->formResidual();
     }
     
     if (theResidual == 0) {
@@ -533,146 +533,6 @@ DomainDecompositionAnalysis::getDomainSolverPtr() const
     return theSolver;
 }
 
-
-int 
-DomainDecompositionAnalysis::sendSelf(int commitTag,
-                                      Channel &theChannel)
-{
-    // determine the type of each object in the aggregation,
-    // store it in an ID and send the info off.
-    int dataTag = this->getDbTag();
-    ID data(14);
-    data(0) = theHandler->getClassTag();
-    data(1) = theNumberer->getClassTag();
-    data(2) = theModel->getClassTag();
-    data(3) = theAlgorithm->getClassTag();
-    data(4) = theIntegrator->getClassTag();    
-    data(5) = theSOE->getClassTag();    
-    data(6) = theSolver->getClassTag();        
-
-    data(7) = theHandler->getDbTag();
-    data(8) = theNumberer->getDbTag();
-    data(9) = theModel->getDbTag();
-    data(10) = theAlgorithm->getDbTag();
-    data(11) = theIntegrator->getDbTag();    
-    data(12) = theSOE->getDbTag();    
-    data(13) = theSolver->getDbTag();        
-
-    theChannel.sendID(dataTag, commitTag, data);
-
-    // invoke sendSelf on each object in the aggregation
-    
-    theHandler->sendSelf(commitTag, theChannel);
-    theNumberer->sendSelf(commitTag, theChannel);
-    theModel->sendSelf(commitTag, theChannel);
-    theAlgorithm->sendSelf(commitTag, theChannel);
-    theIntegrator->sendSelf(commitTag, theChannel);    
-    theSOE->sendSelf(commitTag, theChannel);    
-    theSolver->sendSelf(commitTag, theChannel);            
-    return 0;
-}
-
-int 
-DomainDecompositionAnalysis::recvSelf(int commitTag, 
-                                      Channel &theChannel, 
-                                      FEM_ObjectBroker &theBroker)
-{
-    // receive the data identifyng the objects in the aggregation
-    ID data(14);
-    int dataTag = this->getDbTag();
-    theChannel.recvID(dataTag, commitTag, data);
-
-    //
-    // now ask the object broker an object of each type
-    // and invoke recvSelf() on the object to init it.
-    //
-
-    theHandler = theBroker.getNewConstraintHandler(data(0));
-    if (theHandler != 0) {
-        theHandler->setDbTag(data(7));
-        theHandler->recvSelf(commitTag, theChannel,theBroker);
-    }
-    else {
-        opserr << "DomainDecompositionAnalysis::recvSelf";
-        opserr << " - failed to get the ConstraintHandler\n";
-        return -1;
-    }
-
-
-
-    theNumberer = theBroker.getNewNumberer(data(1));
-    if (theNumberer != 0) {
-        theNumberer->setDbTag(data(8));        
-        theNumberer->recvSelf(commitTag, theChannel,theBroker);
-    }
-    else {
-        opserr << "DomainDecompositionAnalysis::recvSelf";
-        opserr << " - failed to get the DOF Numberer\n";
-        return -1;
-    }    
-
-
-    theModel = theBroker.getNewAnalysisModel(data(2));
-    if (theModel != 0) {
-        theModel->setDbTag(data(9));
-        theModel->recvSelf(commitTag, theChannel,theBroker);
-    }
-    else {
-        opserr << "DomainDecompositionAnalysis::recvSelf";
-        opserr << " - failed to get the AnalysisModel\n";
-        return -1;
-    }        
-
-
-    theAlgorithm = theBroker.getNewDomainDecompAlgo(data(3));
-    if (theAlgorithm != 0) {
-        theAlgorithm->setDbTag(data(10));
-        theAlgorithm->recvSelf(commitTag, theChannel,theBroker);
-    }
-    else {
-        opserr << "DomainDecompositionAnalysis::recvSelf";
-        opserr << " - failed to get the Domain Decomp Algo\n";
-        return -1;
-    }            
-
-    theIntegrator = theBroker.getNewIncrementalIntegrator(data(4));
-    if (theIntegrator != 0) {
-        theIntegrator->setDbTag(data(11));
-        theIntegrator->recvSelf(commitTag, theChannel,theBroker);
-    }
-    else {
-        opserr << "DomainDecompositionAnalysis::recvSelf";
-        opserr << " - failed to get the IncrementalIntegrator\n";
-        return -1;
-    }                
-
-    theSOE = theBroker.getPtrNewDDLinearSOE(data(5),data(6));
-    theSolver = theBroker.getNewDomainSolver();
-
-    if (theSOE == nullptr || theSolver == nullptr) {
-        opserr << "DomainDecompositionAnalysis::recvSelf";
-        opserr << " - failed to get the LinearSOE and the DomainSolver \n";
-        return -1;
-    }  else {
-        theSOE->setDbTag(data(12));
-        theSolver->setDbTag(data(13));
-        theSOE->recvSelf(commitTag, theChannel,theBroker);
-        theSolver->recvSelf(commitTag, theChannel,theBroker);
-    }
-
-    // set the links in all the objects
-
-    theModel->setLinks(*theSubdomain, *theHandler);
-    theHandler->setLinks(*theModel);
-    theNumberer->setLinks(*theModel);
-    theIntegrator->setLinks(*theModel,*theSOE, theTest);
-    theAlgorithm->setLinks(*theIntegrator,*theSOE,
-                           *theSolver,*theSubdomain);
-
-    theSubdomain->setDomainDecompAnalysis(*this);
-
-    return 0;
-}
 
 
 int 

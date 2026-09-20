@@ -32,7 +32,7 @@
 #include <IncrementalIntegrator.h>
 
 DifferenceAccelerator2::DifferenceAccelerator2(int max, int tangent)
-  :Accelerator(ACCELERATOR_TAGS_Difference),
+  :Accelerator(),
    dimension(0), numEqns(0), maxDimension(max),
    v(0), Av(0), AvData(0), rData(0), work(0), lwork(0), theTangent(tangent)
 {
@@ -65,7 +65,7 @@ DifferenceAccelerator2::~DifferenceAccelerator2()
 }
 
 int 
-DifferenceAccelerator2::newStep(LinearSOE &theSOE)
+DifferenceAccelerator2::newStep(const LinearSOE &theSOE)
 {
   int newNumEqns = theSOE.getNumEqn();
 
@@ -260,15 +260,3 @@ DifferenceAccelerator2::Print(OPS_Stream &s, int flag) const
   s << "\tMax subspace dimension: " << maxDimension << "\n";
 }
 
-int
-DifferenceAccelerator2::sendSelf(int commitTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int
-DifferenceAccelerator2::recvSelf(int commitTag, Channel &theChannel, 
-                                 FEM_ObjectBroker &theBroker)
-{
-  return -1;
-}

@@ -50,7 +50,6 @@ class KRAlphaExplicit_TP : public TransientIntegrator
 {
 public:
     // constructors
-    KRAlphaExplicit_TP();
     KRAlphaExplicit_TP(double rhoInf);
     
     // destructor
@@ -58,7 +57,7 @@ public:
     
     // methods to set up the system of equations
     int formTangent(int statFlag);
-    int formUnbalance(void);
+    int formUnbalance(Vector&) override;
     
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
@@ -74,11 +73,8 @@ public:
     int update(const Vector &aiPlusOne);
     int commit();
 
-    const Vector &getVel();
-    
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
-    
+    const Vector &getVel() override;
+
     void Print(OPS_Stream &s, int flag) final;
     
 private:

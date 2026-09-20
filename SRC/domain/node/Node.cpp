@@ -32,8 +32,7 @@
 #include <Vector.h>
 #include <Versor.h>
 #include <Matrix.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
+
 #include <DOF_Group.h>
 #include <string.h>
 #include <Information.h>
@@ -44,11 +43,14 @@
 #include <Domain.h>
 #include <Element.h>
 #include <ElementIter.h>
+//
 #include <SP_Constraint.h>
 #include <SP_ConstraintIter.h>
-
+//
 #include <NodalLoad.h>
-
+//
+#include <Channel.h>
+#include <FEM_ObjectBroker.h>
 
 using namespace OpenSees;
 Matrix **Node::theMatrices = nullptr;
@@ -61,13 +63,17 @@ Node::Node(int theClassTag)
  numberDOF(0), theDOF_GroupPtr(0),
  coord_data{0,0,0}, xyz(coord_data, 0), 
  position_inertia{0.0}, 
+ //
  commitDisp(0), commitVel(0), commitAccel(0),
  trialDisp(0), trialVel(0), trialAccel(0), unbalLoad(0), incrDisp(0),
  incrDeltaDisp(0),
  disp(0), vel(0), accel(0), 
  rotation(nullptr),
- dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
- R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
+ // Dynamics
+ R(0), mass(0), 
+ unbalLoadWithInertia(0), 
+ alphaM(0.0), 
+ theEigenvectors(0),
  index(-1), 
  reaction(nullptr)
 {
@@ -94,7 +100,6 @@ Node::Node(int tag, int theClassTag)
  incrDeltaDisp(0),
  disp(0), vel(0), accel(0), 
  rotation(nullptr),
- dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
   R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
  index(-1), reaction(nullptr)
 {
@@ -120,7 +125,6 @@ Node::Node(int tag, int ndof, double Crd1)
  incrDeltaDisp(0),
  disp(0), vel(0), accel(0), 
  rotation(nullptr),
- dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
  index(-1), 
  reaction(nullptr)
@@ -148,7 +152,6 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2)
  incrDeltaDisp(0),
  disp(0), vel(0), accel(0), 
  rotation(nullptr),
- dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), mass(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
  index(-1),
  reaction(0)
@@ -179,7 +182,6 @@ Node::Node(int tag, int ndof, double Crd1, double Crd2)
  disp(0), vel(0), accel(0), 
  rotation(nullptr),
  rotationType(rotationType),
- dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
  R(0), 
  unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
  index(-1),
@@ -214,7 +216,6 @@ Node::Node(const Node &otherNode, bool copyMass)
   incrDeltaDisp(0),
   disp(0), vel(0), accel(0), 
   rotation(nullptr),
-  dbTag1(0), dbTag2(0), dbTag3(0), dbTag4(0),
   R(0), unbalLoadWithInertia(0), alphaM(0.0), theEigenvectors(0),
   reaction(0)
 {
@@ -1040,87 +1041,6 @@ Node::setMass(const Matrix &newMass)
 }
 
 
-int
-Node::addPositionInertia(double value)
-{
-
-  // position_inertia += value;
-  if (mass == nullptr) {
-    mass = new Matrix(numberDOF, numberDOF);
-    mass->Zero();
-  }
-
-  // if (mass_type == MassType::None)
-  //   mass_type = MassType::Classical;
-  // else if (mass_type == MassType::Full && mass != nullptr) 
-  {
-    mass_type = MassType::Full;
-    const int ndm = xyz.Size();
-    for (int i=0; i<ndm; i++)
-      (*mass)(i,i) += value;
-  }
-
-  return 0;
-}
-
-
-
-
-
-// int
-// Node::setNumColR(int numCol)
-// {
-//   if (R != nullptr) {
-//     if (R->noCols() != numCol) {
-//       delete R;
-//       R = new Matrix(numberDOF, numCol);
-//     }
-//   } else
-//     R = new Matrix(numberDOF, numCol);
-
-//   R->Zero();
-//   return 0;
-// }
-
-// int
-// Node::setR(int row, int col, double Value)
-// {
-//   // ensure R had been set
-//   if (R == nullptr) {
-//     opserr << "Node:setR() - R has not been initialised\n";
-//     return -1;
-//   }
-
-//   // ensure row, col in range (matrix assignment will catch this - extra work)
-//   if (row < 0 || row > numberDOF || col < 0 || col > R->noCols()) {
-//     opserr << "Node:setR() - row, col index out of range\n";
-//     return -1;
-//   }
-
-//   // do the assignment
-//   (*R)(row,col) = Value;
-
-//   /*
-//   // to test uniform excitation pattern with consistent mass matrices:
-//   // found that the static application of a unit ground displacement
-//   // needs to also be applied to the constrained DOFs
-//   Domain *theDomain = this->getDomain();
-//   SP_ConstraintIter &theSPs = theDomain->getSPs();
-//   SP_Constraint *theSP;
-//   // assign zero if there is a homogeneous SP
-//   while ((theSP = theSPs()) != 0) {
-//       if (theSP->getNodeTag() == this->getTag() &&
-//           theSP->getDOF_Number() == row &&
-//           theSP->isHomogeneous()) {
-//               (*R)(row,col) = 0.0;
-//       }
-//   }
-//   */
-
-//   return 0;
-// }
-
-
 
 const Vector &
 Node::getRV(const Vector &V)
@@ -1203,267 +1123,6 @@ Node::getEigenvectors()
   }
 
   return *theEigenvectors;
-}
-
-
-int
-Node::sendSelf(int cTag, Channel &theChannel)
-{
-  int dataTag = this->getDbTag();
-
-  ID data(14);
-  data(0) = this->getTag();
-  data(1) = numberDOF;
-
-  // indicate whether vector quantaties have been formed
-  if (disp == 0)       data(2) = 1; else data(2) = 0;
-  if (vel == 0)        data(3) = 1; else data(3) = 0;
-  if (accel == 0)      data(4) = 1; else data(4) = 0;
-  if (mass == 0)       data(5) = 1; else data(5) = 0;
-  if (unbalLoad  == 0) data(6) = 1; else data(6) = 0;
-  if (R == 0)
-    data(12) = 1;
-  else {
-    data(12) = 0;
-    data(13) = R->noCols();
-  }
-
-  data(7) = xyz.Size();
-
-  if (dbTag1 == 0)
-    dbTag1 = theChannel.getDbTag();
-  if (dbTag2 == 0)
-    dbTag2 = theChannel.getDbTag();
-  if (dbTag3 == 0)
-    dbTag3 = theChannel.getDbTag();
-  if (dbTag4 == 0)
-    dbTag4 = theChannel.getDbTag();
-
-  data(8) = dbTag1;
-  data(9) = dbTag2;
-  data(10) = dbTag3;
-  data(11) = dbTag4;
-
-  int res = 0;
-
-  res = theChannel.sendID(dataTag, cTag, data);
-  if (res < 0) {
-    opserr << " Node::sendSelf() - failed to send ID data\n";
-    return res;
-  }
-
-  res = theChannel.sendVector(dataTag, cTag, xyz);
-  if (res < 0) {
-    opserr << " Node::sendSelf() - failed to send Vecor data\n";
-    return res;
-  }
-
-  if (commitDisp != 0) {
-    res = theChannel.sendVector(dbTag1, cTag, *commitDisp);
-    if (res < 0) {
-      opserr << " Node::sendSelf() - failed to send Disp data\n";
-      return res;
-    }
-  }
-
-  if (commitVel != 0) {
-    res = theChannel.sendVector(dbTag2, cTag, *commitVel);
-    if (res < 0) {
-      opserr << " Node::sendSelf() - failed to send Vel data\n";
-      return res;
-    }
-  }
-
-  if (commitAccel != 0) {
-    res = theChannel.sendVector(dbTag3, cTag, *commitAccel);
-    if (res < 0) {
-      opserr << " Node::sendSelf() - failed to send Accel data\n";
-      return res;
-    }
-  }
-
-  if (mass != 0) {
-    res = theChannel.sendMatrix(dataTag, cTag, *mass);
-    if (res < 0) {
-      opserr << " Node::sendSelf() - failed to send Mass data\n";
-      return res;
-    }
-  }
-
-  if (R != nullptr) {
-    res = theChannel.sendMatrix(dbTag2, cTag, *R);
-    if (res < 0) {
-      opserr << " Node::sendSelf() - failed to send R data\n";
-      return res;
-    }
-  }
-
-  if (unbalLoad  != 0) {
-    res = theChannel.sendVector(dbTag4, cTag, *unbalLoad);
-    if (res < 0) {
-      opserr << " Node::sendSelf() - failed to send Load data\n";
-      return res;
-    }
-  }
-
-  // if get here successful
-  return 0;
-}
-
-int
-Node::recvSelf(int cTag, Channel &theChannel,
-             FEM_ObjectBroker &theBroker)
-{
-  int res = 0;
-  int dataTag = this->getDbTag();
-
-
-  ID data(14);
-  res = theChannel.recvID(dataTag, cTag, data);
-  if (res < 0) {
-    opserr << "Node::recvSelf() - failed to receive ID data\n";
-    return res;
-  }
-
-  this->setTag(data(0));
-  numberDOF = data(1);
-  int numberCrd = data(7);
-
-  dbTag1 = data(8);
-  dbTag2 = data(9);
-  dbTag3 = data(10);
-  dbTag4 = data(11);
-
-  // create a Vector to hold coordinates IF one needed
-  xyz.setData(coord_data, numberCrd);
-
-  if (theChannel.recvVector(dataTag, cTag, xyz) < 0) {
-    opserr << "Node::recvSelf() - failed to receive the Coordinate vector\n";
-    return -2;
-  }
-
-  if (commitDisp == nullptr)
-    this->createDisp();
-
-  if (data(2) == 0) {
-    // create the disp vectors if node is a total blank
-//    if (commitDisp == 0)
-//       this->createDisp();
-
-    // recv the committed disp
-    if (theChannel.recvVector(dbTag1, cTag, *commitDisp) < 0) {
-    opserr << "Node::recvSelf - failed to receive Disp data\n";
-    return res;
-    }
-
-    // set the trial quantities equal to committed
-    for (int i=0; i<numberDOF; i++)
-    disp[i] = disp[i+numberDOF];  // set trial equal committed
-
-  } else if (commitDisp != nullptr) {
-    // if going back to initial we will just zero the vectors
-    commitDisp->Zero();
-    trialDisp->Zero();
-  }
-
-
-  if (data(3) == 0) {
-    // create the vel vectors if node is a total blank
-    if (commitVel == nullptr)
-    this->createVel();
-
-    // recv the committed vel
-    if (theChannel.recvVector(dbTag2, cTag, *commitVel) < 0) {
-    opserr << "Node::recvSelf - failed to receive Velocity data\n";
-    return -3;
-    }
-
-    // set the trial quantity
-    for (int i=0; i<numberDOF; i++)
-    vel[i] = vel[i+numberDOF];  // set trial equal committed
-  }
-
-  if (data(4) == 0) {
-    // create the vel vectors if node is a total blank
-    if (commitAccel == 0)
-    this->createAccel();
-
-    // recv the committed accel
-    if (theChannel.recvVector(dbTag3, cTag, *commitAccel) < 0) {
-    opserr << "Node::recvSelf - failed to receive Acceleration data\n";
-    return -4;
-    }
-
-    // set the trial values
-    for (int i=0; i<numberDOF; i++)
-    accel[i] = accel[i+numberDOF];  // set trial equal committed
-  }
-
-  if (data(5) == 0) {
-    // make some room and read in the vector
-    if (mass == 0) {
-    mass = new Matrix(numberDOF,numberDOF);
-    }
-    if (theChannel.recvMatrix(dataTag, cTag, *mass) < 0) {
-    opserr << "Node::recvSelf() - failed to receive Mass data\n";
-    return -6;
-    }
-  }
-
-  if (data(12) == 0) {
-    // create a matrix for R
-    int noCols = data(13);
-    if (R == nullptr) {
-      R = new Matrix(numberDOF, noCols);
-    }
-    // now recv the R matrix
-    if (theChannel.recvMatrix(dbTag2, cTag, *R) < 0) {
-      opserr << "Node::recvSelf() - failed to receive R data\n";
-      return res;
-    }
-  }
-
-
-  if (data(6) == 0) {
-    // create a vector for the load
-    if (unbalLoad == 0) {
-    unbalLoad = new Vector(numberDOF);
-    if (unbalLoad == 0) {
-      opserr << "Node::recvData -- ran out of memory\n";
-      return -10;
-    }
-    }
-    if (theChannel.recvVector(dbTag4, cTag, *unbalLoad) < 0) {
-    opserr << "Node::recvSelf() - failed to receive Load data\n";
-    return res;
-    }
-  }
-
-
-  index = -1;
-  if (numMatrices != 0) {
-    for (int i=0; i<numMatrices; i++)
-      if (theMatrices[i]->noRows() == numberDOF) {
-        index = i;
-        i = numMatrices;
-      }
-  }
-  if (index == -1) {
-    Matrix **nextMatrices = new Matrix *[numMatrices+1];
-
-    for (int j=0; j<numMatrices; j++)
-      nextMatrices[j] = theMatrices[j];
-
-    nextMatrices[numMatrices] = new Matrix(numberDOF, numberDOF);
-
-    if (numMatrices != 0)
-      delete [] theMatrices;
-    index = numMatrices;
-    numMatrices++;
-    theMatrices = nextMatrices;
-  }
-
-  return 0;
 }
 
 
@@ -1928,6 +1587,7 @@ Node::getResponse(NodeData responseType)
 
   return result;
 }
+
 
 void
 Node::setCrds(double Crd1)

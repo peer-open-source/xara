@@ -25,9 +25,7 @@
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 10/05
 //
-#ifndef HHTGeneralized_h
-#define HHTGeneralized_h
-
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -56,12 +54,9 @@ public:
     int update(const Vector &deltaU);
     int commit(void);
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
-    void Print(OPS_Stream &s, int flag = 0);
+    const Vector &getVel();
+
+    void Print(OPS_Stream &s, int flag);
     
 private:
     double alphaI;
@@ -75,5 +70,3 @@ private:
     Vector *U, *Udot, *Udotdot;                 // response quantities at time t + deltaT
     Vector *Ualpha, *Ualphadot, *Ualphadotdot;  // response quantities at time t+alpha*deltaT
 };
-
-#endif

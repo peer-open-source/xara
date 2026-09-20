@@ -33,9 +33,7 @@
 // Written: MHS
 // Created: Oct 2001
 //
-#ifndef AcceleratedNewton_h
-#define AcceleratedNewton_h
-
+#pragma once
 #include <EquiSolnAlgo.h>
 #include <Vector.h>
 class LineSearch;
@@ -63,9 +61,8 @@ class AcceleratedNewton: public EquiSolnAlgo
   
   // Storate for accelerated mod-Newton prediction
   Vector *vAccel;
+  Vector residual;
   
   int numFactorizations;
   int numIterations;
 };
-
-#endif

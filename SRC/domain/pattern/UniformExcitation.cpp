@@ -366,12 +366,9 @@ UniformExcitation::applyLoad(double time)
 }
 
 int
-UniformExcitation::applyResidual(AnalysisModel &theAnalysisModel, LinearSOE &theSOE, double c)
+UniformExcitation::applyResidual(AnalysisModel &theAnalysisModel, Vector& resid, double c)
 {
-#if 0
-  return 0;
-#else
-  // Vector A(theSOE.getNumEqn()), B(theSOE.getNumEqn());
+#if 1
   static Vector A(236);
   A.resize(theAnalysisModel.getNumEqn());
 
@@ -385,7 +382,7 @@ UniformExcitation::applyResidual(AnalysisModel &theAnalysisModel, LinearSOE &the
   if (theMotion != nullptr)
     accel = theMotion->getAccel(time)*fact;
 
-
+  A.Zero();
   NodeIter &theNodes = theDomain->getNodes();
   Node *theNode;
   while ((theNode = theNodes()) != nullptr) {
@@ -404,10 +401,9 @@ UniformExcitation::applyResidual(AnalysisModel &theAnalysisModel, LinearSOE &the
   //
   //
   //
-  theAnalysisModel.applyInertia(A, theSOE, -c);
-
-  return 0;
+  theAnalysisModel.applyInertia(A, resid, -c);
 #endif
+  return 0;
 }
 
 
@@ -429,7 +425,6 @@ UniformExcitation::applyLoadSensitivity(double time)
 
   // this->EarthquakePattern::applyLoadSensitivity(time);
   {
-
 
     Domain *theDomain = this->getDomain();
     if (theDomain == nullptr)
@@ -468,20 +463,6 @@ UniformExcitation::applyLoadSensitivity(double time)
   return;
 }
 
-
-
-int
-UniformExcitation::sendSelf(int commitTag, Channel &theChannel)
-{
-  return -1;
-}
-
-
-int 
-UniformExcitation::recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  return -1;
-}
 
 
 void 

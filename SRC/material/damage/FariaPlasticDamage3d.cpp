@@ -660,36 +660,6 @@ FariaPlasticDamage3d::getOrder() const
 }
 
 
-
-void 
-FariaPlasticDamage3d::Print(OPS_Stream &s, int flag) 
-{
-  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << OPS_PRINT_JSON_MATE_INDENT << "{";
-    s << "\"name\": " << this->getTag() << ", ";
-    s << "\"type\": \"" << this->getClassType() << "\", ";
-    s << "\"E\": " << E << ", ";
-    s << "\"nu\": " << nu << ", ";
-    s << "\"Ft\": " << ft << ", ";
-    s << "\"Fc\": " << Fc << ", ";
-    s << "\"beta\": " << beta << ", ";
-    s << "\"Ap\": " << Ap << ", ";
-    s << "\"An\": " << An << ", ";
-    s << "\"Bn\": " << Bn;
-    s << "}";
-  }
-
-  else {
-    s << this->getType() << ": " << this->getTag() << "\n";
-    s << "stress: " << Vector(retStress) << "\n";
-    s << "strain: " << Vector(retStrain) << "\n";
-    s << "tangent: " << Matrix(retTangent) << "\n";
-  }
-}       
-
-
-
-
 Response*
 FariaPlasticDamage3d::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
@@ -791,3 +761,32 @@ FariaPlasticDamage3d::getResponse(int responseID, Information &info)
     }
   }
 }
+
+
+void 
+FariaPlasticDamage3d::Print(OPS_Stream &s, int flag) 
+{
+  if (flag == OPS_PRINT_PRINTMODEL_JSON) {
+    s << OPS_PRINT_JSON_MATE_INDENT << "{";
+    s << "\"name\": " << this->getTag() << ", ";
+    s << "\"type\": \"" << this->getClassType() << "\", ";
+    s << "\"E\": " << E << ", ";
+    s << "\"nu\": " << nu << ", ";
+    s << "\"Ft\": " << ft << ", ";
+    s << "\"Fc\": " << Fc << ", ";
+    s << "\"beta\": " << beta << ", ";
+    s << "\"Ap\": " << Ap << ", ";
+    s << "\"An\": " << An << ", ";
+    s << "\"Bn\": " << Bn << ", ";
+    s << "\"density\": " << density;
+    s << "}";
+  }
+
+  else {
+    s << this->getType() << ": " << this->getTag() << "\n";
+    s << "stress: " << Vector(retStress) << "\n";
+    s << "strain: " << Vector(retStrain) << "\n";
+    s << "tangent: " << Matrix(retTangent) << "\n";
+  }
+}       
+

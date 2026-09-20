@@ -31,7 +31,7 @@
 #include <IncrementalIntegrator.h>
 
 SecantAccelerator1::SecantAccelerator1(int maxIter, int tangent)
-  :Accelerator(ACCELERATOR_TAGS_Secant),
+  :Accelerator(),
   iteration(0), numEqns(0), R1(0.0), R2(0.0),
    vOld(0), rOld(0), maxIterations(maxIter), theTangent(tangent),
    cutOut(false)
@@ -40,7 +40,7 @@ SecantAccelerator1::SecantAccelerator1(int maxIter, int tangent)
 }
 
 SecantAccelerator1::SecantAccelerator1(int maxIter, int tangent, double r1, double r2)
-  :Accelerator(ACCELERATOR_TAGS_Secant),
+  : Accelerator(),
    iteration(0), numEqns(0), R1(r1), R2(r2),
    vOld(0), rOld(0), maxIterations(maxIter), theTangent(tangent),
    cutOut(true)
@@ -58,7 +58,7 @@ SecantAccelerator1::~SecantAccelerator1()
 }
 
 int 
-SecantAccelerator1::newStep(LinearSOE &theSOE)
+SecantAccelerator1::newStep(const LinearSOE &theSOE)
 {
   int newNumEqns = theSOE.getNumEqn();
 

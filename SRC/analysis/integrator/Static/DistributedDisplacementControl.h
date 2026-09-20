@@ -32,9 +32,7 @@
 // change in applied load and DistributedDisplacementControl is a control parameter.
 //
 // What: "@(#) DistributedDisplacementControl.h, revA"
-
-#ifndef DistributedDisplacementControl_h
-#define DistributedDisplacementControl_h
+#pragma once
 
 #include <StaticIntegrator.h>
 
@@ -48,18 +46,15 @@ class DistributedDisplacementControl : public StaticIntegrator
 {
   public:
     DistributedDisplacementControl(int node, int dof, double increment,
-				   int numIncrStep, double minIncrement, double maxIncrement);
+            int numIncrStep, double minIncrement, double maxIncrement);
     DistributedDisplacementControl();
 
     ~DistributedDisplacementControl();
 
-    int newStep(void);    
+    int newStep();    
     int update(const Vector &deltaU);
-    int domainChanged(void);
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, 
-			 FEM_ObjectBroker &theBroker);
+    int domainChanged();
+
 
     void Print(OPS_Stream &, int flag) final;    
 
@@ -84,6 +79,3 @@ class DistributedDisplacementControl : public StaticIntegrator
     double specNumIncrStep, numIncrLastStep; // Jd & J(i-1) 
     double minIncrement, maxIncrement; // min/max values of deltaU at (i)
 };
-
-#endif
-

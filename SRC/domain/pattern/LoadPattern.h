@@ -18,9 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-#ifndef LoadPattern_h
-#define LoadPattern_h
-
 // Written: fmk 
 // Created: 07/99
 // Revision: A
@@ -31,7 +28,7 @@
 // which is used to determine the load factor given the pseudo-time
 // to the model. 
 //
-
+#pragma once
 #include <TaggedObject.h>
 #include <MovableObject.h>
 #include <Vector.h>
@@ -68,7 +65,7 @@ class LoadPattern : public TaggedObject, public MovableObject
     // methods to apply loads
 
     // apply load at start of a step.
-    virtual int applyResidual(AnalysisModel&, LinearSOE&, double) {return 0;}
+    virtual int applyResidual(AnalysisModel&, Vector&, double) {return 0;}
     void setLoadConstant();
     void unsetLoadConstant();
 
@@ -120,9 +117,7 @@ public:
     virtual void clearAll();
 
 
-    // methods for o/p
-    virtual int sendSelf(int commitTag, Channel &);
-    virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
+    // TaggedObject
     virtual void Print(OPS_Stream &s, int flag)=0;
 
     enum : int {
@@ -153,7 +148,6 @@ public:
     ElementalLoadIter   *theEleIter;
     SingleDomSP_Iter    *theSpIter;
 //
-
     Vector *randomLoads;
     bool RVisRandomProcessDiscretizer;
     Vector *dLambdadh;
@@ -162,12 +156,3 @@ public:
     int lastChannel; 
     Domain* theDomain;
 };
-
-#endif
-
-
-
-
-
-
-

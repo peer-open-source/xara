@@ -109,8 +109,20 @@ PenaltySP_FE::setID(AnalysisModel &)
 const Matrix &
 PenaltySP_FE::getTangent(Integrator *theNewIntegrator)
 {
+#ifndef NEW_PENALTY_SP_STIFFNESS
   tang(0,0) = alpha;
+#else
+  if (theNewIntegrator != nullptr) {
+    theNewIntegrator->formEleTangent(this);
+  }
+#endif
   return tang;
+}
+
+void
+PenaltySP_FE::addKtToTang(double fact)
+{
+  tang(0,0) += fact * alpha;
 }
 
 

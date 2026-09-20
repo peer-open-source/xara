@@ -11,8 +11,10 @@ import setuptools
 
 #--------------------------------------------------
 
-version    = "0.1.28"
-build_type = os.environ.get("OPENSEESRT_BUILD", "release")
+version    = "0.1.32"
+build_type = os.environ.get("XARA_BUILD",
+                            os.environ.get("OPENSEESRT_BUILD",
+                                           "release"))
 
 #--------------------------------------------------
 
@@ -30,7 +32,6 @@ options = {
         "light": [
             "-DCMAKE_BUILD_TYPE=RELEASE",
             "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION:BOOL=FALSE",
-#           "-DProfileBuild:BOOL=TRUE",
         ],
         "debug": [
             "-DCMAKE_BUILD_TYPE=DEBUG",
@@ -117,7 +118,7 @@ if __name__ == "__main__":
                    *EnvArgs,
                    *options[build_type],
                 #    "-G Ninja",
-                   f"-DOPENSEESRT_VERSION={version}",
+                   f"-DXARA_VERSION={version}",
                    *OpenSeesPyRT_Config,
 
                ],

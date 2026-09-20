@@ -26,11 +26,12 @@
 // Created: 07/98
 // Revision: A
 //
-#ifndef LoadControl_h
-#define LoadControl_h
+#pragma once
 //
 #include <StaticIntegrator.h>
 #include <classTags.h>
+#include <control/PredictorControl.h>
+#include <Vector.h>
 
 class LinearSOE;
 class AnalysisModel;
@@ -44,18 +45,15 @@ class LoadControl : public StaticIntegrator
   public:
     LoadControl(double deltaLambda, int numIncr, 
                 double minLambda, double maxlambda, 
-                int classtag=INTEGRATOR_TAGS_LoadControl);
+                double exponent = 1.0);
 
     ~LoadControl();
 
     virtual int newStep() override;
     int update(const Vector &deltaU) override;
-    int setDeltaLambda(double newDeltaLambda);
-    int revertToLastStep() override {return 0;}
-
-    // Public methods for Output
-    int sendSelf(int tag, Channel &);
-    int recvSelf(int tag, Channel &, FEM_ObjectBroker &);
+    int commit() override;
+    int revertToLastStep() override;
+    int domainChanged() override;
 
     void Print(OPS_Stream &, int flag) override;
 
@@ -73,8 +71,9 @@ class LoadControl : public StaticIntegrator
     double expon;                            // exponent for J(i-1)/Jd
     double specNumIncrStep, numIncrLastStep; // Jd & J(i-1) 
     double dLambdaMin, dLambdaMax;           // min & max values for dlambda at step (i)
-
+    PredictorControl pcontrol;
+    
+    // Vector R; // residual vector
+    // Vector Pu; // Response vector evaluated at u
+    // Vector Pr; // Reference load vector
 };
-
-#endif
-

@@ -52,7 +52,7 @@ public:
     ~HHTExplicit_TP();
     
     // method to set up the system of equations
-    int formUnbalance(void);
+    int formUnbalance(Vector& G) override;
     
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
@@ -61,17 +61,14 @@ public:
     int formEleResidual(FE_Element *theEle);
     int formNodUnbalance(DOF_Group *theDof);
     
-    int domainChanged(void);
+    int domainChanged() override;
     int newStep(double deltaT);
-    int revertToLastStep(void);
+    int revertToLastStep();
     int update(const Vector &aiPlusOne);
-    int commit(void);
+    int commit() override;
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+    const Vector &getVel() override;
+
     void Print(OPS_Stream &s, int flag = 0);
     
 private:

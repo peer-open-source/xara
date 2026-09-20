@@ -979,38 +979,22 @@ void ShadowSubdomain::setDomainDecompAnalysis(
   this->Subdomain::setDomainDecompAnalysis(theDDAnalysis);
 }
 
-int ShadowSubdomain::setAnalysisAlgorithm(EquiSolnAlgo &theAlgorithm)
+int
+ShadowSubdomain::setAnalysisAlgorithm(EquiSolnAlgo &theAlgorithm)
 {
-  msgData(0) = ShadowActorSubdomain_setAnalysisAlgorithm;
-  msgData(1) = theAlgorithm.getClassTag();
-
-  this->sendID(msgData);
-  this->sendObject(theAlgorithm);
-
   return 0;
 }
 
-int ShadowSubdomain::setAnalysisIntegrator(IncrementalIntegrator &theIntegrator)
+int 
+ShadowSubdomain::setAnalysisIntegrator(IncrementalIntegrator &theIntegrator)
 {
-  msgData(0) = ShadowActorSubdomain_setAnalysisIntegrator;
-  msgData(1) = theIntegrator.getClassTag();
-
-  this->sendID(msgData);
-  this->sendObject(theIntegrator);
-  this->recvID(msgData);
-
-  return 0;
+  return -1;
 }
 
-int ShadowSubdomain::setAnalysisLinearSOE(LinearSOE &theSOE)
+int
+ShadowSubdomain::setAnalysisLinearSOE(LinearSOE &theSOE)
 {
-  msgData(0) = ShadowActorSubdomain_setAnalysisLinearSOE;
-  msgData(1) = theSOE.getClassTag();
-
-  this->sendID(msgData);
-  this->sendObject(theSOE);
-
-  return 0;
+  return -1;
 }
 
 int ShadowSubdomain::setAnalysisEigenSOE(EigenSOE &theSOE)

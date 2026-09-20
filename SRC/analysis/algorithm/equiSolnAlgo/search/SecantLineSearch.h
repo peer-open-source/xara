@@ -35,42 +35,35 @@
 // Written: fmk 
 // Created: 11/01
 //
-#ifndef SecantLineSearch_h
-#define SecantLineSearch_h
-
+#pragma once
 #include <LineSearch.h>
-class Vector;
-class OPS_Stream;
+#include <Vector.h>
 
 class SecantLineSearch: public LineSearch
 {
   public:
-    SecantLineSearch(double tolerance = 0.8, 
-                     int    maxIter   = 10, 
-                     double minEta    = 0.1, 
-                     double maxEta    = 10.0, 
+    SecantLineSearch(double tolerance,// = 0.8, 
+                     int    maxIter,//   = 10, 
+                     double minEta,//    = 0.1, 
+                     double maxEta,//    = 10.0, 
                      int    printFlag = 1);
 
     ~SecantLineSearch();
 
-    int newStep(LinearSOE &theSOE);
+    int newStep(const Vector &Go) override;
     int search(double s0, 
                double s1, 
-               LinearSOE &theSOE, 
-               IncrementalIntegrator &theIntegrator);
+               const Vector& dU,
+               Vector& G,
+               Vector& dXs,
+               IncrementalResidual &theIntegrator) override;
 
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    void Print(OPS_Stream &s, int flag);
+    void Print(OPS_Stream &s, int flag) override;
     
   private:
-    Vector *x;
     double tolerance;
     int    maxIter;
     double minEta;
     double maxEta;
     int    printFlag;
 };
-
-#endif
-

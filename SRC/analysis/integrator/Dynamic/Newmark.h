@@ -18,9 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-#ifndef Newmark_h
-#define Newmark_h
-
 // Written : fmk 
 // Created : 11/98
 // Modified: 02/05 ahs
@@ -31,7 +28,7 @@
 // using the Newmark integration scheme.
 //
 // What: "@(#) Newmark.h, revA"
-
+#pragma once
 #include <TransientIntegrator.h>
 #include <Vector.h>
 
@@ -64,11 +61,8 @@ public:
 
     double getCFactor();
 
-    const Vector &getVel();
-    
-    int sendSelf(int commitTag, Channel &) final;
-    int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &) final;
-    
+    const Vector &getVel() override;
+
     void Print(OPS_Stream &s, int flag) final;        
     
     // AddingSensitivity:BEGIN //////////////////////////////////
@@ -108,5 +102,3 @@ private:
     //////////////////////
 
 };
-
-#endif

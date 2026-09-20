@@ -17,19 +17,12 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.2 $
-// $Date: 2009-05-14 22:46:38 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/eigenSOE/ArpackSOE.h,v $
-
+//
 // Written: fmk
 // Created: 05/09
 //
 // Description: This file contains the class definition for ArpackSOE
-
-
-#ifndef ArpackSOE_h
-#define ArpackSOE_h
+#pragma once
 
 #include "eigenSOE/EigenSOE.h"
 #include <Vector.h>
@@ -84,9 +77,3 @@ class ArpackSOE : public EigenSOE
     ID **localCol;
     ID *sizeLocal;
 };
-
-
-#endif
-
-
-

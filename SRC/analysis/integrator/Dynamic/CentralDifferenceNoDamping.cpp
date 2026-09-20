@@ -23,7 +23,7 @@
 //
 // Description: This file contains the implementation of the CentralDifferenceNoDamping 
 // class.
-
+//
 #include <CentralDifferenceNoDamping.h>
 #include <FE_Element.h>
 #include <LinearSOE.h>
@@ -31,12 +31,10 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 
 
 CentralDifferenceNoDamping::CentralDifferenceNoDamping()
-:TransientIntegrator(INTEGRATOR_TAGS_CentralDifferenceNoDamping),
+:TransientIntegrator(),
  updateCount(0), 
  U(0), Udot(0), Udotdot(0), deltaT(0)
 {
@@ -63,7 +61,7 @@ CentralDifferenceNoDamping::newStep(double _deltaT)
 
   if (deltaT <= 0.0) {
     opserr << "CentralDifference::newStep() - error in variable\n";
-    opserr << "dT = " << deltaT << endln;
+    opserr << "dT = " << deltaT << "\n";
     return -2;	
   }
 
@@ -118,7 +116,6 @@ CentralDifferenceNoDamping::domainChanged()
   
   // create the new Vector objects
   if (U == 0 || U->Size() != size) {
-
     // delete the old
     if (U != 0)
       delete U;
@@ -131,25 +128,6 @@ CentralDifferenceNoDamping::domainChanged()
     U = new Vector(size);
     Udot = new Vector(size);
     Udotdot = new Vector(size);
-
-    // cheack we obtained the new
-    if (U == 0 || U->Size() != size ||
-	Udot == 0 || Udot->Size() != size ||
-	Udotdot == 0 || Udotdot->Size() != size) {
-      
-      opserr << "CentralDifferenceNoDamping::domainChanged - ran out of memory\n";
-
-      // delete the old
-      if (U != 0)
-	delete U;
-      if (Udot != 0)
-	delete U;
-      if (Udotdot != 0)
-	delete Udot;
-
-      U = 0; Udot = 0; Udotdot = 0;
-      return -1;
-    }
   }        
     
   // now go through and populate U and Udot by iterating through
@@ -161,20 +139,19 @@ CentralDifferenceNoDamping::domainChanged()
   while ((dofPtr = theDOFs()) != 0) {
     const ID &id = dofPtr->getID();
     int idSize = id.Size();
-    int i;
     const Vector &disp = dofPtr->getCommittedDisp();	
-    for (i=0; i < idSize; i++)  {
+    for (int i=0; i < idSize; i++)  {
       int loc = id(i);
       if (loc >= 0)  {
-	(*U)(loc) = disp(i);		
+        (*U)(loc) = disp(i);
       }
     }
     
     const Vector &vel = dofPtr->getCommittedVel();
-    for (i=0; i < idSize; i++)  {
+    for (int i=0; i < idSize; i++)  {
       int loc = id(i);
       if (loc >= 0)  {
-	(*Udot)(loc) = vel(i);
+        (*Udot)(loc) = vel(i);
       }
     }
   }    
@@ -209,7 +186,7 @@ CentralDifferenceNoDamping::update(const Vector &X)
   // check deltaU is of correct size
   if (X.Size() != U->Size()) {
     opserr << "WARNING CentralDifferenceNoDamping::update() - Vectors of incompatible size ";
-    opserr << " expecting " << U->Size() << " obtained " << X.Size() << endln;
+    opserr << " expecting " << U->Size() << " obtained " << X.Size() << "\n";
     return -3;
   }
 
@@ -251,18 +228,6 @@ const Vector &
 CentralDifferenceNoDamping::getVel()
 {
   return *Udot;
-}
-
-int
-CentralDifferenceNoDamping::sendSelf(int cTag, Channel &theChannel)
-{
-  return 0;
-}
-
-int
-CentralDifferenceNoDamping::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    return 0;
 }
 
 void

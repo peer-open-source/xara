@@ -36,9 +36,7 @@
 // otherwise frequent step size changes will render this a trapezoidal integrator.
 //
 //
-#ifndef BackwardEuler_h
-#define BackwardEuler_h
-
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -56,17 +54,14 @@ public:
     int formEleTangent(FE_Element *theEle);
     int formNodTangent(DOF_Group *theDof);        
     
-    int domainChanged(void);    
+    int domainChanged();    
     int newStep(double deltaT);    
-    int revertToLastStep(void);        
+    int revertToLastStep();        
     int update(const Vector &deltaU);
 
-    const Vector& getVel(void);
-    
-    int sendSelf(int commitTag, Channel &theChannel);
-    int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
-    void Print(OPS_Stream &s, int flag = 0);        
+    const Vector& getVel();
+
+    void Print(OPS_Stream &s, int flag);
     
  private:
     int step;       // keep track of previous points performed
@@ -78,5 +73,3 @@ public:
     Vector *Ut, *Utdot, *Utdotdot;      // response quantities at time t
     Vector *U, *Udot, *Udotdot;         // response quantities at time t+deltaT
 };
-
-#endif

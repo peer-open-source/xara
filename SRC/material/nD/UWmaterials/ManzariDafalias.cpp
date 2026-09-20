@@ -120,10 +120,6 @@ void * OPS_ADD_RUNTIME_VPV(OPS_ManzariDafaliasMaterial)
                          dData[12], dData[13], dData[14], dData[15], dData[16], dData[17], 
                          (int)oData[0],(int)oData[1], (int)oData[2], oData[3], oData[4]);
 
-  
-  if (theMaterial == 0) {
-    opserr << "WARNING ran out of memory for nDMaterial ManzariDafalias material with tag: " << tag << endln;
-  }
 
   return theMaterial;
 }

@@ -31,8 +31,6 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <elementAPI.h>
 
 
@@ -360,39 +358,6 @@ const Vector &
 HHTGeneralized::getVel()
 {
   return *Udot;
-}
-
-int HHTGeneralized::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(4);
-    data(0) = alphaI;
-    data(1) = alphaF;
-    data(2) = beta;
-    data(3) = gamma;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTGeneralized::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int HHTGeneralized::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(4);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTGeneralized::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    alphaI = data(0);
-    alphaF = data(1);
-    beta   = data(2);
-    gamma  = data(3);
-    
-    return 0;
 }
 
 

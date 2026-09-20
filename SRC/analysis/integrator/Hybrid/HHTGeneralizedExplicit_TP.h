@@ -17,24 +17,18 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
-#ifndef HHTGeneralizedExplicit_TP_h
-#define HHTGeneralizedExplicit_TP_h
-
-// Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
-// Created: 10/05
-// Revision: A
 //
 // Description: This file contains the class definition for HHTGeneralizedExplicit_TP.
 // HHTGeneralizedExplicit_TP is an algorithmic class for performing a transient analysis
 // using the HHTGeneralizedExplicit_TP integration scheme based on the trapezoidal rule.
 // Do not use this integrator for hybrid simulation. It updates the element displacements
 // twice per time step because it needs the resisiting force at Ut and Upt
-
+//
+// Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
+// Created: 10/05
+// Revision: A
+//
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -45,7 +39,6 @@ class HHTGeneralizedExplicit_TP : public TransientIntegrator
 {
 public:
     // constructors
-    HHTGeneralizedExplicit_TP();
     HHTGeneralizedExplicit_TP(double rhoB, double alphaF);
     HHTGeneralizedExplicit_TP(double alphaI, double alphaF,
         double beta, double gamma);
@@ -54,26 +47,23 @@ public:
     ~HHTGeneralizedExplicit_TP();
     
     // method to set up the system of equations
-    int formUnbalance(void);
+    int formUnbalance(Vector& G) override;
     
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
-    int formEleTangent(FE_Element *theEle);
-    int formNodTangent(DOF_Group *theDof);
-    int formEleResidual(FE_Element *theEle);
-    int formNodUnbalance(DOF_Group *theDof);
+    int formEleTangent(FE_Element *);
+    int formNodTangent(DOF_Group *);
+    int formEleResidual(FE_Element *);
+    int formNodUnbalance(DOF_Group *);
     
-    int domainChanged(void);
+    int domainChanged();
     int newStep(double deltaT);
-    int revertToLastStep(void);
+    int revertToLastStep();
     int update(const Vector &aiPlusOne);
-    int commit(void);
+    int commit();
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+    const Vector &getVel() override;
+
     void Print(OPS_Stream &s, int flag = 0);
     
 private:
@@ -91,4 +81,3 @@ private:
     Vector *Put;                                // unbalance at time t
 };
 
-#endif

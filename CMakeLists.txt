@@ -16,7 +16,7 @@ project(OpenSees
 
 
 option(Xara_MumpsSV_Sequential
-  "Include sequential Mumps solver" OFF)
+  "Include sequential Mumps solver" ON)
 
 set(OPS_BUNDLED_DIR   "${CMAKE_CURRENT_LIST_DIR}/OTHER/")
 set(OPS_SRC_DIR       "${CMAKE_CURRENT_LIST_DIR}/SRC/")
@@ -27,9 +27,10 @@ enable_testing()
 
 
 #==============================================================================
-#                            OS Configuration
+#                            Dependency Strategy
 #==============================================================================
-add_library(OPS_OS_Specific_libs INTERFACE)
+
+set(BLA_STATIC ON)
 
 if (UNIX)
   if (DEFINED Dependencies)
@@ -37,7 +38,16 @@ if (UNIX)
   else ()
     include(OpenSeesDependenciesUnix)
   endif ()
+elseif (WIN32)
+  include(OpenSeesDependenciesWin)
+endif ()
 
+
+#==============================================================================
+#                            OS Configuration
+#==============================================================================
+
+if (UNIX)
   # General debug / optimization options
   add_compile_options(
     $<$<CONFIG:DEBUG>:-g3>
@@ -79,8 +89,6 @@ if (UNIX)
         $<$<COMPILE_LANGUAGE:CXX>:-O3>
         -fno-stack-protector
         $<$<COMPILE_LANGUAGE:CXX>:-fno-math-errno>
-        # -freciprocal-math
-        # $<$<COMPILE_LANGUAGE:CXX>:-fno-trapping-math>
       )
     endif()
 
@@ -91,11 +99,11 @@ if (UNIX)
     if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
       add_compile_options(
         $<$<CONFIG:DEBUG>:-ggdb>
-        $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fsanitize=address,undefined,leak> #, leak
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fsanitize=address,undefined,leak>
         $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-fno-omit-frame-pointer>
       )
       add_link_options(
-        $<$<LINK_LANG_AND_ID:CXX,GNU>:-fsanitize=address,undefined,leak> # , leak
+        $<$<LINK_LANG_AND_ID:CXX,GNU>:-fsanitize=address,undefined,leak>
       )
     elseif (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
       if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
@@ -112,7 +120,6 @@ if (UNIX)
 
 elseif (WIN32) # NOTE: this will execute for both 32-bit and 64-bit builds.
   message(STATUS ":: Windows")
-  include(OpenSeesDependenciesWin)
   add_compile_definitions(_WIN32 _TCL85)
   # Optimize for Architecture Specifics
   add_compile_options($<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/favor:INTEL64>)
@@ -147,7 +154,7 @@ set(CMAKE_FORTRAN_STANDARD 08)
 # C/C++
 #--------------------------------------
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD   11)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
@@ -219,6 +226,36 @@ function(disable_rtti)
     endif()
 endfunction()
 
+
+#==============================================================================
+#                            Dependencies
+#
+#==============================================================================
+add_subdirectory(OTHER)
+
+find_package(TCL)
+find_package(TclStub) # TODO: may not need to find TCL first
+set(TCL_INCLUDE_PATH ${TCL_INCLUDE_DIRS})
+
+include_directories(${TCL_INCLUDE_PATH})
+
+# Print out a summary of build configuration
+message("\n:: OpenSees Summary")
+message("  :: CXX:       ${CMAKE_CXX_FLAGS}")
+message("  :: BLAS:      ${BLAS_LIBRARIES}")
+message("  :: LAPACK:    ${LAPACK_LIBRARIES}")
+message("  :: Eigen:     ${Eigen_INCLUDE_DIRS}")
+message("  :: SUPERLU:   ${SUPERLU_LIBRARIES}")
+message("  :: ARPACK:    ${ARPACK_LIBRARIES}")
+message("  :: UMFPACK:   ${UMFPACK_LIBRARIES}")
+message("  :: AMD:       ${AMD_LIBRARIES}")
+message("  :: TCL  a:    ${TCL_LIBRARY}  ")
+message("          b:    ${TCL_STUB_LIBRARY}")
+message("          c:    ${TCL_LIBRARIES}")
+message("")
+message("  :: IPO        ${CMAKE_INTERPROCEDURAL_OPTIMIZATION}")
+message("  :: Arch       ${CMAKE_SYSTEM_PROCESSOR}")
+
 #----------------------------------------------------------------
 # Global Includes
 #---------------------------------------------------------------- 
@@ -276,33 +313,6 @@ set(OPS_Includes
 #                            Define Targets
 #
 #==============================================================================
-# find_package(MKL)
-set(BLA_STATIC ON)
-add_subdirectory(OTHER)
-
-find_package(TCL)
-find_package(TclStub) # TODO: may not need to find TCL first
-set(TCL_INCLUDE_PATH ${TCL_INCLUDE_DIRS})
-
-include_directories(${TCL_INCLUDE_PATH})
-
-# Print out a summary of build configuration
-message("\n:: OpenSees Summary")
-message("  :: CXX:       ${CMAKE_CXX_FLAGS}")
-message("  :: BLAS:      ${BLAS_LIBRARIES}")
-message("  :: LAPACK:    ${LAPACK_LIBRARIES}")
-message("  :: Eigen:     ${Eigen_INCLUDE_DIRS}")
-message("  :: SUPERLU:   ${SUPERLU_LIBRARIES}")
-message("  :: ARPACK:    ${ARPACK_LIBRARIES}")
-message("  :: UMFPACK:   ${UMFPACK_LIBRARIES}")
-message("  :: AMD:       ${AMD_LIBRARIES}")
-message("  :: TCL  a:    ${TCL_LIBRARY}  ")
-message("          b:    ${TCL_STUB_LIBRARY}")
-message("          c:    ${TCL_LIBRARIES}")
-message("")
-message("  :: IPO        ${CMAKE_INTERPROCEDURAL_OPTIMIZATION}")
-message("  :: Arch       ${CMAKE_SYSTEM_PROCESSOR}")
-
 # TODO: Probably not needed, link libs as needed
 # in sys_of_eqn/linearSOE/*/CMakeLists.txt
 add_library(OPS_Numerics           INTERFACE)

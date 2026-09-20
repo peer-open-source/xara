@@ -27,10 +27,9 @@
 // Created: Tue Sept 17 15:54:47: 1996
 // Revision: A
 //
-#ifndef IncrementalIntegrator_h
-#define IncrementalIntegrator_h
-
+#pragma once
 #include <Integrator.h>
+#include "IncrementalResidual.h"
 #include <MovableObject.h>
 
 class LinearSOE;
@@ -47,17 +46,18 @@ enum TangentFlag {
   CURRENT_SECANT                =2,
   INITIAL_THEN_CURRENT_TANGENT  =3,
   NO_TANGENT                    =4,
-  SECOND_TANGENT                =5,
-  HALL_TANGENT                  =6
+// SECOND_TANGENT                =5,
+  HALL_TANGENT                  =6,
+  PREDICTOR_TANGENT             =7,
 };
 
 
-class IncrementalIntegrator : protected Integrator, public MovableObject
+class IncrementalIntegrator : public IncrementalResidual, protected Integrator
 {
   public:
     typedef int TangentFlagType; 
 
-    IncrementalIntegrator(int classTag);
+    IncrementalIntegrator();
     virtual ~IncrementalIntegrator();
 
     void setLinks(AnalysisModel &,
@@ -77,9 +77,10 @@ class IncrementalIntegrator : protected Integrator, public MovableObject
     //
     // Invoked by the Algorithm
     //
-    virtual int  update(const Vector &dx) =0;// correct;
+    virtual int  update(const Vector &dx) =0;
     // Proxies for AnalysisModel
-    virtual int  formUnbalance() = 0;
+    virtual int  formUnbalance(Vector&) = 0;
+    // const Vector& getResidual() {return this->getLinearSOE()->getB();}
 
     virtual int  formTangent(int statusFlag = CURRENT_TANGENT);
     virtual int  formTangent(int statusFlag, 
@@ -101,13 +102,13 @@ class IncrementalIntegrator : protected Integrator, public MovableObject
     bool activateSensitivity()    {return SensitivityKey;};
 
 
-    virtual void Print(OPS_Stream &s, int flag =0) =0;
+    virtual void Print(OPS_Stream &s, int flag) =0;
  
   protected:
     // These are almost final; they are invoked by 
     // [Transient,Static]Integrator::formUnbalance()
-    virtual int  formNodalUnbalance() final;
-    virtual int  formElementResidual() final;
+    virtual int  formNodalUnbalance(Vector&);
+    virtual int  formElementResidual(Vector&);
 
     int addModalDampingForce(const Vector *modalDampingValues);
 
@@ -151,6 +152,3 @@ class IncrementalIntegrator : protected Integrator, public MovableObject
     // - cmp
     virtual int getLastResponse(Vector &result, const ID &id) final;
 };
-
-#endif
-

@@ -38,8 +38,6 @@
 #include <ExpressNewton.h>
 #include <LinearSOE.h>
 #include <Vector.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <IncrementalIntegrator.h>
 #include <ConvergenceTest.h>
 #include <ID.h>
@@ -96,6 +94,7 @@ ExpressNewton::~ExpressNewton()
 
 }
 
+
 int 
 ExpressNewton::solveCurrentStep()
 {
@@ -106,10 +105,10 @@ ExpressNewton::solveCurrentStep()
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
 
   if ((theIntegrator ==0 ) || (theSOE == 0)){
-      opserr << "WARNING ExpressNewton::solveCurrentStep() -";
-      opserr << "setLinks() has not been called.\n";
-      return -5;
+    return -5;
   }
+  G.resize(theSOE->getNumEqn());
+  dX.resize(theSOE->getNumEqn());
 
   if (factorOnce != 2) {
     if (theIntegrator->formTangent(HALL_TANGENT, kMultiplier1, kMultiplier2) < 0) {
@@ -123,49 +122,19 @@ ExpressNewton::solveCurrentStep()
 
   for (int iter = 0; iter <nIter; ++iter)
   {
-  if (theIntegrator->formUnbalance() < 0) {
-      opserr << "WARNING ExpressNewton::solveCurrentStep() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+    if (theIntegrator->formUnbalance(G) < 0) {    
       return -2;
-  }
+    }
 
-  if (theSOE->solve() < 0) {
-      opserr << "WARNING ExpressNewton::solveCurrentStep() -";
-      opserr << "the LinearSOE failed in solve()\n";        
+    if (theSOE->solve(G, dX) < 0) { 
       return -3;
-  }
+    }
 
-  if (theIntegrator->update(theSOE->getX()) < 0) {
-      opserr << "WARNING ExpressNewton::solveCurrentStep() -";
-      opserr << "the Integrator failed in update()\n";        
+    if (theIntegrator->update(dX) < 0) {
       return -4;
+    }
   }
-  }
 
-  return 0;
-}
-
-
-int
-ExpressNewton::sendSelf(int cTag, Channel &theChannel)
-{
-  static Vector data(4);
-  data(0) = nIter;
-  data(1) = kMultiplier1;
-  data(1) = kMultiplier2;
-  data(2) = factorOnce;
-  return theChannel.sendVector(this->getDbTag(), cTag, data);
-}
-
-int
-ExpressNewton::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  static Vector data(4);
-  theChannel.recvVector(this->getDbTag(), cTag, data);
-  nIter = int(data(0));
-  kMultiplier1 = data(1);
-  kMultiplier2 = data(2);
-  factorOnce = int(data(3));
   return 0;
 }
 

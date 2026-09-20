@@ -36,7 +36,7 @@ class MillerAccelerator: public Accelerator
 		    int tangent = CURRENT_TANGENT);
   virtual ~MillerAccelerator();
   
-  int newStep(LinearSOE &theSOE);
+  int newStep(const LinearSOE &theSOE);
   int accelerate(Vector &v, LinearSOE &theSOE, 
 		 IncrementalIntegrator &theIntegrator);
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
@@ -45,9 +45,6 @@ class MillerAccelerator: public Accelerator
   int getTangent() {return theTangent;}
 
   void Print(OPS_Stream &, int flag) const final;
-  
-  int sendSelf(int commitTag, Channel &);
-  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker);
 
  private:
   // Iteration count

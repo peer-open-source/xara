@@ -55,7 +55,7 @@ public:
 
 
   // Integrator interface
-  int formUnbalance() final;
+  int formUnbalance(Vector&) final;
   int formEleTangent(FE_Element *) override;
   int formEleResidual(FE_Element *)   final;
   int formNodTangent(DOF_Group *)     final;

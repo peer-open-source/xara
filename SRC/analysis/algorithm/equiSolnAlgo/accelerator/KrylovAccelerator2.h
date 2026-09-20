@@ -17,20 +17,13 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $Source$
-
+//
 // Written: MHS
 // Created: April 2002
 
 // Description: This file contains the class definition for 
 // KrylovAccelerator2. 
-
-#ifndef KrylovAccelerator2_h
-#define KrylovAccelerator2_h
-
+#pragma once
 #include <Accelerator.h>
 #include <IncrementalIntegrator.h>
 
@@ -40,16 +33,13 @@ public:
   KrylovAccelerator2(int maxDim = 3, int tangent = CURRENT_TANGENT);
   virtual ~KrylovAccelerator2();
   
-  int newStep(LinearSOE &theSOE);
+  int newStep(const LinearSOE &theSOE);
   int accelerate(Vector &v, LinearSOE &theSOE, 
                  IncrementalIntegrator &theIntegrator);
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
   bool updateTangent(void);
 
   void Print(OPS_Stream &, int flag) const final;
-  
-  int sendSelf(int commitTag, Channel &);
-  int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 
 private:
   // Current dimension of Krylov subspace
@@ -76,5 +66,3 @@ private:
   // Which tangent to form at restart
   int theTangent;
 };
-
-#endif

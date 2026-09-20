@@ -36,34 +36,14 @@
 #include <LinearSOE.h>
 #include <Vector.h>
 #include <Channel.h>
-#include <math.h>
+#include <cmath>
 #include <stdlib.h>
-#include <elementAPI.h>
+#include <OPS_Stream.h>
+#include <Logging.h>
 
-void *
-OPS_ADD_RUNTIME_VPV(OPS_ArcLength1)
-{
-    double arcLength;
-    double alpha;
-    if (OPS_GetNumRemainingInputArgs() < 2) {
-      opserr << "WARNING integrator ArcLength arcLength alpha \n";
-      return 0;
-    }
-
-    int numdata = 1;
-    if (OPS_GetDoubleInput(&numdata, &arcLength) < 0) {
-      opserr << "WARNING integrator ArcLength failed to read arc length\n";
-      return 0;
-    }
-    if (OPS_GetDoubleInput(&numdata, &alpha) < 0) {
-      opserr << "WARNING integrator ArcLength failed to read alpha\n";
-      return 0;
-    }
-    return new ArcLength1(arcLength,alpha); 
-}
 
 ArcLength1::ArcLength1(double arcLength, double alpha)
-:StaticIntegrator(INTEGRATOR_TAGS_ArcLength1),
+: StaticIntegrator(INTEGRATOR_TAGS_ArcLength1),
  arcLength2(arcLength*arcLength), alpha2(alpha*alpha),
  deltaUhat(0), deltaUbar(0), deltaU(0), deltaUstep(0), 
  phat(0), deltaLambdaStep(0.0), currentLambda(0.0), 
@@ -112,7 +92,7 @@ ArcLength1::newStep()
   Vector &dUhat = *deltaUhat;
   
   // determine delta lambda(1) == dlambda
-  double dLambda = sqrt(arcLength2/((dUhat^dUhat) + alpha2));
+  double dLambda = std::sqrt(arcLength2/((dUhat^dUhat) + alpha2));
   dLambda *= signLastDeltaLambdaStep; // base sign of load change
                                       // on what was happening last step
   deltaLambdaStep = dLambda;
@@ -130,6 +110,7 @@ ArcLength1::newStep()
 
   return 0;
 }
+
 
 int
 ArcLength1::update(const Vector &dU)
@@ -168,7 +149,7 @@ ArcLength1::update(const Vector &dU)
   theModel->incrDisp(*deltaU);    
   theModel->applyLoadDomain(currentLambda);
   theModel->updateDomain();
-  
+
   // set the X soln in linearSOE to be deltaU for convergence Test
   theLinSOE->setX(*deltaU);
 
@@ -211,7 +192,7 @@ ArcLength1::domainChanged()
 
   if (deltaUstep == nullptr || deltaUstep->Size() != size) { 
     if (deltaUstep != nullptr)
-        delete deltaUstep;  
+      delete deltaUstep;  
     deltaUstep = new Vector(size);
   }
 
@@ -227,8 +208,7 @@ ArcLength1::domainChanged()
   currentLambda = theModel->getCurrentDomainTime();
   currentLambda += 1.0;
   theModel->applyLoadDomain(currentLambda);    
-  this->formUnbalance(); // NOTE: this assumes unbalance at last was 0
-  (*phat) = theLinSOE->getB();
+  this->formUnbalance(*phat); // NOTE: this assumes unbalance at last was 0
   currentLambda -= 1.0;
   theModel->setCurrentDomainTime(currentLambda);    
   
@@ -236,42 +216,6 @@ ArcLength1::domainChanged()
 }
 
 
-int
-ArcLength1::sendSelf(int cTag, Channel &theChannel)
-{
-  Vector data(5);
-  data(0) = arcLength2;
-  data(1) = alpha2;
-  data(2) = deltaLambdaStep;
-  data(3) = currentLambda;
-  data(4)  = signLastDeltaLambdaStep;
-
-  if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0) {
-      opserr << "ArcLength1::sendSelf() - failed to send the data\n";
-      return -1;
-  }
-  return 0;
-}
-
-
-int
-ArcLength1::recvSelf(int cTag,
-                Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  Vector data(5);
-  if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0) {
-    opserr << "ArcLength1::sendSelf() - failed to send the data\n";
-    return -1;
-  }      
-
-  // set the data
-  arcLength2 = data(0);
-  alpha2 = data(1);
-  deltaLambdaStep = data(2);
-  currentLambda = data(3);
-  signLastDeltaLambdaStep = data(4);
-  return 0;
-}
 
 void
 ArcLength1::Print(OPS_Stream &s, int flag)
@@ -280,8 +224,8 @@ ArcLength1::Print(OPS_Stream &s, int flag)
   if (theModel != nullptr) {
     double cLambda = theModel->getCurrentDomainTime();
     s << "\t ArcLength1 - currentLambda: " << cLambda;
-    s << "  ArcLength1: " << sqrt(arcLength2) <<  "  alpha: ";
-    s << sqrt(alpha2) << endln;
+    s << "  ArcLength1: " << std::sqrt(arcLength2) <<  "  alpha: ";
+    s << std::sqrt(alpha2) << "\n";
   } else 
     s << "\t ArcLength1 - no associated AnalysisModel\n";
 }

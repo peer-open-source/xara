@@ -30,8 +30,7 @@
 #include <AnalysisModel.h>
 #include <LinearSOE.h>
 #include <Vector.h>
-#include <Channel.h>
-#include <math.h>
+#include <cmath>
 
 
 HSConstraint::HSConstraint(double arcLength, double psi_u, double psi_f, double u_ref)
@@ -68,10 +67,10 @@ HSConstraint::~HSConstraint()
 }
 
 int
-HSConstraint::newStep(void)
+HSConstraint::newStep()
 {
     // get pointers to AnalysisModel and LinearSOE
-    AnalysisModel *theModel = this->getAnalysisModel();//method defined in Incremental Integrator
+    AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();
     if (theModel == nullptr || theLinSOE == nullptr) {
         opserr << "WARNING HSConstraint::newStep() ";
@@ -88,13 +87,10 @@ HSConstraint::newStep(void)
         signLastDeltaLambdaStep = +1;
 
 
-
     // determine dUhat
     this->formTangent();
-    theLinSOE->setB(*phat);//defined in LinearSOE.cpp
-    theLinSOE->solve();
+    theLinSOE->solve(*phat, *deltaUhat);
 
-    (*deltaUhat) = theLinSOE->getX();
     Vector &dUhat = *deltaUhat;
 
     Vector f_ext = *phat;
@@ -105,8 +101,9 @@ HSConstraint::newStep(void)
 // out temp BJ 
 //    double dLambda = sqrt(arcLength2/((psi_u2/u_ref2*fabs(dUhat^dUhat))+psi_f2));
 // old version with fext
-    double dLambda = sqrt(
-                      arcLength2/( (psi_u2/u_ref2*fabs(dUhat^dUhat) ) + psi_f2*(f_ext^f_ext)  ));
+    double dLambda = std::sqrt(
+                      arcLength2/( (psi_u2/u_ref2*std::fabs(dUhat^dUhat) ) + psi_f2*(f_ext^f_ext) )
+    );
     dLambda *= signLastDeltaLambdaStep; // base sign of load change
                                         // on what was happening last step
     deltaLambdaStep = dLambda;
@@ -139,9 +136,7 @@ HSConstraint::update(const Vector &dU)
     (*deltaUbar) = dU; // have to do this as the SOE is gonna change
 
     // determine dUhat
-    theLinSOE->setB(*phat);
-    theLinSOE->solve();
-    (*deltaUhat) = theLinSOE->getX();
+    theLinSOE->solve(*phat, *deltaUhat);
 
     Vector f_ext = *phat;
 
@@ -173,18 +168,14 @@ HSConstraint::update(const Vector &dU)
     }
     double dLambda;
     if (a1 == 0.0) {
-     // opserr << "HSConstraint::update() - zero denominator";
-     // opserr << "\n";
-     // return -2;
-                dLambda = -a3/(2.0*a2);
-
+        dLambda = -a3/(2.0*a2);
     }
     else
     {
-            // determine the roots of the quadratic
-            double sqrtb24ac = sqrt(b24ac);
-            double dlambda1 = (-a2 + sqrtb24ac)/a1;
-            double dlambda2 = (-a2 - sqrtb24ac)/a1;
+        // determine the roots of the quadratic
+        double sqrtb24ac = std::sqrt(b24ac);
+        double dlambda1 = (-a2 + sqrtb24ac)/a1;
+        double dlambda2 = (-a2 - sqrtb24ac)/a1;
 
         //Vector deltaU1 = (*deltaUbar);
         //deltaU1->addVector(1.0, *deltaUhat,dlambda1);
@@ -194,19 +185,19 @@ HSConstraint::update(const Vector &dU)
         //deltaU2->addVector(1.0, *deltaUhat,dlambda2);
         //double costheta2 = (*deltaUstep)^((*deltaUstep)+(*deltaU2));
 
-     double val = (*deltaUhat)^(*deltaUstep);
-            double costheta1 = ((*deltaUstep)^(*deltaUstep)) + ((*deltaUbar)^(*deltaUstep));
-            double costheta2 = costheta1 + dlambda2*val;
+        double val = (*deltaUhat)^(*deltaUstep);
+        double costheta1 = ((*deltaUstep)^(*deltaUstep)) + ((*deltaUbar)^(*deltaUstep));
+        double costheta2 = costheta1 + dlambda2*val;
 
-            costheta1 += dlambda1*val;
+        costheta1 += dlambda1*val;
 
-            // choose dLambda based on angle between incremental displacement before
-            // and after this step -- want positive
-            /*double dLambda;*/
-            if (costheta1 > costheta2)
-                      dLambda = dlambda1;
-            else
-                      dLambda = dlambda2;
+        // choose dLambda based on angle between incremental displacement before
+        // and after this step -- want positive
+        /*double dLambda;*/
+        if (costheta1 > costheta2)
+            dLambda = dlambda1;
+        else
+            dLambda = dlambda2;
     }
 
 
@@ -233,7 +224,7 @@ HSConstraint::update(const Vector &dU)
 
 
 int
-HSConstraint::domainChanged(void)
+HSConstraint::domainChanged()
 {
     // we first create the Vectors needed
     AnalysisModel *theModel = this->getAnalysisModel();
@@ -249,22 +240,12 @@ HSConstraint::domainChanged(void)
         if (deltaUhat != 0)
             delete deltaUhat;   // delete the old
         deltaUhat = new Vector(size);
-        if (deltaUhat == 0 || deltaUhat->Size() != size) { // check got it
-            opserr << "FATAL HSConstraint::domainChanged() - ran out of memory for";
-            opserr << " deltaUhat Vector of size " << size << endln;
-            return -1;
-        }
     }
 
     if (deltaUbar == 0 || deltaUbar->Size() != size) { // create new Vector
         if (deltaUbar != 0)
             delete deltaUbar;   // delete the old
         deltaUbar = new Vector(size);
-        if (deltaUbar == 0 || deltaUbar->Size() != size) { // check got it
-            opserr << "FATAL HSConstraint::domainChanged() - ran out of memory for";
-            opserr << " deltaUbar Vector of size " << size << endln;
-            return -1;
-        }
     }
 
 
@@ -272,11 +253,6 @@ HSConstraint::domainChanged(void)
         if (deltaU != 0)
             delete deltaU;   // delete the old
         deltaU = new Vector(size);
-        if (deltaU == 0 || deltaU->Size() != size) { // check got it
-            opserr << "FATAL HSconstraint::domainChanged() - ran out of memory for";
-            opserr << " deltaU Vector of size " << size << endln;
-            return -1;
-        }
     }
 
     if (deltaUstep == 0 || deltaUstep->Size() != size) {
@@ -297,8 +273,7 @@ HSConstraint::domainChanged(void)
     currentLambda = theModel->getCurrentDomainTime();
     currentLambda += 1.0;
     theModel->applyLoadDomain(currentLambda);
-    this->formUnbalance(); // NOTE: this assumes unbalance at last was 0
-    (*phat) = theLinSOE->getB();
+    this->formUnbalance(*phat); // NOTE: this assumes unbalance at last was 0
     currentLambda -= 1.0;
     theModel->setCurrentDomainTime(currentLambda);
 
@@ -309,7 +284,6 @@ HSConstraint::domainChanged(void)
       if ( (*phat)(i) != 0.0 ) {
         haveLoad = 1;
         i = size;
-
       }
 
     if (haveLoad == 0) {
@@ -320,43 +294,6 @@ HSConstraint::domainChanged(void)
     return 0;
 }
 
-int
-HSConstraint::sendSelf(int cTag,
-                    Channel &theChannel)
-{
-  Vector data(4);
-  data(0) = arcLength2;
-  //data(1) = alpha2;
-  data(1) = deltaLambdaStep;
-  data(2) = currentLambda;
-  data(3)  = signLastDeltaLambdaStep;
-
-  if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0) {
-      opserr << "HSConstraint::sendSelf() - failed to send the data\n";
-      return -1;
-  }
-  return 0;
-}
-
-
-int
-HSConstraint::recvSelf(int cTag,
-                    Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  Vector data(4);
-  if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0) {
-      opserr << "HSConstraint::recvSelf() - failed to receive the data\n";
-      return -1;
-  }
-
-  // set the data
-  arcLength2 = data(0);
-  //alpha2 = data(1);
-  deltaLambdaStep = data(1);
-  currentLambda = data(2);
-  signLastDeltaLambdaStep = data(3);
-  return 0;
-}
 
 void
 HSConstraint::Print(OPS_Stream &s, int flag)
@@ -365,8 +302,8 @@ HSConstraint::Print(OPS_Stream &s, int flag)
     if (theModel != 0) {
         double cLambda = theModel->getCurrentDomainTime();
         s << "\t HSConstraint - currentLambda: " << cLambda;
-        s << "  HSConstraint: " << sqrt(arcLength2) /*<<  "  alpha: ";
-        s << sqrt(alpha2) */ << endln;
+        s << "  HSConstraint: " << std::sqrt(arcLength2) /*<<  "  alpha: ";
+        s << sqrt(alpha2) */ << "\n";
     } else
         s << "\t HSConstraint - no associated AnalysisModel\n";
 }

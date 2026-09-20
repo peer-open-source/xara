@@ -19,56 +19,82 @@
 ** ****************************************************************** */
 //
 // Description: This file contains the class definition for BFGS.
-// 
+//
+// See also:
+// - FEAP: feap/program/iterat.f
+//
+// [1] 
+//
 // Written: Ed Love
 // Created: 06/01
 //
-#ifndef BFGS_h
-#define BFGS_h
-
+#pragma once
+#include <vector>
 #include <EquiSolnAlgo.h>
 #include <Vector.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h> 
+#include <LinearAction.h>
+class LineSearch;
 
 class BFGS: public EquiSolnAlgo
 {
   public:
 
-    BFGS(IncrementalIntegrator::TangentFlagType tangent = CURRENT_TANGENT, int n = 10);
+    BFGS(IncrementalIntegrator::TangentFlagType tangent, int n, LineSearch* search=nullptr);
+
     ~BFGS();
 
     int solveCurrentStep() final;
+
     void Print(OPS_Stream &, int flag) const final;    
     
 
     
   private:
-    void BFGSUpdate(IncrementalIntegrator *theIntegrator,
+    int BFGSUpdate(IncrementalIntegrator *,
                     LinearSOE *theSOE,
                     Vector &du, 
-                    Vector &b, 
+                    const Vector &b, 
                     int count);
+
+
+    struct ApplyBFGS //: public LinearAction
+    {
+      public:
+        ApplyBFGS(int n, BFGS *theAlgo) : 
+          rdotz(n+3), sdotr(n+3), temp(0)
+        {
+        }
+
+        int link(IncrementalIntegrator* integrator, LinearSOE* soe) {
+          theIntegrator = integrator;
+          theSOE = soe;
+          temp.resize(soe->getNumEqn());
+          return 0;
+        }
+
+      public:
+        IncrementalIntegrator* theIntegrator;
+        LinearSOE* theSOE;
+        std::vector<double> rdotz;
+        std::vector<double> sdotr;
+        Vector temp; // temporary vector 
+
+        Vector **s;  // displacement increments
+        Vector **z;
+    } action;
+
 
     IncrementalIntegrator::TangentFlagType tangent;
     int numberLoops;
+    LineSearch* search;
 
     Vector **s;  // displacement increments
-    Vector **z;  
-    Vector *residOld;  // residuals
-    Vector *residNew;
+    Vector **z;
+    Vector Go;  // residuals
+    Vector Gn;
 
-    Vector *du; // displacement increment
-
-    Vector *b;  // current right-hand side
-
-    Vector *temp; // temporary vector 
-
-    double *rdotz;
-    double *sdotr;
-  
+    Vector du; // displacement increment
+    Vector b;  // current right-hand side
 };
-
-#endif
-
-

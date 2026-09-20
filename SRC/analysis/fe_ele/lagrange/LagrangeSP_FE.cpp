@@ -17,11 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.5 $
-// $Date: 2006-02-08 20:20:00 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/fe_ele/lagrange/LagrangeSP_FE.cpp,v $
-                                                                        
+//
 // Written: fmk 
 // Created: 02/99
 // Revision: A
@@ -87,10 +83,10 @@ LagrangeSP_FE::LagrangeSP_FE(int tag, Domain &theDomain, SP_Constraint &TheSP,
 
 LagrangeSP_FE::~LagrangeSP_FE()
 {
-    if (tang != 0)
-	delete tang;
-    if (resid != 0)
-	delete resid;
+  if (tang != 0)
+    delete tang;
+  if (resid != 0)
+    delete resid;
 }    
 
 // void setID(int index, int value);
@@ -125,47 +121,48 @@ LagrangeSP_FE::setID(AnalysisModel& theModel)
   return result;
 }
 
+
 const Matrix &
 LagrangeSP_FE::getTangent(Integrator *theIntegrator)
 {
-    return *tang;
+  return *tang;
 }
 
 const Vector &
 LagrangeSP_FE::getResidual(Integrator *theNewIntegrator)
 {
-    double constraint = theSP->getValue();
-    double initialValue = theSP->getInitialValue();
-    int constrainedDOF = theSP->getDOF_Number();
-    const Vector &nodeDisp = theNode->getTrialDisp();
-    const Vector& lambda = theDofGroup->getTrialDisp();
+  double constraint = theSP->getValue();
+  double initialValue = theSP->getInitialValue();
+  int constrainedDOF = theSP->getDOF_Number();
+  const Vector &nodeDisp = theNode->getTrialDisp();
+  const Vector& lambda = theDofGroup->getTrialDisp();
 
-    if (constrainedDOF < 0 || constrainedDOF >= nodeDisp.Size()) {
-        opserr << "LagrangeSP_FE::getResidual() -";
-        opserr << " constrained DOF " << constrainedDOF << " outside range\n";
-        resid->Zero();
-        return *resid;
-    }
-    if (lambda.Size() != 1) {
-        opserr << "LagrangeSP_FE::getResidual() -";
-        opserr << " Lambda.Size() = " << lambda.Size() << " != 1\n";
-        resid->Zero();
-        return *resid;
-    }
-    
-    /*
-    R = -C*U + G
-       .R = generalized residual vector
-       .C = constraint matrix
-       .U = generalized solution vector (displacement, lagrange multipliers)
-       .G = imposed displacement values
-    | Ru |    | 0  A | | u |   | 0 |
-    |    | = -|      |*|   | + |   |
-    | Rl |    | A  0 | | l |   | g |
-    */
-    (*resid)(0) = alpha * (-lambda(0));
-    (*resid)(1) = alpha *(constraint - (nodeDisp(constrainedDOF) - initialValue));
+  if (constrainedDOF < 0 || constrainedDOF >= nodeDisp.Size()) {
+    opserr << "LagrangeSP_FE::getResidual() -";
+    opserr << " constrained DOF " << constrainedDOF << " outside range\n";
+    resid->Zero();
     return *resid;
+  }
+  if (lambda.Size() != 1) {
+    opserr << "LagrangeSP_FE::getResidual() -";
+    opserr << " Lambda.Size() = " << lambda.Size() << " != 1\n";
+    resid->Zero();
+    return *resid;
+  }
+  
+  /*
+  R = -C*U + G
+      .R = generalized residual vector
+      .C = constraint matrix
+      .U = generalized solution vector (displacement, lagrange multipliers)
+      .G = imposed displacement values
+  | Ru |    | 0  A | | u |   | 0 |
+  |    | = -|      |*|   | + |   |
+  | Rl |    | A  0 | | l |   | g |
+  */
+  (*resid)(0) = alpha * (-lambda(0));
+  (*resid)(1) = alpha *(constraint - (nodeDisp(constrainedDOF) - initialValue));
+  return *resid;
 }
 
 
@@ -186,31 +183,32 @@ LagrangeSP_FE::getTangForce(const Vector &disp, double fact)
   return *resid;    
 }
 
+
 const Vector &
 LagrangeSP_FE::getK_Force(const Vector &disp, double fact)
 {
- opserr << "WARNING PenaltySP_FE::getK_Force() - not yet implemented\n";
- return *resid;
+  opserr << "WARNING PenaltySP_FE::getK_Force() - not yet implemented\n";
+  return *resid;
 }
 
 const Vector &
 LagrangeSP_FE::getKi_Force(const Vector &disp, double fact)
 {
- opserr << "WARNING PenaltySP_FE::getKi_Force() - not yet implemented\n";
- return *resid;
+  opserr << "WARNING PenaltySP_FE::getKi_Force() - not yet implemented\n";
+  return *resid;
 }
 
 const Vector &
 LagrangeSP_FE::getC_Force(const Vector &disp, double fact)
 {
- opserr << "WARNING PenaltySP_FE::getC_Force() - not yet implemented\n";
- return *resid;
+  opserr << "WARNING PenaltySP_FE::getC_Force() - not yet implemented\n";
+  return *resid;
 }
 
 const Vector &
 LagrangeSP_FE::getM_Force(const Vector &disp, double fact)
 {
- opserr << "WARNING PenaltySP_FE::getM_Force() - not yet implemented\n";
- return *resid;
+  opserr << "WARNING PenaltySP_FE::getM_Force() - not yet implemented\n";
+  return *resid;
 }
 

@@ -118,7 +118,7 @@ ParallelNumberer::numberDOF(int lastDOF)
     theDomain = theModel->getDomainPtr();
   
   assert(theModel != nullptr && theDomain != nullptr);
-  assert(lastDOF  != -1);
+  // assert(lastDOF  != -1);
 
   Graph &theGraph = theModel->getDOFGroupGraph();
 

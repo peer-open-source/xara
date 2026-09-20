@@ -48,6 +48,7 @@
 #include <MP_Constraint.h>
 #include <DOF_Group.h>
 
+
 PenaltyMP_FE::PenaltyMP_FE(int tag, Domain &theDomain, 
 			   MP_Constraint &TheMP, double Alpha)
 :FE_Element(tag, 2,(TheMP.getConstrainedDOFs()).Size()+
@@ -57,9 +58,9 @@ PenaltyMP_FE::PenaltyMP_FE(int tag, Domain &theDomain,
  theMP(&TheMP), theConstrainedNode(0) , theRetainedNode(0),
  tang(0), resid(0), C(0), alpha(Alpha)
 {
-    int size;
+
     const ID &id1 = theMP->getConstrainedDOFs();
-    size = id1.Size();
+    int size = id1.Size();
     const ID &id2 = theMP->getRetainedDOFs();    
     size += id2.Size();
 
@@ -84,14 +85,15 @@ PenaltyMP_FE::PenaltyMP_FE(int tag, Domain &theDomain,
     if (dofGrpPtr != 0) 
         myDOF_Groups(0) = dofGrpPtr->getTag();	    
     else 
-        opserr << "WARNING PenaltyMP_FE::PenaltyMP_FE() - node no Group yet?\n"; 
+        opserr << "WARNING PenaltyMP_FE::PenaltyMP_FE() - node no Group yet?\n";
+
     dofGrpPtr = theConstrainedNode->getDOF_GroupPtr();
     if (dofGrpPtr != nullptr) 
         myDOF_Groups(1) = dofGrpPtr->getTag();	        
     else
         opserr << "WARNING PenaltyMP_FE::PenaltyMP_FE() - node no Group yet?\n"; 
     
-
+#ifndef NEW_PENALTY_STIFFNESS
     if (theMP->isTimeVarying() == false) {
         this->determineTangent();
         // we can free up the space taken by C as it is no longer needed
@@ -99,7 +101,9 @@ PenaltyMP_FE::PenaltyMP_FE(int tag, Domain &theDomain,
             delete C;
         C = 0;
     }
+#endif
 }
+
 
 PenaltyMP_FE::~PenaltyMP_FE()
 {
@@ -195,9 +199,37 @@ PenaltyMP_FE::setID(AnalysisModel &)
 const Matrix &
 PenaltyMP_FE::getTangent(Integrator *theNewIntegrator)
 {
+#ifndef NEW_PENALTY_STIFFNESS
   if (theMP->isTimeVarying() == true)
     this->determineTangent();
+#else
+  if (theNewIntegrator != nullptr) {
+    theNewIntegrator->formEleTangent(this);
+  }
+#endif
   return *tang;
+}
+
+void
+PenaltyMP_FE::addKtToTang(double fact)
+{
+
+  C->Zero();
+  const Matrix &constraint = theMP->getConstraint();
+  int noRows = constraint.noRows();
+  int noCols = constraint.noCols();
+    
+  for (int j=0; j<noRows; j++)
+    (*C)(j,j) = -1.0;
+    
+  for (int i=0; i<noRows; i++)
+    for (int j=0; j<noCols; j++)
+        (*C)(i,j+noRows) = constraint(i,j);
+
+  // now form the tangent: [K] = alpha * [C]^t[C]
+  // *(tang) = (*C)^(*C);
+  // *(tang) *= alpha;
+  tang->addMatrixTransposeProduct(0.0, *C, *C, alpha*fact);
 }
 
 const Vector &
@@ -218,16 +250,16 @@ PenaltyMP_FE::getResidual(Integrator *theNewIntegrator)
   for (int i = 0; i < id1.Size(); ++i) {
       int cdof = id1(i);
       if (cdof < 0 || cdof >= Uc.Size()) {
-          opserr << "PenaltyMP_FE::getResidual FATAL Error: Constrained DOF " << cdof << " out of bounds [0-" << Uc.Size() << "]\n";
-          exit(-1);
+        opserr << "PenaltyMP_FE::getResidual FATAL Error: Constrained DOF " << cdof << " out of bounds [0-" << Uc.Size() << "]\n";
+        exit(-1);
       }
       UU(i) = Uc(cdof) - Uc0(i);
   }
   for (int i = 0; i < id2.Size(); ++i) {
       int rdof = id2(i);
       if (rdof < 0 || rdof >= Ur.Size()) {
-          opserr << "PenaltyMP_FE::getResidual FATAL Error: Retained DOF " << rdof << " out of bounds [0-" << Ur.Size() << "]\n";
-          exit(-1);
+        opserr << "PenaltyMP_FE::getResidual FATAL Error: Retained DOF " << rdof << " out of bounds [0-" << Ur.Size() << "]\n";
+        exit(-1);
       }
       UU(i+id1.Size()) = Ur(rdof) - Ur0(i);
   }
@@ -245,8 +277,8 @@ PenaltyMP_FE::getResidual(Integrator *theNewIntegrator)
 const Vector &
 PenaltyMP_FE::getTangForce(const Vector &disp, double fact)
 {
- opserr << "WARNING PenaltyMP_FE::getTangForce() - not yet implemented\n";
- return *resid;
+    opserr << "WARNING PenaltyMP_FE::getTangForce() - not yet implemented\n";
+    return *resid;
 }
 
 const Vector &
@@ -276,6 +308,7 @@ PenaltyMP_FE::getM_Force(const Vector &disp, double fact)
   // opserr << "WARNING PenaltyMP_FE::getM_Force() - not yet implemented\n";
  return *resid;
 }
+
 
 void  
 PenaltyMP_FE::determineTangent()

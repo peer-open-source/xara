@@ -17,14 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
-#ifndef HHTHSFixedNumIter_TP_h
-#define HHTHSFixedNumIter_TP_h
-
+//
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 10/05
 // Revision: A
@@ -37,7 +30,7 @@
 // response increments are utilized to update the elements. The reduced command
 // displacements are determined by means of Lagrange interpolation using the trial
 // displacements of the current iteration step and the last n committed displacements.
-
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -48,7 +41,6 @@ class HHTHSFixedNumIter_TP : public TransientIntegrator
 {
 public:
     // constructors
-    HHTHSFixedNumIter_TP();
     HHTHSFixedNumIter_TP(double rhoInf, int polyOrder,
         bool updDomFlag = true);
     HHTHSFixedNumIter_TP(double alphaI, double alphaF,
@@ -58,7 +50,7 @@ public:
     ~HHTHSFixedNumIter_TP();
 
     // method to set up the system of equations
-    int formUnbalance();
+    int formUnbalance(Vector &G) override;
     
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
@@ -67,17 +59,14 @@ public:
     int formEleResidual(FE_Element *theEle);
     int formNodUnbalance(DOF_Group *theDof);
     
-    int domainChanged(void);
+    int domainChanged();
     int newStep(double deltaT);
-    int revertToLastStep(void);
+    int revertToLastStep();
     int update(const Vector &deltaU);
-    int commit(void);
+    int commit();
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+    const Vector &getVel();
+
     void Print(OPS_Stream &s, int flag);
     
 private:
@@ -99,4 +88,3 @@ private:
     Vector *Put;                            // unbalance at time t
 };
 
-#endif

@@ -39,14 +39,14 @@ class Vector;
 class Accelerator
 {
  public:
-  Accelerator(int classTag);
+  Accelerator();
   virtual ~Accelerator();
   
   // virtual functions
-  virtual int newStep(LinearSOE &) = 0;
+  virtual int newStep(const LinearSOE &) = 0;
   virtual int accelerate(Vector &v, LinearSOE &, 
                          IncrementalIntegrator &) = 0;
-  virtual int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
+  virtual int updateTangent(IncrementalIntegrator &, bool& factored);
 
   virtual bool updateTangent() {return false;}
 

@@ -32,62 +32,61 @@
 #include <AnalysisModel.h>
 #include <LinearSOE.h>
 #include <Vector.h>
-#include <Channel.h>
-#include <FE_Element.h>
 #include <Node.h>
 #include <DOF_Group.h>
 #include <LoadPattern.h>
 #include <Domain.h>
-#include<Parameter.h>
-#include<ParameterIter.h>
-#include<EquiSolnAlgo.h>
+#include <Parameter.h>
+#include <ParameterIter.h>
+#include <FE_Element.h>
+#include <EquiSolnAlgo.h>
 #include <elementAPI.h>
 #include <iostream>
 
 void *
 OPS_ADD_RUNTIME_VPV(OPS_HarmonicSteadyState)
 {
-    if(OPS_GetNumRemainingInputArgs() < 2) {
-	opserr<<"insufficient arguments\n";
-	return 0;
-    }
+  if (OPS_GetNumRemainingInputArgs() < 2) {
+    opserr << "insufficient arguments\n";
+    return 0;
+  }
 
-    double lambda;
-    int numData = 1;
-    if(OPS_GetDoubleInput(&numData,&lambda) < 0) {
-	opserr<<"WARNING failed to read double lambda\n";
-	return 0;
-    }
+  double lambda;
+  int numData = 1;
+  if (OPS_GetDoubleInput(&numData,&lambda) < 0) {
+    opserr << "WARNING failed to read double lambda\n";
+    return 0;
+  }
 
 	double period = 0;
 	numData = 1;
-	if(OPS_GetDoubleInput(&numData,&period) < 0) {
-	    opserr<<"WARNING failed to read double period\n";
-	    return 0;
+	if (OPS_GetDoubleInput(&numData,&period) < 0) {
+    opserr << "WARNING failed to read double period\n";
+    return 0;
 	}
 
-    int numIter = 1;
-    double mLambda[2] = {lambda,lambda};
-    if(OPS_GetNumRemainingInputArgs() > 2) {
-	if(OPS_GetIntInput(&numData,&numIter) < 0) {
-	    opserr<<"WARNING failed to read int numIter\n";
-	    return 0;
-	}
-	numData = 2;
-	if(OPS_GetDoubleInput(&numData,&mLambda[0]) < 0) {
-	    opserr<<"WARNING failed to read double min and max\n";
-	    return 0;
-	}
+  int numIter = 1;
+  double mLambda[2] = {lambda,lambda};
+  if (OPS_GetNumRemainingInputArgs() > 2) {
+    if (OPS_GetIntInput(&numData,&numIter) < 0) {
+      opserr << "WARNING failed to read int numIter\n";
+      return 0;
     }
+    numData = 2;
+    if (OPS_GetDoubleInput(&numData,&mLambda[0]) < 0) {
+      opserr << "WARNING failed to read double min and max\n";
+      return 0;
+    }
+  }
 
-    return new HarmonicSteadyState(lambda,period,numIter,mLambda[0],mLambda[1]);
+  return new HarmonicSteadyState(lambda,period,numIter,mLambda[0],mLambda[1]);
 }
 
 HarmonicSteadyState::HarmonicSteadyState(double dLambda, double period, int numIncr, double min, double max,  int classtag)
-    : StaticIntegrator(classtag),
- deltaLambda(dLambda), loadPeriod(period),
- specNumIncrStep(numIncr), numIncrLastStep(numIncr),
-	  dLambdaMin(min), dLambdaMax(max), gradNumber(0), sensitivityFlag(0)
+  : StaticIntegrator(classtag),
+  deltaLambda(dLambda), loadPeriod(period),
+  specNumIncrStep(numIncr), numIncrLastStep(numIncr),
+  dLambdaMin(min), dLambdaMax(max), gradNumber(0), sensitivityFlag(0)
 {
   // to avoid divide-by-zero error on first update() ensure numIncr != 0
   if (numIncr == 0) {
@@ -104,56 +103,56 @@ HarmonicSteadyState::~HarmonicSteadyState()
 }
 
 int
-HarmonicSteadyState::newStep(void)
+HarmonicSteadyState::newStep()
 {
-    AnalysisModel *theModel = this->getAnalysisModel();
-    if (theModel == 0) {
-	opserr << "HarmonicSteadyState::newStep() - no associated AnalysisModel\n";
-	return -1;
-    }
+  AnalysisModel *theModel = this->getAnalysisModel();
+  if (theModel == 0) {
+    opserr << "HarmonicSteadyState::newStep() - no associated AnalysisModel\n";
+    return -1;
+  }
 
-    // determine delta lambda for this step based on dLambda and #iter of last step
-    double factor = specNumIncrStep/numIncrLastStep;
-    deltaLambda *=factor;
+  // determine delta lambda for this step based on dLambda and #iter of last step
+  double factor = specNumIncrStep/numIncrLastStep;
+  deltaLambda *=factor;
 
-    if (deltaLambda < dLambdaMin)
-      deltaLambda = dLambdaMin;
-    else if (deltaLambda > dLambdaMax)
-      deltaLambda = dLambdaMax;
+  if (deltaLambda < dLambdaMin)
+    deltaLambda = dLambdaMin;
+  else if (deltaLambda > dLambdaMax)
+    deltaLambda = dLambdaMax;
 
-    double currentLambda = theModel->getCurrentDomainTime();
+  double currentLambda = theModel->getCurrentDomainTime();
 
-    currentLambda += deltaLambda;
-    theModel->applyLoadDomain(currentLambda);
+  currentLambda += deltaLambda;
+  theModel->applyLoadDomain(currentLambda);
 
-    numIncrLastStep = 0;
+  numIncrLastStep = 0;
 
-     return 0;
+  return 0;
 }
 
 int
 HarmonicSteadyState::update(const Vector &deltaU)
 {
-    AnalysisModel *myModel = this->getAnalysisModel();
-    LinearSOE *theSOE = this->getLinearSOE();
-    if (myModel == 0 || theSOE == 0) {
-	opserr << "WARNING HarmonicSteadyState::update() ";
-	opserr << "No AnalysisModel or LinearSOE has been set\n";
-	return -1;
-    }
+  AnalysisModel *myModel = this->getAnalysisModel();
+  LinearSOE *theSOE = this->getLinearSOE();
+  if (myModel == 0 || theSOE == 0) {
+    opserr << "WARNING HarmonicSteadyState::update() ";
+    opserr << "No AnalysisModel or LinearSOE has been set\n";
+    return -1;
+  }
 
-    myModel->incrDisp(deltaU);
-    if (myModel->updateDomain() < 0) {
-      opserr << "HarmonicSteadyState::update - model failed to update for new dU\n";
-      return -1;
-    }
+  myModel->incrDisp(deltaU);
+  if (myModel->updateDomain() < 0) {
+    opserr << "HarmonicSteadyState::update - model failed to update for new dU\n";
+    return -1;
+  }
 
-    // Set deltaU for the convergence test
-    theSOE->setX(deltaU);
+  // Set deltaU for the convergence test
+  theSOE->setX(deltaU);
 
-    numIncrLastStep++;
+  numIncrLastStep++;
 
-    return 0;
+  return 0;
 }
 
 
@@ -167,58 +166,18 @@ HarmonicSteadyState::setDeltaLambda(double newValue)
 }
 
 
-int
-HarmonicSteadyState::sendSelf(int cTag,
-		      Channel &theChannel)
-{
-  Vector data(6);
-  data(0) = deltaLambda;
-  data(1) = loadPeriod;
-  data(2) = specNumIncrStep;
-  data(3) = numIncrLastStep;
-  data(4) = dLambdaMin;
-  data(5) = dLambdaMax;
-  if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0) {
-      opserr << "HarmonicSteadyState::sendSelf() - failed to send the Vector\n";
-      return -1;
-  }
-  return 0;
-}
-
-
-int
-HarmonicSteadyState::recvSelf(int cTag,
-		      Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-  Vector data(6);
-  if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0) {
-      opserr << "HarmonicSteadyState::sendSelf() - failed to send the Vector\n";
-      deltaLambda = 0;
-      return -1;
-  }
-  deltaLambda = data(0);
-  loadPeriod = data(1);
-  specNumIncrStep = data(2);
-  numIncrLastStep = data(3);
-  dLambdaMin = data(4);
-  dLambdaMax = data(5);
-  return 0;
-}
-
-
 
 void
 HarmonicSteadyState::Print(OPS_Stream &s, int flag)
 {
-     AnalysisModel *theModel = this->getAnalysisModel();
-    if (theModel != 0) {
-	double currentLambda = theModel->getCurrentDomainTime();
-	s << "\t HarmonicSteadyState - currentLambda: " << currentLambda;
-	s << "  deltaLambda: " << deltaLambda << endln;
-	s << "  Load Period: " << loadPeriod << endln;
-    } else
-	s << "\t HarmonicSteadyState - no associated AnalysisModel\n";
-
+  AnalysisModel *theModel = this->getAnalysisModel();
+  if (theModel != 0) {
+    double currentLambda = theModel->getCurrentDomainTime();
+    s << "\t HarmonicSteadyState - currentLambda: " << currentLambda;
+    s << "  deltaLambda: " << deltaLambda << "\n";
+    s << "  Load Period: " << loadPeriod << "\n";
+  } else
+    s << "\t HarmonicSteadyState - no associated AnalysisModel\n";
 }
 
 int
@@ -229,18 +188,17 @@ HarmonicSteadyState::formEleTangent(FE_Element *theEle)
   if (statusFlag == CURRENT_TANGENT) {
     theEle->zeroTangent();
     theEle->addKtToTang();
-	theEle->addMtoTang(-twoPiSquareOverPeriodSquare);
+    theEle->addMtoTang(-twoPiSquareOverPeriodSquare);
   } else if (statusFlag == INITIAL_TANGENT) {
     theEle->zeroTangent();
     theEle->addKiToTang();
-	theEle->addMtoTang(-twoPiSquareOverPeriodSquare);
+    theEle->addMtoTang(-twoPiSquareOverPeriodSquare);
   } else if (statusFlag == HALL_TANGENT)  {
     theEle->zeroTangent();
     theEle->addKtToTang(cFactor);
     theEle->addKiToTang(iFactor);
-	theEle->addMtoTang(-twoPiSquareOverPeriodSquare);
+    theEle->addMtoTang(-twoPiSquareOverPeriodSquare);
   }
-
   return 0;
 }
 
@@ -248,7 +206,7 @@ HarmonicSteadyState::formEleTangent(FE_Element *theEle)
 int
 HarmonicSteadyState::formIndependentSensitivityRHS()
 {
-    return 0;
+  return 0;
 }
 
 int
@@ -283,15 +241,15 @@ HarmonicSteadyState::formSensitivityRHS(int passedGradNumber)
   Domain *theDomain = theAnalysisModel->getDomainPtr();
   LoadPatternIter &thePatterns = theDomain->getLoadPatterns();
   while((loadPatternPtr = thePatterns()) != 0) {
-      const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(gradNumber);
-      sizeRandomLoads = randomLoads.Size();
-      if (sizeRandomLoads == 1) {
-          // No random loads in this load pattern
-      }
-      else {
-          // Random loads: add contributions to the 'B' vector
-          numRandomLoads = (int)(sizeRandomLoads/2);
-          for (i=0; i<numRandomLoads*2; i=i+2) {
+    const Vector &randomLoads = loadPatternPtr->getExternalForceSensitivity(gradNumber);
+    sizeRandomLoads = randomLoads.Size();
+    if (sizeRandomLoads == 1) {
+        // No random loads in this load pattern
+    }
+    else {
+      // Random loads: add contributions to the 'B' vector
+      numRandomLoads = (int)(sizeRandomLoads/2);
+      for (i=0; i<numRandomLoads*2; i=i+2) {
         nodeNumber = (int)randomLoads(i);
         dofNumber = (int)randomLoads(i+1);
         aNode = theDomain->getNode(nodeNumber);
@@ -300,8 +258,8 @@ HarmonicSteadyState::formSensitivityRHS(int passedGradNumber)
         relevantID = anID(dofNumber-1);
         oneDimID(0) = relevantID;
         theSOE->addB(oneDimVectorWithOne, oneDimID);
-          }
       }
+    }
   }
 
   // reset sensitivity flag
@@ -310,59 +268,57 @@ HarmonicSteadyState::formSensitivityRHS(int passedGradNumber)
   return 0;
 }
 
+
 int
 HarmonicSteadyState::saveSensitivity(const Vector &v, int gradNum, int numGrads)
 {
-    // get model
-    AnalysisModel* theAnalysisModel = this->getAnalysisModel();
+  // get model
+  AnalysisModel* theAnalysisModel = this->getAnalysisModel();
 
-    DOF_GrpIter &theDOFGrps = theAnalysisModel->getDOFs();
-    DOF_Group 	*dofPtr;
+  DOF_GrpIter &theDOFGrps = theAnalysisModel->getDOFs();
+  DOF_Group 	*dofPtr;
 
-    while ( (dofPtr = theDOFGrps() ) != 0)  {
-//	dofPtr->saveSensitivity(v,0,0,gradNum,numGrads);
-	dofPtr->saveDispSensitivity(v,gradNum,numGrads);
+  while ( (dofPtr = theDOFGrps() ) != 0)  {
+  //	dofPtr->saveSensitivity(v,0,0,gradNum,numGrads);
+    dofPtr->saveDispSensitivity(v,gradNum,numGrads);
+  }
 
-    }
-
-    return 0;
+  return 0;
 }
+
 
 int
 HarmonicSteadyState::commitSensitivity(int gradNum, int numGrads)
 {
-      // get model
-    AnalysisModel* theAnalysisModel = this->getAnalysisModel();
+    // get model
+  AnalysisModel* theAnalysisModel = this->getAnalysisModel();
 
-    // Loop through the FE_Elements and set unconditional sensitivities
-    FE_Element *elePtr;
-    FE_EleIter &theEles = theAnalysisModel->getFEs();
-    while((elePtr = theEles()) != 0) {
-	elePtr->commitSensitivity(gradNum, numGrads);
-    }
+  // Loop through the FE_Elements and set unconditional sensitivities
+  FE_Element *elePtr;
+  FE_EleIter &theEles = theAnalysisModel->getFEs();
+  while((elePtr = theEles()) != 0) {
+    elePtr->commitSensitivity(gradNum, numGrads);
+  }
 
-    return 0;
+  return 0;
 }
 
 
 
 // false for LC and true for DC
-   bool
+bool
 HarmonicSteadyState::computeSensitivityAtEachIteration()
 {
-
-return false;
+  return false;
 }
 
 
 
-
-
 int
-HarmonicSteadyState::computeSensitivities(void)
+HarmonicSteadyState::computeSensitivities()
 {
 //  opserr<<" computeSensitivity::start"<<endln;
-    LinearSOE *theSOE = this->getLinearSOE();
+  LinearSOE *theSOE = this->getLinearSOE();
 
     /*
   if (theAlgorithm == 0) {
@@ -450,7 +406,6 @@ HarmonicSteadyState::computeSensitivities(void)
 
 	  // De-activate this parameter for next sensitivity calc
 	  theParam->activate(false);
-	//  opserr<<"HarmonicSteadyState::..........ComputeSensitivities. end"<<endln;
 	}
 
 	return 0;

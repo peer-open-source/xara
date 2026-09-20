@@ -25,12 +25,25 @@
 // MillerAccelerator. 
 
 #include <MillerAccelerator.h>
-
 #include <Vector.h>
 #include <LinearSOE.h>
 
+#if 0 && defined(_WIN32)
+
+extern "C" int NACCEL(int *n, int *itr, int *mvec,
+			       double *tol, double *u, double *f);
+
+#define naccel_ NACCEL
+
+#else
+
+extern "C" int naccel_(int *n, int *itr, int *mvec,
+		       double *tol, double *u, double *f);
+
+#endif
+
 MillerAccelerator::MillerAccelerator(int max, double tol, int tangent)
-  :Accelerator(ACCELERATOR_TAGS_Miller),
+  :Accelerator(),
    iteration(0), numEqns(0), dimension(0), maxDimension(max), tolerance(tol),
    work(0), fData(0), theTangent(tangent)
 {
@@ -51,7 +64,7 @@ MillerAccelerator::~MillerAccelerator()
 }
 
 int 
-MillerAccelerator::newStep(LinearSOE &theSOE)
+MillerAccelerator::newStep(const LinearSOE &theSOE)
 {
   int newNumEqns = theSOE.getNumEqn();
 
@@ -87,19 +100,6 @@ MillerAccelerator::newStep(LinearSOE &theSOE)
   return 0;
 }
 
-#if 0 && defined(_WIN32)
-
-extern "C" int NACCEL(int *n, int *itr, int *mvec,
-			       double *tol, double *u, double *f);
-
-#define naccel_ NACCEL
-
-#else
-
-extern "C" int naccel_(int *n, int *itr, int *mvec,
-		       double *tol, double *u, double *f);
-
-#endif
 
 
 int
@@ -112,22 +112,16 @@ MillerAccelerator::accelerate(Vector &vStar, LinearSOE &theSOE,
 
    // Vector size
   int N = numEqns;
-
   // Newton iteration count
   int ITR = iteration;
-
   // Maximum number of vectors used for acceleration
   int MVEC = maxDimension;
-
   // Tolerance for dropping linearly dependent vectors
   double TOL = tolerance;
-
   // Work space
   double *U = work;
-
   // Accelerated correction on output
   double *F = fData;
-
   // Call the naccel subroutine
   naccel_(&N, &ITR, &MVEC, &TOL, U, F);
 
@@ -203,15 +197,3 @@ MillerAccelerator::Print(OPS_Stream &s, int flag) const
   s << "\tTolerance: " << tolerance << "\n";
 }
 
-int
-MillerAccelerator::sendSelf(int commitTag, Channel &theChannel)
-{
-  return -1;
-}
-
-int
-MillerAccelerator::recvSelf(int commitTag, Channel &theChannel, 
-			    FEM_ObjectBroker &theBroker)
-{
-  return -1;
-}

@@ -24,79 +24,45 @@
 #include <BFGS.h>
 #include <IncrementalIntegrator.h>
 #include <LinearSOE.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <ConvergenceTest.h>
 #include <ID.h>
+#include <LineSearch.h>
 
 
-BFGS::BFGS(IncrementalIntegrator::TangentFlagType theTangentToUse, int n )
+BFGS::BFGS(IncrementalIntegrator::TangentFlagType theTangentToUse, int n , LineSearch* theSearch)
 :EquiSolnAlgo(EquiALGORITHM_TAGS_BFGS),
- tangent(theTangentToUse), numberLoops(n) 
+ tangent(theTangentToUse), numberLoops(n),
+ du(0),
+ b(0),
+ Go(0),
+ Gn(0),
+ search(theSearch),
+ action(n, this)
 {
-
   theTest = nullptr;
 
   s  = new Vector*[numberLoops+3]{};
   z  = new Vector*[numberLoops+3]{};
-
-  //  r  = new (Vector*)[numberLoops+3];
-  residOld = 0;
-  residNew = 0;
-  du = 0;
-  b  = 0;
-
-  temp = 0;
-
-  rdotz = 0;
-  sdotr = 0;
 }
 
 
 BFGS::~BFGS()
 {
-  if (temp != nullptr) 
-    delete temp;
-  temp = nullptr;
-
-  if (residOld != nullptr ) 
-    delete residOld;  
-  residOld = nullptr;
-
-  if (residNew != nullptr)
-    delete residNew;
-  residNew = nullptr;
-
-  if (du != nullptr) 
-    delete du;
-  du = nullptr;
-
-  if (b != 0 )
-    delete b;
-  b = 0;
-
-  if (rdotz != 0 ) delete [] rdotz;
-  rdotz = 0;
-  
-  if (sdotr != 0 ) delete [] sdotr;
-  sdotr = 0;
-
-  for ( int i =0; i < numberLoops+3; i++ ) {
-    if ( s[i] != nullptr )
+  for (int i =0; i < numberLoops+3; i++ ) {
+    if (s[i] != nullptr )
       delete s[i];
-    if ( z[i] != nullptr )
+    if (z[i] != nullptr )
       delete z[i];
-    //delete r[i];
     s[i] = nullptr;
     z[i] = nullptr;
-    //r[i] = 0;
-  } //end for i
+  }
 
   if ( s != nullptr ) 
     delete[] s; 
   if ( z != nullptr ) 
     delete[] z;
-  s = nullptr;  
+
+  s = nullptr;
   z = nullptr;
 }
 
@@ -108,7 +74,6 @@ BFGS::solveCurrentStep()
   // set up some pointers and check they are valid
   // NOTE this could be taken away if we set Ptrs as protecetd in superclass
 
-
   IncrementalIntegrator *theIntegrator = this->getIncrementalIntegratorPtr();
 
   LinearSOE  *theSOE = this->getLinearSOEptr();
@@ -117,19 +82,21 @@ BFGS::solveCurrentStep()
     return SolutionAlgorithm::BadAlgorithm;
   }        
 
-  if (rdotz == 0)
-    rdotz = new double[numberLoops+3];
 
-  if (sdotr == 0)
-    sdotr = new double[numberLoops+3];
-
-  if (theTest->start(*theSOE) < 0) {
+  if (theTest->start(*theSOE) < 0)
     return SolutionAlgorithm::BadTestStart;
-  }
+
 
   ConvergenceTest* localTest = theTest->getCopy(this->numberLoops);
 
 
+  const int systemSize = theSOE->getNumEqn();
+  Go.resize(systemSize);
+  Gn.resize(systemSize);
+  du.resize(systemSize);
+  b.resize(systemSize);
+
+  action.link(theIntegrator, theSOE);
 
   int result = ConvergenceTest::Continue;
   int count = 0;
@@ -140,99 +107,82 @@ BFGS::solveCurrentStep()
       return SolutionAlgorithm::BadFormTangent;
 
     // form the initial residual 
-    if (theIntegrator->formUnbalance() < 0) {
-      opserr << "WARNING BFGS::solveCurrentStep() - ";
-      opserr << "the Integrator failed in formUnbalance()\n";        
-    }            
-
-    // solve
-    if (theSOE->solve() < 0) {      
-      return SolutionAlgorithm::BadLinearSolve;
-    }            
-
-    // update
-    if ( theIntegrator->update(theSOE->getX()) < 0) {
-      return SolutionAlgorithm::BadStepUpdate;
+    if (theIntegrator->formUnbalance(b) < 0) {
+      return SolutionAlgorithm::BadFormResidual;  
     }
 
+    // solve
+    if (theSOE->solve(b, du) < 0)
+      return SolutionAlgorithm::BadLinearSolve;
 
-    int systemSize = theSOE->getNumEqn();
+    // update
+    if (theIntegrator->update(du) < 0)
+      return SolutionAlgorithm::BadStepUpdate;
 
-    // temporary vector
-    if (temp == nullptr)
-      temp = new Vector(systemSize);
-
-    //initial displacement increment
-    if ( s[1] == 0 ) 
+    // initial displacement increment
+    if (s[1] == nullptr)
       s[1] = new Vector(systemSize);
+    else
+      s[1]->resize(systemSize);
 
-    *s[1] = theSOE->getX();
+    *s[1] = du;
 
-    if ( residOld == 0 ) 
-      residOld = new Vector(systemSize);
+    Go.addVector(0.0, b, -1.0);
 
-    *residOld = theSOE->getB();
-    *residOld *= (-1.0 );
 
     // form the residual again
-    if (theIntegrator->formUnbalance() < 0)
+    if (theIntegrator->formUnbalance(b) < 0)
       return SolutionAlgorithm::BadFormResidual;
 
-    if ( residNew == nullptr )
-      residNew = new Vector(systemSize);
-
-    if ( du == nullptr )
-      du = new Vector(systemSize);
-
-    if ( b == nullptr )
-      b = new Vector(systemSize);
-
+    theSOE->setB(b);
     localTest->start(*theSOE);
 
     int nBFGS = 1;
     do {
 
       // save residual
-      *residNew =  theSOE->getB(); 
-      *residNew *= (-1.0 );
+      Gn.addVector(0.0, b, -1.0);
 
       // solve
-      if (theSOE->solve() < 0)
+      if (theSOE->solve(b, du) < 0)
         return SolutionAlgorithm::BadLinearSolve;
 
-      // save right hand side
-      *b = theSOE->getB();
-
-      // save displacement increment
-      *du = theSOE->getX();
-
       // BFGS modifications to du
-      BFGSUpdate( theIntegrator, theSOE, *du, *b, nBFGS ) ;
+      BFGSUpdate(theIntegrator, theSOE, du, b, nBFGS);
 
-      if ( theIntegrator->update( *du ) < 0 )
+      // if (search != nullptr) {
+      //   const double s0 = - (du ^ theSOE->getB());
+      //   if (search->search(du, *theSOE, *theIntegrator) < 0) {
+      //     return -1;// SolutionAlgorithm::BadLineSearch;
+      //   }
+      // }
+  
+      if ( theIntegrator->update(du) < 0 )
         return SolutionAlgorithm::BadStepUpdate;
       
       // increment broyden counter
       nBFGS += 1;
 
       // save displacement increment
-      if ( s[nBFGS] == nullptr )
+      if (s[nBFGS] == nullptr )
         s[nBFGS] = new Vector(systemSize);
+      else
+        s[nBFGS]->resize(systemSize);
 
-      *s[nBFGS] = *du;
+      *s[nBFGS] = du;
 
       // swap residuals
-      *residOld = *residNew;
+      Go = Gn;
 
       // form the residual again
-      if (theIntegrator->formUnbalance() < 0)
+      if (theIntegrator->formUnbalance(b) < 0)
         return SolutionAlgorithm::BadFormResidual;
 
-      result = localTest->test(*theSOE); 
+      result = localTest->test(b, du); 
       
     } while (result == ConvergenceTest::Continue && nBFGS <= numberLoops);
 
-    result = theTest->test(*theSOE);
+    result = theTest->test(b, du);
 
     this->record(count++);
 
@@ -249,42 +199,42 @@ BFGS::solveCurrentStep()
 
 
 
-void  BFGS::BFGSUpdate(IncrementalIntegrator *theIntegrator, 
-                       LinearSOE *theSOE, 
-                       Vector &du, 
-                       Vector &b,
-                       int nBFGS) 
+int 
+BFGS::BFGSUpdate(IncrementalIntegrator *theIntegrator, 
+                 LinearSOE *theSOE, 
+                 Vector &du, 
+                 const Vector &b,
+                 int nBFGS) 
 {
 
-  static const double eps = 1.0e-16;
+  static constexpr double eps = 1.0e-16;
 
-  //  int systemSize = ( theSOE->getB() ).Size();
-  int systemSize = theSOE->getNumEqn( );
+  int systemSize = theSOE->getNumEqn();
+  std::vector<double>& rdotz = action.rdotz;
+  std::vector<double>& sdotr = action.sdotr;
+  Vector& temp = action.temp;
 
-
-  //compute z
+  // compute z
   //  theSOE->setB( (*r[nBFGS]) - (*r[nBFGS-1]) );
   //    theSOE->setB( (*residNew) - (*residOld) );
-  *temp = *residNew;
-  *temp -= *residOld;
-  theSOE->setB(*temp);
+  temp.addVector(0.0, Gn, 1.0);
+  temp.addVector(1.0, Go, -1.0);
+  theSOE->setB(temp);
 
 
-  if (theSOE->solve() < 0) {
-    opserr << "WARNING BFGS::solveCurrentStep() - ";
-    opserr << "the LinearSysOfEqn failed in solve()\n";        
-   }            
-  
-  if ( z[nBFGS] == 0 ) 
+  if ( z[nBFGS] == nullptr ) 
     z[nBFGS] = new Vector(systemSize);
 
-  *z[nBFGS] = theSOE->getX(); 
+
+  if (theSOE->solve(temp, *z[nBFGS]) < 0)
+    return SolutionAlgorithm::BadLinearSolve;
+
   //  *z[nBFGS] *= (-1.0);
 
-  int i;
-  for ( i=1; i<=(nBFGS-1); i++ ) {
 
-    if ( sdotr[i] < eps ) 
+  for (int i=1; i<=(nBFGS-1); i++ ) {
+
+    if ( sdotr[i] < eps )
       break; 
 
     double fact1 = 1.0 + ( rdotz[i] / sdotr[i] );
@@ -293,46 +243,41 @@ void  BFGS::BFGSUpdate(IncrementalIntegrator *theIntegrator,
 
     double pdotb = (*s[i]) ^ ( theSOE->getB() );
 
-
     fact1 *= pdotb;
 
     //    *z[nBFGS] +=  fact1 * ( *s[i] );
-    *temp = *s[i];
-    *temp *= fact1;
-    *z[nBFGS] += *temp;
+    z[nBFGS]->addVector(1.0, *s[i], fact1);
 
-
-    double bdotz = (*z[i]) ^ ( theSOE->getB() );  
+    double bdotz = (*z[i])^(theSOE->getB());
 
     //    *z[nBFGS] -= (1.0/sdotr[i]) * 
     //             ( bdotz * (*s[i])   +  pdotb * (*z[i]) );   
-    *temp = *s[i];
-    *temp *= bdotz;
-    *temp /= sdotr[i];
-    *z[nBFGS] -= *temp;
+    temp = *s[i];
+    temp *= bdotz;
+    temp /= sdotr[i];
+    *z[nBFGS] -= temp;
 
-    *temp = *z[i];
-    *temp *= pdotb;
-    *temp /= sdotr[i];
-    *z[nBFGS] -= *temp;
+    temp = *z[i];
+    temp *= pdotb;
+    temp /= sdotr[i];
+    *z[nBFGS] -= temp;
  
-  } //end for i
+  } // end for i
 
 
   //sdotr[nBFGS] = *s[nBFGS] ^ ( *residNew - *residOld );
 
   //rdotz[nBFGS] = *z[nBFGS] ^ ( *residNew - *residOld );   
+  temp  = Gn;
+  temp -= Go;
 
-  *temp = *residNew;
-  *temp -= *residOld;
+  sdotr[nBFGS] = *s[nBFGS] ^ (temp);
 
-  sdotr[nBFGS] = *s[nBFGS] ^ (*temp);
-
-  rdotz[nBFGS] = *z[nBFGS] ^ (*temp);
+  rdotz[nBFGS] = *z[nBFGS] ^ (temp);
 
 
-  //BFGS modifications to du
-  for ( i=1; i<=nBFGS; i++ ) {
+  // BFGS modifications to du
+  for (int i=1; i<=nBFGS; i++ ) {
 
     if ( sdotr[i] < eps )
       break;
@@ -346,26 +291,20 @@ void  BFGS::BFGSUpdate(IncrementalIntegrator *theIntegrator,
     fact1 *= sdotb;
 
     //du +=  fact1 * ( *s[i] );
-    *temp = *s[i];
-    *temp *= fact1;
-    du += *temp;
+    du.addVector(1.0, *s[i], fact1);
 
 
     double bdotz = (*z[i]) ^ b;  
 
     //du -= (1.0/sdotr[i]) * 
-    //             ( bdotz * (*s[i])   +  sdotb * (*z[i]) );   
-    *temp = *s[i];
-    *temp *= bdotz;
-    *temp /= sdotr[i];
-    du -= *temp;
+    //             ( bdotz * (*s[i])   +  sdotb * (*z[i]) );
+    du.addVector(1.0, *s[i], -bdotz/sdotr[i]);
 
-    *temp = *z[i];
-    *temp *= sdotb;
-    *temp /= sdotr[i];
-    du -= *temp;
+    du.addVector(1.0, *z[i], -sdotb/sdotr[i]);
 
-  } //end for i
+  } // end for i
+
+  return 0;
 }
 
 

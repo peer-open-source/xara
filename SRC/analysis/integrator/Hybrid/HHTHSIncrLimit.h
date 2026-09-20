@@ -17,14 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
-#ifndef HHTHSIncrLimit_h
-#define HHTHSIncrLimit_h
-
+//
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 11/09
 // Revision: A
@@ -35,7 +28,7 @@
 // simulation where the response increments are limited by a user specified value.
 // This enhances the smoothness of the convergence path and reduces the
 // possibility of spurious loading/unloading cycles during iteration.
-
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -46,7 +39,6 @@ class HHTHSIncrLimit : public TransientIntegrator
 {
 public:
     // constructors
-    HHTHSIncrLimit();
     HHTHSIncrLimit(double rhoInf, double limit, int normType);
     HHTHSIncrLimit(double alphaI, double alphaF,
         double beta, double gamma, double limit, int normType);
@@ -59,17 +51,14 @@ public:
     int formEleTangent(FE_Element *theEle);
     int formNodTangent(DOF_Group *theDof);
     
-    int domainChanged(void);
+    int domainChanged();
     int newStep(double deltaT);
-    int revertToLastStep(void);
+    int revertToLastStep();
     int update(const Vector &deltaU);
-    int commit(void);
+    int commit();
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+    const Vector &getVel();
+
     void Print(OPS_Stream &s, int flag = 0);
     
 private:
@@ -87,5 +76,3 @@ private:
     Vector *Ualpha, *Ualphadot, *Ualphadotdot;  // response quantities at time t+alpha*deltaT
     Vector *scaledDeltaU;                       // scaled displacement increment
 };
-
-#endif

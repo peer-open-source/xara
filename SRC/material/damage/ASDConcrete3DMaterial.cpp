@@ -1875,6 +1875,7 @@ ASDConcrete3DMaterial::Print(OPS_Stream &s, int flag)
 	  s << "\"v\": " << v << ", ";
 	  s << "\"eta\": " << eta << ", ";
 	  s << "\"Kc\": " << Kc << ", ";
+	  s << "\"density\": " << this->getRho() << ", ";
 	  s << "\"implex\": " << (implex ? "true" : "false") << ", ";
 	  s << "\"implex_control\": " << (implex_control ? "true" : "false") << ", ";
 	  s << "\"implex_error_tolerance\": " << implex_error_tolerance << ", ";

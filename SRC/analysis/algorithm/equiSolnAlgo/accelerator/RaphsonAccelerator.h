@@ -34,10 +34,11 @@ class RaphsonAccelerator: public Accelerator
   RaphsonAccelerator(int tangent, double iFactor, double cFactor);
   virtual ~RaphsonAccelerator();
   
-  int newStep(LinearSOE &theSOE);
-  int accelerate(Vector &v, LinearSOE &theSOE, 
-		 IncrementalIntegrator &theIntegrator);
-  int updateTangent(IncrementalIntegrator &theIntegrator, bool& updated);
+  int newStep(const LinearSOE &) override;
+  int accelerate(Vector &v, 
+                 LinearSOE &, 
+                 IncrementalIntegrator &) override;
+  int updateTangent(IncrementalIntegrator &, bool& updated);
   bool updateTangent() override {return true;}
 
   int getTangent() override {return theTangent;}

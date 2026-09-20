@@ -36,8 +36,8 @@ class PeriodicAccelerator: public Accelerator
   PeriodicAccelerator(int iter = 3, int tangent = CURRENT_TANGENT);
   virtual ~PeriodicAccelerator();
   
-  int newStep(LinearSOE &theSOE);
-  int accelerate(Vector &v, LinearSOE &theSOE, 
+  int newStep(const LinearSOE &theSOE) override;
+  int accelerate(Vector &v, LinearSOE &, 
 		 IncrementalIntegrator &theIntegrator);
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);
   bool updateTangent(void);
@@ -45,10 +45,7 @@ class PeriodicAccelerator: public Accelerator
   int getTangent(void) {return theTangent;}
 
   void Print(OPS_Stream &, int flag) const final;
-  
-  int sendSelf(int commitTag, Channel &theChannel);
-  int recvSelf(int commitTag, Channel &theChannel, 
-	       FEM_ObjectBroker &theBroker);
+
 
  private:
   // Iteration count

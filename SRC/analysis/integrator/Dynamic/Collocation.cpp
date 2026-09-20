@@ -36,8 +36,7 @@
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
+
 #include <math.h>
 #include <elementAPI.h>
 #define OPS_Export
@@ -73,7 +72,7 @@ OPS_ADD_RUNTIME_VPV(OPS_Collocation)
 
 
 Collocation::Collocation()
-    : TransientIntegrator(INTEGRATOR_TAGS_Collocation),
+    : TransientIntegrator(),
     theta(1.0), beta(0.25), gamma(0.5), deltaT(0.0),
     c1(0.0), c2(0.0), c3(0.0),
     Ut(0), Utdot(0), Utdotdot(0), U(0), Udot(0), Udotdot(0)
@@ -83,7 +82,7 @@ Collocation::Collocation()
 
 
 Collocation::Collocation(double _theta)
-    : TransientIntegrator(INTEGRATOR_TAGS_Collocation),
+    : TransientIntegrator(),
     theta(_theta), beta(0.0), gamma(0.5), deltaT(0.0),
     c1(0.0), c2(0.0), c3(0.0),
     Ut(0), Utdot(0), Utdotdot(0), U(0), Udot(0), Udotdot(0)
@@ -102,7 +101,7 @@ Collocation::Collocation(double _theta)
 
 
 Collocation::Collocation(double _theta, double _beta, double _gamma)
-    : TransientIntegrator(INTEGRATOR_TAGS_Collocation),
+    : TransientIntegrator(),
     theta(_theta), beta(_beta), gamma(_gamma), deltaT(0.0),
     c1(0.0), c2(0.0), c3(0.0),
     Ut(0), Utdot(0), Utdotdot(0), U(0), Udot(0), Udotdot(0)
@@ -348,37 +347,6 @@ int Collocation::commit(void)
     return theModel->commitDomain();
 }
 
-
-int Collocation::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(3);
-    data(0) = theta;
-    data(1) = beta;
-    data(2) = gamma;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING Collocation::sendSelf() - failed to send the data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int Collocation::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(3);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING Collocation::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    theta  = data(0);
-    beta   = data(1);
-    gamma  = data(2);
-    
-    return 0;
-}
 
 
 void Collocation::Print(OPS_Stream &s, int flag)

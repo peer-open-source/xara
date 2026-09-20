@@ -30,14 +30,12 @@
 
 #include <NewmarkHSIncrReduct.h>
 #include <FE_Element.h>
-#include <FE_EleIter.h>
 #include <LinearSOE.h>
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
+
 #include <elementAPI.h>
 #define OPS_Export
 
@@ -333,36 +331,6 @@ NewmarkHSIncrReduct::getVel()
   return *Udot;
 }
 
-int NewmarkHSIncrReduct::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(3);
-    data(0) = gamma;
-    data(1) = beta;
-    data(2) = reduct;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING NewmarkHSIncrReduct::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int NewmarkHSIncrReduct::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(3);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING NewmarkHSIncrReduct::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    gamma  = data(0);
-    beta   = data(1);
-    reduct = data(2);
-    
-    return 0;
-}
 
 
 void NewmarkHSIncrReduct::Print(OPS_Stream &s, int flag)

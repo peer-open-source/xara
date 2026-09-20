@@ -17,28 +17,18 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision: 1.6 $
-// $Date: 2007-04-02 23:41:13 $
-// $Source: /usr/local/cvs/OpenSees/SRC/analysis/algorithm/equiSolnAlgo/NewtonRaphson.h,v $
-
-
-#ifndef NewtonRaphson_h
-#define NewtonRaphson_h
-
+//
 // File: ~/OOP/analysis/algorithm/NewtonRaphson.h
 //
 // Written: fmk
 // Created: 11/96
 // Revision: A
 //
-
 // Description: This file contains the class definition for
 // NewtonRaphson. NewtonRaphson is a class which performs a Newton-Raphson
 // solution algorithm in solving the equations.
 //
-// What: "@(#)NewtonRaphson.h, revA"
-
+#pragma once
 #include <EquiSolnAlgo.h>
 #include <Vector.h>
 #include <utility/XaraTimer.h>
@@ -46,18 +36,15 @@
 
 class NewtonRaphson: public EquiSolnAlgo
 {
-  public:
-  NewtonRaphson();
+public:
   NewtonRaphson(IncrementalIntegrator::TangentFlagType prediction_tangent,
                 IncrementalIntegrator::TangentFlagType correction_tangent,
                 double iFact,
                 double cFact);
   ~NewtonRaphson();
 
-  int solveCurrentStep();
+  int solveCurrentStep() override;
 
-  virtual int sendSelf(int commitTag, Channel &);
-  virtual int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &theBroker);
   void Print(OPS_Stream &, int flag) const final;
 
   int getNumIterations() const override;
@@ -66,8 +53,11 @@ class NewtonRaphson: public EquiSolnAlgo
 
 
  private:
+  Vector G, dX;
+
   IncrementalIntegrator::TangentFlagType
-    correction_tangent, prediction_tangent;
+    correction_tangent, 
+    prediction_tangent;
 
   int numIterations;
 
@@ -84,4 +74,3 @@ class NewtonRaphson: public EquiSolnAlgo
   Timer<Steps> timer;
 };
 
-#endif

@@ -44,17 +44,14 @@ class AlphaOS_TP : public TransientIntegrator
 {
 public:
     // constructors
-    AlphaOS_TP();
-    AlphaOS_TP(double alpha,
-        bool updElemDisp = false);
-    AlphaOS_TP(double alpha, double beta, double gamma,
-        bool updElemDisp = false);
+    AlphaOS_TP(double alpha, bool updElemDisp = false);
+    AlphaOS_TP(double alpha, double beta, double gamma, bool updElemDisp = false);
     
     // destructor
     ~AlphaOS_TP();
     
     // method to set up the system of equations
-    int formUnbalance(void);
+    int formUnbalance(Vector& G) override;
     
     // methods which define what the FE_Element and DOF_Groups add
     // to the system of equation object.
@@ -64,21 +61,18 @@ public:
     int formNodUnbalance(DOF_Group *theDof);
     
     // methods to update the domain
-    int domainChanged(void);
+    int domainChanged();
     int newStep(double deltaT);
     int revertToLastStep(void);
     int update(const Vector &deltaU);
-    int commit(void);
+    int commit();
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+    const Vector &getVel();
+
     void Print(OPS_Stream &s, int flag = 0);
     
 protected:
-    virtual int formElementResidual(void);
+    virtual int formElementResidual(Vector &R) override;
     
 private:
     double alpha;

@@ -94,12 +94,6 @@ NewtonHallM::NewtonHallM(double initFactor, int mthd, double alphaFact, double c
 
 }
 
-NewtonHallM::NewtonHallM()
-  :EquiSolnAlgo(EquiALGORITHM_TAGS_NewtonHallM),
-   numIterations(0), method(0), alpha(.1), c(0), iFactor(0.1)
-{
-
-}
 
 NewtonHallM::~NewtonHallM()
 {
@@ -118,13 +112,14 @@ NewtonHallM::solveCurrentStep()
   LinearSOE  *theSOE = this->getLinearSOEptr();
 
   if ((theIntegrator == 0) || (theSOE == 0)  || (theTest == 0)){
-      return -5;
+    return -5;
   }        
 
-  if (theIntegrator->formUnbalance() < 0) {      
+  if (theIntegrator->formUnbalance(G) < 0) {      
     return -2;
-  }            
+  }
 
+  theSOE->setB(G);
   if (theTest->start(*theSOE) < 0) {
     return SolutionAlgorithm::BadTestStart;
   }
@@ -152,38 +147,31 @@ NewtonHallM::solveCurrentStep()
     }
     
     if (theIntegrator->formTangent(tangent, iFact, cFact) < 0){
-      opserr << "WARNING NewtonHallM::solveCurrentStep() -";
-      opserr << "the Integrator failed in formTangent()\n";
       return -1;
     }                    
     
-    if (theSOE->solve() < 0) {
+    if (theSOE->solve(G, dX) < 0) {
       opserr << "WARNING NewtonHallM::solveCurrentStep() -";
       opserr << "the LinearSysOfEqn failed in solve()\n";        
       return -3;
     }            
     
-    if (theIntegrator->update(theSOE->getX()) < 0) {
+    if (theIntegrator->update(dX) < 0) {
       opserr << "WARNING NewtonHallM::solveCurrentStep() -";
       opserr << "the Integrator failed in update()\n";        
       return -4;
     }                
-    if (theIntegrator->formUnbalance() < 0) {
-      opserr << "WARNING NewtonHallM::solveCurrentStep() -";
-      opserr << "the Integrator failed in formUnbalance()\n";        
+    if (theIntegrator->formUnbalance(G) < 0) {  
       return -2;
     }        
     
-    result = theTest->test(*theSOE);
+    result = theTest->test(G, dX);
     numIterations++;
     this->record(numIterations);
-    
-    
+
   }  while (result == ConvergenceTest::Continue);
   
   if (result == ConvergenceTest::Failure) {
-    opserr << "NewtnRaphson::solveCurrentStep() -";
-    opserr << "the ConvergenceTest object failed in test()\n";
     return -3;
   }
   

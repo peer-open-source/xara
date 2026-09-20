@@ -35,10 +35,7 @@
 #include <AnalysisModel.h>
 #include <Vector.h>
 #include <DOF_Group.h>
-#include <DOF_GrpIter.h>
 #include <AnalysisModel.h>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <ConvergenceTest.h>
 #include <math.h>
 #include <elementAPI.h>
@@ -94,10 +91,7 @@ OPS_ADD_RUNTIME_VPV(OPS_CollocationHSFixedNumIter)
         theIntegrator = new CollocationHSFixedNumIter(dData[0], polyOrder);
     else if (numData == 3)
         theIntegrator = new CollocationHSFixedNumIter(dData[0], dData[1], dData[2], polyOrder);
-    
-    if (theIntegrator == 0)
-        opserr << "WARNING - out of memory creating CollocationHSFixedNumIter integrator\n";
-    
+
     return theIntegrator;
 }
 
@@ -135,9 +129,9 @@ CollocationHSFixedNumIter::CollocationHSFixedNumIter(
 
 
 CollocationHSFixedNumIter::CollocationHSFixedNumIter(
-    double _theta, double _beta, double _gamma, int polyorder)
+    double theta, double beta, double gamma, int polyorder)
     : TransientIntegrator(INTEGRATOR_TAGS_CollocationHSFixedNumIter),
-    theta(_theta), beta(_beta), gamma(_gamma), polyOrder(polyorder),
+    theta(theta), beta(beta), gamma(gamma), polyOrder(polyorder),
     deltaT(0.0), c1(0.0), c2(0.0), c3(0.0), x(1.0),
     Ut(0), Utdot(0), Utdotdot(0), U(0), Udot(0), Udotdot(0),
     Utm1(0), Utm2(0), scaledDeltaU(0)
@@ -396,7 +390,8 @@ int CollocationHSFixedNumIter::domainChanged()
 }
 
 
-int CollocationHSFixedNumIter::update(const Vector &deltaU)
+int
+CollocationHSFixedNumIter::update(const Vector &deltaU)
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     if (theModel == 0)  {
@@ -518,39 +513,6 @@ const Vector &
 CollocationHSFixedNumIter::getVel()
 {
   return *Udot;
-}
-
-int CollocationHSFixedNumIter::sendSelf(int cTag, Channel &theChannel)
-{
-    static Vector data(4);
-    data(0) = theta;
-    data(1) = beta;
-    data(2) = gamma;
-    data(3) = polyOrder;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING CollocationHSFixedNumIter::sendSelf() - failed to send the data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int CollocationHSFixedNumIter::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(4);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING CollocationHSFixedNumIter::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    theta     = data(0);
-    beta      = data(1);
-    gamma     = data(2);
-    polyOrder = int(data(3));
-    
-    return 0;
 }
 
 

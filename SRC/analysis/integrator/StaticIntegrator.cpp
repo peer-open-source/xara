@@ -38,7 +38,7 @@
 
 
 StaticIntegrator::StaticIntegrator(int clasTag)
- : IncrementalIntegrator(clasTag)
+ : IncrementalIntegrator()
 {
   // perhaps this should go in the constructor for StaticIntegrator;
   // The children should declare it
@@ -51,18 +51,22 @@ StaticIntegrator::~StaticIntegrator()
 }
 
 int 
-StaticIntegrator::formUnbalance()
+StaticIntegrator::formUnbalance(Vector& resid)
 {
   LinearSOE* theLinSOE = this->getLinearSOE();
 
   if (theLinSOE == nullptr)
     return -1;
 
-  theLinSOE->zeroB();
 
-  if (this->getAnalysisModel()->applyResidual(*this, *theLinSOE) < 0)
+  resid.Zero();
+  if (this->getAnalysisModel()->applyResidual(*this, resid) < 0)
     return -1;
 
+  // TODO(performance): This is done in case any places still depend on 
+  // the LinearSOE having the residual vector. 
+  // This should be removed in the future.
+  theLinSOE->setB(resid);
   return 0;
 }
 

@@ -36,7 +36,7 @@ class DifferenceAccelerator : public Accelerator
   DifferenceAccelerator(int maxDim = 3, int tangent = CURRENT_TANGENT);
   virtual ~DifferenceAccelerator();
   
-  int newStep(LinearSOE &theSOE);
+  int newStep(const LinearSOE &theSOE);
   int accelerate(Vector &v, LinearSOE &theSOE, 
                  IncrementalIntegrator &theIntegrator);
   int updateTangent(IncrementalIntegrator &theIntegrator, bool& factored);

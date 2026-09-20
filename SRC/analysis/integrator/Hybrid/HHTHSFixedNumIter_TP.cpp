@@ -93,18 +93,6 @@ OPS_ADD_RUNTIME_VPV(OPS_HHTHSFixedNumIter_TP)
 }
 
 
-HHTHSFixedNumIter_TP::HHTHSFixedNumIter_TP()
-    : TransientIntegrator(INTEGRATOR_TAGS_HHTHSFixedNumIter_TP),
-    alphaI(0.5), alphaF(0.5), beta(0.25), gamma(0.5),
-    polyOrder(2), updDomFlag(true),
-    deltaT(0.0), c1(0.0), c2(0.0), c3(0.0), x(1.0),
-    alphaM(0.5), alphaD(0.5), alphaR(0.5), alphaP(0.5),
-    Ut(0), Utdot(0), Utdotdot(0), U(0), Udot(0), Udotdot(0),
-    Utm1(0), Utm2(0), scaledDeltaU(0), Put(0)
-{
-    
-}
-
 
 HHTHSFixedNumIter_TP::HHTHSFixedNumIter_TP(double _rhoInf,
     int polyorder, bool upddomflag)
@@ -237,7 +225,7 @@ int HHTHSFixedNumIter_TP::revertToLastStep()
 
 
 int
-HHTHSFixedNumIter_TP::formUnbalance()
+HHTHSFixedNumIter_TP::formUnbalance(Vector &G)
 {
   // get a pointer to the LinearSOE and the AnalysisModel
   LinearSOE *theLinSOE = this->getLinearSOE();
@@ -246,7 +234,7 @@ HHTHSFixedNumIter_TP::formUnbalance()
     return -1;
   }
     
-  theLinSOE->setB(*Put);
+  G = *Put;
     
   // do modal damping
   const Vector *modalValues = theModel->getModalDampingFactors();
@@ -254,11 +242,11 @@ HHTHSFixedNumIter_TP::formUnbalance()
     this->addModalDampingForce(modalValues);
   }
     
-  if (this->formElementResidual() < 0)  {
+  if (this->formElementResidual(G) < 0)  {
     return -2;
   }
     
-  if (this->formNodalUnbalance() < 0)  {
+  if (this->formNodalUnbalance(G) < 0)  {
     return -3;
   }
     
@@ -312,7 +300,8 @@ int HHTHSFixedNumIter_TP::formEleResidual(FE_Element *theEle)
 }
 
 
-int HHTHSFixedNumIter_TP::formNodUnbalance(DOF_Group *theDof)
+int 
+HHTHSFixedNumIter_TP::formNodUnbalance(DOF_Group *theDof)
 {
     theDof->zeroUnbalance();
     
@@ -324,7 +313,8 @@ int HHTHSFixedNumIter_TP::formNodUnbalance(DOF_Group *theDof)
 }
 
 
-int HHTHSFixedNumIter_TP::domainChanged()
+int
+HHTHSFixedNumIter_TP::domainChanged()
 {
     AnalysisModel *theModel = this->getAnalysisModel();
     LinearSOE *theLinSOE = this->getLinearSOE();
@@ -410,8 +400,7 @@ int HHTHSFixedNumIter_TP::domainChanged()
     // from current step instead of previous step
     alphaM = (1.0 - alphaI);
     alphaD = alphaR = alphaP = (1.0 - alphaF);
-    this->TransientIntegrator::formUnbalance();
-    (*Put) = theLinSOE->getB();
+    this->TransientIntegrator::formUnbalance(*Put);
     
     if (polyOrder == 2)
         opserr << "\nWARNING: HHTHSFixedNumIter_TP::domainChanged() - assuming Ut-1 = Ut\n";
@@ -485,7 +474,8 @@ HHTHSFixedNumIter_TP::update(const Vector &deltaU)
 }
 
 
-int HHTHSFixedNumIter_TP::commit(void)
+int 
+HHTHSFixedNumIter_TP::commit()
 {
     // get a pointer to the LinearSOE and the AnalysisModel
     LinearSOE *theLinSOE = this->getLinearSOE();
@@ -512,15 +502,15 @@ int HHTHSFixedNumIter_TP::commit(void)
         
         //  determine the response at t+deltaT
         U->addVector(1.0, deltaU, c1);
-        
+
         Udot->addVector(1.0, deltaU, c2);
-        
+
         Udotdot->addVector(1.0, deltaU, c3);
-        
+
         // update the response at the DOFs
         theModel->setResponse(*U, *Udot, *Udotdot);
     }
-    
+
     // set response at t of next step to be that at t+deltaT
     (*Utm2) = *Utm1;
     (*Utm1) = *Ut;
@@ -531,8 +521,7 @@ int HHTHSFixedNumIter_TP::commit(void)
     // get unbalance Put and store it for next step
     alphaM = (1.0 - alphaI);
     alphaD = alphaR = alphaP = (1.0 - alphaF);
-    this->TransientIntegrator::formUnbalance();
-    (*Put) = theLinSOE->getB();
+    this->TransientIntegrator::formUnbalance(*Put);
     
     return theModel->commitDomain();
 }
@@ -541,54 +530,6 @@ const Vector &
 HHTHSFixedNumIter_TP::getVel()
 {
   return *Udot;
-}
-
-int HHTHSFixedNumIter_TP::sendSelf(int cTag, Channel &theChannel)
-{
-    Vector data(6);
-    data(0) = alphaI;
-    data(1) = alphaF;
-    data(2) = beta;
-    data(3) = gamma;
-    data(4) = polyOrder;
-    if (updDomFlag == true) 
-        data(5) = 1.0;
-    else
-        data(5) = 0.0;
-    
-    if (theChannel.sendVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTHSFixedNumIter_TP::sendSelf() - could not send data\n";
-        return -1;
-    }
-    
-    return 0;
-}
-
-
-int HHTHSFixedNumIter_TP::recvSelf(int cTag, Channel &theChannel, FEM_ObjectBroker &theBroker)
-{
-    Vector data(6);
-    if (theChannel.recvVector(this->getDbTag(), cTag, data) < 0)  {
-        opserr << "WARNING HHTHSFixedNumIter_TP::recvSelf() - could not receive data\n";
-        return -1;
-    }
-    
-    alphaI    = data(0);
-    alphaF    = data(1);
-    beta      = data(2);
-    gamma     = data(3);
-    polyOrder = int(data(4));
-    if (data(5) == 1.0)
-        updDomFlag = true;
-    else
-        updDomFlag = false;
-    
-    alphaM = alphaI;
-    alphaD = alphaF;
-    alphaR = alphaF;
-    alphaP = alphaF;
-    
-    return 0;
 }
 
 

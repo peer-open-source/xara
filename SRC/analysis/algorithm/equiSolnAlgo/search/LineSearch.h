@@ -28,25 +28,42 @@
 // would give, typically Ui = Ui-1 + factor * delta Ui.
 //
 #pragma once
-#include <MovableObject.h>
 #include <Logging.h>
+#include <Vector.h>
 
 class SolutionAlgorithm;
-class IncrementalIntegrator;
+class IncrementalResidual;
+class ConvergenceTest;
 class LinearSOE;
 class OPS_Stream;
 
-class LineSearch: public MovableObject
+class LineSearch
 {
   public:
-    LineSearch(int classTag);
+    LineSearch();
     virtual ~LineSearch();
 
-    // virtual functions
-    virtual int newStep(LinearSOE &) =0;
-    virtual int search(double s0, double s1, LinearSOE &, IncrementalIntegrator &) =0;
-    virtual void Print(OPS_Stream &, int flag =0) =0;
+    int apply(IncrementalResidual &theIntegrator, 
+              LinearSOE &theSOE, 
+              ConvergenceTest &theTest,
+              Vector &dU, 
+              Vector &Go);
+    //
+    virtual int newStep(const Vector &) =0;
 
+    virtual int search(double so,
+                       double su,
+                       const Vector& Xo,
+                       Vector&       Gus,
+                       Vector&       Xs,
+                       IncrementalResidual &) =0;
+
+    virtual void Print(OPS_Stream &, int flag) =0;
+
+    void printTrial(int count, double trialEta, double trialPhi) {}
+
+private:
+  Vector Gn;
+  Vector dXs;
 };
-
 

@@ -35,7 +35,10 @@ static Tcl_CmdProc opsBarrier;
 ProcessContext::ProcessContext()
 : m_obroker(new XaraClassBroker())
 {
-
+  theChannels = nullptr;
+  numChannels = 0;
+  // processID = 0;
+  // processCount = 1;
 }
 #else
 ProcessContext::ProcessContext()

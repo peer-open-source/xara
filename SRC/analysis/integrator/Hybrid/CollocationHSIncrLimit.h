@@ -17,14 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
-#ifndef CollocationHSIncrLimit_h
-#define CollocationHSIncrLimit_h
-
+//
 // Written: Andreas Schellenberg (andreas.schellenberg@gmail.com)
 // Created: 11/09
 // Revision: A
@@ -35,7 +28,7 @@
 // for hybrid simulation where the response increments are limited by a user
 // specified value. This enhances the smoothness of the convergence path and
 // reduces the possibility of spurious loading/unloading cycles during iteration.
-
+#pragma once
 #include <TransientIntegrator.h>
 
 class DOF_Group;
@@ -65,13 +58,10 @@ public:
     int update(const Vector &deltaU);
     int commit(void);
 
-    const Vector &getVel(void);
-    
-    virtual int sendSelf(int commitTag, Channel &theChannel);
-    virtual int recvSelf(int commitTag, Channel &theChannel, FEM_ObjectBroker &theBroker);
-    
+    const Vector &getVel();
+
     void Print(OPS_Stream &s, int flag = 0);
-    
+
 private:
     double theta;
     double beta;
@@ -86,4 +76,3 @@ private:
     Vector *scaledDeltaU;           // scaled displacement increment
 };
 
-#endif

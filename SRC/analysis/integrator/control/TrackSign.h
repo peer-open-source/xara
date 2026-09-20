@@ -20,6 +20,7 @@
 
 struct TrackSign {
   enum class Type {
+    None,                 // no sign tracking; always return +1
     Determinant,          // cumulative Clarke-Hancock determinant rule
     DeterminantOpenSees,  // reproduce the OpenSees determinant multiplier
     DeltaLambdaStep       // sign of previous accumulated load step
@@ -33,7 +34,9 @@ struct TrackSign {
       last_dlambda(0.0),
       haveLastDet(false),
       haveLastStep(false)
-  {}
+  {
+
+  }
 
   double newStep(LinearSOE& soe, double dlambda) {
     // Return a multiplier m in {-1,+1}.
@@ -42,6 +45,10 @@ struct TrackSign {
     int multiplier = 1;
 
     switch (type) {
+    case Type::None: {
+      // No sign tracking.
+      break;
+    }
     case Type::DeltaLambdaStep: {
       // OpenSees SIGN_LAST_STEP logic. 
       // The next predictor follows the sign of the previous accumulated
