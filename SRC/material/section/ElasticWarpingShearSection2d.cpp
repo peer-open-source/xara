@@ -47,7 +47,7 @@ OPS_ADD_RUNTIME_VPV(OPS_ElasticWarpingShearSection2d)
     int tag;
     int numdata = 1;
     if (OPS_GetIntInput(&numdata, &tag) < 0) {
-      opserr << "WARNING invalid section ElasticWarpingShearSection2d tag" << endln;
+      opserr << "WARNING invalid section tag" << "\n";
       return 0;
     }
 
@@ -55,7 +55,6 @@ OPS_ADD_RUNTIME_VPV(OPS_ElasticWarpingShearSection2d)
     double data[8];
     if (OPS_GetDoubleInput(&numdata, data) < 0) {
       opserr << "WARNING invalid double inputs" << endln;
-      opserr << "ElasticWarpingShearSection2d section: " << tag << endln;	    
       return 0;
     }
     double E = data[0];
