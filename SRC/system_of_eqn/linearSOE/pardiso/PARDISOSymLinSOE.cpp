@@ -95,15 +95,6 @@ PARDISOSymLinSOE::setSize(Graph &theGraph)
 
 		A = new double[newNNZ];
 		colA = new int[newNNZ];
-
-		if (A == 0 || colA == 0) {
-			opserr << "WARNING PARDISOSymLinSOE::PARDISOSymLinSOE :";
-			opserr << " ran out of memory for A and colA with nnz = ";
-			opserr << newNNZ << " \n";
-			size = 0; Asize = 0; nnz = 0;
-			result = -1;
-		}
-
 		Asize = newNNZ;
 	}
 
