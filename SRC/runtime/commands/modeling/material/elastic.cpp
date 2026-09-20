@@ -119,7 +119,7 @@ TclCommand_newElasticParser(ClientData clientData, Tcl_Interp *interp,
     switch (tracker.current()) {
       case Position::Tag :
         if (Tcl_GetInt(interp, argv[i], &tag) != TCL_OK) {
-            opserr << OpenSees::PromptParseError << "invalid section Elastic tag.\n";
+            opserr << OpenSees::PromptParseError << "invalid tag.\n";
             return TCL_ERROR;           
         }
         tracker.increment();
