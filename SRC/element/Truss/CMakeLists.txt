@@ -7,6 +7,7 @@
 
 target_sources(OPS_Element
   PRIVATE
+    ExactTruss.cpp
     TrussSection.cpp
     CorotTrussSection.cpp
   PUBLIC
