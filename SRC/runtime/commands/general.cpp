@@ -557,22 +557,22 @@ XaraCmd_defaultUnits(ClientData clientData, Tcl_Interp *interp, ArgSize argc, TC
   }
 
   if ((strcmp(time, "sec") == 0) || (strcmp(time, "Sec") == 0)) {
-      sec = 1.0;
+    sec = 1.0;
   }
   else if ((strcmp(time, "msec") == 0) || (strcmp(time, "mSec") == 0)) {
-      sec = 1000.0;
+    sec = 1000.0;
   }
   else {
-      sec = 1.0;
-      opserr << "defaultUnits - unknown time type, valid options: sec, msec\n";
-      return TCL_ERROR;
+    sec = 1.0;
+    opserr << "defaultUnits - unknown time type, valid options: sec, msec\n";
+    return TCL_ERROR;
   }
 
-  kip = lb / 0.001;
-  n = lb / 4.4482216152605;
-  kn = lb / 0.0044482216152605;
-  mn = lb / 0.0000044482216152605;
-  kgf = lb / (4.4482216152605 / 9.80665);
+  kip  = lb / 0.001;
+  n    = lb / 4.4482216152605;
+  kn   = lb / 0.0044482216152605;
+  mn   = lb / 0.0000044482216152605;
+  kgf  = lb / (4.4482216152605 / 9.80665);
   tonf = lb / (4.4482216152605 / 9.80665 / 1000.0);
 
   ft = in * 12.0;
