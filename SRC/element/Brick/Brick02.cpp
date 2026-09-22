@@ -1,4 +1,18 @@
-
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
+//
 //
 // Eight node Brick element
 //
@@ -17,8 +31,6 @@
 #include <Parameter.h>
 #include <ElementalLoad.h>
 #include <isoparametric.tpp>
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <analysis/fe_ele/TemplateElementFE.h>
 #include <analysis/fe_ele/ElementFE.h>
 
@@ -113,10 +125,7 @@ Brick02::~Brick02()
 FE_Element*
 Brick02::createFE_Element(int tag)
 {
-  // if (getenv("OLD_FE") != nullptr)
-  //   return new ElementFE(tag, this);
-  // else
-    return new TemplateElementFE<NDOF>(tag, *this);
+  return new TemplateElementFE<NDOF>(tag, *this);
 }
 
 
@@ -471,39 +480,6 @@ Brick02::addLoad(ElementalLoad *theLoad, double loadFactor)
   }
 }
 
-
-// int
-// Brick02::addInertiaLoadToUnbalance(const Vector &accel)
-// {
-//   int haveRho = 0;
-//   for (int i=0; i<NIP; i++) {
-//     if (materialPointers[i]->getRho() != 0.0)
-//       haveRho = 1;
-//   }
-
-//   if (haveRho == 0)
-//     return 0;
-
-//   inertia.zero();
-//   formInertiaTerms(1, inertia_wrap);
-
-//   // store computed RV for nodes in inertia vector
-//   int count = 0;
-//   for (int i=0; i<NEN; i++) {
-//     const Vector &Raccel = theNodes[i]->getRV(accel);
-//     for (int j=0; j<NDF; j++)
-//       inertia(count++) = Raccel(j);
-//   }
-
-//   // create the load vector if one does not exist
-//   if (load == nullptr)
-//     load = new Vector(NDOF);
-
-//   // add -M * RV(accel) to the load vector
-//   load->addMatrixVector(1.0, mass, inertia_wrap, -1.0);
-
-//   return 0;
-// }
 
 
 const Vector&
