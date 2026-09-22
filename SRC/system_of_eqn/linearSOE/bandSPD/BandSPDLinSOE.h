@@ -17,15 +17,7 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.4 $
-// $Date: 2009-05-11 20:53:42 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/bandSPD/BandSPDLinSOE.h,v $
-                                                                        
-                                                                        
-#ifndef BandSPDLinSOE_h
-#define BandSPDLinSOE_h
-
+//
 // Written: fmk 
 // Created: February 1997
 //
@@ -33,10 +25,8 @@
 // BandSPDLinSOE is a subclass of LinearSOE. It uses the LAPACK Upper storage
 // scheme to store the components of the A matrix.
 //
-// What: "@(#) BandSPDLinSOE.h, revA"
-
-
-
+//
+#pragma once
 #include <LinearSOE.h>
 #include <Vector.h>
 
@@ -82,7 +72,3 @@ class BandSPDLinSOE : public LinearSOE
     
   private:
 };
-
-
-#endif
-
