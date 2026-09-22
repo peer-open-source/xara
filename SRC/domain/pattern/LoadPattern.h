@@ -1,32 +1,24 @@
-/* ****************************************************************** **
-**    OpenSees - Open System for Earthquake Engineering Simulation    **
-**          Pacific Earthquake Engineering Research Center            **
-**                                                                    **
-**                                                                    **
-** (C) Copyright 1999, The Regents of the University of California    **
-** All Rights Reserved.                                               **
-**                                                                    **
-** Commercial use of this program without express permission of the   **
-** University of California, Berkeley, is strictly prohibited.  See   **
-** file 'COPYRIGHT'  in main directory for information on usage and   **
-** redistribution,  and for a DISCLAIMER OF ALL WARRANTIES.           **
-**                                                                    **
-** Developed by:                                                      **
-**   Frank McKenna (fmckenna@ce.berkeley.edu)                         **
-**   Gregory L. Fenves (fenves@ce.berkeley.edu)                       **
-**   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
-**                                                                    **
-** ****************************************************************** */
+//===----------------------------------------------------------------------===//
+//
+//                                   xara
+//                              https://xara.so
+//
+//===----------------------------------------------------------------------===//
+//
+// Copyright (c) 2025, OpenSees/Xara Developers
+// All rights reserved.  No warranty, explicit or implicit, is provided.
+//
+// This source code is licensed under the BSD 2-Clause License.
+// See LICENSE file or https://opensource.org/licenses/BSD-2-Clause
+//
+//===----------------------------------------------------------------------===//
 //
 // Written: fmk 
 // Created: 07/99
 // Revision: A
 //
 // Purpose: This file contains the class definition for LoadPattern.
-// LoadPattern is a concrete class. A LoadPattern object is used to 
-// to store reference loads and single point constraints and a TimeSeries function
-// which is used to determine the load factor given the pseudo-time
-// to the model. 
+// LoadPattern is an *abstract* class in Xara. 
 //
 #pragma once
 #include <TaggedObject.h>
@@ -53,7 +45,6 @@ class LinearSOE;
 class LoadPattern : public TaggedObject, public MovableObject
 {
   public:
-    LoadPattern();                                   // for FEM_ObjectBroker
     LoadPattern(int tag, int classTag, double fact); // for subclasses
 
     virtual ~LoadPattern();
@@ -77,25 +68,7 @@ class LoadPattern : public TaggedObject, public MovableObject
 
     virtual double getLoadFactor();
 
-#ifdef OLD_LOAD_PATTERN
-    virtual Domain* getDomain() {return theDomain;}
-    virtual void applyLoad(double pseudoTime = 0.0);
-    virtual bool addNodalLoad(NodalLoad *);
-    virtual bool addElementalLoad(ElementalLoad *);
-    virtual NodalLoadIter     &getNodalLoads();
-    virtual ElementalLoadIter &getElementalLoads();
-    // methods to remove loads
-    virtual NodalLoad *removeNodalLoad(int tag);
-    virtual ElementalLoad *removeElementalLoad(int tag);
-    // Sensitivity
-    virtual void applyLoadSensitivity(double pseudoTime = 0.0);
-    virtual int  setParameter(const char **argv, int argc, Parameter &param);
-    virtual int  updateParameter(int parameterID, Information &info);
-    virtual int  activateParameter(int parameterID)
-    virtual const Vector & getExternalForceSensitivity(int gradNumber);
-    virtual int saveLoadFactorSensitivity(double dlambdadh, int gradIndex, int numGrads);
-    virtual double getLoadFactorSensitivity(int gradIndex);
-#else
+
 protected:
     virtual Domain* getDomain() {return theDomain;}
 
@@ -112,7 +85,7 @@ public:
     }
     virtual int saveLoadFactorSensitivity(double dlambdadh, int gradIndex, int numGrads) {return 0;}
     virtual double getLoadFactorSensitivity(int gradIndex) {return 0.0;}
-#endif
+
 
     virtual void clearAll();
 

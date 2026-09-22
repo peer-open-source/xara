@@ -642,127 +642,6 @@ CorotTruss::getResistingForceIncInertia()
   return *theVector;
 }
 
-int
-CorotTruss::sendSelf(int commitTag, Channel& theChannel)
-{
-  int res;
-
-  // note: we don't check for dataTag == 0 for Element
-  // objects as that is taken care of in a commit by the Domain
-  // object - don't want to have to do the check if sending data
-  int dataTag = this->getDbTag();
-
-  // truss packs it's data into a Vector and sends this to theChannel
-  // along with it's dbTag and the commitTag passed in the arguments
-
-  static Vector data(9);
-  data(0) = this->getTag();
-  data(1) = numDIM;
-  data(2) = numDOF;
-  data(3) = A;
-  data(6) = rho;
-  data(7) = doRayleighDamping;
-  data(8) = cMass;
-
-  data(4)      = theMaterial->getClassTag();
-  int matDbTag = theMaterial->getDbTag();
-
-  // NOTE: we do have to ensure that the material has a database
-  // tag if we are sending to a database channel.
-  if (matDbTag == 0) {
-    matDbTag = theChannel.getDbTag();
-    if (matDbTag != 0)
-      theMaterial->setDbTag(matDbTag);
-  }
-  data(5) = matDbTag;
-
-  res = theChannel.sendVector(dataTag, commitTag, data);
-  if (res < 0) {
-    opserr << "WARNING Truss::sendSelf() - " << this->getTag() << " failed to send Vector\n";
-    return -1;
-  }
-
-  // truss then sends the tags of it's two end nodes
-  res = theChannel.sendID(dataTag, commitTag, connectedExternalNodes);
-  if (res < 0) {
-    opserr << "WARNING Truss::sendSelf() - " << this->getTag() << " failed to send Vector\n";
-    return -2;
-  }
-
-  // finally truss asks it's material object to send itself
-  res = theMaterial->sendSelf(commitTag, theChannel);
-  if (res < 0) {
-    opserr << "WARNING Truss::sendSelf() - " << this->getTag() << " failed to send its Material\n";
-    return -3;
-  }
-
-  return 0;
-}
-
-int
-CorotTruss::recvSelf(int commitTag, Channel& theChannel, FEM_ObjectBroker& theBroker)
-{
-  int res;
-  int dataTag = this->getDbTag();
-
-  // truss creates a Vector, receives the Vector and then sets the
-  // internal data with the data in the Vector
-
-  static Vector data(9);
-  res = theChannel.recvVector(dataTag, commitTag, data);
-  if (res < 0) {
-    opserr << "WARNING Truss::recvSelf() - failed to receive Vector\n";
-    return -1;
-  }
-
-  this->setTag((int)data(0));
-  numDIM            = (int)data(1);
-  numDOF            = (int)data(2);
-  A                 = data(3);
-  rho               = data(6);
-  doRayleighDamping = (int)data(7);
-  cMass             = (int)data(8);
-
-  // truss now receives the tags of it's two external nodes
-  res = theChannel.recvID(dataTag, commitTag, connectedExternalNodes);
-  if (res < 0) {
-    opserr << "WARNING Truss::recvSelf() - " << this->getTag() << " failed to receive ID\n";
-    return -2;
-  }
-
-  // finally truss creates a material object of the correct type,
-  // sets its database tag and asks this new object to recveive itself.
-
-  int matClass = (int)data(4);
-  int matDb    = (int)data(5);
-
-  // check if we have a material object already & if we do if of right type
-  if ((theMaterial == 0) || (theMaterial->getClassTag() != matClass)) {
-
-    // if old one .. delete it
-    if (theMaterial != 0)
-      delete theMaterial;
-
-    // create a new material object
-    theMaterial = theBroker.getNewUniaxialMaterial(matClass);
-    if (theMaterial == 0) {
-      opserr << "WARNING Truss::recvSelf() - " << this->getTag()
-             << "failed to get a blank Material of type: " << matClass << endln;
-      return -3;
-    }
-  }
-
-  theMaterial->setDbTag(matDb); // note: we set the dbTag before we receive the material
-  res = theMaterial->recvSelf(commitTag, theChannel, theBroker);
-  if (res < 0) {
-    opserr << "WARNING Truss::recvSelf() - " << this->getTag()
-           << " failed to receive its Material\n";
-    return -3;
-  }
-
-  return 0;
-}
-
 
 
 void
@@ -786,13 +665,13 @@ CorotTruss::Print(OPS_Stream& s, int flag)
   }
 
   if (flag == OPS_PRINT_PRINTMODEL_JSON) {
-    s << "\t\t\t{";
+    s << OPS_PRINT_JSON_ELEM_INDENT << "{";
     s << "\"name\": " << this->getTag() << ", ";
     s << "\"type\": \"CorotTruss\", ";
     s << "\"nodes\": [" << connectedExternalNodes(0) << ", " << connectedExternalNodes(1) << "], ";
     s << "\"A\": " << A << ", ";
     s << "\"massperlength\": " << rho << ", ";
-    s << "\"material\": \"" << theMaterial->getTag() << "\"}";
+    s << "\"material\": " << theMaterial->getTag() << "}";
   }
 }
 
