@@ -15,7 +15,6 @@
 //
 #include <cmath>
 #include "FariaPlasticDamage3d.h"
-#include <Channel.h>
 #include <MatrixND.h>
 #include <Voigt.hpp>
 #include <MaterialResponse.h>
