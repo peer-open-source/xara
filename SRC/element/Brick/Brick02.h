@@ -74,9 +74,6 @@ class Brick02 : public Element {
     int setParameter(const char **argv, int argc, Parameter &);
     int updateParameter(int parameterID, Information &);
 
-    int sendSelf (int commitTag, Channel &);
-    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &);
-
     void Print(OPS_Stream &s, int flag);
 
 private:
