@@ -28,7 +28,6 @@ public:
   {
   }
 
-
   void reset(int n) {
     nBFGS = 0;
     this->systemSize = n;
