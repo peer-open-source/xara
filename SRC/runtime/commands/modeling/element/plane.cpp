@@ -4,8 +4,11 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Description: This file contains the implementation of the
-//              TclBasicBuilder_addFourNodeQuad() command.
+// Description: This file implements parsers for the following plane elements:
+// - FourNodeQuad
+// - EnhancedQuad
+// - SixNodeTri
+// - NineNodeQuad
 //
 // Written: cmp
 //
@@ -1037,11 +1040,6 @@ TclBasicBuilder_addFourNodeQuadWithSensitivity(ClientData clientData,
 }
 
 //
-// Description: This file contains the implementation of
-// TclBasicBuilder_addFourNodeQuadUP() ,
-// TclBasicBuilder_addNineFourNodeQuadUP() ,
-// TclBasicBuilder_addBBarFourNodeQuadUP(),
-//
 // Zhaohui Yang and Jinchi Lu (September 2009)
 //
 #include <stdlib.h>
@@ -1052,16 +1050,16 @@ TclBasicBuilder_addFourNodeQuadWithSensitivity(ClientData clientData,
 #include <BBarFourNodeQuadUP.h>
 
 
-/*  *****************************************************************************
-
-    Q U A D  U_P
-
-    *****************************************************************************
- */
+// *****************************************************************************
+//
+//  Q U A D  U_P
+//
+// *****************************************************************************
 
 int
 TclBasicBuilder_addFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
-                                  int argc, TCL_Char ** const argv)
+                                  ArgSize argc, 
+                                  TCL_Char ** const argv)
 {
   ModelRegistry *builder = (ModelRegistry*)clientData;
 
@@ -1184,12 +1182,11 @@ TclBasicBuilder_addFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
 }
 
 
-/*  *****************************************************************************
-
-    9-4-N O D E  Q U A D  U_P
-
-    *****************************************************************************
- */
+//  *****************************************************************************
+//
+//  9-4-N O D E  Q U A D  U_P
+//
+//  *****************************************************************************
 
 int
 TclBasicBuilder_addNineFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
@@ -1222,7 +1219,7 @@ TclBasicBuilder_addNineFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
   double b2 = 0.0;
 
   if (Tcl_GetInt(interp, argv[argStart], &Ninetag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid FourNodeQuadUP eleTag" << "\n";
+    opserr << OpenSees::PromptValueError << "invalid eleTag" << "\n";
     return TCL_ERROR;
   }
   for (int i = 1; i <= 9; i++) {
@@ -1301,12 +1298,11 @@ TclBasicBuilder_addNineFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
 }
 
 
-/*  *****************************************************************************
-
-    B B A R  Q U A D  U_P
-
-    *****************************************************************************
- */
+// *****************************************************************************
+//
+//  B B A R  Q U A D  U_P
+//
+// *****************************************************************************
 
 int
 TclBasicBuilder_addBBarFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
@@ -1343,7 +1339,7 @@ TclBasicBuilder_addBBarFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
   double b2 = 0.0;
 
   if (Tcl_GetInt(interp, argv[argStart], &BBartag) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid BBarFourNodeQuadUP eleTag" << "\n";
+    opserr << OpenSees::PromptValueError << "invalid eleTag" << "\n";
     return TCL_ERROR;
   }
   if (Tcl_GetInt(interp, argv[1 + argStart], &nodes[0]) != TCL_OK) {
@@ -1435,340 +1431,3 @@ TclBasicBuilder_addBBarFourNodeQuadUP(ClientData clientData, Tcl_Interp *interp,
   return TCL_OK;
 }
 
-
-#if 0
-// // Regular nine node quad
-
-// int
-// TclBasicBuilder_addNineNodeQuad(ClientData clientData, Tcl_Interp *interp, int argc,
-//                                 TCL_Char ** const argv)
-// {
-//   // TODO: assertions, clean up
-//   ModelRegistry *builder = (ModelRegistry*)clientData;
-
-//   if (builder == 0 || clientData == 0) {
-//     opserr << OpenSees::PromptValueError << "builder has been destroyed\n";
-//     return TCL_ERROR;
-//   }
-
-//   if (builder->getNDM() != 2 || builder->getNDF() != 2) {
-//     opserr << OpenSees::PromptValueError << "-- model dimensions and/or nodal DOF not compatible "
-//               "with quad element\n";
-//     return TCL_ERROR;
-//   }
-
-//   // check the number of arguments is correct
-//   int argStart = 2;
-
-//   if ((argc - argStart) < 13) {
-//     opserr << OpenSees::PromptValueError << "insufficient arguments\n";
-//     opserr << "Want: element NineNodeQuad eleTag? iNode? jNode? kNode? lNode? "
-//               "nNode? mNode? pNode? qNode? cNode? thk? type? matTag? "
-//               "<pressure? rho? b1? b2?>\n";
-//     return TCL_ERROR;
-//   }
-
-//   // get the id and end nodes
-//   int NineNodeQuadId;
-//   std::array<int,9> nodes{};
-//   int matID;
-//   double thickness = 1.0;
-//   double p = 0.0;   // uniform normal traction (pressure)
-//   double rho = 0.0; // mass density
-//   double b1 = 0.0;
-//   double b2 = 0.0;
-
-//   if (Tcl_GetInt(interp, argv[argStart], &NineNodeQuadId) != TCL_OK) {
-//     opserr << OpenSees::PromptValueError << "invalid NineNodeQuad eleTag" << "\n";
-//     return TCL_ERROR;
-//   }
-
-//   for (int i=0; i<9; i++)
-//     if (Tcl_GetInt(interp, argv[1 + argStart+i], &nodes[i]) != TCL_OK) {
-//       opserr << OpenSees::PromptValueError << "invalid node\n";
-//       return TCL_ERROR;
-//     }
-
-//   if (Tcl_GetDouble(interp, argv[10 + argStart], &thickness) != TCL_OK) {
-//     opserr << OpenSees::PromptValueError << "invalid thickness\n";
-//     return TCL_ERROR;
-//   }
-
-//   TCL_Char *type = argv[11 + argStart];
-
-//   if (Tcl_GetInt(interp, argv[12 + argStart], &matID) != TCL_OK) {
-//     opserr << OpenSees::PromptValueError << "invalid matID\n";
-//     return TCL_ERROR;
-//   }
-
-//   if ((argc - argStart) > 16) {
-//     if (Tcl_GetDouble(interp, argv[13 + argStart], &p) != TCL_OK) {
-//       opserr << OpenSees::PromptValueError << "invalid pressure\n";
-//       return TCL_ERROR;
-//     }
-//     if (Tcl_GetDouble(interp, argv[14 + argStart], &rho) != TCL_OK) {
-//       opserr << OpenSees::PromptValueError << "invalid b1\n";
-//       return TCL_ERROR;
-//     }
-//     if (Tcl_GetDouble(interp, argv[15 + argStart], &b1) != TCL_OK) {
-//       opserr << OpenSees::PromptValueError << "invalid b1\n";
-//       return TCL_ERROR;
-//     }
-//     if (Tcl_GetDouble(interp, argv[16 + argStart], &b2) != TCL_OK) {
-//       opserr << OpenSees::PromptValueError << "invalid b2\n";
-//       return TCL_ERROR;
-//     }
-//   }
-
-//   NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
-//   if (theMaterial == nullptr)
-//     return TCL_ERROR;
-
-
-//   // now create the NineNodeQuad and add it to the Domain
-//   NineNodeQuad *theNineNodeQuad = new NineNodeQuad(
-//       NineNodeQuadId, nodes, *theMaterial, type, thickness, p, rho, b1, b2);
-
-
-//   if (builder->getDomain()->addElement(theNineNodeQuad) == false) {
-//     opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
-//     delete theNineNodeQuad;
-//     return TCL_ERROR;
-//   }
-
-//   return TCL_OK;
-// }
-
-
-//
-// Regular eight node quad
-//
-int
-TclBasicBuilder_addEightNodeQuad(ClientData clientData, Tcl_Interp *interp,
-                                 int argc, TCL_Char ** const argv)
-{
-  ModelRegistry *builder = (ModelRegistry*)clientData;
-
-  if (builder->getNDM() != 2 || builder->getNDF() != 2) {
-    opserr << OpenSees::PromptValueError << "-- model dimensions and/or nodal DOF not compatible "
-              "with quad element\n";
-    return TCL_ERROR;
-  }
-
-  // check the number of arguments is correct
-  int argStart = 2;
-
-  if ((argc - argStart) < 12) {
-    opserr << OpenSees::PromptValueError << "insufficient arguments\n";
-    opserr << "Want: element EightNodeQuad eleTag? iNode? jNode? kNode? lNode? "
-              "nNode? mNode? pNode? qNode? thk? type? matTag? <pressure? rho? "
-              "b1? b2?>\n";
-    return TCL_ERROR;
-  }
-
-  // get the id and end nodes
-  int EightNodeQuadId;
-  int iNode, jNode, kNode, lNode, nNode, mNode, pNode, qNode;
-  int matID;
-  double thickness = 1.0;
-  double p = 0.0;   // uniform normal traction (pressure)
-  double rho = 0.0; // mass density
-  double b1 = 0.0;
-  double b2 = 0.0;
-
-  if (Tcl_GetInt(interp, argv[argStart], &EightNodeQuadId) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid EightNodeQuad eleTag" << "\n";
-    return TCL_ERROR;
-  }
-  if (Tcl_GetInt(interp, argv[1 + argStart], &iNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid iNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetInt(interp, argv[2 + argStart], &jNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid jNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetInt(interp, argv[3 + argStart], &kNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid kNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetInt(interp, argv[4 + argStart], &lNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid lNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetInt(interp, argv[5 + argStart], &nNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid nNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetInt(interp, argv[6 + argStart], &mNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid mNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetInt(interp, argv[7 + argStart], &pNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid pNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetInt(interp, argv[8 + argStart], &qNode) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid qNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[9 + argStart], &thickness) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid thickness\n";
-    return TCL_ERROR;
-  }
-
-  TCL_Char *type = argv[10 + argStart];
-
-  if (Tcl_GetInt(interp, argv[11 + argStart], &matID) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid matID\n";
-    return TCL_ERROR;
-  }
-
-  if ((argc - argStart) > 15) {
-    if (Tcl_GetDouble(interp, argv[12 + argStart], &p) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid pressure\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[13 + argStart], &rho) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid b1\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[14 + argStart], &b1) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid b1\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[15 + argStart], &b2) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid b2\n";
-      return TCL_ERROR;
-    }
-  }
-
-  NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
-  if (theMaterial == nullptr)
-    return TCL_ERROR;
-
-
-  // now create the EightNodeQuad and add it to the Domain
-  EightNodeQuad *theEightNodeQuad = new EightNodeQuad(
-      EightNodeQuadId, iNode, jNode, kNode, lNode, nNode, mNode, pNode, qNode,
-      *theMaterial, type, thickness, p, rho, b1, b2);
-
-  if (builder->getDomain()->addElement(theEightNodeQuad) == false) {
-    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
-    delete theEightNodeQuad;
-    return TCL_ERROR;
-  }
-
-  return TCL_OK;
-}
-
-
-
-int
-TclBasicBuilder_addSixNodeTri(ClientData clientData, Tcl_Interp *interp, int argc,
-                              TCL_Char ** const argv)
-{
-  ModelRegistry *builder = (ModelRegistry*)clientData;
-
-  if (builder->getNDM() != 2 || builder->getNDF() != 2) {
-    opserr << OpenSees::PromptValueError << "-- model dimensions and/or nodal DOF not compatible "
-              "with quad element\n";
-    return TCL_ERROR;
-  }
-
-  // check the number of arguments is correct
-  int argStart = 2;
-
-  if ((argc - argStart) < 10) {
-    opserr << OpenSees::PromptValueError << "insufficient arguments\n";
-    opserr << "Want: element SixNodeTri eleTag? iNode? jNode? kNode? lNode? "
-              "nNode? mNode? pNode? qNode? thk? type? matTag? <pressure? rho? "
-              "b1? b2?>\n";
-    return TCL_ERROR;
-  }
-
-  int SixNodeTriId;
-  std::array<int,6> nodes;
-  int matID;
-  double thickness = 1.0;
-  double p = 0.0;   // uniform normal traction (pressure)
-  double rho = 0.0; // mass density
-  double b1 = 0.0;
-  double b2 = 0.0;
-
-  if (Tcl_GetInt(interp, argv[argStart], &SixNodeTriId) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid SixNodeTri eleTag" << "\n";
-    return TCL_ERROR;
-  }
-  
-  // Nodes
-  for (int i=0; i<6; i++)
-    if (Tcl_GetInt(interp, argv[1 + argStart + i], &nodes[i]) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid node\n";
-      return TCL_ERROR;
-    }
-
-  if (Tcl_GetDouble(interp, argv[7 + argStart], &thickness) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid thickness\n";
-    opserr << "SixNodeTri element: " << SixNodeTriId << "\n";
-    return TCL_ERROR;
-  }
-
-  TCL_Char *type = argv[8 + argStart];
-
-  if (Tcl_GetInt(interp, argv[9 + argStart], &matID) != TCL_OK) {
-    opserr << OpenSees::PromptValueError << "invalid matID\n";
-    return TCL_ERROR;
-  }
-
-  if ((argc - argStart) > 13) {
-    if (Tcl_GetDouble(interp, argv[10 + argStart], &p) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid pressure\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[11 + argStart], &rho) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid b1\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[12 + argStart], &b1) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid b1\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[13 + argStart], &b2) != TCL_OK) {
-      opserr << OpenSees::PromptValueError << "invalid b2\n";
-      return TCL_ERROR;
-    }
-  }
-
-  NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
-  if (theMaterial == nullptr)
-    return TCL_ERROR;
-
-
-  // now create the SixNodeTri and add it to the Domain
-  SixNodeTri *theSixNodeTri =
-      new SixNodeTri(SixNodeTriId, nodes,
-                     *theMaterial, type, thickness, 
-                     p, rho, b1, b2,
-                     Element::MassSource::Element
-      );
-
-
-  if (builder->getDomain()->addElement(theSixNodeTri) == false) {
-    opserr << OpenSees::PromptValueError << "could not add element to the domain\n";
-    delete theSixNodeTri;
-    return TCL_ERROR;
-  }
-
-  return TCL_OK;
-}
-
-#endif
