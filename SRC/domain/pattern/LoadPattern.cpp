@@ -18,8 +18,6 @@
 **                                                                    **
 ** ****************************************************************** */
 //
-// Purpose: This file contains the method definitions for class LoadPattern.
-// LoadPattern is a container class.
 //
 // Written: fmk 07/99
 // Revised:
