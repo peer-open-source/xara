@@ -30,7 +30,6 @@
 #include <Vertex.h>
 #include <VertexIter.h>
 #include <Channel.h>
-#include <FEM_ObjectBroker.h>
 #include <Logging.h>
 
 
@@ -70,8 +69,8 @@ BandSPDLinSOE::BandSPDLinSOE(int classTag)
     
 BandSPDLinSOE::~BandSPDLinSOE()
 {
-    if (A != nullptr)
-      delete [] A;   
+  if (A != nullptr)
+    delete [] A;   
 }
 
 
