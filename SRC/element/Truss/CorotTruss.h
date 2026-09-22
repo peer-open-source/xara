@@ -17,13 +17,8 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-
-// $Revision$
-// $Date$
-// $URL$
-
-#ifndef CorotTruss_h
-#define CorotTruss_h
+//
+#pragma once
 
 // Written: MHS
 // Created: May 2001
@@ -50,41 +45,39 @@ public:
   ~CorotTruss();
 
   const char*
-  getClassType(void) const
+  getClassType() const
   {
     return "CorotTruss";
   };
 
   // public methods to obtain information about dof & connectivity
-  int getNumExternalNodes(void) const;
-  const ID& getExternalNodes(void);
-  Node** getNodePtrs(void);
+  int getNumExternalNodes() const;
+  const ID& getExternalNodes();
+  Node** getNodePtrs();
 
-  int getNumDOF(void);
+  int getNumDOF();
   void setDomain(Domain* theDomain);
 
   // public methods to set the state of the element
-  int commitState(void);
-  int revertToLastCommit(void);
-  int revertToStart(void);
-  int update(void);
+  int commitState();
+  int revertToLastCommit();
+  int revertToStart();
+  int update();
 
   // public methods to obtain stiffness, mass, damping and residual information
-  const Matrix& getTangentStiff(void);
-  const Matrix& getInitialStiff(void);
-  const Matrix& getDamp(void);
-  const Matrix& getMass(void);
+  const Matrix& getTangentStiff();
+  const Matrix& getInitialStiff();
+  const Matrix& getDamp();
+  const Matrix& getMass();
 
-  void zeroLoad(void);
+  void zeroLoad();
   int addLoad(ElementalLoad* theLoad, double loadFactor);
   int addInertiaLoadToUnbalance(const Vector& accel);
 
-  const Vector& getResistingForce(void);
+  const Vector& getResistingForce();
   const Vector& getResistingForceIncInertia();
 
   // public methods for element output
-  int sendSelf(int commitTag, Channel& );
-  int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&);
   void Print(OPS_Stream& s, int flag);
 
   Response* setResponse(const char** argv, int argc, OPS_Stream& s);
@@ -127,5 +120,3 @@ private:
   static Vector V6;
   static Vector V12;
 };
-
-#endif

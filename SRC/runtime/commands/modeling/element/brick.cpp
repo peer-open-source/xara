@@ -13,12 +13,17 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Written: fmk
-// Created: 03/01
+// 
 //
+#include <string.h>
+#ifdef _MSC_VER 
+#  include <string.h>
+#  define strcasecmp _stricmp
+#else
+#  include <strings.h>
+#endif
 #include <Parsing.h>
 #include <Logging.h>
-#include <string.h>
 #include <Domain.h>
 #include <ModelRegistry.h>
 
@@ -30,10 +35,6 @@
 #endif
 #include <BbarBrick.h>
 #include <BbarBrickWithSensitivity.h>
-
-#ifdef _FLBrick
-#  include <FLBrick.h>
-#endif
 
 int
 XaraElemCmd_H8(ClientData clientData, 
@@ -115,7 +116,6 @@ XaraElemCmd_H8(ClientData clientData,
   if ((argc - eleArgStart) > 11) {
     if (Tcl_GetDouble(interp, argv[11 + eleArgStart], &b1) != TCL_OK) {
       opserr << "WARNING invalid b1\n";
-      opserr << "Brick element: " << BrickId << "\n";
       return TCL_ERROR;
     }
   }
@@ -136,19 +136,26 @@ XaraElemCmd_H8(ClientData clientData,
 
   // now create the Brick and add it to the Domain
   Element *theBrick = nullptr;
-  if (strcmp(argv[1], "stdBrick") == 0) {
-    if (getenv("XARA_BRICK02") != nullptr) {
+  if ((strcasecmp(argv[1], "stdBrick") == 0) ||
+      (strcmp(argv[1], "H8") == 0) ||
+      (strcmp(argv[1], "Brick") == 0)) {
+    if (false) {//getenv("XARA_BRICK02") != nullptr) {
       theBrick = new Brick02(BrickId, node_tags, *theMaterial, b1, b2, b3);
     } else {
+      // Faster on Apple Silicon?
       theBrick = new Brick(BrickId, node_tags, *theMaterial, b1, b2, b3);
     }
   }
-  else if (strcmp(argv[1], "bbarBrickWithSensitivity") == 0) {
+  else if (strcmp(argv[1], "Brick02") == 0) {
+    theBrick = new Brick02(BrickId, node_tags, *theMaterial, b1, b2, b3);
+  }
+  else if (strcasecmp(argv[1], "bbarBrickWithSensitivity") == 0) {
     theBrick = new BbarBrickWithSensitivity(BrickId, 
                                             node_tags[0], node_tags[1], node_tags[2], node_tags[3],
                                             node_tags[4], node_tags[5], node_tags[6], node_tags[7],
                                             *theMaterial, b1, b2, b3);
-  } else if (strcmp(argv[1], "bbarBrick") == 0) {
+  }
+  else if (strcasecmp(argv[1], "bbarBrick") == 0) {
     theBrick = new BbarBrick(BrickId, node_tags, *theMaterial, b1, b2, b3);
   }
 #ifdef XARA_HAVE_H8E12
@@ -164,7 +171,9 @@ XaraElemCmd_H8(ClientData clientData,
 #endif
 
   else {
-    opserr << "WARNING brick element " << argv[1] << " type not recognized\n";
+    opserr << OpenSees::PromptValueError 
+           << "brick element " << argv[1] << " type not available"
+           << OpenSees::SignalMessageEnd;
     return TCL_ERROR;
   }
 
@@ -448,7 +457,6 @@ TclBasicBuilder_addTwentyEightNodeBrickUP(ClientData clientData, Tcl_Interp *int
 
   if (Tcl_GetInt(interp, argv[21 + argStart], &matID) != TCL_OK) {
     opserr << "WARNING invalid matID\n";
-    opserr << "20_8_BrickUP element: " << brickUPId << "\n";
     return TCL_ERROR;
   }
 
@@ -512,7 +520,6 @@ TclBasicBuilder_addTwentyEightNodeBrickUP(ClientData clientData, Tcl_Interp *int
 
   if (theTclDomain->addElement(theTwentyEightNodeBrickUP) == false) {
     opserr << "WARNING could not add element to the domain\n";
-    opserr << "20_8_BrickUP element: " << brickUPId << "\n";
     delete theTwentyEightNodeBrickUP;
     return TCL_ERROR;
   }

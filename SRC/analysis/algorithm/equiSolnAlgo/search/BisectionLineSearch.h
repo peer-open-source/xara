@@ -67,4 +67,3 @@ class BisectionLineSearch: public LineSearch
     double maxEta;
     int    printFlag;
 };
-

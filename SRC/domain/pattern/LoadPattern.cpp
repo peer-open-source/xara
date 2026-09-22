@@ -63,33 +63,6 @@ LoadPattern::LoadPattern(int tag, int clasTag, double fact)
   dLambdadh   = 0;
 }
 
-LoadPattern::LoadPattern()
-  : TaggedObject(0), MovableObject(PATTERN_TAG_LoadPattern),
-  isConstant(false),
-  loadFactor(0.0), scaleFactor(1.0), 
-  theSeries(nullptr),
-  theDomain(nullptr),
-  currentGeoTag(0), lastGeoSendTag(-1), 
-  dbSPs(0), dbNod(0), dbEle(0), theNodalLoads(0),
-  theElementalLoads(0), 
-  theSPs(0), 
-  theNodIter(0), 
-  theEleIter(0), 
-  theSpIter(0),
-  lastChannel(0)
-{
-  theNodalLoads     = new MapOfTaggedObjects();
-  theElementalLoads = new MapOfTaggedObjects();
-  theSPs            = new MapOfTaggedObjects();
-
-  theEleIter = new ElementalLoadIter(theElementalLoads);
-  theNodIter = new NodalLoadIter(theNodalLoads);
-  theSpIter  = new SingleDomSP_Iter(theSPs);
-
-  randomLoads = 0;
-  dLambdadh   = 0;
-}
-
 
 LoadPattern::~LoadPattern()
 {
@@ -273,21 +246,8 @@ LoadPattern::applyLoadSensitivity(double pseudoTime)
   }
 
   NodalLoadIter &theNodalIter2 = this->getNodalLoads();
-  while ((nodLoad = theNodalIter2()) != 0)
+  while ((nodLoad = theNodalIter2()) != nullptr)
     nodLoad->applyLoadSensitivity(loadFactor);
-
-  // Don't include element loads and sp constraints for now
-  /*
-    ElementalLoad *eleLoad;
-    ElementalLoadIter &theElementalIter = this->getElementalLoads();
-    while ((eleLoad = theElementalIter()) != 0)
-    eleLoad->applyLoad(loadFactor);
-    
-    SP_Constraint *sp;
-    SP_ConstraintIter &theIter = this->getSPs();
-    while ((sp = theIter()) != 0)
-    sp->applyConstraint(loadFactor);
-  */
 }
 
 
@@ -376,55 +336,10 @@ LoadPattern::updateParameter(int parameterID, Information &info)
          << "\n";
 
   return 0;
-
-  /*
-  if (RVisRandomProcessDiscretizer) {
-    return theSeries->updateParameter(parameterID,info);
-  }
-  else {
-    NodalLoad *thePossibleNodalLoad = 0;
-    NodalLoad *theNodalLoad = 0;
-    NodalLoadIter &theNodalIter = this->getNodalLoads();
-    
-    switch (parameterID) {
-    case 1: case -1:  // Not implemented.
-      return -1;
-    default:
-      if (parameterID > 1000  &&  parameterID < 2000)  {
-	int nodeNumber = parameterID-1000;
-	while ((thePossibleNodalLoad = theNodalIter()) != 0)  {
-	  if ( nodeNumber == thePossibleNodalLoad->getNodeTag() )  {
-	    theNodalLoad = thePossibleNodalLoad;
-	  }
-	}
-	return theNodalLoad->updateParameter(1, info);
-      }
-      else if (parameterID > 2000  &&  parameterID < 3000)  {
-	int nodeNumber = parameterID-2000;
-	while ((thePossibleNodalLoad = theNodalIter()) != 0)  {
-	  if ( nodeNumber == thePossibleNodalLoad->getNodeTag() )  {
-	    theNodalLoad = thePossibleNodalLoad;
-	  }
-	}
-	return theNodalLoad->updateParameter(2, info);
-      }
-      else if (parameterID > 3000  &&  parameterID < 4000)  {
-	int nodeNumber = parameterID-3000;
-	while ((thePossibleNodalLoad = theNodalIter()) != 0)  {
-	  if ( nodeNumber == thePossibleNodalLoad->getNodeTag() )  {
-	    theNodalLoad = thePossibleNodalLoad;
-	  }
-	}
-	return theNodalLoad->updateParameter(3, info);
-            }
-      else
-	return -1;
-    }
-  }
-  */
 }
 
-int LoadPattern::activateParameter(int parameterID)
+int
+LoadPattern::activateParameter(int parameterID)
 {
   if (theSeries == nullptr) {
     opserr << "set/update/activate parameter is illegaly called in LoadPattern "
@@ -436,64 +351,6 @@ int LoadPattern::activateParameter(int parameterID)
          << "\n";
 
   return 0;
-
-  /*
-  if (RVisRandomProcessDiscretizer) {
-    return theSeries->activateParameter(parameterID);
-  }
-  else {
-    
-    
-    // Don't set flag here in the load pattern itself.
-    // (Assume there always may be random loads)
-    
-    NodalLoad *theNodalLoad = 0;
-    NodalLoadIter &theNodalIter = this->getNodalLoads();
-    
-    if (parameterID == 0) {
-      
-      // Go through all nodal loads and zero out gradientIdentifier
-      // (Remember: the identifier is only zero if we are in
-      // the process of zeroing out all sensitivity flags).
-      while ((theNodalLoad = theNodalIter()) != 0)  {
-	theNodalLoad->activateParameter(parameterID);
-      }
-      
-    }
-    else {
-      
-      // Find the right nodal load and set the flag
-      if (parameterID > 1000  &&  parameterID < 2000)  {
-	int nodeNumber = parameterID-1000;
-	while ((theNodalLoad = theNodalIter()) != 0)  {
-	  if ( nodeNumber == theNodalLoad->getNodeTag() )  {
-	    theNodalLoad->activateParameter(1);
-	  }
-	}
-      }
-      else if (parameterID > 2000  &&  parameterID < 3000)  {
-	int nodeNumber = parameterID-2000;
-	while ((theNodalLoad = theNodalIter()) != 0)  {
-	  if ( nodeNumber == theNodalLoad->getNodeTag() )  {
-	    theNodalLoad->activateParameter(2);
-	  }
-	}
-      }
-      else if (parameterID > 3000  &&  parameterID < 4000)  {
-	int nodeNumber = parameterID-3000;
-	while ((theNodalLoad = theNodalIter()) != 0)  {
-	  if ( nodeNumber == theNodalLoad->getNodeTag() )  {
-	    theNodalLoad->activateParameter(3);
-	  }
-	}
-      }
-      else {
-        opserr << "LoadPattern::gradient() -- error in identifier. " << "\n";
-      }
-    }
-  }
-  return 0;
-  */
 }
 
 const Vector &
