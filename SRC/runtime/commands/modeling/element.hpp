@@ -77,9 +77,6 @@ extern OPS_Routine OPS_FSIFluidElement2D;          // Massimo Petracca (ASDEA)
 extern OPS_Routine OPS_LinearElasticSpring;
 extern OPS_Routine OPS_Inerter;
 extern OPS_Routine OPS_Inno3DPnPJoint;
-extern OPS_Routine OPS_Adapter;
-extern OPS_Routine OPS_Actuator;
-extern OPS_Routine OPS_ActuatorCorot;
 
 extern OPS_Routine OPS_RJWatsonEQS2d;
 extern OPS_Routine OPS_RJWatsonEQS3d;
@@ -348,6 +345,7 @@ ElementLibrary = {
 
   {"H8",                        XaraElemCmd_SolidElement},
   {"stdBrick",                  XaraElemCmd_SolidElement},
+  {"Brick",                     XaraElemCmd_SolidElement},
   {"Brick02",                   XaraElemCmd_SolidElement},
   {"H8E12",                     XaraElemCmd_SolidElement},
   {"SSPbrick",                  XaraElemCmd_SolidElement},
@@ -484,9 +482,6 @@ element_dispatch = {
 
   {"LinearElasticSpring",          OPS_LinearElasticSpring},
   {"Inerter",                      OPS_Inerter},
-  {"Adapter",                      OPS_Adapter},
-  {"Actuator",                     OPS_Actuator},
-  {"CorotActuator",                OPS_ActuatorCorot},
   {"RockingBC",                    OPS_RockingBC},
   {"LehighJoint2D",                OPS_LehighJoint2d},
 };
