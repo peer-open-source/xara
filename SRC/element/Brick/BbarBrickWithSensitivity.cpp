@@ -67,55 +67,23 @@ const double  BbarBrickWithSensitivity::wg[] = { 1.0, 1.0, 1.0, 1.0,
 # define ELE_TAG_BbarBrickWithSensitivity 1984587234
 
 
-//null constructor
-BbarBrickWithSensitivity::BbarBrickWithSensitivity( ) :
-Element( 0, ELE_TAG_BbarBrickWithSensitivity ),
+
+// full constructor
+BbarBrickWithSensitivity::BbarBrickWithSensitivity(  int tag,
+                          const std::array<int, 8>& nodes,
+			 NDMaterial &theMaterial,
+			 double b1, double b2, double b3) :
+Element(tag, ELE_TAG_BbarBrickWithSensitivity ),
 connectedExternalNodes(8), applyLoad(0), load(0), Ki(0)
 {
   for (int i=0; i<8; i++ ) {
-    materialPointers[i] = 0;
-    nodePointers[i] = 0;
+    connectedExternalNodes(i) = nodes[i];
+    nodePointers[i] = nullptr;
   }
-  b[0] = 0.0;
-  b[1] = 0.0;
-  b[2] = 0.0;
-	parameterID = 0;
-}
-
-
-//full constructor
-BbarBrickWithSensitivity::BbarBrickWithSensitivity(  int tag,
-                         int node1,
-                         int node2,
-   	                 int node3,
-                         int node4,
-                         int node5,
-                         int node6,
-                         int node7,
-			 int node8,
-			 NDMaterial &theMaterial,
-			 double b1, double b2, double b3) :
-Element( tag, ELE_TAG_BbarBrickWithSensitivity ),
-connectedExternalNodes(8), applyLoad(0), load(0), Ki(0)
-{
-  connectedExternalNodes(0) = node1 ;
-  connectedExternalNodes(1) = node2 ;
-  connectedExternalNodes(2) = node3 ;
-  connectedExternalNodes(3) = node4 ;
-
-  connectedExternalNodes(4) = node5 ;
-  connectedExternalNodes(5) = node6 ;
-  connectedExternalNodes(6) = node7 ;
-  connectedExternalNodes(7) = node8 ;
 
   for (int i=0; i<8; i++ ) {
 
       materialPointers[i] = theMaterial.getCopy("ThreeDimensional") ;
-
-      if (materialPointers[i] == 0) {
-        opserr <<"BbarBrickWithSensitivity::constructor - failed to get a material of type: ThreeDimensional\n";
-        exit(-1);
-      } //end if
 
   } //end for i
 
@@ -593,12 +561,12 @@ void
 BbarBrickWithSensitivity::formInertiaTerms( int tangFlag )
 {
 
-  static const int ndm = 3 ;
-  static const int ndf = 3 ;
-  static const int numberNodes = 8 ;
-  static const int numberGauss = 8 ;
-  static const int nShape = 4 ;
-  static const int massIndex = nShape - 1 ;
+  static constexpr int ndm = 3 ;
+  static constexpr int ndf = 3 ;
+  static constexpr int numberNodes = 8 ;
+  static constexpr int numberGauss = 8 ;
+  static constexpr int nShape = 4 ;
+  static constexpr int massIndex = nShape - 1 ;
 
   double xsj ;  // determinant jacaobian matrix
 
@@ -1277,152 +1245,6 @@ BbarBrickWithSensitivity::computeBbar( int node,
 
 
 
-int
-BbarBrickWithSensitivity::sendSelf(int commitTag, Channel &theChannel)
-{
-
-  int res = 0;
-
-  // note: we don't check for dataTag == 0 for Element
-  // objects as that is taken care of in a commit by the Domain
-  // object - don't want to have to do the check if sending data
-  int dataTag = this->getDbTag();
-
-  // Quad packs its data into a Vector and sends this to theChannel
-  // along with its dbTag and the commitTag passed in the arguments
-
-  // Now quad sends the ids of its materials
-  int matDbTag;
-
-  static ID idData(25);
-
-  idData(24) = this->getTag();
-
-  int i;
-  for (i = 0; i < 8; i++) {
-    idData(i) = materialPointers[i]->getClassTag();
-    matDbTag = materialPointers[i]->getDbTag();
-    // NOTE: we do have to ensure that the material has a database
-    // tag if we are sending to a database channel.
-    if (matDbTag == 0) {
-      matDbTag = theChannel.getDbTag();
-			if (matDbTag != 0)
-			  materialPointers[i]->setDbTag(matDbTag);
-    }
-    idData(i+8) = matDbTag;
-  }
-
-  idData(16) = connectedExternalNodes(0);
-  idData(17) = connectedExternalNodes(1);
-  idData(18) = connectedExternalNodes(2);
-  idData(19) = connectedExternalNodes(3);
-  idData(20) = connectedExternalNodes(4);
-  idData(21) = connectedExternalNodes(5);
-  idData(22) = connectedExternalNodes(6);
-  idData(23) = connectedExternalNodes(7);
-
-  res += theChannel.sendID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING BbarBrickWithSensitivity::sendSelf() - " << this->getTag() << "failed to send ID\n";
-    return res;
-  }
-
-
-  // Finally, quad asks its material objects to send themselves
-  for (i = 0; i < 8; i++) {
-    res += materialPointers[i]->sendSelf(commitTag, theChannel);
-    if (res < 0) {
-      opserr << "WARNING BbarBrickWithSensitivity::sendSelf() - " << this->getTag() << " failed to send its Material\n";
-      return res;
-    }
-  }
-
-  return res;
-}
-
-int
-BbarBrickWithSensitivity::recvSelf (int commitTag,
-		       Channel &theChannel,
-		       FEM_ObjectBroker &theBroker)
-{
-  int res = 0;
-
-  int dataTag = this->getDbTag();
-
-  static ID idData(25);
-  // Quad now receives the tags of its four external nodes
-  res += theChannel.recvID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING BbarBrickWithSensitivity::recvSelf() - " << this->getTag() << " failed to receive ID\n";
-    return res;
-  }
-
-  this->setTag(idData(24));
-
-  connectedExternalNodes(0) = idData(16);
-  connectedExternalNodes(1) = idData(17);
-  connectedExternalNodes(2) = idData(18);
-  connectedExternalNodes(3) = idData(19);
-  connectedExternalNodes(4) = idData(20);
-  connectedExternalNodes(5) = idData(21);
-  connectedExternalNodes(6) = idData(22);
-  connectedExternalNodes(7) = idData(23);
-
-
-  if (materialPointers[0] == 0) {
-    for (int i = 0; i < 8; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+8);
-      // Allocate new material with the sent class tag
-      materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-      if (materialPointers[i] == 0) {
-        opserr << "BbarBrickWithSensitivity::recvSelf() - Broker could not create NDMaterial of class type" <<
-          matClassTag << endln;
-        exit(-1);
-      }
-      // Now receive materials into the newly allocated space
-      materialPointers[i]->setDbTag(matDbTag);
-      res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) {
-        opserr << "NLBeamColumn3d::recvSelf() - material " <<
-          i << "failed to recv itself\n";
-        return res;
-      }
-    }
-  }
-  // materials exist , ensure materials of correct type and recvSelf on them
-  else {
-    for (int i = 0; i < 8; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+8);
-      // Check that material is of the right type; if not,
-      // delete it and create a new one of the right type
-      if (materialPointers[i]->getClassTag() != matClassTag) {
-        delete materialPointers[i];
-        materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-        if (materialPointers[i] == 0) {
-          opserr << "BbarBrickWithSensitivity::recvSelf() - Broker could not create NDMaterial of class type" <<
-            matClassTag << endln;
-          exit(-1);
-        }
-        materialPointers[i]->setDbTag(matDbTag);
-      }
-      // Receive the material
-
-      res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) {
-        opserr << "NLBeamColumn3d::recvSelf() - material " <<
-          i << "failed to recv itself\n";
-        return res;
-      }
-    }
-  }
-
-  return res;
-}
-
-
-
 Response*
 BbarBrickWithSensitivity::setResponse(const char **argv, int argc, OPS_Stream &output)
 {
@@ -1538,11 +1360,9 @@ BbarBrickWithSensitivity::getResponse(int responseID, Information &eleInfo)
 int
 BbarBrickWithSensitivity::setParameter(const char **argv, int argc, Parameter &param)
 {
-
-
 	int numberGauss=8;
 
-    if (strstr(argv[0],"material") != 0) {
+  if (strstr(argv[0],"material") != 0) {
 		int ok;
 		for (int i=0; i<numberGauss; i++) {
 			ok = materialPointers[i]->setParameter(&argv[1], argc-1, param);
@@ -1554,9 +1374,9 @@ BbarBrickWithSensitivity::setParameter(const char **argv, int argc, Parameter &p
 		return ok;
 	}
 	else{
-		opserr<<"BbarBrickWithSensitivity can not setParameter!"<<endln;
-    // otherwise parameter is unknown for the Truss class
-	return -1;
+		opserr << "BbarBrickWithSensitivity can not setParameter!" << "\n";
+    // otherwise parameter is unknown for the class
+    return -1;
 	}
 }
 
@@ -1564,7 +1384,6 @@ BbarBrickWithSensitivity::setParameter(const char **argv, int argc, Parameter &p
 int
 BbarBrickWithSensitivity::updateParameter(int parameterID, Information &info)
 {
-
   opserr<<"warnning: BbarBrickWithSensitivity can not updateParameter!"<<endln;
   return -1;
 }
@@ -1625,12 +1444,6 @@ BbarBrickWithSensitivity::getMassSensitivity(int gradNumber)
 	return mass;
 }
 
-
-
-
-// Need to do/////////////////////////////////////////////
-/////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
 
 
 const Vector &

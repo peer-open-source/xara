@@ -38,6 +38,7 @@ struct TrackSign {
 
   }
 
+
   double newStep(LinearSOE& soe, double dlambda) {
     // Return a multiplier m in {-1,+1}.
 

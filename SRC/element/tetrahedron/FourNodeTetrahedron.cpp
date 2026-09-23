@@ -26,7 +26,6 @@
 // Please read detailed description in FourNodeTetrahedron.h.
 // ============================================================================
 
-#include <stdio.h> 
 #include <stdlib.h> 
 #include <math.h> 
 
@@ -42,54 +41,6 @@
 #include <ElementResponse.h>
 #include <Parameter.h>
 #include <ElementalLoad.h>
-
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
-#include <elementAPI.h>
-
-void * OPS_ADD_RUNTIME_VPV(OPS_FourNodeTetrahedron)
-{
-    if (OPS_GetNumRemainingInputArgs() < 6) 
-    {
-      opserr << "WARNING insufficient arguments\n";
-      opserr << "Want: element FourNodeTetrahedron eleTag? Node1? Node2? Node3? Node4? matTag?\n";
-      return 0;
-    }
-
-    int idata[6];
-    int num = 6;
-    if (OPS_GetIntInput(&num,idata)<0) 
-    {
-      opserr<<"WARNING: invalid integer data\n";
-      return 0;
-    }
-
-    NDMaterial* mat = OPS_getNDMaterial(idata[5]);
-    if (mat == 0) 
-    {
-      opserr << "WARNING material not found\n";
-      opserr << "material tag: " << idata[5];
-      opserr << "\nFourNodeTetrahedron element: " << idata[0] << endln;
-    }
-
-    double data[3] = {0,0,0};
-    num = OPS_GetNumRemainingInputArgs();
-
-    if (num > 3) 
-    {
-      num = 3;
-    }
-    if (num > 0) 
-    {
-      if (OPS_GetDoubleInput(&num,data) < 0) 
-      {
-        opserr<<"WARNING: invalid double data\n";
-        return 0;
-      }     
-    }
-    return new FourNodeTetrahedron(idata[0],idata[1],idata[2],idata[3],idata[4],*mat,data[0],data[1],data[2]);
-}
-
 
 double  FourNodeTetrahedron::xl[3][NumNodes] ;
 Matrix  FourNodeTetrahedron::stiff(NumDOFsTotal,NumDOFsTotal) ;
@@ -110,38 +61,12 @@ const double  FourNodeTetrahedron::wg[] = { 0.166666666666666667 } ;
 Matrix FourNodeTetrahedron::B(NumStressComponents,NumDOFsPerNode) ;
 
 
-FourNodeTetrahedron::FourNodeTetrahedron( ) 
-:Element( 0, ELE_TAG_FourNodeTetrahedron ),
- connectedExternalNodes(NumNodes), applyLoad(0), load(0), Ki(0)
-{
-  B.Zero();
-
-  for (int i=0; i < NumNodes; i++ ) {
-    nodePointers[i] = 0;
-  }
-
-  b[0] = 0.0;
-  b[1] = 0.0;
-  b[2] = 0.0;
-  
-  materialPointers[0] = 0;
-
-  for (int i = 0; i < NumNodes; ++i)
-  {
-    initDisp[i] = Vector(3);
-    initDisp[i].Zero();
-  }
-  do_update = 1;
-}
 
 
 //*********************************************************************
 //full constructor
 FourNodeTetrahedron::FourNodeTetrahedron(int tag, 
-       int node1,
-       int node2,
-       int node3,
-       int node4,
+       const std::array<int, 4> &nodes,
        NDMaterial &theMaterial,
        double b1, double b2, double b3)
   :Element(tag, ELE_TAG_FourNodeTetrahedron),
@@ -149,22 +74,16 @@ FourNodeTetrahedron::FourNodeTetrahedron(int tag,
 {
   B.Zero();
   do_update = 1;
-  connectedExternalNodes(0) = node1 ;
-  connectedExternalNodes(1) = node2 ;
-  connectedExternalNodes(2) = node3 ;
-  connectedExternalNodes(3) = node4 ;
+  for (int i = 0; i < NumNodes; i++) {
+    connectedExternalNodes(i) = nodes[i];
+    nodePointers[i] = nullptr;
+  }
 
 
   for (int i=0; i<NumGaussPoints; i++ ) 
   {
-      materialPointers[i] = theMaterial.getCopy("ThreeDimensional") ;
-      if (materialPointers[i] == 0) 
-      {
-         opserr << "FourNodeTetrahedron::constructor - failed to get a material of type: ThreeDimensional\n";
-         exit(-1);
-      } //end if
-      nodePointers[i] = 0;
-  } //end for i 
+      materialPointers[i] = theMaterial.getCopy("ThreeDimensional");
+  }
 
   // Body forces
   b[0] = b1;
@@ -177,11 +96,11 @@ FourNodeTetrahedron::FourNodeTetrahedron(int tag,
     initDisp[i].Zero();
   }
 }
-//******************************************************************
 
 
-//destructor 
-FourNodeTetrahedron::~FourNodeTetrahedron( )
+
+// destructor 
+FourNodeTetrahedron::~FourNodeTetrahedron()
 {
 
   for (int i=0 ; i<NumGaussPoints; i++ ) {
@@ -1219,196 +1138,6 @@ FourNodeTetrahedron::computeB( int node, const double shp[4][4] )
 
 }
 
-
-//**********************************************************************
-
-int  FourNodeTetrahedron::sendSelf (int commitTag, Channel &theChannel)
-{
-  int res = 0;
-  
-  // note: we don't check for dataTag == 0 for Element
-  // objects as that is taken care of in a commit by the Domain
-  // object - don't want to have to do the check if sending data
-  int dataTag = this->getDbTag();
-  
-  // Quad packs its data into a Vector and sends this to theChannel
-  // along with its dbTag and the commitTag passed in the arguments
-
-  // Now quad sends the ids of its materials
-  int matDbTag;
-  
-  static ID idData(27);
-
-  idData(24) = this->getTag();
-  if (alphaM != 0 || betaK != 0 || betaK0 != 0 || betaKc != 0) 
-    idData(25) = 1;
-  else
-    idData(25) = 0;
-  
-  int i;
-  for (i = 0; i < NumGaussPoints; i++) 
-  {
-    idData(i) = materialPointers[i]->getClassTag();
-    matDbTag = materialPointers[i]->getDbTag();
-    // NOTE: we do have to ensure that the material has a database
-    // tag if we are sending to a database channel.
-    if (matDbTag == 0) 
-    {
-      matDbTag = theChannel.getDbTag();
-      if (matDbTag != 0)
-      {
-        materialPointers[i]->setDbTag(matDbTag);
-      }
-    }
-    idData(i+8) = matDbTag;
-  }
-  
-  idData(16) = connectedExternalNodes(0);
-  idData(17) = connectedExternalNodes(1);
-  idData(18) = connectedExternalNodes(2);
-  idData(19) = connectedExternalNodes(3);
-  idData(26) = do_update;
-  // idData(20) = connectedExternalNodes(4);
-  // idData(21) = connectedExternalNodes(5);
-  // idData(22) = connectedExternalNodes(6);
-  // idData(23) = connectedExternalNodes(7);
-
-  res += theChannel.sendID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING FourNodeTetrahedron::sendSelf() - " << this->getTag() << " failed to send ID\n";
-    return res;
-  }
-
-  static Vector dData(7);
-  dData(0) = alphaM;
-  dData(1) = betaK;
-  dData(2) = betaK0;
-  dData(3) = betaKc;
-  dData(4) = b[0];
-  dData(5) = b[1];
-  dData(6) = b[2];
-
-  if (theChannel.sendVector(dataTag, commitTag, dData) < 0) {
-    opserr << "FourNodeTetrahedron::sendSelf() - failed to send double data\n";
-    return -1;
-  }    
-
-  // Finally, quad asks its material objects to send themselves
-  for (i = 0; i < NumGaussPoints; i++) {
-    res += materialPointers[i]->sendSelf(commitTag, theChannel);
-    if (res < 0) 
-    {
-      opserr << "WARNING FourNodeTetrahedron::sendSelf() - " << this->getTag() << " failed to send its Material\n";
-      return res;
-    }
-  }
-
-  return res;
-
-}
-    
-int
-FourNodeTetrahedron::recvSelf (int commitTag, 
-            Channel &theChannel, 
-            FEM_ObjectBroker &theBroker)
-{
-  int res = 0;
-  
-  int dataTag = this->getDbTag();
-
-  static ID idData(27);
-  res += theChannel.recvID(dataTag, commitTag, idData);
-  if (res < 0) {
-    opserr << "WARNING FourNodeTetrahedron::recvSelf() - " << this->getTag() << " failed to receive ID\n";
-    return res;
-  }
-
-  this->setTag(idData(24));
-
-  static Vector dData(7);
-  if (theChannel.recvVector(dataTag, commitTag, dData) < 0) {
-    opserr << "DispBeamColumn2d::sendSelf() - failed to recv double data\n";
-    return -1;
-  }    
-  alphaM = dData(0);
-  betaK = dData(1);
-  betaK0 = dData(2);
-  betaKc = dData(3);
-  b[0] = dData(4);
-  b[1] = dData(5);
-  b[2] = dData(6);
-
-
-  connectedExternalNodes(0) = idData(16);
-  connectedExternalNodes(1) = idData(17);
-  connectedExternalNodes(2) = idData(18);
-  connectedExternalNodes(3) = idData(19);
-  do_update = idData(26);
-  // connectedExternalNodes(4) = idData(20);
-  // connectedExternalNodes(5) = idData(21);
-  // connectedExternalNodes(6) = idData(22);
-  // connectedExternalNodes(7) = idData(23);
-
-
-  if (materialPointers[0] == 0) 
-  {
-    for (int i = 0; i < NumGaussPoints; i++) 
-    {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+8);
-
-      // Allocate new material with the sent class tag
-      materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-      
-      if (materialPointers[i] == 0) 
-      {
-        opserr << "FourNodeTetrahedron::recvSelf() - Broker could not create NDMaterial of class type " << matClassTag << endln;
-        return -1;
-      }
-
-      // Now receive materials into the newly allocated space
-      materialPointers[i]->setDbTag(matDbTag);
-      res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) {
-        opserr << "NLBeamColumn3d::recvSelf() - material " << i << "failed to recv itself\n";
-        return res;
-      }
-    }
-  }
-  // materials exist , ensure materials of correct type and recvSelf on them
-  else 
-  {
-    for (int i = 0; i < NumGaussPoints; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i+8);
-      // Check that material is of the right type; if not,
-      // delete it and create a new one of the right type
-      if (materialPointers[i]->getClassTag() != matClassTag) 
-      {
-          delete materialPointers[i];
-          materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-          if (materialPointers[i] == 0) 
-          {
-            opserr << "FourNodeTetrahedron::recvSelf() - Broker could not create NDMaterial of class type " <<
-              matClassTag << endln;
-            exit(-1);
-          }
-          materialPointers[i]->setDbTag(matDbTag);
-      }
-      // Receive the material
-
-      res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
-      if (res < 0) 
-      {
-        opserr << "FourNodeTetrahedron::recvSelf() - material " << i << "failed to recv itself\n";
-        return res;
-      }
-    }
-  }
-
-  return res;
-}
-//**************************************************************************
 
 
 Response*

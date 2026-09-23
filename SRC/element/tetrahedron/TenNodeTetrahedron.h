@@ -22,21 +22,17 @@
 // 2022 By Jose Abell and Jose Larenas @ Universidad de los Andes, Chile
 // www.joseabell.com | https://github.com/jaabell | jaabell@miuandes.cl
 // ============================================================================
+//
 // Implements a standard 10-node tetrahedron element.
 //
 // This element has 4 Gauss points of integration.
 //
-//
 // ============================================================================
 
-
-#ifndef TenNodeTetrahedron_H
-#define TenNodeTetrahedron_H
-
-
-#include <stdio.h>
+#pragma once
 #include <stdlib.h>
 #include <math.h>
+#include <array>
 
 #include <ID.h>
 #include <Vector.h>
@@ -53,29 +49,20 @@ public :
 
     //full constructor
     TenNodeTetrahedron(int tag,
-                       int node1,
-                       int node2,
-                       int node3,
-                       int node4,
-                       int node5,
-                       int node6,
-                       int node7,
-                       int node8,
-                       int node9,
-                       int node10,
+                       const std::array<int, 10> &nodes,
                        NDMaterial &theMaterial,
                        double b1 = 0.0, double b2 = 0.0, double b3 = 0.0);
 
-    //destructor
-    virtual ~TenNodeTetrahedron( ) ;
+    // destructor
+    virtual ~TenNodeTetrahedron( );
 
-    const char *getClassType(void) const {return "TenNodeTetrahedron";};
+    const char *getClassType(void) const {return "TenNodeTetrahedron";}
 
     //set domain
-    void setDomain( Domain *theDomain ) ;
+    void setDomain( Domain *theDomain ) override;
 
-    int getNumExternalNodes( ) const ;
-    const ID &getExternalNodes( ) ;
+    int getNumExternalNodes() const override;
+    const ID &getExternalNodes() override;
     Node **getNodePtrs() final;
 
     int getNumDOF( ) final;
@@ -84,7 +71,7 @@ public :
     int commitState( ) final;
     int revertToLastCommit( ) final;
 
-    int revertToStart( ) final;
+    int revertToStart() final;
 
 
     const Matrix &getTangentStiff() final;
@@ -97,10 +84,6 @@ public :
 
     const Vector &getResistingForce( ) final;
     const Vector &getResistingForceIncInertia( ) final;
-
-    // public methods for element output
-    int sendSelf (int commitTag, Channel &) final;
-    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &) final;
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
@@ -164,7 +147,7 @@ private :
     static Matrix damping ;
     static Matrix B;
   
-    //quadrature data
+    // quadrature data
     static const double root3 ;
     static const double one_over_root3 ;
     static const double alpha ;
@@ -195,6 +178,3 @@ private :
 
     int do_update;
 } ;
-
-#endif
-
