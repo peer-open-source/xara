@@ -11,18 +11,15 @@
 //===----------------------------------------------------------------------===//
 //
 //
-//
-#pragma once
-//
 // Written: Thanh Do
 // Created: 07/16
 //
+#pragma once
 #include <NDMaterial.h>
 #include <MatrixND.h>
 #include <ID.h>
 class Vector;
 class Matrix;
-class Channel;
 
 class FariaPlasticDamage3d : public NDMaterial
 {

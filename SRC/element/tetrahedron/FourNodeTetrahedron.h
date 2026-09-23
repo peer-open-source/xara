@@ -33,14 +33,10 @@
 //
 // ============================================================================
 
-
-#ifndef FOURNODETETRAHEDRON_H
-#define FOURNODETETRAHEDRON_H
-
-
-#include <stdio.h> 
+#pragma once
+#include <array>
 #include <stdlib.h> 
-#include <math.h> 
+#include <math.h>
 
 #include <ID.h> 
 #include <Vector.h>
@@ -51,26 +47,19 @@
 
 class FourNodeTetrahedron : public Element {
 
-  public :
-    
-    // null constructor
-    FourNodeTetrahedron();
+public:
   
     // full constructor
     FourNodeTetrahedron(int tag, 
-	  int node1,
-	  int node2,
-	  int node3,
-	  int node4,
-	  NDMaterial &theMaterial,
-	  double b1 = 0.0, double b2 = 0.0, double b3 = 0.0);
-    
+      const std::array<int, 4> &nodes,
+      NDMaterial &theMaterial,
+      double b1, double b2, double b3);
+
     // destructor 
-    virtual ~FourNodeTetrahedron( ) ;
+    virtual ~FourNodeTetrahedron();
 
-    const char *getClassType(void) const {return "FourNodeTetrahedron";};
+    const char *getClassType() const {return "FourNodeTetrahedron";}
 
-    // set domain
     void setDomain( Domain *theDomain ) ;
 
     // get the number of external nodes
@@ -78,22 +67,18 @@ class FourNodeTetrahedron : public Element {
 
     // return connected external nodes
     const ID &getExternalNodes( ) ;
-    Node **getNodePtrs(void);
+    Node **getNodePtrs();
 
     // return number of dofs
-    int getNumDOF( ) ;
+    int getNumDOF();
 
     // commit state
-    int commitState( ) ;
+    int commitState();
     
     // revert to last commit 
-    int revertToLastCommit( ) ;
-    
-    // revert to start 
-    int revertToStart( ) ;
-
-    // update
-    int update(void);
+    int revertToLastCommit( ); 
+    int revertToStart();
+    int update();
 
     // print out element data
     void Print( OPS_Stream &s, int flag ) ;
@@ -108,16 +93,11 @@ class FourNodeTetrahedron : public Element {
     int  addInertiaLoadToUnbalance(const Vector &accel);
 
     // get residual
-    const Vector &getResistingForce( ) ;
+    const Vector &getResistingForce( );
     
     // get residual with inertia terms
-    const Vector &getResistingForceIncInertia( ) ;
+    const Vector &getResistingForceIncInertia( );
 
-    // public methods for element output
-    int sendSelf (int commitTag, Channel &theChannel);
-    int recvSelf (int commitTag, Channel &theChannel, FEM_ObjectBroker 
-		  &theBroker);
-      
     Response *setResponse(const char **argv, int argc, OPS_Stream &s);
     int getResponse(int responseID, Information &eleInformation);
 
@@ -139,8 +119,8 @@ class FourNodeTetrahedron : public Element {
     //
     // private attributes
     //
-    ID connectedExternalNodes ;  //four node numbers
-    Node *nodePointers[4] ;      //pointers to eight nodes
+    ID connectedExternalNodes ;  // node tags
+    Node *nodePointers[4] ;      // pointers to nodes
 
     //material information
     NDMaterial *materialPointers[1]; //pointers to eight materials
@@ -185,14 +165,11 @@ class FourNodeTetrahedron : public Element {
     void formResidAndTangent( int tang_flag ) ;
 
     // compute coordinate system
-    void computeBasis( ) ;
+    void computeBasis();
 
     // compute B matrix
     const Matrix& computeB( int node, const double shp[4][NumNodes] ) ;
 
     void shp3d( const double ss[4], double &xsj, double shp[4][4], const double xl[3][4]   );
 
-}; 
-
-#endif
-
+};

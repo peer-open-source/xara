@@ -26,10 +26,10 @@
 //
 // Eight node BbarBrickWithSensitivity element
 //
-
-#include <stdio.h>
+#pragma once
 #include <stdlib.h>
 #include <cmath>
+#include <array>
 
 #include <ID.h>
 #include <Vector.h>
@@ -40,23 +40,13 @@
 
 class BbarBrickWithSensitivity : public Element {
 
-  public :
-
-    //null constructor
-    BbarBrickWithSensitivity( ) ;
+public:
 
     //full constructor
     BbarBrickWithSensitivity( int tag,
-			int node1,
-			int node2,
-		        int node3,
-			int node4,
-			int node5,
-			int node6,
-			int node7,
-			int node8,
+      const std::array<int, 8>& nodes,
 			NDMaterial &theMaterial,
-			double b1 = 0.0, double b2 = 0.0, double b3 = 0.0 ) ;
+			double b1, double b2, double b3);
 
 
     virtual ~BbarBrickWithSensitivity();
@@ -80,10 +70,7 @@ class BbarBrickWithSensitivity : public Element {
 
     //commit state
     int commitState( ) ;
-
-    //revert to last commit
     int revertToLastCommit( ) ;
-
     int revertToStart( ) ;
 
     //print out element data
@@ -103,10 +90,6 @@ class BbarBrickWithSensitivity : public Element {
 
     //get residual with inertia terms
     const Vector &getResistingForceIncInertia( ) ;
-
-    // public methods for element output
-    int sendSelf (int commitTag, Channel &);
-    int recvSelf (int commitTag, Channel &, FEM_ObjectBroker &);
 
     Response *setResponse(const char **argv, int argc, OPS_Stream &);
     int getResponse(int responseID, Information &);

@@ -61,7 +61,6 @@ public:
     Actuator(int tag, int dim, int Nd1, int Nd2,
         double EA, int ipPort, int ssl = 0, int udp = 0,
         int addRayleigh = 0, double rho = 0.0);
-    Actuator();
     
     // destructor
     ~Actuator();

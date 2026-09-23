@@ -32,7 +32,6 @@
 #include <Node.h>
 #include <ElementIter.h>
 #include <Element.h>
-#include <Channel.h>
 #include <FEM_ObjectBroker.h>
 #include <SP_ConstraintIter.h>
 #include <SP_Constraint.h>

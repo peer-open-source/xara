@@ -17,17 +17,6 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                        
-// $Revision: 1.1.1.1 $
-// $Date: 2000-09-15 08:23:30 $
-// $Source: /usr/local/cvs/OpenSees/SRC/system_of_eqn/linearSOE/profileSPD/ProfileSPDLinSolver.h,v $
-                                                                        
-                                                                        
-// File: ~/system_of_eqn/linearSOE/ProfileGEN/ProfileSPDLinSolver.h
-//
-// Written: fmk 
-// Created: Tue Sep 26 16:27:47: 1996
-// Revision: A
 //
 // Description: This file contains the class definition for ProfileSPDLinSolver.
 // ProfileSPDLinSolver is an abstract base class and thus no objects of it's type
@@ -35,7 +24,10 @@
 // implemented in it's derived classes.  Instances of ProfileSPDLinSolver 
 // are used to solve a system of equations of type ProfileSPDLinSOE.
 //
-// What: "@(#) ProfileSPDLinSolver.h, revA"
+// Written: fmk 
+// Created: Tue Sep 26 16:27:47: 1996
+// Revision: A
+//
 #pragma once
 #include <LinearSOESolver.h>
 class ProfileSPDLinSOE;

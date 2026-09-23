@@ -77,9 +77,6 @@ extern OPS_Routine OPS_FSIFluidElement2D;          // Massimo Petracca (ASDEA)
 extern OPS_Routine OPS_LinearElasticSpring;
 extern OPS_Routine OPS_Inerter;
 extern OPS_Routine OPS_Inno3DPnPJoint;
-extern OPS_Routine OPS_Adapter;
-extern OPS_Routine OPS_Actuator;
-extern OPS_Routine OPS_ActuatorCorot;
 
 extern OPS_Routine OPS_RJWatsonEQS2d;
 extern OPS_Routine OPS_RJWatsonEQS3d;
@@ -139,7 +136,6 @@ Tcl_CmdProc TclBasicBuilder_addFourNodeQuadWithSensitivity;
 Tcl_CmdProc TclBasicBuilder_addConstantPressureVolumeQuad;
 Tcl_CmdProc TclBasicBuilder_addNineNodeMixedQuad;
 Tcl_CmdProc TclCommand_SSPquadUP;
-// Tcl_CmdProc TclBasicBuilder_addSixNodeTri;
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addNineFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addBBarFourNodeQuadUP;
@@ -169,11 +165,10 @@ extern OPS_Routine OPS_ASDShellT3;
 extern OPS_Routine OPS_FourNodeTetrahedron;
 extern OPS_Routine OPS_TenNodeTetrahedron;
 // Brick
+Tcl_CmdProc XaraElemCmd_SolidElement;
 Tcl_CmdProc XaraElemCmd_H8UP;
 Tcl_CmdProc TclBasicBuilder_addBBarBrickUP;
 Tcl_CmdProc TclBasicBuilder_addTwentyEightNodeBrickUP;
-Tcl_CmdProc XaraElemCmd_H20;
-Tcl_CmdProc XaraElemCmd_H8;
 Tcl_CmdProc TclCommand_SSP_Element;
 //
 Tcl_CmdProc TclCommand_addActuator;
@@ -344,19 +339,24 @@ ElementLibrary = {
 //
 // Brick
 //
-  {"stdBrick",                  XaraElemCmd_H8},
-  {"Brick02",                   XaraElemCmd_H8},
-  {"H8E12",                     XaraElemCmd_H8},
-  {"bbarBrick",                 XaraElemCmd_H8},
-  {"bbarBrickWithSensitivity",  XaraElemCmd_H8},
-  {"flBrick",                   XaraElemCmd_H8},
-  {"SSPbrick",                  TclCommand_SSP_Element},
-
   {"BrickUP",                   XaraElemCmd_H8UP},
   {"20_8_BrickUP",              TclBasicBuilder_addTwentyEightNodeBrickUP},
-  {"20NodeBrick",               XaraElemCmd_H20},
-  {"H20",                       XaraElemCmd_H20},
   {"bbarBrickUP",               TclBasicBuilder_addBBarBrickUP},
+
+  {"H8",                        XaraElemCmd_SolidElement},
+  {"stdBrick",                  XaraElemCmd_SolidElement},
+  {"Brick",                     XaraElemCmd_SolidElement},
+  {"Brick02",                   XaraElemCmd_SolidElement},
+  {"H8E12",                     XaraElemCmd_SolidElement},
+  {"SSPbrick",                  XaraElemCmd_SolidElement},
+  {"bbarBrick",                 XaraElemCmd_SolidElement},
+  {"bbarBrickWithSensitivity",  XaraElemCmd_SolidElement},
+  {"20NodeBrick",               XaraElemCmd_SolidElement},
+  {"H20",                       XaraElemCmd_SolidElement},
+  {"FourNodeTetrahedron",       XaraElemCmd_SolidElement},
+  {"T4",                        XaraElemCmd_SolidElement},
+  {"TenNodeTetrahedron",        XaraElemCmd_SolidElement},
+  {"T10",                       XaraElemCmd_SolidElement},
 
 //
 // Joint
@@ -426,10 +426,6 @@ element_dispatch = {
   {"ModElasticBeam2d",             OPS_ModElasticBeam2d},
   {"ModElasticBeam3d",             OPS_ModElasticBeam3d},
 
-// Solid
-  {"FourNodeTetrahedron",          OPS_FourNodeTetrahedron},
-  {"TenNodeTetrahedron",           OPS_TenNodeTetrahedron},
-
 // Bearing
   {"FPBearingPTV",                 OPS_FPBearingPTV},
   {"TripleFrictionPendulum",       OPS_TripleFrictionPendulum},
@@ -486,9 +482,6 @@ element_dispatch = {
 
   {"LinearElasticSpring",          OPS_LinearElasticSpring},
   {"Inerter",                      OPS_Inerter},
-  {"Adapter",                      OPS_Adapter},
-  {"Actuator",                     OPS_Actuator},
-  {"CorotActuator",                OPS_ActuatorCorot},
   {"RockingBC",                    OPS_RockingBC},
   {"LehighJoint2D",                OPS_LehighJoint2d},
 };

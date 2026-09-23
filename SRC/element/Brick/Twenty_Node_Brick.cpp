@@ -39,8 +39,6 @@
 #include <ElementResponse.h>
 #include <ElementalLoad.h>
 
-#include <Channel.h>
-#include <FEM_ObjectBroker.h>
 
 double Twenty_Node_Brick::xl[3][20];
 
@@ -140,7 +138,8 @@ Twenty_Node_Brick::setDomain(Domain* theDomain)
       nodePointers[i] = nullptr;
     return;
   }
-  //node pointers
+
+  // node pointers
   for (int i = 0; i < NEN; i++) {
     nodePointers[i] = theDomain->getNode(connectedExternalNodes(i));
     if (nodePointers[i] == 0) {
@@ -208,7 +207,7 @@ Twenty_Node_Brick::commitState()
 }
 
 
-//revert to last commit
+// revert to last commit
 int
 Twenty_Node_Brick::revertToLastCommit()
 {
@@ -292,9 +291,9 @@ Twenty_Node_Brick::update()
       B(5, 1) = 0.;
       B(5, 2) = shgu[0][j][i];
 
-      //BJ = computeB( j, shp ) ;
+      // BJ = computeB( j, shp ) ;
 
-      //nodal displacements
+      // nodal displacements
       const Vector& ul = nodePointers[j]->getTrialDisp();
       Vector ul3(3);
       ul3(0) = ul(0);
@@ -833,191 +832,6 @@ Twenty_Node_Brick::computeBasis()
 }
 
 
-//**********************************************************************
-
-
-int
-Twenty_Node_Brick::sendSelf(int commitTag, Channel& theChannel)
-{
-
-  int res = 0;
-
-  // note: we don't check for dataTag == 0 for Element
-  // objects as that is taken care of in a commit by the Domain
-  // object - don't want to have to do the check if sending data
-
-  int dataTag = this->getDbTag();
-
-
-  // Quad packs its data into a Vector and sends this to theChannel
-  // along with its dbTag and the commitTag passed in the arguments
-
-  int matDbTag;
-
-
-  static ID idData(75);
-
-
-  idData(74) = this->getTag();
-
-  for (int i = 0; i < nintu; i++) {
-
-    idData(i) = materialPointers[i]->getClassTag();
-
-    matDbTag = materialPointers[i]->getDbTag();
-
-    // NOTE: we do have to ensure that the material has a database
-
-    // tag if we are sending to a database channel.
-
-    if (matDbTag == 0) {
-      matDbTag = theChannel.getDbTag();
-      if (matDbTag != 0)
-        materialPointers[i]->setDbTag(matDbTag);
-    }
-
-    idData(i + nintu) = matDbTag;
-  }
-
-  for (int i = 0; i < 20; i++)
-    idData(54 + i) = connectedExternalNodes(i);
-
-  res += theChannel.sendID(dataTag, commitTag, idData);
-
-  if (res < 0) {
-    opserr << "WARNING Twenty_Node_Brick::sendSelf() - " << this->getTag()
-           << " failed to send ID\n";
-    return res;
-  }
-
-
-  // Finally, this element asks its material objects to send themselves
-
-  for (int i = 0; i < nintu; i++) {
-
-    res += materialPointers[i]->sendSelf(commitTag, theChannel);
-
-    if (res < 0) {
-
-      opserr << "WARNING Twenty_Node_Brick::sendSelf() - " << this->getTag()
-             << " failed to send its Material\n";
-
-      return res;
-    }
-  }
-
-
-  return res;
-}
-
-
-int
-Twenty_Node_Brick::recvSelf(int commitTag,
-                            Channel& theChannel,
-                            FEM_ObjectBroker& theBroker)
-
-{
-
-  int res = 0;
-
-  int dataTag = this->getDbTag();
-
-  static ID idData(75);
-
-  //  now receives the tags of its 20 external nodes
-
-  res += theChannel.recvID(dataTag, commitTag, idData);
-
-  if (res < 0) {
-    opserr << "WARNING Twenty_Node_Brick::recvSelf() - " << this->getTag()
-           << " failed to receive ID\n";
-    return res;
-  }
-
-
-  this->setTag(idData(74));
-
-
-  int i;
-
-  for (int i = 0; i < 20; i++)
-    connectedExternalNodes(i) = idData(54 + i);
-
-
-  if (materialPointers[0] == 0) {
-    for (i = 0; i < nintu; i++) {
-      int matClassTag = idData(i);
-      int matDbTag = idData(i + nintu);
-
-      // Allocate new material with the sent class tag
-
-      materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-
-      if (materialPointers[i] == nullptr) {
-        opserr
-            << "Twenty_Node_Brick::recvSelf() - Broker could not create NDMaterial of class type "
-            << matClassTag << "\n";
-        return -1;
-      }
-
-      // Now receive materials into the newly allocated space
-
-      materialPointers[i]->setDbTag(matDbTag);
-
-      res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
-
-      if (res < 0) {
-        opserr << "Twenty_Node_Brick::recvSelf() - material " << i << "failed to recv itself\n";
-        return res;
-      }
-    }
-
-  }
-
-  // materials exist , ensure materials of correct type and recvSelf on them
-
-  else {
-
-    for (int i = 0; i < nintu; i++) {
-
-      int matClassTag = idData(i);
-
-      int matDbTag = idData(i + nintu);
-
-      // Check that material is of the right type; if not,
-
-      // delete it and create a new one of the right type
-
-      if (materialPointers[i]->getClassTag() != matClassTag) {
-
-        delete materialPointers[i];
-
-        materialPointers[i] = theBroker.getNewNDMaterial(matClassTag);
-
-        if (materialPointers[i] == 0) {
-          opserr
-              << "Twenty_Node_Brick::recvSelf() - Broker could not create NDMaterial of class type "
-              << matClassTag << "\n";
-          exit(-1);
-        }
-
-        materialPointers[i]->setDbTag(matDbTag);
-      }
-
-      // Receive the material
-
-      res += materialPointers[i]->recvSelf(commitTag, theChannel, theBroker);
-
-      if (res < 0) {
-        opserr << "Twenty_Node_Brick::recvSelf() - material " << i << "failed to recv itself\n";
-        return res;
-      }
-    }
-  }
-
-  return res;
-}
-
 
 Response*
 Twenty_Node_Brick::setResponse(const char** argv, int argc, OPS_Stream& output)
@@ -1226,7 +1040,6 @@ Twenty_Node_Brick::Jacobian3d(int gaussPoint, double& xsj, int mode)
     opserr << "Twenty_Node_Brick::Jacobian3d - Non-positive Jacobian: " << xsj << "\n";
 
     for (int i = 0; i < nen; i++) {
-
       printf("%5d %15.6e %15.6e %15.6e %15.6e\n", i,
              shp[0][i], shp[1][i], shp[2][i], shp[3][i]);
     }

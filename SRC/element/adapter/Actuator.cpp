@@ -41,7 +41,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <elementAPI.h>
 
 
 // initialize the class wide variables
@@ -54,76 +53,6 @@ Vector Actuator::ActuatorV4(4);
 Vector Actuator::ActuatorV6(6);
 Vector Actuator::ActuatorV12(12);
 
-void * OPS_ADD_RUNTIME_VPV(OPS_Actuator)
-{
-    // check the number of arguments is correct
-    if (OPS_GetNumRemainingInputArgs() < 5) {
-        opserr << "WARNING insufficient arguments\n";
-        opserr << "Want: element actuator eleTag iNode jNode EA ipPort <-ssl> <-udp> <-doRayleigh> <-rho rho>\n";
-        return 0;
-    }
-    
-    int ndm = OPS_GetNDM();
-    
-    // get the id and end nodes
-    int idata[3];
-    int numdata = 3;
-    if (OPS_GetIntInput(&numdata, idata) < 0) {
-	opserr << "WARNING invalid actuator int inputs" << "\n";
-	return 0;
-    }
-    int tag = idata[0];
-    int iNode = idata[1];
-    int jNode = idata[2];
-    
-    // stiffness
-    double EA;
-    numdata = 1;
-    if (OPS_GetDoubleInput(&numdata, &EA) < 0) {
-	opserr << "WARNING invalid actuator EA" << "\n";
-	return 0;
-    }
-    
-    // ipPort
-    int ipPort;
-    numdata = 1;
-    if (OPS_GetIntInput(&numdata, &ipPort) < 0) {
-	opserr << "WARNING invalid actuator ipPort" << endln;
-	return 0;
-    }
-    
-    // options
-    int ssl = 0, udp = 0;
-    int doRayleigh = 0;
-    double rho = 0.0;
-    
-	while (OPS_GetNumRemainingInputArgs() > 0) {
-		const char* flag = OPS_GetString();
-		if (strcmp(flag, "-ssl") == 0) {
-			ssl = 1; udp = 0;
-		}
-		else if (strcmp(flag, "-udp") == 0) {
-			udp = 1; ssl = 0;
-		}
-		else if (strcmp(flag, "-doRayleigh") == 0) {
-			doRayleigh = 1;
-		}
-		else if (strcmp(flag, "-rho") == 0) {
-			if (OPS_GetNumRemainingInputArgs() > 0) {
-				numdata = 1;
-				if (OPS_GetDoubleInput(&numdata, &rho) < 0) {
-					opserr << "WARNING invalid rho\n";
-					opserr << "actuator element: " << tag << endln;
-					return 0;
-				}
-			}
-		}
-	}
-    
-    // now create the actuator and add it to the Domain
-    return new Actuator(tag, ndm, iNode, jNode, EA, ipPort,
-			ssl, udp, doRayleigh, rho);
-}
 
 
 // responsible for allocating the necessary space needed
@@ -140,27 +69,6 @@ Actuator::Actuator(int tag, int dim, int Nd1, int Nd2,
     
     connectedExternalNodes(0) = Nd1;
     connectedExternalNodes(1) = Nd2;
-    
-    // set node pointers to NULL
-    theNodes[0] = 0;
-    theNodes[1] = 0;
-    
-    // zero direction cosines
-    cosX[0] = 0.0;
-    cosX[1] = 0.0;
-    cosX[2] = 0.0;
-}
-
-// invoked by a FEM_ObjectBroker - blank object that recvSelf
-// needs to be invoked upon
-Actuator::Actuator()
-    : Element(0, ELE_TAG_Actuator), numDIM(0), numDOF(0),
-    connectedExternalNodes(2), EA(0.0), ipPort(0), ssl(0),
-    udp(0), addRayleigh(0), rho(0.0), L(0.0), tPast(0.0),
-    theMatrix(0), theVector(0), theLoad(0), db(1), q(1),
-    theChannel(0), rData(0), recvData(0), sData(0), sendData(0),
-    ctrlDisp(0), ctrlForce(0), daqDisp(0), daqForce(0)
-{
     
     // set node pointers to NULL
     theNodes[0] = 0;
@@ -203,32 +111,37 @@ Actuator::~Actuator()
 }
 
 
-int Actuator::getNumExternalNodes() const
+int
+Actuator::getNumExternalNodes() const
 {
     return 2;
 }
 
 
-const ID& Actuator::getExternalNodes() 
+const ID& 
+Actuator::getExternalNodes() 
 {
     return connectedExternalNodes;
 }
 
 
-Node** Actuator::getNodePtrs() 
+Node** 
+Actuator::getNodePtrs() 
 {
     return theNodes;
 }
 
 
-int Actuator::getNumDOF() 
+int 
+Actuator::getNumDOF() 
 {
     return numDOF;
 }
 
 
 // to set a link to the enclosing Domain and to set the node pointers.
-void Actuator::setDomain(Domain *theDomain)
+void 
+Actuator::setDomain(Domain *theDomain)
 {
     // check Domain is not null - invoked when object removed from a domain
     if (!theDomain)  {
@@ -422,7 +335,7 @@ const Matrix& Actuator::getTangentStiff()
             (*theMatrix)(i+numDOF2,j+numDOF2) = temp;
         }
     }
-    
+
     return *theMatrix;
 }
 

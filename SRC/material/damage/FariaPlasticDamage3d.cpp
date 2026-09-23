@@ -15,7 +15,6 @@
 //
 #include <cmath>
 #include "FariaPlasticDamage3d.h"
-#include <Channel.h>
 #include <MatrixND.h>
 #include <Voigt.hpp>
 #include <MaterialResponse.h>
@@ -36,7 +35,8 @@ FariaPlasticDamage3d::FariaPlasticDamage3d(int tag,
                                            double rho)
 : NDMaterial(tag,ND_TAG_PlasticDamageConcrete3d),
   E(E), nu(nu),
-  ft(std::fabs(Ft)), Fc(std::fabs(Fc)), 
+  ft(std::fabs(Ft)), 
+  Fc(std::fabs(Fc)), 
   beta(beta), Ap(Ap), An(An), Bn(Bn),
   retTangent(C),
   retInitialTangent(Ce),

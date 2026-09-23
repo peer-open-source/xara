@@ -17,13 +17,13 @@
 **   Filip C. Filippou (filippou@ce.berkeley.edu)                     **
 **                                                                    **
 ** ****************************************************************** */
-                                                                       
-#ifndef SSPbrick_h
-#define SSPbrick_h
-
+//
 // Created: C.McGann, UW, 10.2011
 //
 // Description: This file contains the class definition for SSPbrick (Stabilized Single-Point Brick)
+#pragma once
+
+#include <array>
 
 #include <Element.h>
 #include <Node.h>
@@ -45,17 +45,16 @@ using OpenSees::MatrixND;
 class SSPbrick : public Element
 {
   public:
-    SSPbrick(int tag, int Nd1, int Nd2, int Nd3, int Nd4, int Nd5, int Nd6, int Nd7, int Nd8,
-                      NDMaterial &theMat, double b1 = 0.0, double b2 = 0.0, double b3 = 0.0);
-    SSPbrick();
+    SSPbrick(int tag, const std::array<int, 8> &node_tags,
+			NDMaterial &theMat, double b1, double b2, double b3);
     ~SSPbrick();
 
 	const char* getClassType()  const override {return "SSPbrick";}
 
     // public methods to obtain information about dof and connectivity
-    int getNumExternalNodes(void) const; 
-    const ID &getExternalNodes(void);
-	Node **getNodePtrs(void);
+    int getNumExternalNodes() const;
+    const ID &getExternalNodes();
+	Node **getNodePtrs();
 	int getNumDOF();
 	void setDomain(Domain *);
 
@@ -77,8 +76,6 @@ class SSPbrick : public Element
 	const Vector &getResistingForceIncInertia();
 
 	// public methods for element output
-	int sendSelf(int commitTag, Channel &);
-	int recvSelf(int commitTag, Channel &, FEM_ObjectBroker &);
 	void Print(OPS_Stream &s, int flag);
 
 	Response *setResponse(const char **argv, int argc, OPS_Stream &);
@@ -200,5 +197,3 @@ class SSPbrick : public Element
        -0.125
 	};
 };
-
-#endif

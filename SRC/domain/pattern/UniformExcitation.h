@@ -22,12 +22,9 @@
 // Revised:
 //
 // Purpose: This file contains the class definition for UniformExcitation.
-// UniformExcitation is a concrete class. It sets the R for a single
-// ground motion acting on a structure.
-
-#ifndef UniformExcitation_h
-#define UniformExcitation_h
-
+// UniformExcitation is a concrete class. 
+//
+#pragma once
 #include <LoadPattern.h>
 
 class UniformExcitation : public LoadPattern
@@ -71,5 +68,3 @@ class UniformExcitation : public LoadPattern
     double currentTime;
     int parameterID;
 };
-
-#endif

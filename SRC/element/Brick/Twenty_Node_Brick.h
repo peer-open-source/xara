@@ -39,7 +39,7 @@ public:
 
   Twenty_Node_Brick(int tag, 
                     const std::array<int, 20>& node_tags,
-                    NDMaterial& theMaterial, 
+                    NDMaterial& theMaterial,
                     double b1 = 0.0, 
                     double b2 = 0.0,
                     double b3 = 0.0);
@@ -80,10 +80,6 @@ public:
   const Vector& getResistingForceIncInertia();
 
   void Print(OPS_Stream& s, int flag);
-
-  // public methods for element output
-  int sendSelf(int commitTag, Channel&);
-  int recvSelf(int commitTag, Channel&, FEM_ObjectBroker&);
 
   Response* setResponse(const char** argv, int argc, OPS_Stream& s);
   int getResponse(int responseID, Information&);
@@ -132,6 +128,4 @@ private:
 
   Vector* load;
   Matrix* Ki;
-
-  // compute local shape functions
 };

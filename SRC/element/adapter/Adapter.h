@@ -61,13 +61,12 @@ public:
     Adapter(int tag, ID nodes, ID *dof, const Matrix &stif,
         int ipPort, int ssl = 0, int udp = 0,
         int addRayleigh = 0, const Matrix *mass = 0);
-    Adapter();
     
     // destructor
     ~Adapter();
     
     // method to get class type
-    const char *getClassType() const {return "Adapter";};
+    const char *getClassType() const {return "Adapter";}
     
     // public methods to obtain information about dof & connectivity
     int getNumExternalNodes() const;
