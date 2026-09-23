@@ -318,7 +318,8 @@ int Actuator::update()
 }
 
 
-const Matrix& Actuator::getTangentStiff()
+const Matrix&
+Actuator::getTangentStiff()
 {
     // zero the matrix
     theMatrix->Zero();
