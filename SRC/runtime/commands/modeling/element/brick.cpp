@@ -43,6 +43,7 @@
 #include <Twenty_Node_Brick.h>
 #include <FourNodeTetrahedron.h>
 #include <TenNodeTetrahedron.h>
+#include <element/community/UWelements/SSPbrick.h>
 
 class SolidElement {
 public:
@@ -50,6 +51,7 @@ public:
     Brick,
     Brick02,
     BbarBrick,
+    SSPBrick,
     BbarBrickWithSensitivity,
     H8E12,
     TwentyNodeBrick,
@@ -77,6 +79,7 @@ public:
       case ElementType::BbarBrick:
       case ElementType::BbarBrickWithSensitivity:
       case ElementType::H8E12:
+      case ElementType::SSPBrick:
         return CellType::H8;
       case ElementType::TwentyNodeBrick:
         return CellType::H20;
@@ -287,6 +290,9 @@ CreateSolidElement(ClientData clientData,
       case SolidElement::ElementType::BbarBrickWithSensitivity:
         theBrick = new BbarBrickWithSensitivity(tag, node_tags, *theMaterial, b1, b2, b3);
         break;
+      case SolidElement::ElementType::SSPBrick:
+        theBrick = new SSPbrick(tag, node_tags, *theMaterial, b1, b2, b3);
+        break;
 #ifdef XARA_HAVE_H8E12
       case SolidElement::ElementType::H8E12:
         theBrick = new H8E12(tag, node_tags, *theMaterial, b1, b2, b3);
@@ -345,6 +351,9 @@ XaraElemCmd_SolidElement(ClientData clientData,
   }
   else if (strcasecmp(argv[1], "bbarBrickWithSensitivity") == 0) {
     element_type = SolidElement::ElementType::BbarBrickWithSensitivity;
+  }
+  else if (strcasecmp(argv[1], "SSPbrick") == 0) {
+    element_type = SolidElement::ElementType::SSPBrick;
   }
 #ifdef XARA_HAVE_H8E12
   else if (strcasecmp(argv[1], "H8E12") == 0) {

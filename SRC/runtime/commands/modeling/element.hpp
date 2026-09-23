@@ -139,7 +139,6 @@ Tcl_CmdProc TclBasicBuilder_addFourNodeQuadWithSensitivity;
 Tcl_CmdProc TclBasicBuilder_addConstantPressureVolumeQuad;
 Tcl_CmdProc TclBasicBuilder_addNineNodeMixedQuad;
 Tcl_CmdProc TclCommand_SSPquadUP;
-// Tcl_CmdProc TclBasicBuilder_addSixNodeTri;
 Tcl_CmdProc TclBasicBuilder_addFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addNineFourNodeQuadUP;
 Tcl_CmdProc TclBasicBuilder_addBBarFourNodeQuadUP;
@@ -343,18 +342,7 @@ ElementLibrary = {
 //
 // Brick
 //
-  // {"H8",                        XaraElemCmd_H8},
-  // {"stdBrick",                  XaraElemCmd_H8},
-  // {"Brick02",                   XaraElemCmd_H8},
-  // {"H8E12",                     XaraElemCmd_H8},
-  // {"bbarBrick",                 XaraElemCmd_H8},
-  // {"bbarBrickWithSensitivity",  XaraElemCmd_H8},
-  // {"flBrick",                   XaraElemCmd_H8},
-
-  // {"20NodeBrick",               XaraElemCmd_H20},
-  // {"H20",                       XaraElemCmd_H20},
   {"BrickUP",                   XaraElemCmd_H8UP},
-  {"SSPbrick",                  TclCommand_SSP_Element},
   {"20_8_BrickUP",              TclBasicBuilder_addTwentyEightNodeBrickUP},
   {"bbarBrickUP",               TclBasicBuilder_addBBarBrickUP},
 
@@ -362,6 +350,7 @@ ElementLibrary = {
   {"stdBrick",                  XaraElemCmd_SolidElement},
   {"Brick02",                   XaraElemCmd_SolidElement},
   {"H8E12",                     XaraElemCmd_SolidElement},
+  {"SSPbrick",                  XaraElemCmd_SolidElement},
   {"bbarBrick",                 XaraElemCmd_SolidElement},
   {"bbarBrickWithSensitivity",  XaraElemCmd_SolidElement},
   {"20NodeBrick",               XaraElemCmd_SolidElement},

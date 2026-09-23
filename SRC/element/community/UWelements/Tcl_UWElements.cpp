@@ -8,7 +8,7 @@
 #include <ModelRegistry.h>
 #include <elementAPI.h>
 #include <element/community/UWelements/SSPquadUP.h>
-#include <element/community/UWelements/SSPbrick.h>
+#include <element/community/UWelements/SSPbrickUP.h>
 #include <NDMaterial.h>
 
 #ifdef _MSC_VER 
@@ -18,7 +18,6 @@
 #  include <strings.h>
 #endif
 
-static Element *TclDispatch_SSPbrick(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 static Element *TclDispatch_SSPbrickUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv);
 
 int
@@ -38,10 +37,7 @@ TclCommand_SSP_Element(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
   //   theEle = TclDispatch_SSPquadUP(clientData, interp, argc, argv);
   // }
   // else 
-  if (strcasecmp(argv[1], "SSPbrick")==0) {
-    theEle = TclDispatch_SSPbrick(clientData, interp, argc, argv);
-  }
-  else if (strcasecmp(argv[1], "SSPbrickUP")==0) {
+  if (strcasecmp(argv[1], "SSPbrickUP")==0) {
     theEle = TclDispatch_SSPbrickUP(clientData, interp, argc, argv);
   }
 
@@ -51,74 +47,8 @@ TclCommand_SSP_Element(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
   return TCL_ERROR;
 }
 
-static Element*
-TclDispatch_SSPbrick(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
-{
-  assert(clientData != nullptr);
-  ModelRegistry* builder = (ModelRegistry*)clientData;
-
-  static int num_SSPbrick;
-  if (num_SSPbrick == 0) {
-    num_SSPbrick++;
-    opslog << "SSPbrick element - Written: C.McGann, P.Arduino, "
-              "P.Mackenzie-Helnwein, U.Washington\n";
-  }
-
-  // Pointer to an element that will be returned
-  Element *theElement = 0;
 
 
-  if (argc < 10) {
-    opserr
-        << "Invalid #args, want: element SSPbrick eleTag? iNode? jNode? kNode? "
-           "lNode? mNode? nNode? pNode? qNode? matTag? <b1? b2? b3?>\n";
-    return 0;
-  }
-
-  int iData[10];
-  double dData[3];
-  dData[0] = 0.0;
-  dData[1] = 0.0;
-  dData[2] = 0.0;
-
-  int numData = 10;
-  if (OPS_GetIntInput(&numData, iData) != 0) {
-    opserr << "WARNING invalid integer data: element SSPbrick " << iData[0]
-           << endln;
-    return 0;
-  }
-
-  int matID = iData[9];
-  NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
-  if (theMaterial == nullptr) {
-    return nullptr;
-  }
-
-  if (argc == 13) {
-    numData = 3;
-    if (OPS_GetDoubleInput(&numData, dData) != 0) {
-      opserr << "WARNING invalid optional data: element SSPbrick " << iData[0]
-             << endln;
-      return 0;
-    }
-  }
-
-  // parsing was successful, allocate the element
-  theElement = new SSPbrick(iData[0], iData[1], iData[2], iData[3], iData[4],
-                            iData[5], iData[6], iData[7], iData[8],
-                            *theMaterial, dData[0], dData[1], dData[2]);
-
-  if (theElement == 0) {
-    opserr << "WARNING could not create element of type SSPbrick\n";
-    return 0;
-  }
-
-  return theElement;
-}
-
-
-
-#include <element/community/UWelements/SSPbrickUP.h>
 static Element*
 TclDispatch_SSPbrickUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
 {
@@ -187,116 +117,6 @@ TclDispatch_SSPbrickUP(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
 }
 
 
-
-#if 0
-#include <element/community/UWelements/SSPquad.h>
-static int
-TclCommand_addSSPquad(ClientData clientData, Tcl_Interp* interp, int argc, TCL_Char** const argv)
-{
-  assert(clientData != nullptr);
-  ModelRegistry* builder = (ModelRegistry*)clientData;
-
-  if (builder->getNDM() != 2 || builder->getNDF() != 2) {
-    opserr << "WARNING -- model dimensions and/or nodal DOF not compatible "
-              "with quad element\n";
-    return TCL_ERROR;
-  }
-
-  // check the number of arguments is correct
-//int argStart = 2;
-
-//if ((argc - argStart) < 8) {
-//  opserr << "WARNING insufficient arguments\n";
-//  opserr << "Want: element FourNodeQuad eleTag? iNode? jNode? kNode? lNode? "
-//            "thk? type? matTag? <pressure? rho? b1? b2?>\n";
-//  return TCL_ERROR;
-//}
-
-  // get the id and end nodes
-  int tag, iNode, jNode, kNode, lNode, matID;
-  double thickness = 1.0;
-  double b1 = 0.0;
-  double b2 = 0.0;
-
-  static int num_SSPquad;
-  if (num_SSPquad == 0) {
-    num_SSPquad++;
-    opslog << "SSPquad element - Written: C.McGann, P.Arduino, "
-              "P.Mackenzie-Helnwein, U.Washington\n";
-  }
-
-  if (argc < 10) {
-    opserr << "Invalid #args, want: element SSPquad eleTag? iNode? jNode? "
-              "kNode? lNode? matTag? type? thickness? <b1? b2?>?\n";
-    return TCL_ERROR;
-  }
-
-  int argi = 1;
-  if (Tcl_GetInt(interp, argv[++argi], &tag) != TCL_OK) {   // 2
-    opserr << "WARNING invalid SSPquad eleTag" << endln;
-    return TCL_ERROR;
-  }
-  if (Tcl_GetInt(interp, argv[++argi], &iNode) != TCL_OK) { // 3
-    opserr << "WARNING invalid iNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetInt(interp, argv[++argi], &jNode) != TCL_OK) { // 4
-    opserr << "WARNING invalid jNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetInt(interp, argv[++argi], &kNode) != TCL_OK) {
-    opserr << "WARNING invalid kNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetInt(interp, argv[++argi], &lNode) != TCL_OK) {
-    opserr << "WARNING invalid lNode\n";
-    return TCL_ERROR;
-  }
-
-  if (Tcl_GetDouble(interp, argv[++argi], &thickness) != TCL_OK) { // 7
-    opserr << "WARNING invalid thickness\n";
-    return TCL_ERROR;
-  }
-
-  TCL_Char *type = argv[++argi];
-
-  if (Tcl_GetInt(interp, argv[++argi], &matID) != TCL_OK) {
-    opserr << "WARNING invalid matID\n";
-    return TCL_ERROR;
-  }
-
-  if (argi < argc-1) {
-    if (Tcl_GetDouble(interp, argv[++argi], &b1) != TCL_OK) {
-      opserr << "WARNING invalid b1\n";
-      return TCL_ERROR;
-    }
-    if (Tcl_GetDouble(interp, argv[++argi], &b2) != TCL_OK) {
-      opserr << "WARNING invalid b2\n";
-      return TCL_ERROR;
-    }
-  }
-
-  NDMaterial *theMaterial = builder->getTypedObject<NDMaterial>(matID);
-  if (theMaterial == nullptr)
-    return TCL_ERROR;
-
-
-  Element *theElem = nullptr;
-      // new SSPquad(tag, iNode, jNode, kNode, lNode, *theMaterial,
-      //                  type, thickness, b1, b2);
-
-  if (builder->getDomain()->addElement(theElem) == false) {
-    opserr << "WARNING could not add element to the domain\n";
-    delete theElem;
-    return TCL_ERROR;
-  }
-
-  return TCL_OK;
-}
-#endif
 
 int
 TclCommand_SSPquadUP(ClientData clientData, Tcl_Interp* interp,
