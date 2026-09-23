@@ -5,7 +5,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2025, OpenSees/Xara Developers
+// Copyright (c) 2026, OpenSees/Xara Developers
 // All rights reserved.  No warranty, explicit or implicit, is provided.
 //
 // This source code is licensed under the BSD 2-Clause License.
@@ -90,6 +90,8 @@ public:
       case ElementType::Tet10:
         return CellType::T10;
     }
+    assert(false);
+    return CellType::H8;
   }
 
   std::size_t nodes() const {
@@ -100,6 +102,8 @@ public:
       case CellType::T4:  return  4;
       case CellType::T10: return 10;
     }
+    assert(false);
+    return 0;
   }
 
 private:
