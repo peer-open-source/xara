@@ -29,14 +29,6 @@ TclCommand_SSP_Element(ClientData clientData, Tcl_Interp* interp, int argc, TCL_
   ModelRegistry* builder = (ModelRegistry*)clientData;
   Domain* domain = builder->getDomain();
 
-  // if (strcasecmp(argv[1], "SSPquad")==0) {
-  //   return TclCommand_addSSPquad(clientData, interp, argc, argv);
-  // }
-  // else 
-  // if (strcasecmp(argv[1], "SSPquadUP")==0) {
-  //   theEle = TclDispatch_SSPquadUP(clientData, interp, argc, argv);
-  // }
-  // else 
   if (strcasecmp(argv[1], "SSPbrickUP")==0) {
     theEle = TclDispatch_SSPbrickUP(clientData, interp, argc, argv);
   }

@@ -428,10 +428,6 @@ element_dispatch = {
   {"ModElasticBeam2d",             OPS_ModElasticBeam2d},
   {"ModElasticBeam3d",             OPS_ModElasticBeam3d},
 
-// // Solid
-//   {"FourNodeTetrahedron",          OPS_FourNodeTetrahedron},
-//   {"TenNodeTetrahedron",           OPS_TenNodeTetrahedron},
-
 // Bearing
   {"FPBearingPTV",                 OPS_FPBearingPTV},
   {"TripleFrictionPendulum",       OPS_TripleFrictionPendulum},
