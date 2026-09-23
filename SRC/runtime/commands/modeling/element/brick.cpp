@@ -104,13 +104,13 @@ private:
 };
 
 
-template <int nen>
+template <std::size_t nen>
 static int
 CreateSolidElement(ClientData clientData, 
                    Tcl_Interp *interp,
                    ArgSize argc,
                    TCL_Char **const argv,
-                   SolidElement& solid_element)
+                   const SolidElement& solid_element)
 {
 
   ModelRegistry* builder = (ModelRegistry*)clientData;
