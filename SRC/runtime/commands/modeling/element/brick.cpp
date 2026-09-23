@@ -107,7 +107,7 @@ private:
 };
 
 
-template <std::size_t nen>
+template <int nen>
 static int
 CreateSolidElement(ClientData clientData, 
                    Tcl_Interp *interp,
