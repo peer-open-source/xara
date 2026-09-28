@@ -118,6 +118,7 @@ extern OPS_Routine OPS_SteelMPF;
 extern OPS_Routine OPS_SteelZ01Material;
 extern OPS_Routine OPS_Steel02Fatigue;
 extern OPS_Routine OPS_Steel4;
+extern OPS_Routine OPS_Steel02M;
 
 extern OPS_Routine OPS_TDConcrete;       // ntosic
 extern OPS_Routine OPS_TDConcreteEXP;    // ntosic
@@ -278,6 +279,7 @@ UniaxialLibrary {
     {"Steel03",                dispatch<TclCommand_newFedeasSteel>     },
     {"Steel2",                 dispatch<TclCommand_newFedeasSteel>     },
     {"Steel4",                 dispatch<OPS_Steel4>                    },
+    {"Steel02M",               dispatch<OPS_Steel02M>                  },
     {"RambergOsgood",          dispatch<OPS_RambergOsgoodSteel>        },
     {"RambergOsgoodSteel",     dispatch<OPS_RambergOsgoodSteel>        },
     {"ReinforcingSteel",       dispatch<OPS_ReinforcingSteel>          },
