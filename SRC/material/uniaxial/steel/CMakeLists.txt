@@ -25,6 +25,7 @@ target_sources(OPS_Material
       Steel03.cpp
       Steel2.cpp
       Steel4.cpp
+      Steel02M.cpp
       SteelBRB.cpp
       SteelDRC.cpp
       SteelECThermal.cpp
